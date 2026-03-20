@@ -14,7 +14,7 @@ type UserDataOverrideOptions = {
 
 export function applyUserDataDirOverride(options: UserDataOverrideOptions): string | null {
   const env = options.env ?? process.env;
-  const overridePath = env.CLAWX_USER_DATA_DIR?.trim();
+  const overridePath = env.XClaw_USER_DATA_DIR?.trim();
 
   if (!overridePath) {
     return null;

@@ -18,7 +18,7 @@ export type GatewayManagedMode = 'managed' | 'unmanaged';
  * Generate a random token for gateway authentication
  */
 function generateToken(): string {
-  return `clawx-${randomBytes(16).toString('hex')}`;
+  return `XClaw-${randomBytes(16).toString('hex')}`;
 }
 
 /**
@@ -63,6 +63,110 @@ export interface AppSettings {
   selectedBundles: string[];
   enabledSkills: string[];
   disabledSkills: string[];
+}
+
+export type PublicAppSettings = Pick<AppSettings,
+  | 'theme'
+  | 'language'
+  | 'startMinimized'
+  | 'launchAtStartup'
+  | 'telemetryEnabled'
+  | 'setupComplete'
+  | 'gatewayAutoStart'
+  | 'gatewayDesiredState'
+  | 'gatewayManagedMode'
+  | 'gatewayPort'
+  | 'proxyEnabled'
+  | 'proxyServer'
+  | 'proxyHttpServer'
+  | 'proxyHttpsServer'
+  | 'proxyAllServer'
+  | 'proxyBypassRules'
+  | 'updateChannel'
+  | 'autoCheckUpdate'
+  | 'autoDownloadUpdate'
+  | 'sidebarCollapsed'
+  | 'devModeUnlocked'
+>;
+
+const rendererReadableSettingKeys = new Set<keyof PublicAppSettings>([
+  'theme',
+  'language',
+  'startMinimized',
+  'launchAtStartup',
+  'telemetryEnabled',
+  'setupComplete',
+  'gatewayAutoStart',
+  'gatewayDesiredState',
+  'gatewayManagedMode',
+  'gatewayPort',
+  'proxyEnabled',
+  'proxyServer',
+  'proxyHttpServer',
+  'proxyHttpsServer',
+  'proxyAllServer',
+  'proxyBypassRules',
+  'updateChannel',
+  'autoCheckUpdate',
+  'autoDownloadUpdate',
+  'sidebarCollapsed',
+  'devModeUnlocked',
+]);
+
+const rendererWritableSettingKeys = new Set<keyof AppSettings>([
+  'theme',
+  'language',
+  'startMinimized',
+  'launchAtStartup',
+  'telemetryEnabled',
+  'setupComplete',
+  'gatewayAutoStart',
+  'gatewayPort',
+  'proxyEnabled',
+  'proxyServer',
+  'proxyHttpServer',
+  'proxyHttpsServer',
+  'proxyAllServer',
+  'proxyBypassRules',
+  'updateChannel',
+  'autoCheckUpdate',
+  'autoDownloadUpdate',
+  'sidebarCollapsed',
+  'devModeUnlocked',
+]);
+
+export function isRendererReadableSettingKey(key: string): key is keyof PublicAppSettings {
+  return rendererReadableSettingKeys.has(key as keyof PublicAppSettings);
+}
+
+export function isRendererWritableSettingKey(key: string): key is keyof AppSettings {
+  return rendererWritableSettingKeys.has(key as keyof AppSettings);
+}
+
+export function toPublicAppSettings(settings: AppSettings): PublicAppSettings {
+  return {
+    theme: settings.theme,
+    language: settings.language,
+    startMinimized: settings.startMinimized,
+    launchAtStartup: settings.launchAtStartup,
+    telemetryEnabled: settings.telemetryEnabled,
+    setupComplete: settings.setupComplete,
+    gatewayAutoStart: settings.gatewayAutoStart,
+    gatewayDesiredState: settings.gatewayDesiredState,
+    gatewayManagedMode: settings.gatewayManagedMode,
+    gatewayPort: settings.gatewayPort,
+    proxyEnabled: settings.proxyEnabled,
+    proxyServer: settings.proxyServer,
+    proxyHttpServer: settings.proxyHttpServer,
+    proxyHttpsServer: settings.proxyHttpsServer,
+    proxyAllServer: settings.proxyAllServer,
+    proxyBypassRules: settings.proxyBypassRules,
+    updateChannel: settings.updateChannel,
+    autoCheckUpdate: settings.autoCheckUpdate,
+    autoDownloadUpdate: settings.autoDownloadUpdate,
+    sidebarCollapsed: settings.sidebarCollapsed,
+    devModeUnlocked: settings.devModeUnlocked,
+  };
 }
 
 /**

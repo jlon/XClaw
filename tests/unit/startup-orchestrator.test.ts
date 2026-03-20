@@ -1,6 +1,34 @@
 import { describe, expect, it, vi } from 'vitest';
 
 describe('runGatewayStartupSequence', () => {
+  it('passes existing gateway metadata through when startup reuses a ready runtime', async () => {
+    const { runGatewayStartupSequence } = await import('@electron/gateway/startup-orchestrator');
+    const connect = vi.fn().mockResolvedValue(undefined);
+    const onConnectedToExistingGateway = vi.fn();
+
+    await runGatewayStartupSequence({
+      port: 18789,
+      shouldWaitForPortFree: false,
+      resetStartupStderrLines: vi.fn(),
+      getStartupStderrLines: vi.fn().mockReturnValue([]),
+      assertLifecycle: vi.fn(),
+      findExistingGateway: vi.fn().mockResolvedValue({ port: 18789, pid: 12345, owned: true }),
+      connect,
+      onExistingGatewayConnectFailure: vi.fn(),
+      onConnectedToExistingGateway,
+      waitForPortFree: vi.fn(),
+      startProcess: vi.fn(),
+      waitForReady: vi.fn(),
+      onConnectedToManagedGateway: vi.fn(),
+      runDoctorRepair: vi.fn().mockResolvedValue(false),
+      onDoctorRepairSuccess: vi.fn(),
+      delay: vi.fn().mockResolvedValue(undefined),
+    });
+
+    expect(connect).toHaveBeenCalledWith(18789, undefined);
+    expect(onConnectedToExistingGateway).toHaveBeenCalledWith({ port: 18789, pid: 12345, owned: true });
+  });
+
   it('replaces an existing gateway with a managed process when attaching to it fails', async () => {
     const { runGatewayStartupSequence } = await import('@electron/gateway/startup-orchestrator');
     const connect = vi.fn()

@@ -33,7 +33,7 @@ export interface GatewayLaunchContext {
 
 const CHANNEL_PLUGIN_MAP: Record<string, { dirName: string; npmName: string; legacyDirNames?: string[] }> = {
   dingtalk: { dirName: 'dingtalk', npmName: '@soimy/dingtalk' },
-  wecom: { dirName: 'wecom', npmName: '@openclaw-china/wecom' },
+  wecom: { dirName: 'wecom', npmName: '@openclaw-china/wecom', legacyDirNames: ['wecom-openclaw-plugin'] },
   feishu: { dirName: 'openclaw-lark', npmName: '@larksuite/openclaw-lark', legacyDirNames: ['feishu-openclaw-plugin'] },
   qqbot: { dirName: 'qqbot', npmName: '@sliverp/qqbot' },
 };
@@ -119,9 +119,15 @@ function ensureConfiguredPluginsUpgraded(configuredChannels: string[]): void {
       const npmPkgPath = join(process.cwd(), 'node_modules', ...npmName.split('/'));
       if (!existsSync(join(npmPkgPath, 'openclaw.plugin.json'))) continue;
       const sourceVersion = readPluginVersion(join(npmPkgPath, 'package.json'));
-      if (!sourceVersion) continue;
+      if (!sourceVersion) {
+        if (isInstalled) cleanupLegacyPluginDirs(channelType, legacyDirNames);
+        continue;
+      }
       // Skip only if installed AND same version
-      if (isInstalled && installedVersion && sourceVersion === installedVersion) continue;
+      if (isInstalled && installedVersion && sourceVersion === installedVersion) {
+        cleanupLegacyPluginDirs(channelType, legacyDirNames);
+        continue;
+      }
 
       logger.info(`[plugin] ${isInstalled ? 'Auto-upgrading' : 'Installing'} ${channelType} plugin${isInstalled ? `: ${installedVersion} → ${sourceVersion}` : `: ${sourceVersion}`} (dev/node_modules)`);
       try {

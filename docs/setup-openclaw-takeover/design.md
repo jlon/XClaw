@@ -344,7 +344,7 @@ Provider 导入不能只看一个地方，至少要联合读取：
 - `openclaw.json`
 - 全部 `auth-profiles.json`
 - XClaw `settings`
-- XClaw `clawx-providers` store
+- XClaw `XClaw-providers` store
 
 备份路径建议写入 XClaw 自己的数据目录，而不是写回 `~/.openclaw`。
 
@@ -371,7 +371,7 @@ Windows 上要额外考虑文件被占用或替换失败的情况，失败时要
 如果步骤 2 或 3 失败：
 
 - 恢复 XClaw 本地 `settings`
-- 恢复 XClaw `clawx-providers` store
+- 恢复 XClaw `XClaw-providers` store
 - 不放开启动副作用
 - 不把 setup 标记为完成
 

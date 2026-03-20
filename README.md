@@ -305,6 +305,7 @@ Chain multiple skills together to create sophisticated automation pipelines. Pro
 │   └── types/               # TypeScript type definitions
 ├── tests/
 │   └── unit/                # Vitest unit/integration-like tests
+│   └── e2e/                 # Playwright smoke tests
 ├── resources/                # Static assets (icons/images)
 └── scripts/                  # Build and utility scripts
 ```
@@ -321,6 +322,7 @@ pnpm typecheck            # TypeScript validation
 
 # Testing
 pnpm test                 # Run unit tests
+pnpm run test:e2e         # Run Playwright smoke tests
 pnpm run comms:replay     # Compute communication replay metrics
 pnpm run comms:baseline   # Refresh communication baseline snapshot
 pnpm run comms:compare    # Compare replay metrics against baseline thresholds

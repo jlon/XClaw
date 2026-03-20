@@ -59,15 +59,15 @@ describe('env-path', () => {
 
   it('prepends entry with Windows delimiter', () => {
     setPlatform('win32');
-    const next = prependPathEntry({ Path: 'C:\\Windows\\System32' }, 'D:\\clawx\\resources\\bin');
-    expect(next.path).toBe('D:\\clawx\\resources\\bin;C:\\Windows\\System32');
-    expect(next.env.Path).toBe('D:\\clawx\\resources\\bin;C:\\Windows\\System32');
+    const next = prependPathEntry({ Path: 'C:\\Windows\\System32' }, 'D:\\XClaw\\resources\\bin');
+    expect(next.path).toBe('D:\\XClaw\\resources\\bin;C:\\Windows\\System32');
+    expect(next.env.Path).toBe('D:\\XClaw\\resources\\bin;C:\\Windows\\System32');
   });
 
   it('prepends entry with POSIX delimiter', () => {
     setPlatform('linux');
-    const next = prependPathEntry({ PATH: '/usr/bin:/bin' }, '/opt/clawx/bin');
-    expect(next.path).toBe('/opt/clawx/bin:/usr/bin:/bin');
-    expect(next.env.PATH).toBe('/opt/clawx/bin:/usr/bin:/bin');
+    const next = prependPathEntry({ PATH: '/usr/bin:/bin' }, '/opt/XClaw/bin');
+    expect(next.path).toBe('/opt/XClaw/bin:/usr/bin:/bin');
+    expect(next.env.PATH).toBe('/opt/XClaw/bin:/usr/bin:/bin');
   });
 });

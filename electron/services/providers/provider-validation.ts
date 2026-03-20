@@ -12,7 +12,7 @@ type ValidationProfile =
 type ValidationResult = { valid: boolean; error?: string; status?: number };
 
 function logValidationStatus(provider: string, status: number): void {
-  console.log(`[clawx-validate] ${provider} HTTP ${status}`);
+  console.log(`[XClaw-validate] ${provider} HTTP ${status}`);
 }
 
 function maskSecret(secret: string): string {
@@ -81,7 +81,7 @@ function logValidationRequest(
   headers: Record<string, string>,
 ): void {
   console.log(
-    `[clawx-validate] ${provider} request ${method} ${sanitizeValidationUrl(url)} headers=${JSON.stringify(sanitizeHeaders(headers))}`,
+    `[XClaw-validate] ${provider} request ${method} ${sanitizeValidationUrl(url)} headers=${JSON.stringify(sanitizeHeaders(headers))}`,
   );
 }
 
@@ -164,7 +164,7 @@ async function validateOpenAiCompatibleKey(
 
   if (modelsResult.status === 404) {
     console.log(
-      `[clawx-validate] ${providerType} /models returned 404, falling back to ${apiProtocol} probe`,
+      `[XClaw-validate] ${providerType} /models returned 404, falling back to ${apiProtocol} probe`,
     );
     if (apiProtocol === 'openai-responses') {
       return await performResponsesProbe(providerType, probeUrl, headers);
@@ -321,7 +321,7 @@ async function validateAnthropicHeaderKey(
     modelsResult.error?.includes('API error: 400')
   ) {
     console.log(
-      `[clawx-validate] ${providerType} /models returned error, falling back to /messages probe`,
+      `[XClaw-validate] ${providerType} /models returned error, falling back to /messages probe`,
     );
     const messagesUrl = `${base}/messages`;
     return await performAnthropicMessagesProbe(providerType, messagesUrl, headers);

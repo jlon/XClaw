@@ -24,9 +24,10 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { useSkillsStore } from '@/stores/skills';
 import { useGatewayStore } from '@/stores/gateway';
-import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { WorkspacePageFrame, WorkspacePageLoading, WorkspacePageScrollArea, WorkspacePageShell } from '@/components/layout/WorkspacePage';
 import { cn } from '@/lib/utils';
 import { invokeIpc } from '@/lib/api-client';
 import { hostApiFetch } from '@/lib/host-api';
@@ -603,16 +604,12 @@ export function Skills() {
   }, [uninstallSkill, t]);
 
   if (loading) {
-    return (
-      <div className="flex flex-col -m-6 dark:bg-background min-h-[calc(100vh-2.5rem)] items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
+    return <WorkspacePageLoading />;
   }
 
   return (
-    <div className="flex flex-col -m-6 dark:bg-background h-[calc(100vh-2.5rem)] overflow-hidden">
-      <div className="w-full max-w-5xl mx-auto flex flex-col h-full p-10 pt-16">
+    <WorkspacePageFrame>
+      <WorkspacePageShell>
 
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-start justify-between mb-6 shrink-0 gap-4">
@@ -638,103 +635,100 @@ export function Skills() {
           </div>
         </div>
 
-        {/* Gateway Warning */}
-        {showGatewayWarning && (
-          <div className="mb-6 p-4 rounded-xl border border-yellow-500/50 bg-yellow-500/10 flex items-center gap-3">
-            <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
-            <span className="text-yellow-700 dark:text-yellow-400 text-sm font-medium">
-              {t('gatewayWarning')}
-            </span>
-          </div>
-        )}
+        <WorkspacePageScrollArea>
+          {showGatewayWarning && (
+            <div className="mb-6 p-4 rounded-xl border border-yellow-500/50 bg-yellow-500/10 flex items-center gap-3">
+              <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+              <span className="text-yellow-700 dark:text-yellow-400 text-sm font-medium">
+                {t('gatewayWarning')}
+              </span>
+            </div>
+          )}
 
-        {/* Sub Navigation and Actions */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-black/10 dark:border-white/10 pb-4 mb-4 shrink-0 gap-4">
-          <div className="flex items-center flex-wrap gap-4 text-[14px]">
-            <div className="relative group flex items-center bg-black/5 dark:bg-white/5 rounded-full px-3 py-1.5 focus-within:bg-black/10 transition-colors border border-transparent focus-within:border-black/10 dark:focus-within:border-white/10 mr-2">
-              <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
-              <input
-                placeholder={t('search')}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="ml-2 bg-transparent outline-none w-28 md:w-40 font-normal placeholder:text-foreground/50 text-[13px] text-foreground"
-              />
-              {searchQuery && (
+          <div className="mb-4 flex flex-col justify-between gap-4 border-b border-black/10 pb-4 dark:border-white/10 md:flex-row md:items-center">
+            <div className="flex items-center flex-wrap gap-4 text-[14px]">
+              <div className="relative group flex items-center bg-black/5 dark:bg-white/5 rounded-full px-3 py-1.5 focus-within:bg-black/10 transition-colors border border-transparent focus-within:border-black/10 dark:focus-within:border-white/10 mr-2">
+                <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <input
+                  placeholder={t('search')}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="ml-2 bg-transparent outline-none w-28 md:w-40 font-normal placeholder:text-foreground/50 text-[13px] text-foreground"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="text-foreground/50 hover:text-foreground shrink-0 ml-1"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-center gap-6">
                 <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="text-foreground/50 hover:text-foreground shrink-0 ml-1"
+                  onClick={() => setSelectedSource('all')}
+                  className={cn("font-medium transition-colors flex items-center gap-1.5", selectedSource === 'all' ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
                 >
-                  <X className="h-3.5 w-3.5" />
+                  {t('filter.all', { count: sourceStats.all })}
                 </button>
-              )}
+                <button
+                  onClick={() => setSelectedSource('built-in')}
+                  className={cn("font-medium transition-colors flex items-center gap-1.5", selectedSource === 'built-in' ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
+                >
+                  {t('filter.builtIn', { count: sourceStats.builtIn })}
+                </button>
+                <button
+                  onClick={() => setSelectedSource('marketplace')}
+                  className={cn("font-medium transition-colors flex items-center gap-1.5", selectedSource === 'marketplace' ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
+                >
+                  {t('filter.marketplace', { count: sourceStats.marketplace })}
+                </button>
+              </div>
             </div>
 
-            <div className="flex items-center gap-6">
-              <button
-                onClick={() => setSelectedSource('all')}
-                className={cn("font-medium transition-colors flex items-center gap-1.5", selectedSource === 'all' ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => bulkToggleVisible(true)}
+                className="h-8 text-[13px] font-medium rounded-md px-3 border-black/10 dark:border-white/10 bg-transparent hover:bg-black/5 dark:hover:bg-white/5 shadow-none"
               >
-                {t('filter.all', { count: sourceStats.all })}
-              </button>
-              <button
-                onClick={() => setSelectedSource('built-in')}
-                className={cn("font-medium transition-colors flex items-center gap-1.5", selectedSource === 'built-in' ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
+                {t('actions.enableVisible')}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => bulkToggleVisible(false)}
+                className="h-8 text-[13px] font-medium rounded-md px-3 border-black/10 dark:border-white/10 bg-transparent hover:bg-black/5 dark:hover:bg-white/5 shadow-none"
               >
-                {t('filter.builtIn', { count: sourceStats.builtIn })}
-              </button>
-              <button
-                onClick={() => setSelectedSource('marketplace')}
-                className={cn("font-medium transition-colors flex items-center gap-1.5", selectedSource === 'marketplace' ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
+                {t('actions.disableVisible')}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setInstallQuery('');
+                  setInstallSheetOpen(true);
+                }}
+                className="h-8 text-[13px] font-medium rounded-md px-3 border-black/10 dark:border-white/10 bg-transparent hover:bg-black/5 dark:hover:bg-white/5 shadow-none"
               >
-                {t('filter.marketplace', { count: sourceStats.marketplace })}
-              </button>
+                {t('actions.installSkill')}
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={fetchSkills}
+                disabled={!isGatewayRunning}
+                className="h-8 w-8 ml-1 rounded-md border-black/10 dark:border-white/10 bg-transparent hover:bg-black/5 dark:hover:bg-white/5 shadow-none text-muted-foreground hover:text-foreground"
+                title={t('refresh')}
+              >
+                <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
+              </Button>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => bulkToggleVisible(true)}
-              className="h-8 text-[13px] font-medium rounded-md px-3 border-black/10 dark:border-white/10 bg-transparent hover:bg-black/5 dark:hover:bg-white/5 shadow-none"
-            >
-              {t('actions.enableVisible')}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => bulkToggleVisible(false)}
-              className="h-8 text-[13px] font-medium rounded-md px-3 border-black/10 dark:border-white/10 bg-transparent hover:bg-black/5 dark:hover:bg-white/5 shadow-none"
-            >
-              {t('actions.disableVisible')}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setInstallQuery('');
-                setInstallSheetOpen(true);
-              }}
-              className="h-8 text-[13px] font-medium rounded-md px-3 border-black/10 dark:border-white/10 bg-transparent hover:bg-black/5 dark:hover:bg-white/5 shadow-none"
-            >
-              {t('actions.installSkill')}
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={fetchSkills}
-              disabled={!isGatewayRunning}
-              className="h-8 w-8 ml-1 rounded-md border-black/10 dark:border-white/10 bg-transparent hover:bg-black/5 dark:hover:bg-white/5 shadow-none text-muted-foreground hover:text-foreground"
-              title={t('refresh')}
-            >
-              <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
-            </Button>
-          </div>
-        </div>
-
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto pr-2 pb-10 min-h-0 -mr-2">
           {error && (
             <div className="mb-4 p-4 rounded-xl border border-destructive/50 bg-destructive/10 text-destructive text-sm font-medium flex items-center gap-2">
               <AlertCircle className="h-5 w-5 shrink-0" />
@@ -806,8 +800,8 @@ export function Skills() {
               ))
             )}
           </div>
-        </div>
-      </div>
+        </WorkspacePageScrollArea>
+      </WorkspacePageShell>
 
       <Sheet open={installSheetOpen} onOpenChange={setInstallSheetOpen}>
         <SheetContent
@@ -950,7 +944,7 @@ export function Skills() {
         onUninstall={handleUninstall}
         onOpenFolder={handleOpenSkillFolder}
       />
-    </div>
+    </WorkspacePageFrame>
   );
 }
 

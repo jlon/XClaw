@@ -305,6 +305,7 @@ XClaw 采用 **双进程 + Host API 统一接入架构**。渲染进程只调用
 │   └── types/               # TypeScript 类型定义
 ├── tests/
 │   └── unit/                # Vitest 单元/集成型测试
+│   └── e2e/                 # Playwright 冒烟测试
 ├── resources/                # 静态资源（图标、图片）
 └── scripts/                  # 构建与工具脚本
 ```
@@ -321,6 +322,7 @@ pnpm typecheck            # TypeScript 类型检查
 
 # 测试
 pnpm test                 # 运行单元测试
+pnpm run test:e2e         # 运行 Playwright 冒烟测试
 pnpm run comms:replay     # 计算通信回放指标
 pnpm run comms:baseline   # 刷新通信基线快照
 pnpm run comms:compare    # 将回放指标与基线阈值对比

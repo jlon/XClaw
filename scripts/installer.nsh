@@ -1,4 +1,4 @@
-; ClawX Custom NSIS Installer/Uninstaller Script
+; XClaw Custom NSIS Installer/Uninstaller Script
 ;
 ; Install: enables long paths, adds resources\cli to user PATH for openclaw CLI.
 ; Uninstall: removes the PATH entry and optionally deletes user data.
@@ -111,12 +111,12 @@
 
   ; Ask user if they want to completely remove all user data
   MessageBox MB_YESNO|MB_ICONQUESTION \
-    "Do you want to completely remove all ClawX user data?$\r$\n$\r$\nThis will delete:$\r$\n  • .openclaw folder (configuration & skills)$\r$\n  • AppData\Local\clawx (local app data)$\r$\n  • AppData\Roaming\clawx (roaming app data)$\r$\n$\r$\nSelect 'No' to keep your data for future reinstallation." \
+    "Do you want to completely remove all XClaw user data?$\r$\n$\r$\nThis will delete:$\r$\n  • .openclaw folder (configuration & skills)$\r$\n  • AppData\Local\XClaw (local app data)$\r$\n  • AppData\Roaming\XClaw (roaming app data)$\r$\n$\r$\nSelect 'No' to keep your data for future reinstallation." \
     /SD IDNO IDYES _cu_removeData IDNO _cu_skipRemove
 
   _cu_removeData:
-    ; Kill any lingering ClawX processes to release file locks on electron-store
-    ; JSON files (settings.json, clawx-providers.json, window-state.json, etc.)
+    ; Kill any lingering XClaw processes to release file locks on electron-store
+    ; JSON files (settings.json, XClaw-providers.json, window-state.json, etc.)
     ${nsProcess::FindProcess} "${APP_EXECUTABLE_FILENAME}" $R0
     ${if} $R0 == 0
       ${nsProcess::KillProcess} "${APP_EXECUTABLE_FILENAME}" $R0
@@ -128,8 +128,8 @@
 
     ; --- Always remove current user's data first ---
     RMDir /r "$PROFILE\.openclaw"
-    RMDir /r "$LOCALAPPDATA\clawx"
-    RMDir /r "$APPDATA\clawx"
+    RMDir /r "$LOCALAPPDATA\XClaw"
+    RMDir /r "$APPDATA\XClaw"
 
     ; --- Retry: if directories still exist (locked files), wait and try again ---
     ; Check .openclaw
@@ -142,22 +142,22 @@
         Pop $1
     _cu_openclawDone:
 
-    ; Check AppData\Local\clawx
-    IfFileExists "$LOCALAPPDATA\clawx\*.*" 0 _cu_localDone
+    ; Check AppData\Local\XClaw
+    IfFileExists "$LOCALAPPDATA\XClaw\*.*" 0 _cu_localDone
       Sleep 3000
-      RMDir /r "$LOCALAPPDATA\clawx"
-      IfFileExists "$LOCALAPPDATA\clawx\*.*" 0 _cu_localDone
-        nsExec::ExecToStack 'cmd.exe /c rd /s /q "$LOCALAPPDATA\clawx"'
+      RMDir /r "$LOCALAPPDATA\XClaw"
+      IfFileExists "$LOCALAPPDATA\XClaw\*.*" 0 _cu_localDone
+        nsExec::ExecToStack 'cmd.exe /c rd /s /q "$LOCALAPPDATA\XClaw"'
         Pop $0
         Pop $1
     _cu_localDone:
 
-    ; Check AppData\Roaming\clawx
-    IfFileExists "$APPDATA\clawx\*.*" 0 _cu_roamingDone
+    ; Check AppData\Roaming\XClaw
+    IfFileExists "$APPDATA\XClaw\*.*" 0 _cu_roamingDone
       Sleep 3000
-      RMDir /r "$APPDATA\clawx"
-      IfFileExists "$APPDATA\clawx\*.*" 0 _cu_roamingDone
-        nsExec::ExecToStack 'cmd.exe /c rd /s /q "$APPDATA\clawx"'
+      RMDir /r "$APPDATA\XClaw"
+      IfFileExists "$APPDATA\XClaw\*.*" 0 _cu_roamingDone
+        nsExec::ExecToStack 'cmd.exe /c rd /s /q "$APPDATA\XClaw"'
         Pop $0
         Pop $1
     _cu_roamingDone:
@@ -166,10 +166,10 @@
     StrCpy $R3 ""
     IfFileExists "$PROFILE\.openclaw\*.*" 0 +2
       StrCpy $R3 "$R3$\r$\n  • $PROFILE\.openclaw"
-    IfFileExists "$LOCALAPPDATA\clawx\*.*" 0 +2
-      StrCpy $R3 "$R3$\r$\n  • $LOCALAPPDATA\clawx"
-    IfFileExists "$APPDATA\clawx\*.*" 0 +2
-      StrCpy $R3 "$R3$\r$\n  • $APPDATA\clawx"
+    IfFileExists "$LOCALAPPDATA\XClaw\*.*" 0 +2
+      StrCpy $R3 "$R3$\r$\n  • $LOCALAPPDATA\XClaw"
+    IfFileExists "$APPDATA\XClaw\*.*" 0 +2
+      StrCpy $R3 "$R3$\r$\n  • $APPDATA\XClaw"
     StrCmp $R3 "" _cu_cleanupOk
       MessageBox MB_OK|MB_ICONEXCLAMATION \
         "Some data directories could not be removed (files may be in use):$\r$\n$R3$\r$\n$\r$\nPlease delete them manually after restarting your computer."
@@ -189,8 +189,8 @@
     StrCmp $R2 $PROFILE _cu_enumNext
 
     RMDir /r "$R2\.openclaw"
-    RMDir /r "$R2\AppData\Local\clawx"
-    RMDir /r "$R2\AppData\Roaming\clawx"
+    RMDir /r "$R2\AppData\Local\XClaw"
+    RMDir /r "$R2\AppData\Roaming\XClaw"
 
   _cu_enumNext:
     IntOp $R0 $R0 + 1

@@ -48,7 +48,7 @@
 - 接管模式不会覆盖现有 workspace 配置
 - 接管模式会在当前会话复用 store 中的 `gatewayPort`，但不会重写 fresh 分支的 workspace / port 选择
 - 退出 app 时，如果当前连接的是外部 Gateway，只会断开 XClaw 自己的连接，不会主动 `shutdown` 外部 Gateway
-- 支持通过 `CLAWX_USER_DATA_DIR` 覆盖 `userData`，以便在隔离环境中验证首次接管
+- 支持通过 `XClaw_USER_DATA_DIR` 覆盖 `userData`，以便在隔离环境中验证首次接管
 - 接管模式在确认前不会触发技能安装、插件安装、context 合并和 gateway 自动启动
 - 接管确认后会导入 provider 账户、默认项和 secret-store
 - 接管失败时会恢复 XClaw 本地 store，不会错误标记 setup 完成
@@ -172,7 +172,7 @@
 #### macOS
 
 - 验证 `homedir()/.openclaw` 识别正确
-- 验证 `CLAWX_USER_DATA_DIR` 能正确隔离 Electron `userData`
+- 验证 `XClaw_USER_DATA_DIR` 能正确隔离 Electron `userData`
 - 验证端口被占用但不是 Gateway 时，takeover 仍会阻断
 - 验证工作区路径支持 `~/...` 展开
 - 验证 setup 完成后的当前会话激活稳定
@@ -247,9 +247,9 @@ pnpm run comms:compare
 - 已执行：更新后的最新代码在真实环境完成一次 `pnpm dev -> /api/gateway/status -> /api/gateway/health` smoke，最终态为 `running + ok=true`
 - 已执行：`curl -s http://127.0.0.1:3210/api/settings | jq '{setupComplete, gatewayPort, gatewayToken}'`
 - 已执行：`jq '{gatewayPort: .gateway.port, gatewayToken: .gateway.auth.token}' ~/.openclaw/openclaw.json`
-- 已执行：直接在真实 `~/Library/Application Support/clawx` 上临时回退到 pending，完成 `setup-inspection -> setup-plan -> takeover-import -> setup-activation`
+- 已执行：直接在真实 `~/Library/Application Support/XClaw` 上临时回退到 pending，完成 `setup-inspection -> setup-plan -> takeover-import -> setup-activation`
 - 已执行：真实环境 takeover 后重启 `pnpm dev`，确认不会二次进入 setup，且可附着现有 Gateway
-- 已执行：`HOME=/tmp/... CLAWX_USER_DATA_DIR=/tmp/.../Library/Application\\ Support/clawx pnpm dev`
+- 已执行：`HOME=/tmp/... XClaw_USER_DATA_DIR=/tmp/.../Library/Application\\ Support/XClaw pnpm dev`
 - 已执行：隔离环境首次启动日志验证 `source=legacy-footprint, readonly=true, startupSideEffects=false`
 - 已执行：隔离环境 `takeover-import + setup-activation`
 - 已执行：隔离环境第二次启动日志验证 `source=main-settings, readonly=false, startupSideEffects=true`

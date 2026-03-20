@@ -13,5 +13,5 @@ case "$1" in
     ;;
 esac
 
-export OPENCLAW_EMBEDDED_IN="ClawX"
+export OPENCLAW_EMBEDDED_IN="XClaw"
 ELECTRON_RUN_AS_NODE=1 exec "$INSTALL_DIR/XClaw.exe" "$INSTALL_DIR/resources/openclaw/openclaw.mjs" "$@"

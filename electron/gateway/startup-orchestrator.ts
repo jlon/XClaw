@@ -4,6 +4,8 @@ import { getGatewayStartupRecoveryAction } from './startup-recovery';
 
 export interface ExistingGatewayInfo {
   port: number;
+  pid?: number;
+  owned?: boolean;
   externalToken?: string;
 }
 
@@ -18,7 +20,7 @@ type StartupHooks = {
   findExistingGateway: (port: number, ownedPid?: number) => Promise<ExistingGatewayInfo | null>;
   connect: (port: number, externalToken?: string) => Promise<void>;
   onExistingGatewayConnectFailure?: (existing: ExistingGatewayInfo, error: unknown) => Promise<boolean>;
-  onConnectedToExistingGateway: () => void;
+  onConnectedToExistingGateway: (existing: ExistingGatewayInfo) => void;
   waitForPortFree: (port: number) => Promise<void>;
   startProcess: () => Promise<void>;
   waitForReady: (port: number) => Promise<void>;
@@ -49,7 +51,7 @@ export async function runGatewayStartupSequence(hooks: StartupHooks): Promise<vo
         try {
           await hooks.connect(existing.port, existing.externalToken);
           hooks.assertLifecycle('start/connect-existing');
-          hooks.onConnectedToExistingGateway();
+          hooks.onConnectedToExistingGateway(existing);
           return;
         } catch (error) {
           const shouldReplaceExisting = hooks.onExistingGatewayConnectFailure

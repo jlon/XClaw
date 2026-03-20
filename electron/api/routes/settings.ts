@@ -1,7 +1,16 @@
 import type { IncomingMessage, ServerResponse } from 'http';
 import { applyProxySettings } from '../../main/proxy';
 import { syncLaunchAtStartupSettingFromStore } from '../../main/launch-at-startup';
-import { getAllSettings, getSetting, resetSettings, setSetting, type AppSettings } from '../../utils/store';
+import {
+  getAllSettings,
+  getSetting,
+  isRendererReadableSettingKey,
+  isRendererWritableSettingKey,
+  resetSettings,
+  setSetting,
+  toPublicAppSettings,
+  type AppSettings,
+} from '../../utils/store';
 import type { HostApiContext } from '../context';
 import { parseJsonBody, sendJson } from '../route-utils';
 
@@ -24,6 +33,10 @@ function patchTouchesGatewayPort(patch: Partial<AppSettings>): boolean {
   return Object.prototype.hasOwnProperty.call(patch, 'gatewayPort');
 }
 
+function getForbiddenSettingKeyError(key: string): Error {
+  return new Error(`Renderer access to setting "${key}" is not allowed`);
+}
+
 export async function handleSettingsRoutes(
   req: IncomingMessage,
   res: ServerResponse,
@@ -31,13 +44,19 @@ export async function handleSettingsRoutes(
   ctx: HostApiContext,
 ): Promise<boolean> {
   if (url.pathname === '/api/settings' && req.method === 'GET') {
-    sendJson(res, 200, await getAllSettings());
+    sendJson(res, 200, toPublicAppSettings(await getAllSettings()));
     return true;
   }
 
   if (url.pathname === '/api/settings' && req.method === 'PUT') {
     try {
       const patch = await parseJsonBody<Partial<AppSettings>>(req);
+      for (const key of Object.keys(patch)) {
+        if (!isRendererWritableSettingKey(key)) {
+          sendJson(res, 403, { success: false, error: getForbiddenSettingKeyError(key).message });
+          return true;
+        }
+      }
       const entries = Object.entries(patch) as Array<[keyof AppSettings, AppSettings[keyof AppSettings]]>;
       for (const [key, value] of entries) {
         await setSetting(key, value);
@@ -56,8 +75,12 @@ export async function handleSettingsRoutes(
   }
 
   if (url.pathname.startsWith('/api/settings/') && req.method === 'GET') {
-    const key = url.pathname.slice('/api/settings/'.length) as keyof AppSettings;
+    const key = url.pathname.slice('/api/settings/'.length);
     try {
+      if (!isRendererReadableSettingKey(key)) {
+        sendJson(res, 403, { success: false, error: getForbiddenSettingKeyError(key).message });
+        return true;
+      }
       sendJson(res, 200, { value: await getSetting(key) });
     } catch (error) {
       sendJson(res, 404, { success: false, error: String(error) });
@@ -66,8 +89,12 @@ export async function handleSettingsRoutes(
   }
 
   if (url.pathname.startsWith('/api/settings/') && req.method === 'PUT') {
-    const key = url.pathname.slice('/api/settings/'.length) as keyof AppSettings;
+    const key = url.pathname.slice('/api/settings/'.length);
     try {
+      if (!isRendererWritableSettingKey(key)) {
+        sendJson(res, 403, { success: false, error: getForbiddenSettingKeyError(key).message });
+        return true;
+      }
       const body = await parseJsonBody<{ value: AppSettings[keyof AppSettings] }>(req);
       await setSetting(key, body.value);
       const touchesProxy = patchTouchesProxy({ [key]: body.value } as Partial<AppSettings>);
@@ -93,7 +120,7 @@ export async function handleSettingsRoutes(
         applyProxySettings: async () => applyProxySettings(settings),
         applyLaunchAtStartup: syncLaunchAtStartupSettingFromStore,
       });
-      sendJson(res, 200, { success: true, settings });
+      sendJson(res, 200, { success: true, settings: toPublicAppSettings(settings) });
     } catch (error) {
       sendJson(res, 500, { success: false, error: String(error) });
     }

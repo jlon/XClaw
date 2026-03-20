@@ -14,7 +14,7 @@ describe('runTakeoverImport', () => {
   });
 
   it('backs up local state, imports provider state and commits setup completion', async () => {
-    const writeBackupMock = vi.fn().mockResolvedValue('/tmp/clawx-takeover-backup.json');
+    const writeBackupMock = vi.fn().mockResolvedValue('/tmp/XClaw-takeover-backup.json');
     const applyImportedProviderStateMock = vi.fn().mockResolvedValue(undefined);
     const applyImportedRuntimeSettingsMock = vi.fn().mockResolvedValue(undefined);
     const captureFingerprintMock = vi.fn().mockResolvedValue('fingerprint-v1');
@@ -44,7 +44,7 @@ describe('runTakeoverImport', () => {
         config: {
           gateway: {
             auth: {
-              token: 'clawx-secret',
+              token: 'XClaw-secret',
             },
           },
           models: {
@@ -166,7 +166,7 @@ describe('runTakeoverImport', () => {
     }));
     expect(applyImportedRuntimeSettingsMock).toHaveBeenCalledWith({
       gatewayPort: 18789,
-      gatewayToken: 'clawx-secret',
+      gatewayToken: 'XClaw-secret',
     });
     expect(captureFingerprintMock).toHaveBeenCalledWith(expect.objectContaining({
       inspection: expect.objectContaining({
@@ -182,7 +182,7 @@ describe('runTakeoverImport', () => {
     expect(result).toEqual(expect.objectContaining({
       state: 'complete',
       step: 'complete',
-      backupPath: '/tmp/clawx-takeover-backup.json',
+      backupPath: '/tmp/XClaw-takeover-backup.json',
       defaultAccountId: 'moonshot',
       importedAccountCount: 1,
       warnings: ['provider 需要复核'],
@@ -269,7 +269,7 @@ describe('runTakeoverImport', () => {
           },
         },
       }),
-      writeBackup: vi.fn().mockResolvedValue('/tmp/clawx-takeover-backup.json'),
+      writeBackup: vi.fn().mockResolvedValue('/tmp/XClaw-takeover-backup.json'),
       applyImportedProviderState: vi.fn().mockRejectedValue(new Error('import failed')),
       restoreSettingsSnapshot: restoreSettingsSnapshotMock,
       restoreProviderStoreSnapshot: restoreProviderStoreSnapshotMock,
@@ -419,7 +419,7 @@ describe('runTakeoverImport', () => {
       getProviderStoreSnapshot: async () => ({
         providerAccounts: {},
       }),
-      writeBackup: vi.fn().mockResolvedValue('/tmp/clawx-takeover-backup.json'),
+      writeBackup: vi.fn().mockResolvedValue('/tmp/XClaw-takeover-backup.json'),
       applyImportedProviderState: applyImportedProviderStateMock,
       captureFingerprint: vi.fn().mockResolvedValue('fingerprint-v1'),
       setTakeoverFingerprint: vi.fn().mockResolvedValue(undefined),

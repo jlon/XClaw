@@ -5,8 +5,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const { testHome, testUserData } = vi.hoisted(() => {
   const suffix = Math.random().toString(36).slice(2);
   return {
-    testHome: `/tmp/clawx-agent-config-${suffix}`,
-    testUserData: `/tmp/clawx-agent-config-user-data-${suffix}`,
+    testHome: `/tmp/XClaw-agent-config-${suffix}`,
+    testUserData: `/tmp/XClaw-agent-config-user-data-${suffix}`,
   };
 });
 
@@ -362,5 +362,51 @@ describe('agent config lifecycle', () => {
     const snapshot = await listAgentsSnapshot();
     expect(snapshot.channelAccountOwners['feishu:default']).toBeUndefined();
     expect(snapshot.channelAccountOwners['telegram:default']).toBe('main');
+  });
+
+  it('retargets legacy channel-wide bindings when the default account is renamed', async () => {
+    await writeOpenClawJson({
+      agents: {
+        list: [
+          { id: 'main', name: 'Main', default: true },
+        ],
+      },
+      channels: {
+        feishu: {
+          enabled: true,
+          defaultAccount: 'sales-bot',
+          accounts: {
+            'sales-bot': { enabled: true, appId: 'sales-app' },
+          },
+        },
+      },
+      bindings: [
+        {
+          agentId: 'main',
+          match: {
+            channel: 'feishu',
+          },
+        },
+      ],
+    });
+
+    const { listAgentsSnapshot, renameChannelAccountBinding } = await import('@electron/utils/agent-config');
+
+    await renameChannelAccountBinding('feishu', 'default', 'sales-bot');
+
+    const config = await readOpenClawJson();
+    expect(config.bindings).toEqual([
+      {
+        agentId: 'main',
+        match: {
+          channel: 'feishu',
+          accountId: 'sales-bot',
+        },
+      },
+    ]);
+
+    const snapshot = await listAgentsSnapshot();
+    expect(snapshot.channelAccountOwners['feishu:default']).toBeUndefined();
+    expect(snapshot.channelAccountOwners['feishu:sales-bot']).toBe('main');
   });
 });

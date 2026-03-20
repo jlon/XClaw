@@ -27,9 +27,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { WorkspacePageFrame, WorkspacePageLoading, WorkspacePageScrollArea, WorkspacePageShell } from '@/components/layout/WorkspacePage';
 import { useCronStore } from '@/stores/cron';
 import { useGatewayStore } from '@/stores/gateway';
-import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { formatRelativeTime, cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { CronJob, CronJobCreateInput, ScheduleType } from '@/types/cron';
@@ -541,16 +541,12 @@ export function Cron() {
 
 
   if (loading) {
-    return (
-      <div className="flex flex-col -m-6 dark:bg-background min-h-[calc(100vh-2.5rem)] items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
+    return <WorkspacePageLoading />;
   }
 
   return (
-    <div className="flex flex-col -m-6 dark:bg-background h-[calc(100vh-2.5rem)] overflow-hidden">
-      <div className="w-full max-w-5xl mx-auto flex flex-col h-full p-10 pt-16">
+    <WorkspacePageFrame>
+      <WorkspacePageShell>
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-start justify-between mb-12 shrink-0 gap-4">
           <div>
@@ -586,7 +582,7 @@ export function Cron() {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto pr-2 pb-10 min-h-0 -mr-2">
+        <WorkspacePageScrollArea>
           {/* Gateway Warning */}
           {!isGatewayRunning && (
             <div className="mb-8 p-4 rounded-xl border border-yellow-500/50 bg-yellow-500/10 flex items-center gap-3">
@@ -696,8 +692,8 @@ export function Cron() {
             </div>
           )}
 
-        </div>
-      </div>
+        </WorkspacePageScrollArea>
+      </WorkspacePageShell>
 
       {/* Create/Edit Dialog */}
       {showDialog && (
@@ -727,7 +723,7 @@ export function Cron() {
         }}
         onCancel={() => setJobToDelete(null)}
       />
-    </div>
+    </WorkspacePageFrame>
   );
 }
 

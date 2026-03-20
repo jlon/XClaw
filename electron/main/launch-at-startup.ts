@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path';
 import { logger } from '../utils/logger';
 import { getSetting } from '../utils/store';
 
-const LINUX_AUTOSTART_FILE = join('.config', 'autostart', 'clawx.desktop');
+const LINUX_AUTOSTART_FILE = join('.config', 'autostart', 'XClaw.desktop');
 
 function quoteDesktopArg(value: string): string {
   if (!value) return '""';

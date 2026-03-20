@@ -21,7 +21,7 @@ else
   # Linux: /opt/XClaw/resources/cli/openclaw
   # SCRIPT_DIR = .../resources/cli
   INSTALL_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
-  ELECTRON="$INSTALL_DIR/clawx"
+  ELECTRON="$INSTALL_DIR/XClaw"
   CLI="$INSTALL_DIR/resources/openclaw/openclaw.mjs"
 fi
 
@@ -44,5 +44,5 @@ case "$1" in
     ;;
 esac
 
-export OPENCLAW_EMBEDDED_IN="ClawX"
+export OPENCLAW_EMBEDDED_IN="XClaw"
 ELECTRON_RUN_AS_NODE=1 exec "$ELECTRON" "$CLI" "$@"

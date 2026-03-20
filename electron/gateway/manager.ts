@@ -42,7 +42,7 @@ import {
 } from './supervisor';
 import { GatewayConnectionMonitor } from './connection-monitor';
 import { GatewayLifecycleController, LifecycleSupersededError } from './lifecycle-controller';
-import { launchGatewayProcess } from './process-launcher';
+import { launchGatewayHandoffProcess, launchGatewayProcess } from './process-launcher';
 import { GatewayRestartController } from './restart-controller';
 import { GatewayRestartGovernor } from './restart-governor';
 import {
@@ -102,6 +102,7 @@ export type GatewayRecoveryContext = {
 };
 
 type GatewayRecoveryArbiter = (context: GatewayRecoveryContext) => boolean | Promise<boolean>;
+type GatewayStopReason = 'user' | 'restart' | 'replace' | 'quit';
 
 /**
  * Gateway Manager
@@ -138,6 +139,7 @@ export class GatewayManager extends EventEmitter {
   private reconnectAttemptsTotal = 0;
   private reconnectSuccessTotal = 0;
   private recoveryArbiter: GatewayRecoveryArbiter | null = null;
+  private stopGeneration = 0;
   private static readonly RELOAD_POLICY_REFRESH_MS = 15_000;
   public static readonly RESTART_COOLDOWN_MS = 5_000;
   private lastRestartAt = 0;
@@ -176,7 +178,7 @@ export class GatewayManager extends EventEmitter {
   private async initDeviceIdentity(): Promise<void> {
     if (this.deviceIdentity) return; // already loaded
     try {
-      const identityPath = path.join(app.getPath('userData'), 'clawx-device-identity.json');
+      const identityPath = path.join(app.getPath('userData'), 'XClaw-device-identity.json');
       this.deviceIdentity = await loadOrCreateDeviceIdentity(identityPath);
       logger.debug(`Device identity loaded (deviceId=${this.deviceIdentity.deviceId})`);
     } catch (err) {
@@ -234,6 +236,14 @@ export class GatewayManager extends EventEmitter {
 
   setRecoveryArbiter(arbiter: GatewayRecoveryArbiter | null): void {
     this.recoveryArbiter = arbiter;
+  }
+
+  private shouldAbortRefresh(expectedStopGeneration: number, phase: string): boolean {
+    if (this.stopGeneration === expectedStopGeneration) {
+      return false;
+    }
+    logger.info(`Aborting Gateway refresh at ${phase} because stopGeneration changed`);
+    return true;
   }
 
   /**
@@ -298,9 +308,10 @@ export class GatewayManager extends EventEmitter {
           await terminateGatewayProcessesListeningOnPort(existing.port);
           return true;
         },
-        onConnectedToExistingGateway: () => {
-          this.ownsProcess = false;
-          this.setStatus({ pid: undefined });
+        onConnectedToExistingGateway: (existing) => {
+          const reattachedOwnedProcess = Boolean(existing.owned && existing.pid && this.process?.pid === existing.pid);
+          this.ownsProcess = reattachedOwnedProcess;
+          this.setStatus({ pid: reattachedOwnedProcess ? existing.pid : undefined });
           this.startHealthCheck();
         },
         waitForPortFree: async (port) => {
@@ -359,9 +370,13 @@ export class GatewayManager extends EventEmitter {
   /**
    * Stop Gateway process
    */
-  async stop(options?: { shutdownExternal?: boolean }): Promise<void> {
+  async stop(options?: { shutdownExternal?: boolean; reason?: GatewayStopReason }): Promise<void> {
     logger.info('Gateway stop requested');
     this.lifecycleController.bump('stop');
+    const reason = options?.reason ?? 'user';
+    if (reason !== 'restart' && reason !== 'replace') {
+      this.stopGeneration += 1;
+    }
     // Disable auto-reconnect
     this.shouldReconnect = false;
 
@@ -414,10 +429,54 @@ export class GatewayManager extends EventEmitter {
     this.setStatus({ state: 'stopped', error: undefined, pid: undefined, connectedAt: undefined, uptime: undefined });
   }
 
+  async detach(options?: { reason?: 'quit' | 'handoff' }): Promise<void> {
+    const reason = options?.reason ?? 'quit';
+    logger.info(`Gateway detach requested (reason=${reason})`);
+    this.lifecycleController.bump(`detach:${reason}`);
+    this.shouldReconnect = false;
+    this.clearAllTimers();
+
+    const closeReason = reason === 'handoff'
+      ? 'Gateway detached for runtime handoff'
+      : 'Gateway detached for app quit';
+
+    if (this.ws) {
+      this.ws.close(1000, closeReason);
+      this.ws = null;
+    }
+
+    this.process = null;
+    this.ownsProcess = false;
+    clearPendingGatewayRequests(this.pendingRequests, new Error('Gateway detached'));
+    this.restartController.resetDeferredRestart();
+    this.setStatus({ state: 'stopped', error: undefined, pid: undefined, connectedAt: undefined, uptime: undefined });
+  }
+
+  async handoffForQuit(): Promise<void> {
+    if (this.status.state !== 'running' || !this.status.pid) {
+      await this.detach({ reason: 'quit' });
+      return;
+    }
+
+    const launchContext = await prepareGatewayLaunchContext(this.status.port);
+    await launchGatewayHandoffProcess({
+      launchContext,
+      waitForPid: this.status.pid,
+      port: this.status.port,
+      sanitizeSpawnArgs: (args) => this.sanitizeSpawnArgs(args),
+    });
+    await this.detach({ reason: 'handoff' });
+  }
+
   /**
    * Restart Gateway process
    */
-  async restart(): Promise<void> {
+  async restart(options?: { expectedStopGeneration?: number }): Promise<void> {
+    const expectedStopGeneration = options?.expectedStopGeneration ?? this.stopGeneration;
+    if (this.shouldAbortRefresh(expectedStopGeneration, 'restart:before-begin')) {
+      return;
+    }
+
     if (this.restartController.isRestartDeferred({
       state: this.status.state,
       startLock: this.startLock,
@@ -455,14 +514,25 @@ export class GatewayManager extends EventEmitter {
     }
 
     const pidBefore = this.status.pid;
+    let restartApplied = false;
     logger.info(`[gateway-refresh] mode=restart requested pidBefore=${pidBefore ?? 'n/a'}`);
     this.restartInFlight = (async () => {
-      await this.stop();
+      await this.stop({ reason: 'restart' });
+      if (this.shouldAbortRefresh(expectedStopGeneration, 'restart:before-start')) {
+        return;
+      }
       await this.start();
+      restartApplied = true;
     })();
 
     try {
       await this.restartInFlight;
+      if (!restartApplied) {
+        logger.info(
+          `[gateway-refresh] mode=restart result=aborted_by_stop pidBefore=${pidBefore ?? 'n/a'} pidAfter=${this.status.pid ?? 'n/a'}`,
+        );
+        return;
+      }
       this.restartGovernor.recordExecuted();
       const observability = this.restartGovernor.getObservability();
       const props = {
@@ -495,6 +565,7 @@ export class GatewayManager extends EventEmitter {
   }
 
   async replaceRuntime(): Promise<void> {
+    const expectedStopGeneration = this.stopGeneration;
     if (this.restartInFlight) {
       logger.debug('Gateway replace already in progress, joining existing request');
       await this.restartInFlight;
@@ -533,6 +604,9 @@ export class GatewayManager extends EventEmitter {
       clearPendingGatewayRequests(this.pendingRequests, new Error('Gateway runtime replaced'));
       this.restartController.resetDeferredRestart();
       this.setStatus({ state: 'stopped', error: undefined, pid: undefined, connectedAt: undefined, uptime: undefined });
+      if (this.shouldAbortRefresh(expectedStopGeneration, 'replace:before-start')) {
+        return;
+      }
       await this.start();
     })();
 
@@ -564,8 +638,9 @@ export class GatewayManager extends EventEmitter {
    * of each other during setup.
    */
   debouncedRestart(delayMs = 2000): void {
+    const expectedStopGeneration = this.stopGeneration;
     this.restartController.debouncedRestart(delayMs, () => {
-      void this.restart().catch((err) => {
+      void this.restart({ expectedStopGeneration }).catch((err) => {
         logger.warn('Debounced Gateway restart failed:', err);
       });
     });
@@ -575,14 +650,19 @@ export class GatewayManager extends EventEmitter {
    * Ask the Gateway process to reload config in-place when possible.
    * Falls back to restart on unsupported platforms or signaling failures.
    */
-  async reload(): Promise<void> {
+  async reload(options?: { expectedStopGeneration?: number }): Promise<void> {
+    const expectedStopGeneration = options?.expectedStopGeneration ?? this.stopGeneration;
+    if (this.shouldAbortRefresh(expectedStopGeneration, 'reload:before-begin')) {
+      return;
+    }
+
     await this.refreshReloadPolicy();
 
     if (this.reloadPolicy.mode === 'off' || this.reloadPolicy.mode === 'restart') {
       logger.info(
         `[gateway-refresh] mode=reload result=policy_forced_restart policy=${this.reloadPolicy.mode}`,
       );
-      await this.restart();
+      await this.restart({ expectedStopGeneration });
       return;
     }
 
@@ -603,14 +683,14 @@ export class GatewayManager extends EventEmitter {
     if (!this.process?.pid || this.status.state !== 'running') {
       logger.warn('[gateway-refresh] mode=reload result=fallback_restart cause=not_running');
       logger.warn('Gateway reload requested while not running; falling back to restart');
-      await this.restart();
+      await this.restart({ expectedStopGeneration });
       return;
     }
 
     if (process.platform === 'win32') {
       logger.warn('[gateway-refresh] mode=reload result=fallback_restart cause=windows');
       logger.debug('Windows detected, falling back to Gateway restart for reload');
-      await this.restart();
+      await this.restart({ expectedStopGeneration });
       return;
     }
 
@@ -633,10 +713,13 @@ export class GatewayManager extends EventEmitter {
       // Some gateway builds do not handle SIGUSR1 as an in-process reload.
       // If process state doesn't recover quickly, fall back to restart.
       await new Promise((resolve) => setTimeout(resolve, 1500));
+      if (this.shouldAbortRefresh(expectedStopGeneration, 'reload:after-signal')) {
+        return;
+      }
       if (this.status.state !== 'running' || !this.process?.pid) {
         logger.warn('[gateway-refresh] mode=reload result=fallback_restart cause=post_signal_unhealthy');
         logger.warn('Gateway did not stay running after reload signal, falling back to restart');
-        await this.restart();
+        await this.restart({ expectedStopGeneration });
       } else {
         const pidAfter = this.process.pid;
         logger.info(
@@ -646,7 +729,7 @@ export class GatewayManager extends EventEmitter {
     } catch (error) {
       logger.warn('[gateway-refresh] mode=reload result=fallback_restart cause=signal_error');
       logger.warn('Gateway reload signal failed, falling back to restart:', error);
-      await this.restart();
+      await this.restart({ expectedStopGeneration });
     }
   }
 
@@ -655,6 +738,7 @@ export class GatewayManager extends EventEmitter {
    * in-process reload when possible.
    */
   debouncedReload(delayMs?: number): void {
+    const expectedStopGeneration = this.stopGeneration;
     void this.refreshReloadPolicy();
     const effectiveDelay = delayMs ?? this.reloadPolicy.debounceMs;
     if (this.reloadPolicy.mode === 'off' || this.reloadPolicy.mode === 'restart') {
@@ -671,7 +755,7 @@ export class GatewayManager extends EventEmitter {
     logger.debug(`Gateway reload debounced (will fire in ${effectiveDelay}ms)`);
     this.reloadDebounceTimer = setTimeout(() => {
       this.reloadDebounceTimer = null;
-      void this.reload().catch((err) => {
+      void this.reload({ expectedStopGeneration }).catch((err) => {
         logger.warn('Debounced Gateway reload failed:', err);
       });
     }, effectiveDelay);

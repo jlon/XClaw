@@ -81,7 +81,7 @@
 30. 新增 `tests/unit/gateway-manager-stop.test.ts`，锁定“退出 app 时不要顺手 shutdown 外部 Gateway”的行为
 31. `GatewayManager.stop()` 现支持显式选择是否 shutdown 外部 Gateway；`before-quit` 已改成只断开/清理，不再主动关闭复用中的外部 OpenClaw Gateway
 32. 重新梳理了 setup 触发条件：setup 页由 `settings.setupComplete === false` 驱动，正常完成后不会自动二次弹出；但 setup side effects 仍会在后续启动时再次执行
-33. 新增 `CLAWX_USER_DATA_DIR` 开发态覆盖入口，允许在不污染真实 settings 的前提下构造隔离 `userData`
+33. 新增 `XClaw_USER_DATA_DIR` 开发态覆盖入口，允许在不污染真实 settings 的前提下构造隔离 `userData`
 34. 隔离环境下已完成一次“首次接管”真实链路：首次启动落成 `source=legacy-footprint, readonly=true, startupSideEffects=false`，执行 `takeover-import + setup-activation` 后再次启动落成 `source=main-settings, readonly=false, startupSideEffects=true`
 35. `setup-activation` 现已在 `awaitCriticalTasks=true` 时把 Gateway 自动启动失败升级为硬失败，不再允许 setup 被错误标记完成
 36. `setup-activation` 路由现已为 `takeover` 模式增加导入完成前置守卫，要求 `takeover-status=complete` 或已有 `takeoverFingerprint`
@@ -115,7 +115,7 @@
 20. `node node_modules/vitest/vitest.mjs run tests/unit/gateway-manager-stop.test.ts`
 21. `node node_modules/vitest/vitest.mjs run tests/unit/gateway-manager-stop.test.ts tests/unit/takeover-import.test.ts tests/unit/setup-activation.test.ts`
 22. `node node_modules/vitest/vitest.mjs run tests/unit/user-data-override.test.ts`
-23. `HOME=/tmp/... CLAWX_USER_DATA_DIR=/tmp/.../Library/Application\\ Support/clawx pnpm dev`
+23. `HOME=/tmp/... XClaw_USER_DATA_DIR=/tmp/.../Library/Application\\ Support/XClaw pnpm dev`
 24. `curl -s http://127.0.0.1:3210/api/app/setup-inspection | jq ...`
 25. `curl -s -X POST http://127.0.0.1:3210/api/app/setup-plan -H 'content-type: application/json' -d '{"mode":"takeover"}' | jq ...`
 26. `curl -s -X POST http://127.0.0.1:3210/api/app/takeover-import -H 'content-type: application/json' -d '{"mode":"takeover"}' | jq ...`

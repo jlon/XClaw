@@ -243,7 +243,7 @@ describe('applyImportedProviderState', () => {
     vi.clearAllMocks();
   });
 
-  it('writes imported accounts, default account and secrets into ClawX stores', async () => {
+  it('writes imported accounts, default account and secrets into XClaw stores', async () => {
     const imported = buildImportedProviderState({
       now: () => '2026-03-19T03:20:00.000Z',
       config: {

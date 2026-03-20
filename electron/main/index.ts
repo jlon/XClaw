@@ -10,6 +10,12 @@ import { GatewayRuntimeController } from '../gateway/runtime-controller';
 import { registerIpcHandlers } from './ipc-handlers';
 import { createTray } from './tray';
 import { createMenu } from './menu';
+import {
+  DEFAULT_MAIN_WINDOW_HEIGHT,
+  DEFAULT_MAIN_WINDOW_MIN_HEIGHT,
+  DEFAULT_MAIN_WINDOW_MIN_WIDTH,
+  DEFAULT_MAIN_WINDOW_WIDTH,
+} from './window';
 
 import { appUpdater, registerUpdateHandlers } from './updater';
 import { logger } from '../utils/logger';
@@ -17,7 +23,7 @@ import { warmupNetworkOptimization } from '../utils/uv-env';
 import { initTelemetry } from '../utils/telemetry';
 
 import { ClawHubService } from '../gateway/clawhub';
-import { ensureClawXContext } from '../utils/openclaw-workspace';
+import { ensureXClawContext } from '../utils/openclaw-workspace';
 import { isQuitting, setQuitting } from './app-state';
 import { applyProxySettings } from './proxy';
 import { syncLaunchAtStartupSettingFromStore } from './launch-at-startup';
@@ -36,8 +42,9 @@ import { browserOAuthManager } from '../utils/browser-oauth';
 import { whatsAppLoginManager } from '../utils/whatsapp-login';
 import { runSetupActivationSideEffects } from './setup-activation';
 import { applyUserDataDirOverride } from './user-data-override';
+import { createBeforeQuitHandler } from './quit-handoff';
 
-const WINDOWS_APP_USER_MODEL_ID = 'app.clawx.desktop';
+const WINDOWS_APP_USER_MODEL_ID = 'app.XClaw.desktop';
 
 // Disable GPU hardware acceleration globally for maximum stability across
 // all GPU configurations (no GPU, integrated, discrete).
@@ -56,11 +63,11 @@ const WINDOWS_APP_USER_MODEL_ID = 'app.clawx.desktop';
 app.disableHardwareAcceleration();
 
 // On Linux, set CHROME_DESKTOP so Chromium can find the correct .desktop file.
-// On Wayland this maps the running window to clawx.desktop (→ icon + app grouping);
+// On Wayland this maps the running window to XClaw.desktop (→ icon + app grouping);
 // on X11 it supplements the StartupWMClass matching.
 // Must be called before app.whenReady() / before any window is created.
 if (process.platform === 'linux') {
-  app.setDesktopName('clawx.desktop');
+  app.setDesktopName('XClaw.desktop');
 }
 
 // Prevent multiple instances of the app from running simultaneously.
@@ -86,6 +93,22 @@ let clawHubService!: ClawHubService;
 let hostEventBus!: HostEventBus;
 let hostApiServer: Server | null = null;
 const mainWindowFocusState = createMainWindowFocusState();
+const handleBeforeQuit = createBeforeQuitHandler({
+  app,
+  setQuitting: () => {
+    setQuitting();
+  },
+  closeAll: () => {
+    hostEventBus.closeAll();
+  },
+  closeHostApiServer: () => {
+    hostApiServer?.close();
+  },
+  handoffGateway: async () => {
+    await gatewayManager.handoffForQuit();
+  },
+  logger,
+});
 
 /**
  * Resolve the icons directory path (works in both dev and packaged mode)
@@ -121,10 +144,10 @@ function createWindow(): BrowserWindow {
   const isMac = process.platform === 'darwin';
 
   const win = new BrowserWindow({
-    width: 1280,
-    height: 800,
-    minWidth: 960,
-    minHeight: 600,
+    width: DEFAULT_MAIN_WINDOW_WIDTH,
+    height: DEFAULT_MAIN_WINDOW_HEIGHT,
+    minWidth: DEFAULT_MAIN_WINDOW_MIN_WIDTH,
+    minHeight: DEFAULT_MAIN_WINDOW_MIN_HEIGHT,
     icon: getAppIcon(),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -218,7 +241,7 @@ function createMainWindow(): BrowserWindow {
 async function initialize(): Promise<void> {
   // Initialize logger first
   logger.init();
-  logger.info('=== ClawX Application Starting ===');
+  logger.info('=== XClaw Application Starting ===');
   logger.debug(
     `Runtime: platform=${process.platform}/${process.arch}, electron=${process.versions.electron}, node=${process.versions.node}, packaged=${app.isPackaged}`
   );
@@ -312,8 +335,8 @@ async function initialize(): Promise<void> {
     }
     hostEventBus.emit('gateway:status', status);
     if (status.state === 'running' && setupBootstrapState.shouldRunStartupSideEffects) {
-      void ensureClawXContext().catch((error) => {
-        logger.warn('Failed to re-merge ClawX context after gateway reconnect:', error);
+      void ensureXClawContext().catch((error) => {
+        logger.warn('Failed to re-merge XClaw context after gateway reconnect:', error);
       });
     }
   });
@@ -406,7 +429,7 @@ if (gotTheLock) {
 
   // When a second instance is launched, focus the existing window instead.
   app.on('second-instance', () => {
-    logger.info('Second ClawX instance detected; redirecting to the existing window');
+    logger.info('Second XClaw instance detected; redirecting to the existing window');
 
     const focusRequest = requestSecondInstanceFocus(
       mainWindowFocusState,
@@ -444,16 +467,7 @@ if (gotTheLock) {
     }
   });
 
-  app.on('before-quit', () => {
-    setQuitting();
-    hostEventBus.closeAll();
-    hostApiServer?.close();
-    // Fire-and-forget: do not await gatewayManager.stop() here.
-    // Awaiting inside before-quit can stall Electron's quit sequence.
-    void gatewayManager.stop({ shutdownExternal: false }).catch((err) => {
-      logger.warn('gatewayManager.stop() error during quit:', err);
-    });
-  });
+  app.on('before-quit', handleBeforeQuit);
 }
 
 // Export for testing

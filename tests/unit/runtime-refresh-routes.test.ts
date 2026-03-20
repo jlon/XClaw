@@ -8,6 +8,7 @@ const deleteAgentConfigMock = vi.fn();
 const removeAgentWorkspaceDirectoryMock = vi.fn();
 const setChannelDefaultAccountMock = vi.fn();
 const setChannelEnabledMock = vi.fn();
+const getChannelEditorValuesMock = vi.fn();
 const getChannelFormValuesMock = vi.fn();
 const saveChannelConfigMock = vi.fn();
 
@@ -25,6 +26,7 @@ vi.mock('@electron/utils/agent-config', () => ({
   deleteAgentConfig: (...args: unknown[]) => deleteAgentConfigMock(...args),
   listAgentsSnapshot: vi.fn().mockResolvedValue({ entries: [], channelAccountOwners: {} }),
   removeAgentWorkspaceDirectory: (...args: unknown[]) => removeAgentWorkspaceDirectoryMock(...args),
+  renameChannelAccountBinding: vi.fn(),
   resolveAccountIdForAgent: vi.fn().mockReturnValue('default'),
   updateAgentName: vi.fn(),
 }));
@@ -32,10 +34,12 @@ vi.mock('@electron/utils/agent-config', () => ({
 vi.mock('@electron/utils/channel-config', () => ({
   deleteChannelAccountConfig: vi.fn(),
   deleteChannelConfig: vi.fn(),
+  getChannelEditorValues: (...args: unknown[]) => getChannelEditorValuesMock(...args),
   getChannelFormValues: (...args: unknown[]) => getChannelFormValuesMock(...args),
   listConfiguredChannelAccounts: vi.fn().mockResolvedValue({}),
   listConfiguredChannels: vi.fn().mockResolvedValue([]),
   readOpenClawConfig: vi.fn().mockResolvedValue({ channels: {} }),
+  renameChannelAccountConfig: vi.fn(),
   saveChannelConfig: (...args: unknown[]) => saveChannelConfigMock(...args),
   setChannelDefaultAccount: (...args: unknown[]) => setChannelDefaultAccountMock(...args),
   setChannelEnabled: (...args: unknown[]) => setChannelEnabledMock(...args),
@@ -73,6 +77,7 @@ describe('agent and channel runtime refresh routes', () => {
     removeAgentWorkspaceDirectoryMock.mockResolvedValue(undefined);
     setChannelDefaultAccountMock.mockResolvedValue(undefined);
     setChannelEnabledMock.mockResolvedValue(undefined);
+    getChannelEditorValuesMock.mockResolvedValue(undefined);
     getChannelFormValuesMock.mockResolvedValue(undefined);
     saveChannelConfigMock.mockResolvedValue(undefined);
   });
@@ -166,7 +171,7 @@ describe('agent and channel runtime refresh routes', () => {
         appId: 'abc',
       },
     });
-    getChannelFormValuesMock.mockResolvedValueOnce({
+    getChannelEditorValuesMock.mockResolvedValueOnce({
       appId: 'abc',
     });
 

@@ -31,11 +31,16 @@
 
 - `gatewayDesiredState` 能正确读写
 - `gatewayManagedMode` 能正确读写
+- `/api/settings` 只应暴露 renderer 可读字段，`gatewayToken` 不应被 renderer 的初始化持久化接住
+- `settings:get` / `settings:getAll` 这类 IPC 只应返回允许给 renderer 的字段
+- `settings:set` / `settings:setMany` 不应再允许 renderer 写入内部字段
+- `debouncedRestart / debouncedReload / restart / reload / replaceRuntime` 在 stop 之后不应继续把 Gateway 拉起
 - `POST /api/gateway/start` 改为走 runtime controller
 - `POST /api/gateway/stop` 改为走 runtime controller
 - `POST /api/gateway/restart` 改为走 runtime controller
 - `ipc gateway:start/stop/restart` 改为走 runtime controller
 - settings / channel / provider 触发的 runtime 重启不会绕过托管控制层
+- `before-quit` 的退出路径不应继续绕过 controller 语义
 
 ### GatewayManager 回归
 
@@ -87,6 +92,7 @@
 - channel / provider 触发的 debounced restart 不应绕过期望状态约束
 - “无感自动恢复”优先级不得被后续低价值需求稀释
 - macOS 与 Windows 任一端未通过时，功能不能视为可发布
+- `refresh / stop` 竞态修复后，观测日志不应再把被 stop 打断的 refresh 记成已应用
 
 ## 需要执行的命令
 
@@ -103,6 +109,8 @@ pnpm run typecheck
 node node_modules/vitest/vitest.mjs run tests/unit/gateway-manager-health.test.ts
 node node_modules/vitest/vitest.mjs run tests/unit/gateway-runtime-controller.test.ts
 node node_modules/vitest/vitest.mjs run tests/unit/startup-orchestrator.test.ts
+node node_modules/vitest/vitest.mjs run tests/unit/quit-handoff.test.ts
+node node_modules/vitest/vitest.mjs run tests/unit/gateway-supervisor.test.ts
 ```
 
 ## 最近一次执行结果
@@ -112,17 +120,36 @@ node node_modules/vitest/vitest.mjs run tests/unit/startup-orchestrator.test.ts
 ```bash
 node node_modules/vitest/vitest.mjs run tests/unit/openclaw-auth.test.ts tests/unit/setup-activation.test.ts tests/unit/app-routes.test.ts
 node node_modules/typescript/bin/tsc --noEmit
+pnpm exec eslint electron/api/routes/settings.ts electron/main/ipc-handlers.ts electron/utils/store.ts src/lib/api-client.ts tests/unit/settings-routes.test.ts tests/unit/ipc-settings-handlers.test.ts --max-warnings=0
+pnpm exec vitest run tests/unit/settings-routes.test.ts tests/unit/ipc-settings-handlers.test.ts
+pnpm exec eslint electron/gateway/manager.ts electron/main/index.ts tests/unit/gateway-manager-stop.test.ts --max-warnings=0
+pnpm exec vitest run tests/unit/gateway-manager-stop.test.ts
+pnpm exec vitest run tests/unit/quit-handoff.test.ts tests/unit/gateway-supervisor.test.ts tests/unit/startup-orchestrator.test.ts
+pnpm exec eslint electron/main/quit-handoff.ts electron/main/index.ts electron/gateway/handoff-marker.ts electron/gateway/supervisor.ts electron/gateway/process-launcher.ts tests/unit/quit-handoff.test.ts tests/unit/gateway-supervisor.test.ts tests/unit/startup-orchestrator.test.ts --max-warnings=0
+pnpm run typecheck
 ```
 
 - 结果：
-  - `3` 个测试文件通过
-  - `18` 个测试通过
-  - `tsc --noEmit` 通过
+  - `3` 个历史测试文件通过
+  - `18` 个历史测试通过
+  - `2` 个新增针对性测试文件通过
+  - `6` 个新增针对性测试通过
+  - `1` 个新增竞态测试文件通过
+  - `4` 个新增竞态测试通过
+  - `eslint` 通过
+  - `pnpm run typecheck` 通过
 
 - 本轮新增覆盖：
   - 启动前会移除当前 runtime 无法解析的 `plugins.allow / plugins.entries` 残留项
   - 通过 `plugins.load.paths` 注入的自定义插件不会被错误清理
   - provider 删除后会同步清理 `plugins.allow` 中对应的 `*-auth` 插件 id
+  - `/api/settings` 与统一 `settings` IPC 不会再把 `gatewayToken` 混进 renderer 可读 DTO
+  - 通用 `settings:set` / `settings:setMany` 不会再允许 renderer 写入内部字段
+  - `debouncedRestart` 在 stop 之后不会再偷跑
+  - 已进入 teardown 的 restart 在 stop 到来后不会再继续 `start()`
+  - `before-quit` 会阻塞到 quit handoff 至少完成调度或超时，不再 fire-and-forget 丢失 handoff
+  - pending handoff 会写入 `gateway-handoff.json`，重开 app 时启动侧会优先等待并接管
+  - 启动重试接回自己刚拉起的 Gateway 时，会保住 `pid/ownership`，不再错误降级成 external attach
 
 - 本轮真实环境验证：
 
@@ -134,6 +161,8 @@ curl -s http://127.0.0.1:3210/api/gateway/health
 kill -9 <gateway-pid>
 curl -s http://127.0.0.1:3210/api/gateway/status
 curl -s http://127.0.0.1:3210/api/gateway/health
+osascript -e 'tell application "Electron" to quit'
+rg -n "Scheduling detached Gateway handoff|Waiting for pending Gateway handoff" ~/Library/Application\\ Support/XClaw/logs/XClaw-$(date +%F).log
 ```
 
 - 真实环境结果：
@@ -141,3 +170,6 @@ curl -s http://127.0.0.1:3210/api/gateway/health
   - XClaw 在 `managed + desiredState=running` 下成功把 Gateway 拉到 `running`
   - `kill -9` 当前 `openclaw-gateway` 后，controller 进入自动恢复链，最终拉起新 pid 并恢复到 `health ok=true`
   - 恢复期间首个重启尝试曾遇到一次 `gateway already running ... lock timeout`，但后续自动重试成功，不需要用户手动点击启动
+  - quit 现场日志已经能看到 `Scheduling detached Gateway handoff`
+  - handoff 后重开 app 的现场日志已经能看到 `Waiting for pending Gateway handoff`
+  - 受本机历史残留 Gateway 与 `memos-local-openclaw-plugin` ABI 异常影响，个别手工 relaunch 现场仍可能先撞一次旧锁竞争，不能把这部分噪音伪装成已清零

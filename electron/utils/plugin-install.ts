@@ -380,7 +380,12 @@ export function ensureDingTalkPluginInstalled(): { installed: boolean; warning?:
 }
 
 export function ensureWeComPluginInstalled(): { installed: boolean; warning?: string } {
-  return ensurePluginInstalled('wecom', buildCandidateSources('wecom'), 'WeCom');
+  return ensurePluginInstalled(
+    'wecom',
+    buildCandidateSources('wecom'),
+    'WeCom',
+    ['wecom-openclaw-plugin'],
+  );
 }
 
 export function ensureFeishuPluginInstalled(): { installed: boolean; warning?: string } {

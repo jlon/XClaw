@@ -44,8 +44,15 @@ vi.mock('@electron/main/updater', () => ({
 vi.mock('@electron/utils/store', () => ({
   getAllSettings: (...args: unknown[]) => getAllSettingsMock(...args),
   getSetting: (...args: unknown[]) => getSettingMock(...args),
+  isRendererPrivilegedReadableSettingKey: (key: string) => key === 'gatewayToken',
+  isRendererReadableSettingKey: (key: string) => key !== 'gatewayToken',
+  isRendererWritableSettingKey: (key: string) => key !== 'gatewayToken',
   resetSettings: (...args: unknown[]) => resetSettingsMock(...args),
   setSetting: (...args: unknown[]) => setSettingMock(...args),
+  toPublicAppSettings: (settings: Record<string, unknown>) => ({
+    gatewayPort: settings.gatewayPort,
+    proxyEnabled: settings.proxyEnabled,
+  }),
 }));
 
 describe('registerIpcHandlers settings runtime effects', () => {
@@ -125,5 +132,47 @@ describe('registerIpcHandlers settings runtime effects', () => {
       applyProxySettings: null,
       applyLaunchAtStartup: expect.any(Function),
     });
+  });
+
+  it('sanitizes settings:getAll and blocks internal writes', async () => {
+    const { registerIpcHandlers } = await import('@electron/main/ipc-handlers');
+    const gatewayManager = {
+      on: vi.fn(),
+      getStatus: vi.fn().mockReturnValue({ state: 'stopped', port: 18789 }),
+      isConnected: vi.fn().mockReturnValue(false),
+      start: vi.fn(),
+      stop: vi.fn(),
+      restart: vi.fn(),
+    };
+    const gatewayRuntimeController = {
+      requestStart: vi.fn().mockResolvedValue(undefined),
+      requestStop: vi.fn().mockResolvedValue(undefined),
+      requestRestart: vi.fn().mockResolvedValue(undefined),
+      applySettingsRuntimeEffects: vi.fn().mockResolvedValue(undefined),
+    };
+
+    registerIpcHandlers(
+      gatewayManager as never,
+      gatewayRuntimeController as never,
+      {} as never,
+      {
+        isDestroyed: vi.fn().mockReturnValue(false),
+        webContents: {
+          send: vi.fn(),
+        },
+      } as never,
+    );
+
+    const handlers = new Map(
+      handleMock.mock.calls.map(([channel, handler]) => [channel as string, handler as (...args: unknown[]) => Promise<unknown>]),
+    );
+
+    await expect(handlers.get('settings:getAll')?.(undefined)).resolves.toEqual({
+      gatewayPort: 19001,
+      proxyEnabled: true,
+    });
+    await expect(handlers.get('settings:set')?.(undefined, 'gatewayToken', 'secret')).rejects.toThrow(
+      'Renderer access to setting "gatewayToken" is not allowed',
+    );
   });
 });

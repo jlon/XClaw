@@ -9,7 +9,7 @@ vi.mock('@/lib/api-client', () => ({
 describe('host-api', () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    window.localStorage.removeItem('clawx:allow-localhost-fallback');
+    window.localStorage.removeItem('XClaw:allow-localhost-fallback');
   });
 
   it('uses IPC proxy and returns unified envelope json', async () => {
@@ -52,7 +52,7 @@ describe('host-api', () => {
       json: async () => ({ fallback: true }),
     });
     vi.stubGlobal('fetch', fetchMock);
-    window.localStorage.setItem('clawx:allow-localhost-fallback', '1');
+    window.localStorage.setItem('XClaw:allow-localhost-fallback', '1');
 
     invokeIpcMock.mockResolvedValueOnce({
       ok: false,
@@ -88,7 +88,7 @@ describe('host-api', () => {
       json: async () => ({ fallback: true }),
     });
     vi.stubGlobal('fetch', fetchMock);
-    window.localStorage.setItem('clawx:allow-localhost-fallback', '1');
+    window.localStorage.setItem('XClaw:allow-localhost-fallback', '1');
 
     invokeIpcMock.mockRejectedValueOnce(new Error('Invalid IPC channel: hostapi:fetch'));
 

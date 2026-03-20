@@ -1,5 +1,5 @@
 name: Bug Report
-description: Report a reproducible problem in ClawX.
+description: Report a reproducible problem in XClaw.
 title: "[Bug]: "
 labels:
   - bug
@@ -53,7 +53,7 @@ body:
       description: Share OS, app version/commit, and relevant runtime details.
       placeholder: |
         - OS:
-        - ClawX version/commit:
+        - XClaw version/commit:
         - Node/pnpm (if relevant):
     validations:
       required: true

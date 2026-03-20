@@ -10,6 +10,7 @@ import { useGatewayStore } from '@/stores/gateway';
 import { useSettingsStore } from '@/stores/settings';
 import { hostApiFetch } from '@/lib/host-api';
 import { trackUiEvent } from '@/lib/telemetry';
+import { WorkspacePageFrame, WorkspacePageScrollArea, WorkspacePageShell } from '@/components/layout/WorkspacePage';
 import { ProvidersSettings } from '@/components/settings/ProvidersSettings';
 import { FeedbackState } from '@/components/common/FeedbackState';
 import {
@@ -164,8 +165,8 @@ export function Models() {
   const usageLoading = isGatewayRunning && usageFetchDoneKey !== usageFetchKey;
 
   return (
-    <div className="flex flex-col -m-6 dark:bg-background h-[calc(100vh-2.5rem)] overflow-hidden">
-      <div className="w-full max-w-5xl mx-auto flex flex-col h-full p-10 pt-16">
+    <WorkspacePageFrame>
+      <WorkspacePageShell>
         
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-start justify-between mb-12 shrink-0 gap-4">
@@ -180,7 +181,7 @@ export function Models() {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto pr-2 pb-10 min-h-0 -mr-2 space-y-12">
+        <WorkspacePageScrollArea className="space-y-12">
           
           {/* AI Providers Section */}
           <ProvidersSettings />
@@ -361,9 +362,8 @@ export function Models() {
               )}
             </div>
           </div>
-
-        </div>
-      </div>
+        </WorkspacePageScrollArea>
+      </WorkspacePageShell>
       {devModeUnlocked && selectedUsageEntry && (
         <UsageContentPopup
           entry={selectedUsageEntry}
@@ -373,7 +373,7 @@ export function Models() {
           unknownModelLabel={t('dashboard:recentTokenHistory.unknownModel')}
         />
       )}
-    </div>
+    </WorkspacePageFrame>
   );
 }
 

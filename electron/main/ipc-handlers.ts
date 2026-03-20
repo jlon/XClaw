@@ -16,7 +16,16 @@ import {
 } from '../utils/secure-storage';
 import { getOpenClawStatus, getOpenClawDir, getOpenClawConfigDir, getOpenClawSkillsDir, ensureDir } from '../utils/paths';
 import { getOpenClawCliCommand } from '../utils/openclaw-cli';
-import { getAllSettings, getSetting, resetSettings, setSetting, type AppSettings } from '../utils/store';
+import {
+  getAllSettings,
+  getSetting,
+  isRendererReadableSettingKey,
+  isRendererWritableSettingKey,
+  resetSettings,
+  setSetting,
+  toPublicAppSettings,
+  type AppSettings,
+} from '../utils/store';
 import {
   saveProviderKeyToOpenClaw,
   removeProviderFromOpenClaw,
@@ -183,7 +192,7 @@ function registerHostApiProxyHandlers(): void {
         }
       }
 
-      const response = await proxyAwareFetch(`http://127.0.0.1:${PORTS.CLAWX_HOST_API}${path}`, {
+      const response = await proxyAwareFetch(`http://127.0.0.1:${PORTS.XClaw_HOST_API}${path}`, {
         method,
         headers,
         body,
@@ -241,6 +250,31 @@ function isLaunchAtStartupKey(key: keyof AppSettings): boolean {
 
 function isGatewayPortKey(key: keyof AppSettings): boolean {
   return key === 'gatewayPort';
+}
+
+function getForbiddenRendererSettingError(key: string): Error {
+  return new Error(`Renderer access to setting "${key}" is not allowed`);
+}
+
+function assertRendererReadableSettingKey(
+  key: string,
+): keyof AppSettings {
+  if (isRendererReadableSettingKey(key)) {
+    return key;
+  }
+  throw getForbiddenRendererSettingError(key);
+}
+
+function getRendererWritableSettingsEntries(
+  patch: Partial<AppSettings>,
+): Array<[keyof AppSettings, AppSettings[keyof AppSettings]]> {
+  const entries = Object.entries(patch) as Array<[keyof AppSettings, AppSettings[keyof AppSettings]]>;
+  for (const [key] of entries) {
+    if (!isRendererWritableSettingKey(key)) {
+      throw getForbiddenRendererSettingError(key);
+    }
+  }
+  return entries;
 }
 
 function registerUnifiedRequestHandlers(
@@ -695,14 +729,14 @@ function registerUnifiedRequestHandlers(
         }
         case 'settings': {
           if (request.action === 'getAll') {
-            data = await getAllSettings();
+            data = toPublicAppSettings(await getAllSettings());
             break;
           }
           if (request.action === 'get') {
             const payload = request.payload as { key?: keyof AppSettings } | [keyof AppSettings] | undefined;
             const key = Array.isArray(payload) ? payload[0] : payload?.key;
             if (!key) throw new Error('Invalid settings.get payload');
-            data = await getSetting(key);
+            data = await getSetting(assertRendererReadableSettingKey(key));
             break;
           }
           if (request.action === 'set') {
@@ -713,6 +747,9 @@ function registerUnifiedRequestHandlers(
             const key = Array.isArray(payload) ? payload[0] : payload?.key;
             const value = Array.isArray(payload) ? payload[1] : payload?.value;
             if (!key) throw new Error('Invalid settings.set payload');
+            if (!isRendererWritableSettingKey(key)) {
+              throw getForbiddenRendererSettingError(key);
+            }
             await setSetting(key, value as never);
             await gatewayRuntimeController.applySettingsRuntimeEffects({
               gatewayPort: isGatewayPortKey(key) ? value : undefined,
@@ -724,7 +761,7 @@ function registerUnifiedRequestHandlers(
           }
           if (request.action === 'setMany') {
             const patch = (request.payload ?? {}) as Partial<AppSettings>;
-            const entries = Object.entries(patch) as Array<[keyof AppSettings, AppSettings[keyof AppSettings]]>;
+            const entries = getRendererWritableSettingsEntries(patch);
             for (const [key, value] of entries) {
               await setSetting(key, value as never);
             }
@@ -745,7 +782,7 @@ function registerUnifiedRequestHandlers(
               applyProxySettings: async () => applyProxySettings(settings),
               applyLaunchAtStartup: syncLaunchAtStartupSettingFromStore,
             });
-            data = { success: true, settings };
+            data = { success: true, settings: toPublicAppSettings(settings) };
             break;
           }
           return {
@@ -930,7 +967,7 @@ function registerCronHandlers(gatewayManager: GatewayManager): void {
   });
 
   // Create a new cron job
-  // UI-created tasks have no delivery target — results go to the ClawX chat page.
+  // UI-created tasks have no delivery target — results go to the XClaw chat page.
   // Tasks created via external channels (Feishu, Discord, etc.) are handled
   // directly by the OpenClaw Gateway and do not pass through this IPC handler.
   ipcMain.handle('cron:create', async (_, input: {
@@ -947,7 +984,7 @@ function registerCronHandlers(gatewayManager: GatewayManager): void {
         enabled: input.enabled ?? true,
         wakeMode: 'next-heartbeat',
         sessionTarget: 'isolated',
-        // UI-created jobs deliver results via ClawX WebSocket chat events,
+        // UI-created jobs deliver results via XClaw WebSocket chat events,
         // not external messaging channels.  Setting mode='none' prevents
         // the Gateway from attempting channel delivery (which would fail
         // with "Channel is required" when no channels are configured).
@@ -1968,7 +2005,7 @@ function registerProviderHandlers(gatewayRuntimeController: GatewayRuntimeContro
         const resolvedBaseUrl = options?.baseUrl || provider?.baseUrl || registryBaseUrl;
         const resolvedProtocol = options?.apiProtocol || provider?.apiProtocol;
 
-        console.log(`[clawx-validate] validating provider type: ${providerType}`);
+        console.log(`[XClaw-validate] validating provider type: ${providerType}`);
         return await validateApiKeyWithProvider(providerType, apiKey, {
           baseUrl: resolvedBaseUrl,
           apiProtocol: resolvedProtocol,
@@ -2122,14 +2159,17 @@ function registerSettingsHandlers(gatewayRuntimeController: GatewayRuntimeContro
   };
 
   ipcMain.handle('settings:get', async (_, key: keyof AppSettings) => {
-    return await getSetting(key);
+    return await getSetting(assertRendererReadableSettingKey(key));
   });
 
   ipcMain.handle('settings:getAll', async () => {
-    return await getAllSettings();
+    return toPublicAppSettings(await getAllSettings());
   });
 
   ipcMain.handle('settings:set', async (_, key: keyof AppSettings, value: AppSettings[keyof AppSettings]) => {
+    if (!isRendererWritableSettingKey(key)) {
+      throw getForbiddenRendererSettingError(key);
+    }
     await setSetting(key, value as never);
     await gatewayRuntimeController.applySettingsRuntimeEffects({
       gatewayPort: isGatewayPortKey(key) ? value : undefined,
@@ -2141,7 +2181,7 @@ function registerSettingsHandlers(gatewayRuntimeController: GatewayRuntimeContro
   });
 
   ipcMain.handle('settings:setMany', async (_, patch: Partial<AppSettings>) => {
-    const entries = Object.entries(patch) as Array<[keyof AppSettings, AppSettings[keyof AppSettings]]>;
+    const entries = getRendererWritableSettingsEntries(patch);
     for (const [key, value] of entries) {
       await setSetting(key, value as never);
     }
@@ -2163,7 +2203,7 @@ function registerSettingsHandlers(gatewayRuntimeController: GatewayRuntimeContro
       applyProxySettings: async () => applyProxySettings(settings),
       applyLaunchAtStartup: syncLaunchAtStartupSettingFromStore,
     });
-    return { success: true, settings };
+    return { success: true, settings: toPublicAppSettings(settings) };
   });
 }
 function registerUsageHandlers(): void {

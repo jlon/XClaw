@@ -77,6 +77,8 @@ export interface ChannelConfigData {
     [key: string]: unknown;
 }
 
+export type ChannelEditorValue = string | boolean | number | string[];
+
 export interface PluginsConfig {
     entries?: Record<string, ChannelConfigData>;
     allow?: string[];
@@ -375,6 +377,52 @@ function migrateLegacyChannelConfigToAccounts(
     }
 }
 
+function resolveChannelDefaultAccountId(
+    channelSection: ChannelConfigData,
+    fallbackAccountId: string = DEFAULT_ACCOUNT_ID,
+): string {
+    if (typeof channelSection.defaultAccount === 'string' && channelSection.defaultAccount.trim()) {
+        return channelSection.defaultAccount.trim();
+    }
+    return fallbackAccountId;
+}
+
+function sortChannelAccountIds(accountIds: string[], defaultAccountId: string = DEFAULT_ACCOUNT_ID): string[] {
+    return [...accountIds].sort((left, right) => {
+        if (left === defaultAccountId) return -1;
+        if (right === defaultAccountId) return 1;
+        if (left === DEFAULT_ACCOUNT_ID) return -1;
+        if (right === DEFAULT_ACCOUNT_ID) return 1;
+        return left.localeCompare(right);
+    });
+}
+
+function pickNextChannelDefaultAccountId(
+    accounts: Record<string, ChannelConfigData>,
+    preferredDefaultAccountId: string = DEFAULT_ACCOUNT_ID,
+): string | undefined {
+    return sortChannelAccountIds(Object.keys(accounts).filter(Boolean), preferredDefaultAccountId)[0];
+}
+
+function syncChannelDefaultAccountMirror(channelSection: ChannelConfigData): void {
+    const accounts = channelSection.accounts as Record<string, ChannelConfigData> | undefined;
+    const legacyKeys = Object.keys(getLegacyChannelPayload(channelSection));
+    for (const key of legacyKeys) {
+        delete channelSection[key];
+    }
+    if (!accounts || typeof accounts !== 'object') {
+        return;
+    }
+    const mirroredAccountId = resolveChannelDefaultAccountId(channelSection, DEFAULT_ACCOUNT_ID);
+    const mirroredAccount = accounts[mirroredAccountId] ?? accounts[DEFAULT_ACCOUNT_ID];
+    if (!mirroredAccount) {
+        return;
+    }
+    for (const [key, value] of Object.entries(mirroredAccount)) {
+        channelSection[key] = value;
+    }
+}
+
 /**
  * Throws if the unique credential (e.g. appId for Feishu) in `config` is
  * already registered under a *different* account in the same channel section.
@@ -487,31 +535,14 @@ export async function saveChannelConfig(
             channelSection.accounts = {};
         }
         const accounts = channelSection.accounts as Record<string, ChannelConfigData>;
-        channelSection.defaultAccount =
-            typeof channelSection.defaultAccount === 'string' && channelSection.defaultAccount.trim()
-                ? channelSection.defaultAccount
-                : DEFAULT_ACCOUNT_ID;
         accounts[resolvedAccountId] = {
             ...accounts[resolvedAccountId],
             ...transformedConfig,
             enabled: transformedConfig.enabled ?? true,
         };
-
-        // Most OpenClaw channel plugins read the default account's credentials
-        // from the top level of `channels.<type>` (e.g. channels.feishu.appId),
-        // not from `accounts.default`.  Mirror them there so plugins can discover
-        // the credentials correctly.
-        // This MUST run unconditionally (not just when saving the default account)
-        // because migrateLegacyChannelConfigToAccounts() above strips top-level
-        // credential keys on every invocation.  Without this, saving a non-default
-        // account (e.g. a sub-agent's Feishu bot) leaves the top-level credentials
-        // missing, breaking plugins that only read from the top level.
-        const defaultAccountData = accounts[DEFAULT_ACCOUNT_ID];
-        if (defaultAccountData) {
-            for (const [key, value] of Object.entries(defaultAccountData)) {
-                channelSection[key] = value;
-            }
-        }
+        const currentDefaultAccountId = resolveChannelDefaultAccountId(channelSection, resolvedAccountId);
+        channelSection.defaultAccount = accounts[currentDefaultAccountId] ? currentDefaultAccountId : resolvedAccountId;
+        syncChannelDefaultAccountMirror(channelSection);
 
         await writeOpenClawConfig(currentConfig);
         logger.info('Channel config saved', {
@@ -522,6 +553,61 @@ export async function saveChannelConfig(
             transformedKeys: Object.keys(transformedConfig),
         });
         console.log(`Saved channel config for ${channelType} account ${resolvedAccountId}`);
+    });
+}
+
+export async function renameChannelAccountConfig(
+    channelType: string,
+    accountId: string,
+    nextAccountId: string,
+): Promise<void> {
+    return withConfigLock(async () => {
+        const trimmedAccountId = accountId.trim();
+        const trimmedNextAccountId = nextAccountId.trim();
+        if (!trimmedAccountId) {
+            throw new Error('accountId is required');
+        }
+        if (!trimmedNextAccountId) {
+            throw new Error('nextAccountId is required');
+        }
+        if (trimmedAccountId === trimmedNextAccountId) {
+            return;
+        }
+
+        const currentConfig = await readOpenClawConfig();
+        const channelSection = currentConfig.channels?.[channelType];
+        if (!channelSection) {
+            throw new Error(`Channel "${channelType}" is not configured`);
+        }
+
+        migrateLegacyChannelConfigToAccounts(channelSection, DEFAULT_ACCOUNT_ID);
+        if (!channelSection.accounts || typeof channelSection.accounts !== 'object') {
+            throw new Error(`Channel "${channelType}" does not have configurable accounts`);
+        }
+
+        const accounts = channelSection.accounts as Record<string, ChannelConfigData>;
+        const existingAccountConfig = accounts[trimmedAccountId];
+        if (!existingAccountConfig) {
+            throw new Error(`Account "${trimmedAccountId}" is not configured for channel "${channelType}"`);
+        }
+        if (accounts[trimmedNextAccountId]) {
+            throw new Error(`Account "${trimmedNextAccountId}" already exists for channel "${channelType}"`);
+        }
+
+        accounts[trimmedNextAccountId] = { ...existingAccountConfig };
+        delete accounts[trimmedAccountId];
+
+        if (resolveChannelDefaultAccountId(channelSection, DEFAULT_ACCOUNT_ID) === trimmedAccountId) {
+            channelSection.defaultAccount = trimmedNextAccountId;
+        }
+        syncChannelDefaultAccountMirror(channelSection);
+
+        await writeOpenClawConfig(currentConfig);
+        logger.info('Renamed channel account config', {
+            channelType,
+            accountId: trimmedAccountId,
+            nextAccountId: trimmedNextAccountId,
+        });
     });
 }
 
@@ -586,11 +672,43 @@ function extractFormValues(channelType: string, saved: ChannelConfigData): Recor
     return values;
 }
 
+function isStringArray(value: unknown): value is string[] {
+    return Array.isArray(value) && value.every((item) => typeof item === 'string');
+}
+
+function extractEditorValues(channelType: string, saved: ChannelConfigData): Record<string, ChannelEditorValue> {
+    const values: Record<string, ChannelEditorValue> = extractFormValues(channelType, saved);
+
+    for (const [key, value] of Object.entries(saved)) {
+        if (key === 'enabled') continue;
+        if (typeof value === 'boolean' || typeof value === 'number') {
+            values[key] = value;
+            continue;
+        }
+        if (isStringArray(value)) {
+            values[key] = value;
+        }
+    }
+
+    return values;
+}
+
 export async function getChannelFormValues(channelType: string, accountId?: string): Promise<Record<string, string> | undefined> {
     const saved = await getChannelConfig(channelType, accountId);
     if (!saved) return undefined;
 
     const values = extractFormValues(channelType, saved);
+    return Object.keys(values).length > 0 ? values : undefined;
+}
+
+export async function getChannelEditorValues(
+    channelType: string,
+    accountId?: string,
+): Promise<Record<string, ChannelEditorValue> | undefined> {
+    const saved = await getChannelConfig(channelType, accountId);
+    if (!saved) return undefined;
+
+    const values = extractEditorValues(channelType, saved);
     return Object.keys(values).length > 0 ? values : undefined;
 }
 
@@ -610,27 +728,12 @@ export async function deleteChannelAccountConfig(channelType: string, accountId:
             delete currentConfig.channels![channelType];
         } else {
             if (channelSection.defaultAccount === accountId) {
-                const nextDefaultAccountId = Object.keys(accounts).sort((a, b) => {
-                    if (a === DEFAULT_ACCOUNT_ID) return -1;
-                    if (b === DEFAULT_ACCOUNT_ID) return 1;
-                    return a.localeCompare(b);
-                })[0];
+                const nextDefaultAccountId = pickNextChannelDefaultAccountId(accounts);
                 if (nextDefaultAccountId) {
                     channelSection.defaultAccount = nextDefaultAccountId;
                 }
             }
-            // Re-mirror default account credentials to top level after migration
-            // stripped them (same rationale as saveChannelConfig).
-            const mirroredAccountId =
-                typeof channelSection.defaultAccount === 'string' && channelSection.defaultAccount.trim()
-                    ? channelSection.defaultAccount
-                    : DEFAULT_ACCOUNT_ID;
-            const defaultAccountData = accounts[mirroredAccountId] ?? accounts[DEFAULT_ACCOUNT_ID];
-            if (defaultAccountData) {
-                for (const [key, value] of Object.entries(defaultAccountData)) {
-                    channelSection[key] = value;
-                }
-            }
+            syncChannelDefaultAccountMirror(channelSection);
         }
 
         await writeOpenClawConfig(currentConfig);
@@ -758,11 +861,7 @@ export async function listConfiguredChannelAccounts(): Promise<Record<string, Co
 
         result[channelType] = {
             defaultAccountId,
-            accountIds: accountIds.sort((a, b) => {
-                if (a === DEFAULT_ACCOUNT_ID) return -1;
-                if (b === DEFAULT_ACCOUNT_ID) return 1;
-                return a.localeCompare(b);
-            }),
+            accountIds: sortChannelAccountIds(accountIds, defaultAccountId),
         };
     }
 
@@ -790,10 +889,7 @@ export async function setChannelDefaultAccount(channelType: string, accountId: s
 
         channelSection.defaultAccount = trimmedAccountId;
 
-        const defaultAccountData = accounts[trimmedAccountId];
-        for (const [key, value] of Object.entries(defaultAccountData)) {
-            channelSection[key] = value;
-        }
+        syncChannelDefaultAccountMirror(channelSection);
 
         await writeOpenClawConfig(currentConfig);
         logger.info('Set channel default account', { channelType, accountId: trimmedAccountId });
@@ -822,27 +918,12 @@ export async function deleteAgentChannelAccounts(agentId: string, ownedChannelAc
                 delete currentConfig.channels[channelType];
             } else {
                 if (section.defaultAccount === accountId) {
-                    const nextDefaultAccountId = Object.keys(accounts).sort((a, b) => {
-                        if (a === DEFAULT_ACCOUNT_ID) return -1;
-                        if (b === DEFAULT_ACCOUNT_ID) return 1;
-                        return a.localeCompare(b);
-                    })[0];
+                    const nextDefaultAccountId = pickNextChannelDefaultAccountId(accounts);
                     if (nextDefaultAccountId) {
                         section.defaultAccount = nextDefaultAccountId;
                     }
                 }
-                // Re-mirror default account credentials to top level after migration
-                // stripped them (same rationale as saveChannelConfig).
-                const mirroredAccountId =
-                    typeof section.defaultAccount === 'string' && section.defaultAccount.trim()
-                        ? section.defaultAccount
-                        : DEFAULT_ACCOUNT_ID;
-                const defaultAccountData = accounts[mirroredAccountId] ?? accounts[DEFAULT_ACCOUNT_ID];
-                if (defaultAccountData) {
-                    for (const [key, value] of Object.entries(defaultAccountData)) {
-                        section[key] = value;
-                    }
-                }
+                syncChannelDefaultAccountMirror(section);
             }
             modified = true;
         }
@@ -952,7 +1033,7 @@ export interface CredentialValidationResult {
 
 export async function validateChannelCredentials(
     channelType: string,
-    config: Record<string, string>
+    config: Record<string, unknown>
 ): Promise<CredentialValidationResult> {
     switch (channelType) {
         case 'discord':
@@ -965,10 +1046,10 @@ export async function validateChannelCredentials(
 }
 
 async function validateDiscordCredentials(
-    config: Record<string, string>
+    config: Record<string, unknown>
 ): Promise<CredentialValidationResult> {
     const result: CredentialValidationResult = { valid: true, errors: [], warnings: [], details: {} };
-    const token = config.token?.trim();
+    const token = typeof config.token === 'string' ? config.token.trim() : '';
 
     if (!token) {
         return { valid: false, errors: ['Bot token is required'], warnings: [] };
@@ -996,7 +1077,7 @@ async function validateDiscordCredentials(
         return { valid: false, errors: [`Connection error when validating bot token: ${error instanceof Error ? error.message : String(error)}`], warnings: [] };
     }
 
-    const guildId = config.guildId?.trim();
+    const guildId = typeof config.guildId === 'string' ? config.guildId.trim() : '';
     if (guildId) {
         try {
             const guildResponse = await fetch(`https://discord.com/api/v10/guilds/${guildId}`, {
@@ -1019,7 +1100,7 @@ async function validateDiscordCredentials(
         }
     }
 
-    const channelId = config.channelId?.trim();
+    const channelId = typeof config.channelId === 'string' ? config.channelId.trim() : '';
     if (channelId) {
         try {
             const channelResponse = await fetch(`https://discord.com/api/v10/channels/${channelId}`, {
@@ -1050,10 +1131,10 @@ async function validateDiscordCredentials(
 }
 
 async function validateTelegramCredentials(
-    config: Record<string, string>
+    config: Record<string, unknown>
 ): Promise<CredentialValidationResult> {
-    const botToken = config.botToken?.trim();
-    const allowedUsers = config.allowedUsers?.trim();
+    const botToken = typeof config.botToken === 'string' ? config.botToken.trim() : '';
+    const allowedUsers = typeof config.allowedUsers === 'string' ? config.allowedUsers.trim() : '';
 
     if (!botToken) return { valid: false, errors: ['Bot token is required'], warnings: [] };
     if (!allowedUsers) return { valid: false, errors: ['At least one allowed user ID is required'], warnings: [] };

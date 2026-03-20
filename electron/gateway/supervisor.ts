@@ -7,6 +7,11 @@ import { isPythonReady, setupManagedPython } from '../utils/uv-setup';
 import { logger } from '../utils/logger';
 import { prependPathEntry } from '../utils/env-path';
 import { probeGatewayReady } from './ws-client';
+import {
+  clearGatewayHandoffMarker,
+  isGatewayHandoffPending,
+  readGatewayHandoffMarker,
+} from './handoff-marker';
 
 export function warmupManagedPythonReadiness(): void {
   void isPythonReady().then((pythonReady) => {
@@ -224,21 +229,100 @@ export async function terminateGatewayProcessesListeningOnPort(port: number): Pr
   return true;
 }
 
-async function probeExistingGatewaySocket(port: number): Promise<{ port: number; externalToken?: string } | null> {
-  const ready = await probeGatewayReady(port, 2000);
+async function probeExistingGatewaySocket(
+  port: number,
+  timeoutMs = 2000,
+): Promise<{ port: number; externalToken?: string } | null> {
+  const ready = await probeGatewayReady(port, timeoutMs);
   return ready ? { port } : null;
+}
+
+async function attachListeningPidMetadata(existingGateway: { port: number; externalToken?: string }, ownedPid?: number): Promise<{
+  port: number;
+  pid?: number;
+  owned?: boolean;
+  externalToken?: string;
+}> {
+  if (!ownedPid) {
+    return existingGateway;
+  }
+
+  try {
+    const pids = await getListeningProcessIds(existingGateway.port);
+    if (pids.includes(String(ownedPid))) {
+      return {
+        ...existingGateway,
+        pid: ownedPid,
+        owned: true,
+      };
+    }
+  } catch (error) {
+    logger.warn('Failed to inspect listening Gateway process IDs:', error);
+  }
+
+  return existingGateway;
+}
+
+async function waitForPendingGatewayHandoff(
+  port: number,
+): Promise<{ port: number; externalToken?: string } | null> {
+  const marker = await readGatewayHandoffMarker();
+  if (!isGatewayHandoffPending(marker, port)) {
+    if (marker && marker.port === port) {
+      await clearGatewayHandoffMarker();
+    }
+    return null;
+  }
+  if (!marker) {
+    return null;
+  }
+
+  const waitDeadline = Math.max(marker.expiresAt, Date.now() + 30_000);
+
+  logger.info(
+    `Waiting for pending Gateway handoff (port=${port}, waitForPid=${marker.waitForPid}, expiresAt=${new Date(waitDeadline).toISOString()})`,
+  );
+
+  while (Date.now() < waitDeadline) {
+    const existingGateway = await probeExistingGatewaySocket(port, 1500);
+    if (existingGateway) {
+      await clearGatewayHandoffMarker();
+      return existingGateway;
+    }
+
+    try {
+      const pids = await getListeningProcessIds(port);
+      if (pids.length > 0) {
+        await clearGatewayHandoffMarker();
+        return { port };
+      }
+    } catch (error) {
+      logger.warn('Failed to inspect pending Gateway handoff listener:', error);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 300));
+  }
+
+  logger.warn(`Gateway handoff marker expired before a reusable runtime appeared on port ${port}`);
+  await clearGatewayHandoffMarker();
+  return null;
 }
 
 export async function findExistingGatewayProcess(options: {
   port: number;
   ownedPid?: number;
-}): Promise<{ port: number; externalToken?: string } | null> {
+}): Promise<{ port: number; pid?: number; owned?: boolean; externalToken?: string } | null> {
   const { port, ownedPid } = options;
 
   try {
     const existingGateway = await probeExistingGatewaySocket(port);
     if (existingGateway) {
-      return existingGateway;
+      await clearGatewayHandoffMarker();
+      return await attachListeningPidMetadata(existingGateway, ownedPid);
+    }
+
+    const pendingHandoffGateway = await waitForPendingGatewayHandoff(port);
+    if (pendingHandoffGateway) {
+      return await attachListeningPidMetadata(pendingHandoffGateway, ownedPid);
     }
 
     try {

@@ -25,7 +25,7 @@
 
 ### 真实首次接管 E2E 已完成，但仍缺 Windows 对等验证
 
-本轮已经直接在真实 `~/Library/Application Support/clawx` 上临时回退到 pending，完成了一次：
+本轮已经直接在真实 `~/Library/Application Support/XClaw` 上临时回退到 pending，完成了一次：
 
 - `setup-inspection`
 - `setup-plan`
@@ -160,7 +160,7 @@
 
 ### 已补充隔离 `userData` 的开发态入口
 
-仅改 `HOME` 不能隔离 Electron `userData`。为解决这点，本轮已新增 `CLAWX_USER_DATA_DIR` 开发态覆盖入口，用于：
+仅改 `HOME` 不能隔离 Electron `userData`。为解决这点，本轮已新增 `XClaw_USER_DATA_DIR` 开发态覆盖入口，用于：
 
 - 在 macOS 上隔离 settings/provider store/logs
 - 复现“首次接管”而不污染真实本机数据

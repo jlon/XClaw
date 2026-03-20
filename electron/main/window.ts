@@ -12,6 +12,11 @@ interface WindowState {
   isMaximized: boolean;
 }
 
+export const DEFAULT_MAIN_WINDOW_WIDTH = 1400;
+export const DEFAULT_MAIN_WINDOW_HEIGHT = 820;
+export const DEFAULT_MAIN_WINDOW_MIN_WIDTH = 1100;
+export const DEFAULT_MAIN_WINDOW_MIN_HEIGHT = 640;
+
 // Lazy-load electron-store (ESM module)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let windowStateStore: any = null;
@@ -23,8 +28,8 @@ async function getStore() {
       name: 'window-state',
       defaults: {
         windowState: {
-          width: 1280,
-          height: 800,
+          width: DEFAULT_MAIN_WINDOW_WIDTH,
+          height: DEFAULT_MAIN_WINDOW_HEIGHT,
           isMaximized: false,
         },
       },

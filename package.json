@@ -1,5 +1,5 @@
 {
-    "name": "clawx",
+    "name": "XClaw",
     "version": "0.2.5",
     "pnpm": {
         "onlyBuiltDependencies": [
@@ -32,6 +32,7 @@
         "lint": "eslint . --fix",
         "typecheck": "tsc --noEmit",
         "test": "vitest run",
+        "test:e2e": "node scripts/run-playwright-e2e.mjs",
         "comms:replay": "node scripts/comms/replay.mjs",
         "comms:baseline": "node scripts/comms/baseline.mjs",
         "comms:compare": "node scripts/comms/compare.mjs",

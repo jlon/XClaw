@@ -1,30 +1,106 @@
-/**
- * Select Component
- * Styled native select matching shadcn/ui conventions
- */
 import * as React from 'react';
+import * as SelectPrimitive from '@radix-ui/react-select';
+import { Check, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type SelectProps = React.SelectHTMLAttributes<HTMLSelectElement>;
+const EMPTY_SELECT_VALUE = '__xclaw_select_empty__';
 
-const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, children, ...props }, ref) => {
+export interface SelectOption {
+  value: string;
+  label: React.ReactNode;
+  disabled?: boolean;
+}
+
+export interface SelectProps {
+  id?: string;
+  value?: string;
+  options: SelectOption[];
+  placeholder?: string;
+  disabled?: boolean;
+  className?: string;
+  contentClassName?: string;
+  onValueChange?: (value: string) => void;
+  'aria-label'?: string;
+  'data-testid'?: string;
+}
+
+const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
+  (
+    {
+      id,
+      value,
+      options,
+      placeholder,
+      disabled,
+      className,
+      contentClassName,
+      onValueChange,
+      'aria-label': ariaLabel,
+      'data-testid': dataTestId,
+    },
+    ref,
+  ) => {
+    const hasEmptyOption = options.some((option) => option.value === '');
+    const selectedValue = value ?? '';
+    const normalizedValue = selectedValue || hasEmptyOption ? (selectedValue || EMPTY_SELECT_VALUE) : undefined;
+
     return (
-      <select
-        className={cn(
-          'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none bg-[length:16px_16px] bg-[right_12px_center] bg-no-repeat',
-          'bg-[url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23888%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22/%3E%3C/svg%3E")]',
-          'pr-10',
-          className
-        )}
-        ref={ref}
-        {...props}
+      <SelectPrimitive.Root
+        disabled={disabled}
+        value={normalizedValue}
+        onValueChange={(nextValue) => onValueChange?.(nextValue === EMPTY_SELECT_VALUE ? '' : nextValue)}
       >
-        {children}
-      </select>
+        <SelectPrimitive.Trigger
+          id={id}
+          ref={ref}
+          aria-label={ariaLabel}
+          data-testid={dataTestId}
+          className={cn(
+            'inline-flex h-10 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-colors data-[placeholder]:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:truncate',
+            className,
+          )}
+        >
+          <SelectPrimitive.Value placeholder={placeholder} />
+          <SelectPrimitive.Icon asChild>
+            <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground/70" />
+          </SelectPrimitive.Icon>
+        </SelectPrimitive.Trigger>
+        <SelectPrimitive.Portal>
+          <SelectPrimitive.Content
+            position="popper"
+            sideOffset={8}
+            className={cn(
+              'z-50 max-h-72 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-2xl border border-black/10 bg-popover text-popover-foreground shadow-[0_18px_40px_rgba(15,23,42,0.12)] dark:border-white/10',
+              contentClassName,
+            )}
+          >
+            <SelectPrimitive.Viewport className="p-1">
+              {options.map((option) => {
+                const optionValue = option.value === '' ? EMPTY_SELECT_VALUE : option.value;
+                return (
+                  <SelectPrimitive.Item
+                    key={optionValue}
+                    value={optionValue}
+                    disabled={option.disabled}
+                    className="relative flex w-full cursor-default select-none items-center rounded-xl py-2 pl-9 pr-3 text-sm outline-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-40 data-[highlighted]:bg-black/[0.05] data-[highlighted]:text-foreground dark:data-[highlighted]:bg-white/[0.08]"
+                  >
+                    <span className="absolute left-3 flex h-4 w-4 items-center justify-center">
+                      <SelectPrimitive.ItemIndicator>
+                        <Check className="h-3.5 w-3.5" />
+                      </SelectPrimitive.ItemIndicator>
+                    </span>
+                    <SelectPrimitive.ItemText>{option.label}</SelectPrimitive.ItemText>
+                  </SelectPrimitive.Item>
+                );
+              })}
+            </SelectPrimitive.Viewport>
+          </SelectPrimitive.Content>
+        </SelectPrimitive.Portal>
+      </SelectPrimitive.Root>
     );
-  }
+  },
 );
+
 Select.displayName = 'Select';
 
 export { Select };

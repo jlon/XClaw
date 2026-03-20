@@ -6,7 +6,7 @@ import {
 } from '@electron/main/setup-bootstrap';
 
 describe('setup bootstrap state', () => {
-  it('enters readonly mode when setup state is unresolved and no legacy ClawX footprint exists', () => {
+  it('enters readonly mode when setup state is unresolved and no legacy XClaw footprint exists', () => {
     const state = deriveSetupBootstrapState({
       settings: {},
       legacyFootprintDetected: false,
@@ -48,7 +48,7 @@ describe('setup bootstrap state', () => {
     });
   });
 
-  it('keeps legacy ClawX footprint in readonly mode until setup is explicitly completed', () => {
+  it('keeps legacy XClaw footprint in readonly mode until setup is explicitly completed', () => {
     const state = deriveSetupBootstrapState({
       settings: {},
       legacyFootprintDetected: true,
@@ -63,7 +63,7 @@ describe('setup bootstrap state', () => {
   });
 });
 
-describe('legacy ClawX footprint detection', () => {
+describe('legacy XClaw footprint detection', () => {
   it('detects legacy provider store data when provider accounts already exist', () => {
     expect(hasLegacyProviderStoreFootprint({
       providerAccounts: {
@@ -87,17 +87,17 @@ describe('legacy ClawX footprint detection', () => {
     })).toBe(false);
   });
 
-  it('detects ClawX-managed openclaw config by gateway token prefix', () => {
+  it('detects XClaw-managed openclaw config by gateway token prefix', () => {
     expect(hasLegacyOpenClawConfigFootprint({
       gateway: {
         auth: {
-          token: 'clawx-123',
+          token: 'XClaw-123',
         },
       },
     })).toBe(true);
   });
 
-  it('detects ClawX-managed openclaw config by file origin allowance', () => {
+  it('detects XClaw-managed openclaw config by file origin allowance', () => {
     expect(hasLegacyOpenClawConfigFootprint({
       gateway: {
         controlUi: {

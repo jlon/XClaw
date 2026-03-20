@@ -14,7 +14,7 @@
  * they are pure Node.js HTTP functions, no TTY, no prompter needed.
  *
  * We provide our own callbacks (openUrl/note/progress) that hook into
- * the Electron IPC system to display UI in the ClawX frontend.
+ * the Electron IPC system to display UI in the XClaw frontend.
  */
 import { EventEmitter } from 'events';
 import { BrowserWindow, shell } from 'electron';
@@ -281,7 +281,7 @@ class DeviceOAuthManager extends EventEmitter {
             logger.warn(`[DeviceOAuth] Failed to configure openclaw models:`, err);
         }
 
-        // 3. Save provider record in ClawX's own store so UI shows it as configured
+        // 3. Save provider record in XClaw's own store so UI shows it as configured
         const existing = await getProvider(accountId);
         const nameMap: Record<OAuthProviderType, string> = {
             'minimax-portal': 'MiniMax (Global)',

@@ -16,7 +16,7 @@ for /f "tokens=2 delims=:." %%a in ('chcp') do set /a "_CP=%%a" 2>nul
 chcp 65001 >nul 2>&1
 
 set ELECTRON_RUN_AS_NODE=1
-set OPENCLAW_EMBEDDED_IN=ClawX
+set OPENCLAW_EMBEDDED_IN=XClaw
 "%~dp0..\..\XClaw.exe" "%~dp0..\openclaw\openclaw.mjs" %*
 set _EXIT=%ERRORLEVEL%
 

@@ -55,7 +55,7 @@ interface AuthProfilesStore {
 
 export interface SetupInspectionProviderAccount {
   runtimeProviderKey: string;
-  clawxProviderType: string;
+  XClawProviderType: string;
   importSource: ProviderImportSource;
   authModes: ProviderAuthMode[];
   agentIds: string[];
@@ -77,7 +77,7 @@ export interface SetupInspectionResult {
   bootstrap: SetupBootstrapState;
   hasExistingOpenClaw: boolean;
   openClawDir: string;
-  hasLegacyClawXFootprint: boolean;
+  hasLegacyXClawFootprint: boolean;
   defaultWorkspacePath: string;
   configuredWorkspacePaths: string[];
   gatewayPort: number;
@@ -252,7 +252,7 @@ function classifyProviderImportSource(
   return 'unsupported';
 }
 
-function inferClawXProviderType(runtimeProviderKey: string, importSource: ProviderImportSource): string {
+function inferXClawProviderType(runtimeProviderKey: string, importSource: ProviderImportSource): string {
   if (importSource === 'supported' && getProviderDefinition(runtimeProviderKey)) {
     return runtimeProviderKey;
   }
@@ -338,7 +338,7 @@ export function summarizeProviderImport(options: {
 
     return {
       runtimeProviderKey,
-      clawxProviderType: inferClawXProviderType(runtimeProviderKey, importSource),
+      XClawProviderType: inferXClawProviderType(runtimeProviderKey, importSource),
       importSource,
       authModes,
       agentIds: [...(auth?.agentIds ?? new Set<string>())].sort(),
@@ -596,7 +596,7 @@ export async function inspectLocalOpenClawSetup(
   const warnings: string[] = [];
   const errors: string[] = [];
 
-  const [bootstrap, hasLegacyClawXFootprint, settings, configFile] = await Promise.all([
+  const [bootstrap, hasLegacyXClawFootprint, settings, configFile] = await Promise.all([
     deps.resolveBootstrapState(),
     deps.detectLegacyFootprint(),
     deps.getSettings(),
@@ -664,7 +664,7 @@ export async function inspectLocalOpenClawSetup(
     bootstrap,
     hasExistingOpenClaw,
     openClawDir: OPENCLAW_DIR,
-    hasLegacyClawXFootprint,
+    hasLegacyXClawFootprint,
     defaultWorkspacePath,
     configuredWorkspacePaths,
     gatewayPort,

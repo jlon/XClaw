@@ -23,9 +23,9 @@ interface DeriveSetupBootstrapStateOptions {
 
 const OPENCLAW_DIR = join(homedir(), '.openclaw');
 const OPENCLAW_CONFIG_PATH = join(OPENCLAW_DIR, 'openclaw.json');
-const CLAWX_CONTEXT_BEGIN = '<!-- clawx:begin -->';
-const CLAWX_CONTEXT_END = '<!-- clawx:end -->';
-const PREINSTALLED_MARKER_NAME = '.clawx-preinstalled.json';
+const XClaw_CONTEXT_BEGIN = '<!-- XClaw:begin -->';
+const XClaw_CONTEXT_END = '<!-- XClaw:end -->';
+const PREINSTALLED_MARKER_NAME = '.XClaw-preinstalled.json';
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -91,8 +91,8 @@ function extractWorkspaceDirsFromOpenClawConfig(config: unknown): string[] {
   return [...dirs];
 }
 
-function hasClawXContextMarker(content: string): boolean {
-  return content.includes(CLAWX_CONTEXT_BEGIN) && content.includes(CLAWX_CONTEXT_END);
+function hasXClawContextMarker(content: string): boolean {
+  return content.includes(XClaw_CONTEXT_BEGIN) && content.includes(XClaw_CONTEXT_END);
 }
 
 export function hasLegacyProviderStoreFootprint(storeData: unknown): boolean {
@@ -119,7 +119,7 @@ export function hasLegacyOpenClawConfigFootprint(configData: unknown): boolean {
   const gateway = asRecord(config.gateway);
   const auth = asRecord(gateway?.auth);
   const token = typeof auth?.token === 'string' ? auth.token.trim() : '';
-  if (token.startsWith('clawx-')) {
+  if (token.startsWith('XClaw-')) {
     return true;
   }
 
@@ -162,7 +162,7 @@ export function deriveSetupBootstrapState(
 
 async function detectLegacyProviderStoreFootprint(): Promise<boolean> {
   const { app } = await import('electron');
-  const providerStorePath = join(app.getPath('userData'), 'clawx-providers.json');
+  const providerStorePath = join(app.getPath('userData'), 'XClaw-providers.json');
   const store = await readJsonFile<Record<string, unknown>>(providerStorePath);
   return hasLegacyProviderStoreFootprint(store);
 }
@@ -211,7 +211,7 @@ async function detectLegacyWorkspaceFootprint(): Promise<boolean> {
           continue;
         }
         const content = await readFile(join(workspaceDir, entry), 'utf-8').catch(() => null);
-        if (content && hasClawXContextMarker(content)) {
+        if (content && hasXClawContextMarker(content)) {
           return true;
         }
       }

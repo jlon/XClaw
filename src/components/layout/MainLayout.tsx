@@ -13,7 +13,7 @@ export function MainLayout() {
       <div className="flex flex-1 overflow-hidden">
         <Sidebar key={isChatRoute ? 'chat-sidebar' : 'app-sidebar'} railOnly={isChatRoute} />
         {isChatRoute && <ChatSessionsPane />}
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 min-w-0 overflow-hidden px-3 py-4 xl:px-4">
           <Outlet />
         </main>
       </div>

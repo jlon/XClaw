@@ -3,7 +3,7 @@ import { join } from 'path';
 import { buildImportedProviderState, applyImportedProviderState, type ImportedProviderState } from '../services/providers/provider-import';
 import { buildSetupPlan, inspectLocalOpenClawSetup } from './setup-inspection';
 import { getAllSettings, replaceAllSettings, setSetting, type AppSettings } from '../utils/store';
-import { getClawXProviderStore } from '../services/providers/store-instance';
+import { getXClawProviderStore } from '../services/providers/store-instance';
 import { captureTakeoverFingerprint } from './takeover-reconciler';
 import { loadTakeoverRuntimeState, type TakeoverRuntimeState } from './takeover-runtime';
 
@@ -124,7 +124,7 @@ const defaultWriteBackup = async (payload: TakeoverBackupPayload): Promise<strin
 };
 
 const defaultGetProviderStoreSnapshot = async (): Promise<Record<string, unknown>> => {
-  const store = await getClawXProviderStore();
+  const store = await getXClawProviderStore();
   return { ...store.store };
 };
 
@@ -181,7 +181,7 @@ const defaultApplyImportedRuntimeSettings = async (
 };
 
 const defaultRestoreProviderStoreSnapshot = async (snapshot: Record<string, unknown>): Promise<void> => {
-  const store = await getClawXProviderStore();
+  const store = await getXClawProviderStore();
   store.clear();
   store.set(snapshot);
 };

@@ -5,8 +5,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const { testHome, testUserData, mockLoggerWarn, mockLoggerInfo, mockLoggerError } = vi.hoisted(() => {
   const suffix = Math.random().toString(36).slice(2);
   return {
-    testHome: `/tmp/clawx-channel-config-${suffix}`,
-    testUserData: `/tmp/clawx-channel-config-user-data-${suffix}`,
+    testHome: `/tmp/XClaw-channel-config-${suffix}`,
+    testUserData: `/tmp/XClaw-channel-config-user-data-${suffix}`,
     mockLoggerWarn: vi.fn(),
     mockLoggerInfo: vi.fn(),
     mockLoggerError: vi.fn(),
@@ -179,5 +179,92 @@ describe('Feishu plugin configuration', () => {
     expect(plugins.allow).not.toContain('feishu-openclaw-plugin');
     expect(plugins.entries['openclaw-lark'].enabled).toBe(true);
     expect(plugins.entries).not.toHaveProperty('feishu-openclaw-plugin');
+  });
+});
+
+describe('channel editor values', () => {
+  beforeEach(async () => {
+    vi.resetAllMocks();
+    vi.resetModules();
+    await rm(testHome, { recursive: true, force: true });
+    await rm(testUserData, { recursive: true, force: true });
+  });
+
+  it('reads plugin-backed boolean and array values for the workbench editor', async () => {
+    const { saveChannelConfig, getChannelEditorValues } = await import('@electron/utils/channel-config');
+
+    await saveChannelConfig(
+      'wecom',
+      {
+        botId: 'ww-test',
+        secret: 'secret',
+        mode: 'ws',
+        requireMention: true,
+        allowFrom: ['alice', 'bob'],
+      },
+      'default',
+    );
+
+    await expect(getChannelEditorValues('wecom', 'default')).resolves.toEqual(
+      expect.objectContaining({
+        botId: 'ww-test',
+        secret: 'secret',
+        mode: 'ws',
+        requireMention: true,
+        dmPolicy: 'open',
+        allowFrom: ['alice', 'bob', '*'],
+      }),
+    );
+  });
+
+  it('keeps telegram allowedUsers mapped for the editor view', async () => {
+    const { saveChannelConfig, getChannelEditorValues } = await import('@electron/utils/channel-config');
+
+    await saveChannelConfig(
+      'telegram',
+      {
+        botToken: 'telegram-token',
+        allowedUsers: '123, 456',
+      },
+      'default',
+    );
+
+    await expect(getChannelEditorValues('telegram', 'default')).resolves.toEqual(
+      expect.objectContaining({
+        botToken: 'telegram-token',
+        allowedUsers: '123, 456',
+      }),
+    );
+  });
+});
+
+describe('channel account rename', () => {
+  beforeEach(async () => {
+    vi.resetAllMocks();
+    vi.resetModules();
+    await rm(testHome, { recursive: true, force: true });
+    await rm(testUserData, { recursive: true, force: true });
+  });
+
+  it('renames an account id, preserves the default pointer, and keeps mirrored top-level config in sync', async () => {
+    const { renameChannelAccountConfig, saveChannelConfig } = await import('@electron/utils/channel-config');
+
+    await saveChannelConfig('feishu', { appId: 'bot-default', appSecret: 'secret' }, 'default');
+
+    await renameChannelAccountConfig('feishu', 'default', 'sales-bot');
+
+    const config = await readOpenClawJson();
+    const channels = config.channels as Record<string, {
+      appId?: string;
+      defaultAccount?: string;
+      accounts: Record<string, { appId?: string }>;
+    }>;
+
+    expect(channels.feishu.defaultAccount).toBe('sales-bot');
+    expect(channels.feishu.accounts.default).toBeUndefined();
+    expect(channels.feishu.accounts['sales-bot']).toEqual(
+      expect.objectContaining({ appId: 'bot-default' }),
+    );
+    expect(channels.feishu.appId).toBe('bot-default');
   });
 });

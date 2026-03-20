@@ -1,4 +1,4 @@
-# ClawX Release Workflow
+# XClaw Release Workflow
 # Builds and publishes releases for macOS, Windows, and Linux
 
 name: Release
@@ -166,10 +166,10 @@ jobs:
       #
       # Actual latest.yml structure (from electron-builder NSIS):
       #   files:
-      #     - url: ClawX-0.2.4-win-x64.exe    ← files[] entries have url/sha512/size
+      #     - url: XClaw-0.2.4-win-x64.exe    ← files[] entries have url/sha512/size
       #       sha512: <base64>
       #       size: 430775882
-      #   path: ClawX-0.2.4-win-arm64.exe      ← top-level has path/sha512 (no size!)
+      #   path: XClaw-0.2.4-win-arm64.exe      ← top-level has path/sha512 (no size!)
       #   sha512: <base64>
       #   releaseDate: '...'
       - name: Update latest.yml sha512 after code signing
@@ -290,28 +290,28 @@ jobs:
           make_latest: false
           generate_release_notes: true
           body: |
-            ## 🚀 ClawX ${{ github.ref_name }}
+            ## 🚀 XClaw ${{ github.ref_name }}
             
-            ClawX - Graphical AI Assistant based on OpenClaw
+            XClaw - Graphical AI Assistant based on OpenClaw
             
             ### 📦 Downloads
             
             Please select the appropriate installer for your operating system and architecture:
             
             #### macOS
-            - **Apple Silicon (M1/M2/M3/M4)**: `ClawX-*-mac-arm64.dmg`
-            - **Intel (x64)**: `ClawX-*-mac-x64.dmg`
+            - **Apple Silicon (M1/M2/M3/M4)**: `XClaw-*-mac-arm64.dmg`
+            - **Intel (x64)**: `XClaw-*-mac-x64.dmg`
             
             #### Windows
-            - **Installer (x64)**: `ClawX-*-win-x64.exe`
-            - **Installer (ARM64)**: `ClawX-*-win-arm64.exe`
+            - **Installer (x64)**: `XClaw-*-win-x64.exe`
+            - **Installer (ARM64)**: `XClaw-*-win-arm64.exe`
             
             #### Linux
-            - **AppImage (x64)**: `ClawX-*-linux-x86_64.AppImage` (Universal format, recommended)
-            - **AppImage (ARM64)**: `ClawX-*-linux-arm64.AppImage`
-            - **Debian/Ubuntu (x64)**: `ClawX-*-linux-amd64.deb`
-            - **Debian/Ubuntu (ARM64)**: `ClawX-*-linux-arm64.deb`
-            - **RPM (x64)**: `ClawX-*-linux-x86_64.rpm`
+            - **AppImage (x64)**: `XClaw-*-linux-x86_64.AppImage` (Universal format, recommended)
+            - **AppImage (ARM64)**: `XClaw-*-linux-arm64.AppImage`
+            - **Debian/Ubuntu (x64)**: `XClaw-*-linux-amd64.deb`
+            - **Debian/Ubuntu (ARM64)**: `XClaw-*-linux-arm64.deb`
+            - **RPM (x64)**: `XClaw-*-linux-x86_64.rpm`
             
             ### 📝 Release Notes
             
@@ -321,7 +321,7 @@ jobs:
             
             - **macOS**: On first launch, you may see "cannot verify developer". Go to System Preferences → Security & Privacy to allow the app to run
             - **Windows**: SmartScreen may block the app. Click "More info" → "Run anyway" to proceed
-            - **Linux AppImage**: First run `chmod +x ClawX-*.AppImage` to add execute permission. On Ubuntu 22.04 you may also need `sudo apt install libfuse2`; on Ubuntu 24.04 use `sudo apt install libfuse2t64`
+            - **Linux AppImage**: First run `chmod +x XClaw-*.AppImage` to add execute permission. On Ubuntu 22.04 you may also need `sudo apt install libfuse2`; on Ubuntu 24.04 use `sudo apt install libfuse2t64`
             - **Linux .deb (Ubuntu 24.04)**: If installation fails due to missing dependencies, use `sudo apt install libgtk-3-0t64 libnotify4t64 libxss1t64` before installing
             
             ---
@@ -424,19 +424,19 @@ jobs:
               releaseDate: $date,
               downloads: {
                 mac: {
-                  x64: ($base + "/ClawX-" + $version + "-mac-x64.dmg"),
-                  arm64: ($base + "/ClawX-" + $version + "-mac-arm64.dmg")
+                  x64: ($base + "/XClaw-" + $version + "-mac-x64.dmg"),
+                  arm64: ($base + "/XClaw-" + $version + "-mac-arm64.dmg")
                 },
                 win: {
-                  x64: ($base + "/ClawX-" + $version + "-win-x64.exe"),
-                  arm64: ($base + "/ClawX-" + $version + "-win-arm64.exe")
+                  x64: ($base + "/XClaw-" + $version + "-win-x64.exe"),
+                  arm64: ($base + "/XClaw-" + $version + "-win-arm64.exe")
                 },
                 linux: {
-                  deb_amd64: ($base + "/ClawX-" + $version + "-linux-amd64.deb"),
-                  deb_arm64: ($base + "/ClawX-" + $version + "-linux-arm64.deb"),
-                  appimage_x64: ($base + "/ClawX-" + $version + "-linux-x86_64.AppImage"),
-                  appimage_arm64: ($base + "/ClawX-" + $version + "-linux-arm64.AppImage"),
-                  rpm_x64: ($base + "/ClawX-" + $version + "-linux-x86_64.rpm")
+                  deb_amd64: ($base + "/XClaw-" + $version + "-linux-amd64.deb"),
+                  deb_arm64: ($base + "/XClaw-" + $version + "-linux-arm64.deb"),
+                  appimage_x64: ($base + "/XClaw-" + $version + "-linux-x86_64.AppImage"),
+                  appimage_arm64: ($base + "/XClaw-" + $version + "-linux-arm64.AppImage"),
+                  rpm_x64: ($base + "/XClaw-" + $version + "-linux-x86_64.rpm")
                 }
               },
               changelog: $changelog
@@ -468,13 +468,13 @@ jobs:
           CHANNEL="${{ steps.version.outputs.channel }}"
 
           # Only clean the current channel's directory — never touch other channels
-          ossutil rm -r -f oss://valuecell-clawx/${CHANNEL}/ || true
+          ossutil rm -r -f oss://valuecell-XClaw/${CHANNEL}/ || true
 
           # Upload all files with no-cache so clients always get the freshest version
           ossutil cp -r -f \
             --meta="Cache-Control:no-cache,no-store,must-revalidate" \
             staging/${CHANNEL}/ \
-            oss://valuecell-clawx/${CHANNEL}/
+            oss://valuecell-XClaw/${CHANNEL}/
 
           echo "Uploaded to ${CHANNEL}/"
 
@@ -485,7 +485,7 @@ jobs:
           # Upload to permanent archive (long cache, immutable)
           ossutil cp -r \
             staging/releases/${TAG}/ \
-            oss://valuecell-clawx/releases/${TAG}/ \
+            oss://valuecell-XClaw/releases/${TAG}/ \
             --meta "Cache-Control:public,max-age=31536000,immutable"
 
           echo "Uploaded to releases/${TAG}/"
@@ -496,15 +496,15 @@ jobs:
           CHANNEL="${{ steps.version.outputs.channel }}"
 
           echo "=== ${CHANNEL}/ ==="
-          ossutil ls oss://valuecell-clawx/${CHANNEL}/ --short
+          ossutil ls oss://valuecell-XClaw/${CHANNEL}/ --short
 
           echo ""
           echo "=== releases/${TAG}/ ==="
-          ossutil ls oss://valuecell-clawx/releases/${TAG}/ --short
+          ossutil ls oss://valuecell-XClaw/releases/${TAG}/ --short
 
           echo ""
           echo "=== Verify release-info.json ==="
-          ossutil cp oss://valuecell-clawx/${CHANNEL}/release-info.json /tmp/release-info.json -f
+          ossutil cp oss://valuecell-XClaw/${CHANNEL}/release-info.json /tmp/release-info.json -f
           jq . /tmp/release-info.json
 
           echo ""
@@ -515,7 +515,7 @@ jobs:
             YML_PREFIX="${CHANNEL}"
           fi
           echo "electron-updater expects ${YML_PREFIX}-mac.yml, ${YML_PREFIX}.yml, etc. in ${CHANNEL}/:"
-          ossutil ls oss://valuecell-clawx/${CHANNEL}/ --short | grep "${YML_PREFIX}.*\\.yml" || echo "(none found)"
+          ossutil ls oss://valuecell-XClaw/${CHANNEL}/ --short | grep "${YML_PREFIX}.*\\.yml" || echo "(none found)"
           
           echo ""
           echo "All files uploaded and verified successfully!"

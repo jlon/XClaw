@@ -61,6 +61,72 @@ export interface ChannelConfigField {
   options?: { value: string; label: string }[];
 }
 
+export type ChannelFieldEvidenceLevel =
+  | 'current-xclaw-roundtrip'
+  | 'current-xclaw-route'
+  | 'upstream-plugin-only';
+
+export type ChannelFieldReadStrategy =
+  | 'string-form-value'
+  | 'editor-value-roundtrip'
+  | 'telegram-allowed-users'
+  | 'route-state'
+  | 'not-readable-in-current-ui';
+
+export type ChannelFieldWriteStrategy =
+  | 'channel-config'
+  | 'telegram-allowed-users-transform'
+  | 'channel-enabled-route'
+  | 'default-account-route'
+  | 'binding-route';
+
+export type ChannelFieldValueType =
+  | 'string'
+  | 'password'
+  | 'boolean'
+  | 'number'
+  | 'string[]';
+
+export interface ChannelConfigContractField
+  extends Omit<ChannelConfigField, 'type'> {
+  type: ChannelConfigField['type'] | 'boolean' | 'number' | 'array';
+  valueType: ChannelFieldValueType;
+  defaultValue?: string | boolean | number | string[];
+  storagePath?: string;
+  routePath?: string;
+  readStrategy: ChannelFieldReadStrategy;
+  writeStrategy: ChannelFieldWriteStrategy;
+  evidence: string[];
+  evidenceLevel: ChannelFieldEvidenceLevel;
+}
+
+export interface ChannelConfigContractSection {
+  id: string;
+  label: string;
+  fields: ChannelConfigContractField[];
+}
+
+export interface ChannelBehaviorControl {
+  key: string;
+  label: string;
+  routePath: string;
+  readStrategy: Extract<ChannelFieldReadStrategy, 'route-state'>;
+  writeStrategy: Exclude<ChannelFieldWriteStrategy, 'channel-config' | 'telegram-allowed-users-transform'>;
+  evidence: string[];
+  evidenceLevel: Extract<ChannelFieldEvidenceLevel, 'current-xclaw-route'>;
+}
+
+export interface ChannelFieldRegistryEntry {
+  basicFields: ChannelConfigContractField[];
+  advancedSections: ChannelConfigContractSection[];
+  behaviorControls: ChannelBehaviorControl[];
+  candidateFields: {
+    basicFields: ChannelConfigContractField[];
+    advancedSections: ChannelConfigContractSection[];
+    behaviorControls: Array<ChannelConfigContractField | ChannelBehaviorControl>;
+  };
+}
+
 /**
  * Channel metadata with configuration info
  */

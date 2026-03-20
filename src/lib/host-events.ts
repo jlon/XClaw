@@ -26,7 +26,7 @@ function getEventSource(): EventSource {
 
 function allowSseFallback(): boolean {
   try {
-    return window.localStorage.getItem('clawx:allow-sse-fallback') === '1';
+    return window.localStorage.getItem('XClaw:allow-sse-fallback') === '1';
   } catch {
     return false;
   }

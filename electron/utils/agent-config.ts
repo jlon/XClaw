@@ -703,3 +703,80 @@ export async function clearAllBindingsForChannel(channelType: string): Promise<v
     logger.info('Cleared all bindings for channel', { channelType });
   });
 }
+
+export async function renameChannelAccountBinding(
+  channelType: string,
+  accountId: string,
+  nextAccountId: string,
+): Promise<void> {
+  return withConfigLock(async () => {
+    const trimmedAccountId = accountId.trim();
+    const trimmedNextAccountId = nextAccountId.trim();
+    if (!trimmedAccountId) {
+      throw new Error('accountId is required');
+    }
+    if (!trimmedNextAccountId) {
+      throw new Error('nextAccountId is required');
+    }
+    if (trimmedAccountId === trimmedNextAccountId) {
+      return;
+    }
+
+    const config = await readOpenClawConfig() as AgentConfigDocument;
+    if (!Array.isArray(config.bindings) || config.bindings.length === 0) {
+      return;
+    }
+
+    const hasScopedBinding = config.bindings.some((binding) => (
+      isChannelBinding(binding)
+      && binding.match?.channel === channelType
+      && binding.match?.accountId === trimmedAccountId
+    ));
+
+    let modified = false;
+    const nextBindings = config.bindings.flatMap((binding) => {
+      if (!isChannelBinding(binding) || binding.match?.channel !== channelType) {
+        return [binding];
+      }
+
+      if (binding.match?.accountId === trimmedAccountId) {
+        modified = true;
+        return [{
+          ...binding,
+          match: {
+            ...binding.match,
+            accountId: trimmedNextAccountId,
+          },
+        }];
+      }
+
+      if (trimmedAccountId === DEFAULT_ACCOUNT_ID && !binding.match?.accountId) {
+        modified = true;
+        if (hasScopedBinding) {
+          return [];
+        }
+        return [{
+          ...binding,
+          match: {
+            ...binding.match,
+            accountId: trimmedNextAccountId,
+          },
+        }];
+      }
+
+      return [binding];
+    });
+
+    if (!modified) {
+      return;
+    }
+
+    config.bindings = nextBindings.length > 0 ? nextBindings : undefined;
+    await writeOpenClawConfig(config);
+    logger.info('Renamed channel account binding', {
+      channelType,
+      accountId: trimmedAccountId,
+      nextAccountId: trimmedNextAccountId,
+    });
+  });
+}

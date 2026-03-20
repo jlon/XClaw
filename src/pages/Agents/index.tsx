@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { WorkspacePageFrame, WorkspacePageLoading, WorkspacePageScrollArea, WorkspacePageShell } from '@/components/layout/WorkspacePage';
 import { useAgentsStore } from '@/stores/agents';
 import { useGatewayStore } from '@/stores/gateway';
 import { hostApiFetch } from '@/lib/host-api';
@@ -103,16 +103,12 @@ export function Agents() {
   };
 
   if (loading) {
-    return (
-      <div className="flex flex-col -m-6 dark:bg-background min-h-[calc(100vh-2.5rem)] items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
+    return <WorkspacePageLoading />;
   }
 
   return (
-    <div className="flex flex-col -m-6 dark:bg-background h-[calc(100vh-2.5rem)] overflow-hidden">
-      <div className="w-full max-w-5xl mx-auto flex flex-col h-full p-10 pt-16">
+    <WorkspacePageFrame>
+      <WorkspacePageShell>
         <div className="flex flex-col md:flex-row md:items-start justify-between mb-12 shrink-0 gap-4">
           <div>
             <h1
@@ -142,7 +138,7 @@ export function Agents() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto pr-2 pb-10 min-h-0 -mr-2">
+        <WorkspacePageScrollArea>
           {gatewayStatus.state !== 'running' && (
             <div className="mb-8 p-4 rounded-xl border border-yellow-500/50 bg-yellow-500/10 flex items-center gap-3">
               <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
@@ -172,8 +168,8 @@ export function Agents() {
               />
             ))}
           </div>
-        </div>
-      </div>
+        </WorkspacePageScrollArea>
+      </WorkspacePageShell>
 
       {showAddDialog && (
         <AddAgentDialog
@@ -217,7 +213,7 @@ export function Agents() {
         }}
         onCancel={() => setAgentToDelete(null)}
       />
-    </div>
+    </WorkspacePageFrame>
   );
 }
 

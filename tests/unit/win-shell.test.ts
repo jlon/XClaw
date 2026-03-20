@@ -177,8 +177,8 @@ describe('normalizeNodeRequirePathForNodeOptions', () => {
 
   it('converts backslashes to forward slashes on Windows', () => {
     setPlatform('win32');
-    expect(normalizeNodeRequirePathForNodeOptions('C:\\Users\\70954\\AppData\\Roaming\\clawx\\gateway-fetch-preload.cjs'))
-      .toBe('C:/Users/70954/AppData/Roaming/clawx/gateway-fetch-preload.cjs');
+    expect(normalizeNodeRequirePathForNodeOptions('C:\\Users\\70954\\AppData\\Roaming\\XClaw\\gateway-fetch-preload.cjs'))
+      .toBe('C:/Users/70954/AppData/Roaming/XClaw/gateway-fetch-preload.cjs');
   });
 
   it('leaves forward slashes intact on Windows', () => {

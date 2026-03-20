@@ -62,10 +62,97 @@
   }
 }
 
+.workspace-page-frame {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: calc(100vh - 2.5rem);
+  overflow: hidden;
+}
+
+.workspace-page-shell {
+  margin: 0 auto;
+  display: flex;
+  height: 100%;
+  width: 100%;
+  max-width: 1560px;
+  flex-direction: column;
+  padding: 2rem 0.75rem 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .workspace-page-shell {
+    padding: 2rem 1rem 1.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .workspace-page-shell {
+    padding: 2.25rem 1.5rem 1.75rem;
+  }
+}
+
+.workspace-page-scroll {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 2rem;
+}
+
+.workspace-page-scroll-default {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.workspace-page-scroll-default::-webkit-scrollbar {
+  width: 2px;
+  height: 2px;
+}
+
+.workspace-page-scroll-default::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.workspace-page-scroll-default::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 9999px;
+}
+
+.workspace-page-scroll-default::-webkit-scrollbar-thumb:hover,
+.workspace-page-scroll-default::-webkit-scrollbar-thumb:active {
+  background-color: hsl(var(--foreground) / 0.05);
+}
+
+.workspace-page-scroll-win {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.workspace-page-scroll-win::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.workspace-page-scroll-win::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.workspace-page-scroll-win::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 9999px;
+}
+
+.workspace-page-scroll-win::-webkit-scrollbar-thumb:hover,
+.workspace-page-scroll-win::-webkit-scrollbar-thumb:active {
+  background-color: hsl(var(--foreground) / 0.06);
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
@@ -73,11 +160,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-border rounded-full;
+  background-color: hsl(var(--foreground) / 0.12);
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-muted-foreground/30;
+  background-color: hsl(var(--foreground) / 0.18);
 }
 
 .subtle-scrollbar {

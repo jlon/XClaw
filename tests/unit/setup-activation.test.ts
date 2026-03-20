@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const ensureBuiltinSkillsInstalledMock = vi.fn().mockResolvedValue(undefined);
 const ensurePreinstalledSkillsInstalledMock = vi.fn().mockResolvedValue(undefined);
 const ensureAllBundledPluginsInstalledMock = vi.fn().mockResolvedValue(undefined);
-const ensureClawXContextMock = vi.fn().mockResolvedValue(undefined);
-const repairClawXOnlyBootstrapFilesMock = vi.fn().mockResolvedValue(undefined);
+const ensureXClawContextMock = vi.fn().mockResolvedValue(undefined);
+const repairXClawOnlyBootstrapFilesMock = vi.fn().mockResolvedValue(undefined);
 const autoInstallCliIfNeededMock = vi.fn().mockResolvedValue(undefined);
 const generateCompletionCacheMock = vi.fn();
 const installCompletionToProfileMock = vi.fn();
@@ -35,8 +35,8 @@ vi.mock('@electron/utils/plugin-install', () => ({
 }));
 
 vi.mock('@electron/utils/openclaw-workspace', () => ({
-  ensureClawXContext: (...args: unknown[]) => ensureClawXContextMock(...args),
-  repairClawXOnlyBootstrapFiles: (...args: unknown[]) => repairClawXOnlyBootstrapFilesMock(...args),
+  ensureXClawContext: (...args: unknown[]) => ensureXClawContextMock(...args),
+  repairXClawOnlyBootstrapFiles: (...args: unknown[]) => repairXClawOnlyBootstrapFilesMock(...args),
 }));
 
 vi.mock('@electron/utils/openclaw-cli', () => ({
@@ -130,7 +130,7 @@ describe('runSetupActivationSideEffects', () => {
     expect(ensureBuiltinSkillsInstalledMock).toHaveBeenCalledTimes(1);
     expect(ensurePreinstalledSkillsInstalledMock).toHaveBeenCalledTimes(1);
     expect(ensureAllBundledPluginsInstalledMock).toHaveBeenCalledTimes(1);
-    expect(ensureClawXContextMock).toHaveBeenCalledTimes(1);
+    expect(ensureXClawContextMock).toHaveBeenCalledTimes(1);
     expect(syncAllProviderAuthToRuntimeMock).not.toHaveBeenCalled();
     expect(gatewayManager.start).not.toHaveBeenCalled();
     expect(runtimeController.activateManagedMode).toHaveBeenCalledWith('stopped');

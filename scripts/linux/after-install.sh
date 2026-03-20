@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Post-installation script for ClawX on Linux
+# Post-installation script for XClaw on Linux
 
 set -e
 
@@ -14,13 +14,13 @@ if command -v gtk-update-icon-cache &> /dev/null; then
     gtk-update-icon-cache -q /usr/share/icons/hicolor || true
 fi
 
-# Create symbolic link for ClawX app binary
-if [ -x /opt/ClawX/clawx ]; then
-    ln -sf /opt/ClawX/clawx /usr/local/bin/clawx 2>/dev/null || true
+# Create symbolic link for XClaw app binary
+if [ -x /opt/XClaw/XClaw ]; then
+    ln -sf /opt/XClaw/XClaw /usr/local/bin/XClaw 2>/dev/null || true
 fi
 
 # Create symbolic link for openclaw CLI
-OPENCLAW_WRAPPER="/opt/ClawX/resources/cli/openclaw"
+OPENCLAW_WRAPPER="/opt/XClaw/resources/cli/openclaw"
 if [ -f "$OPENCLAW_WRAPPER" ]; then
     chmod +x "$OPENCLAW_WRAPPER" 2>/dev/null || true
     ln -sf "$OPENCLAW_WRAPPER" /usr/local/bin/openclaw 2>/dev/null || true
@@ -32,9 +32,9 @@ fi
 # we rely on the AppArmor profile below instead, so 0755 is correct there.
 if ! { [[ -L /proc/self/ns/user ]] && unshare --user true; }; then
     # No user namespace support — fall back to SUID sandbox
-    chmod 4755 '/opt/ClawX/chrome-sandbox' || true
+    chmod 4755 '/opt/XClaw/chrome-sandbox' || true
 else
-    chmod 0755 '/opt/ClawX/chrome-sandbox' || true
+    chmod 0755 '/opt/XClaw/chrome-sandbox' || true
 fi
 
 # Install AppArmor profile (Ubuntu 24.04+).
@@ -45,8 +45,8 @@ fi
 # We first check if AppArmor is enabled and if the running version supports abi/4.0
 # (Ubuntu 22.04 does not; it runs fine without the profile, so we skip it there).
 if apparmor_status --enabled > /dev/null 2>&1; then
-    APPARMOR_PROFILE_SOURCE='/opt/ClawX/resources/apparmor-profile'
-    APPARMOR_PROFILE_TARGET='/etc/apparmor.d/clawx'
+    APPARMOR_PROFILE_SOURCE='/opt/XClaw/resources/apparmor-profile'
+    APPARMOR_PROFILE_TARGET='/etc/apparmor.d/XClaw'
     if apparmor_parser --skip-kernel-load --debug "$APPARMOR_PROFILE_SOURCE" > /dev/null 2>&1; then
         cp -f "$APPARMOR_PROFILE_SOURCE" "$APPARMOR_PROFILE_TARGET"
 
@@ -59,4 +59,4 @@ if apparmor_status --enabled > /dev/null 2>&1; then
     fi
 fi
 
-echo "ClawX has been installed successfully."
+echo "XClaw has been installed successfully."

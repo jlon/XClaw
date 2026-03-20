@@ -53,13 +53,16 @@ interface ChannelConfigModalProps {
   agentId?: string;
   accountId?: string;
   onClose: () => void;
-  onChannelSaved?: (channelType: ChannelType) => void | Promise<void>;
+  onChannelSaved?: (channelType: ChannelType, accountId?: string) => void | Promise<void>;
 }
 
-const inputClasses = 'h-[44px] rounded-xl font-mono text-[13px] bg-[#eeece3] dark:bg-muted border-black/10 dark:border-white/10 focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:border-blue-500 shadow-sm transition-all text-foreground placeholder:text-foreground/40';
+const inputClasses = 'h-[44px] rounded-xl font-mono text-[13px] bg-background/80 dark:bg-background/70 border-black/10 dark:border-white/10 focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:border-blue-500 shadow-sm transition-all text-foreground placeholder:text-foreground/40';
 const labelClasses = 'text-[14px] text-foreground/80 font-bold';
 const outlineButtonClasses = 'h-9 text-[13px] font-medium rounded-full px-4 border-black/10 dark:border-white/10 bg-transparent hover:bg-black/5 dark:hover:bg-white/5 shadow-none text-foreground/80 hover:text-foreground';
 const primaryButtonClasses = 'h-9 text-[13px] font-medium rounded-full px-4 shadow-none';
+const modalCardClasses = 'w-full max-w-3xl max-h-[90vh] flex flex-col rounded-3xl border border-black/10 dark:border-white/10 shadow-2xl bg-card/95 dark:bg-background/70 overflow-hidden backdrop-blur';
+const modalSurfaceClasses = 'bg-background/80 dark:bg-background/70 border border-black/10 dark:border-white/10';
+const modalSubtleSurfaceClasses = 'bg-background/80 dark:bg-background/70';
 
 export function ChannelConfigModal({
   initialSelectedType = null,
@@ -192,8 +195,8 @@ export function ChannelConfigModal({
       await fetchChannels();
     }
 
-    await onChannelSaved?.(channelType);
-  }, [addChannel, channelName, channels, configValues, fetchChannels, meta?.configFields, onChannelSaved, showChannelName]);
+    await onChannelSaved?.(channelType, resolvedAccountId);
+  }, [addChannel, channelName, channels, configValues, fetchChannels, meta?.configFields, onChannelSaved, resolvedAccountId, showChannelName]);
 
   useEffect(() => {
     if (selectedType !== 'whatsapp') return;
@@ -426,6 +429,7 @@ export function ChannelConfigModal({
 
   return (
     <div
+      data-testid="channel-config-modal"
       className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
@@ -434,7 +438,8 @@ export function ChannelConfigModal({
       }}
     >
       <Card
-        className="w-full max-w-3xl max-h-[90vh] flex flex-col rounded-3xl border-0 shadow-2xl bg-[#f3f1e9] dark:bg-card overflow-hidden"
+        data-testid="channel-config-modal-card"
+        className={modalCardClasses}
         onMouseDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
       >
@@ -473,7 +478,7 @@ export function ChannelConfigModal({
                     key={type}
                     onClick={() => setSelectedType(type)}
                     className={cn(
-                      'group flex items-start gap-4 p-4 rounded-2xl transition-all text-left border relative overflow-hidden bg-[#eeece3] dark:bg-muted shadow-sm',
+                      `group flex items-start gap-4 p-4 rounded-2xl transition-all text-left border relative overflow-hidden shadow-sm ${modalSubtleSurfaceClasses}`,
                       isConfigured
                         ? 'border-green-500/40 bg-green-500/5 dark:bg-green-500/10'
                         : 'border-black/5 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5'
@@ -512,7 +517,7 @@ export function ChannelConfigModal({
             </div>
           ) : qrCode ? (
             <div className="text-center space-y-6">
-              <div className="bg-[#eeece3] dark:bg-muted p-4 rounded-3xl inline-block shadow-sm border border-black/10 dark:border-white/10">
+              <div className={cn('p-4 rounded-3xl inline-block shadow-sm', modalSurfaceClasses)}>
                 {qrCode.startsWith('data:image') ? (
                   <img src={qrCode} alt="Scan QR Code" className="w-64 h-64 object-contain rounded-2xl" />
                 ) : (
@@ -538,7 +543,7 @@ export function ChannelConfigModal({
               </div>
             </div>
           ) : loadingConfig ? (
-            <div className="flex items-center justify-center py-10 rounded-2xl bg-[#eeece3] dark:bg-muted border border-black/10 dark:border-white/10">
+            <div className={cn('flex items-center justify-center py-10 rounded-2xl', modalSurfaceClasses)}>
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               <span className="ml-2 text-[14px] text-muted-foreground">{t('dialog.loadingConfig')}</span>
             </div>
@@ -551,7 +556,7 @@ export function ChannelConfigModal({
                 </div>
               )}
 
-              <div className="bg-[#eeece3] dark:bg-muted p-4 rounded-2xl space-y-4 shadow-sm border border-black/10 dark:border-white/10">
+              <div className={cn('p-4 rounded-2xl space-y-4 shadow-sm', modalSurfaceClasses)}>
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className={labelClasses}>{t('dialog.howToConnect')}</p>
@@ -774,7 +779,7 @@ function ConfigField({ field, value, onChange, showSecret, onToggleSecret }: Con
             variant="outline"
             size="icon"
             onClick={onToggleSecret}
-            className="h-[44px] w-[44px] rounded-xl bg-[#eeece3] dark:bg-muted border-black/10 dark:border-white/10 text-muted-foreground hover:text-foreground shrink-0 shadow-sm"
+            className="h-[44px] w-[44px] rounded-xl bg-background/80 dark:bg-background/70 border-black/10 dark:border-white/10 text-muted-foreground hover:text-foreground shrink-0 shadow-sm"
           >
             {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </Button>

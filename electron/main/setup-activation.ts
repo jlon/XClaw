@@ -6,7 +6,7 @@ import type { GatewayManager } from '../gateway/manager';
 import type { GatewayRuntimeController } from '../gateway/runtime-controller';
 import { ensureBuiltinSkillsInstalled, ensurePreinstalledSkillsInstalled } from '../utils/skill-config';
 import { ensureAllBundledPluginsInstalled } from '../utils/plugin-install';
-import { ensureClawXContext, repairClawXOnlyBootstrapFiles } from '../utils/openclaw-workspace';
+import { ensureXClawContext, repairXClawOnlyBootstrapFiles } from '../utils/openclaw-workspace';
 import { autoInstallCliIfNeeded, generateCompletionCache, installCompletionToProfile } from '../utils/openclaw-cli';
 import { getSetting, setSetting, type GatewayDesiredState } from '../utils/store';
 import { logger } from '../utils/logger';
@@ -127,7 +127,7 @@ export async function runSetupActivationSideEffects(
   };
 
   await runCriticalTask(
-    repairClawXOnlyBootstrapFiles,
+    repairXClawOnlyBootstrapFiles,
     'Failed to repair bootstrap files:',
   );
 
@@ -168,8 +168,8 @@ export async function runSetupActivationSideEffects(
   }
 
   await runCriticalTask(
-    ensureClawXContext,
-    'Failed to merge ClawX context into workspace:',
+    ensureXClawContext,
+    'Failed to merge XClaw context into workspace:',
   );
 
   void autoInstallCliIfNeeded((installedPath) => {

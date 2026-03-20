@@ -301,6 +301,7 @@ AI を開発ワークフローに統合できます。エージェントを使�
 │   └── types/               # TypeScript 型定義
 ├── tests/
 │   └── unit/                # Vitest ユニット/統合寄りテスト
+│   └── e2e/                 # Playwright スモークテスト
 ├── resources/                # 静的アセット（アイコン、画像）
 └── scripts/                  # ビルド/ユーティリティスクリプト
 ```
@@ -317,6 +318,7 @@ pnpm typecheck            # TypeScriptの型チェック
 
 # テスト
 pnpm test                 # ユニットテストを実行
+pnpm run test:e2e         # Playwright スモークテストを実行
 pnpm run comms:replay     # 通信リプレイ指標を算出
 pnpm run comms:baseline   # 通信ベースラインを更新
 pnpm run comms:compare    # リプレイ指標をベースライン閾値と比較

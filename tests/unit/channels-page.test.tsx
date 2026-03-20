@@ -1,9 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, render, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { Channels } from '@/pages/Channels/index';
 
 const hostApiFetchMock = vi.fn();
 const subscribeHostEventMock = vi.fn();
+const modalSavePayload = {
+  channelType: 'feishu',
+  accountId: 'default',
+};
 
 const { gatewayState } = vi.hoisted(() => ({
   gatewayState: {
@@ -37,25 +41,102 @@ vi.mock('sonner', () => ({
   },
 }));
 
+vi.mock('@/components/channels/ChannelConfigModal', () => ({
+  ChannelConfigModal: (props: {
+    onClose: () => void;
+    onChannelSaved?: (channelType: string, accountId?: string) => void | Promise<void>;
+  }) => (
+    <div data-testid="channel-config-modal">
+      <button type="button" onClick={() => props.onClose()}>
+        mock-modal-close
+      </button>
+      <button
+        type="button"
+        onClick={() => props.onChannelSaved?.(modalSavePayload.channelType, modalSavePayload.accountId)}
+      >
+        mock-modal-save
+      </button>
+    </div>
+  ),
+}));
+
 describe('Channels page status refresh', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     gatewayState.status = { state: 'running', port: 18789 };
+    modalSavePayload.channelType = 'feishu';
+    modalSavePayload.accountId = 'default';
+    let feishuEditorValues = {
+      appId: 'cli_xxx',
+      appSecret: 'secret',
+      dmPolicy: 'open',
+      groupPolicy: 'allowlist',
+    };
     hostApiFetchMock.mockImplementation(async (path: string) => {
-      if (path === '/api/channels/accounts') {
+      if (path.startsWith('/api/channels/accounts')) {
         return {
           success: true,
           channels: [
             {
               channelType: 'feishu',
               defaultAccountId: 'default',
+              enabled: true,
               status: 'connected',
               accounts: [
                 {
                   accountId: 'default',
                   name: 'Primary Account',
                   configured: true,
+                  enabled: true,
                   status: 'connected',
+                  isDefault: true,
+                },
+              ],
+            },
+            {
+              channelType: 'telegram',
+              defaultAccountId: 'default',
+              enabled: true,
+              status: 'disconnected',
+              accounts: [
+                {
+                  accountId: 'default',
+                  name: 'Telegram Account',
+                  configured: true,
+                  enabled: true,
+                  status: 'disconnected',
+                  isDefault: true,
+                },
+              ],
+            },
+            {
+              channelType: 'wecom',
+              defaultAccountId: 'default',
+              enabled: true,
+              status: 'disconnected',
+              accounts: [
+                {
+                  accountId: 'default',
+                  name: 'WeCom Account',
+                  configured: true,
+                  enabled: true,
+                  status: 'disconnected',
+                  isDefault: true,
+                },
+              ],
+            },
+            {
+              channelType: 'dingtalk',
+              defaultAccountId: 'default',
+              enabled: true,
+              status: 'disconnected',
+              accounts: [
+                {
+                  accountId: 'default',
+                  name: 'DingTalk Account',
+                  configured: true,
+                  enabled: true,
+                  status: 'disconnected',
                   isDefault: true,
                 },
               ],
@@ -68,6 +149,62 @@ describe('Channels page status refresh', () => {
         return {
           success: true,
           agents: [],
+        };
+      }
+
+      if (path.startsWith('/api/channels/config-editor/feishu')) {
+        return {
+          success: true,
+          values: feishuEditorValues,
+        };
+      }
+
+      if (path.startsWith('/api/channels/config-editor/telegram')) {
+        return {
+          success: true,
+          values: {
+            botToken: 'telegram-token',
+            allowedUsers: '123456',
+          },
+        };
+      }
+
+      if (path.startsWith('/api/channels/config-editor/wecom')) {
+        return {
+          success: true,
+          values: {
+            botId: 'aibVSuoUd2im_LWIl',
+            secret: 'wecom-secret',
+            dmPolicy: 'open',
+            groupPolicy: 'allowlist',
+          },
+        };
+      }
+
+      if (path.startsWith('/api/channels/config-editor/dingtalk')) {
+        return {
+          success: true,
+          values: {
+            clientId: 'ding-client',
+            clientSecret: 'ding-secret',
+            robotCode: 'robot-code',
+            corpId: 'corp-id',
+            agentId: 'agent-id',
+            dmPolicy: 'open',
+            groupPolicy: 'allowlist',
+          },
+        };
+      }
+
+      if (path === '/api/channels/config') {
+        feishuEditorValues = {
+          appId: 'normalized-app-id',
+          appSecret: 'secret',
+          dmPolicy: 'open',
+          groupPolicy: 'allowlist',
+        };
+        return {
+          success: true,
         };
       }
 
@@ -104,6 +241,24 @@ describe('Channels page status refresh', () => {
     });
   });
 
+  it('keeps the first load lightweight and only probes runtime on manual refresh', async () => {
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(hostApiFetchMock).toHaveBeenCalledWith('/api/channels/accounts');
+    });
+
+    expect(hostApiFetchMock).not.toHaveBeenCalledWith('/api/channels/accounts?probe=1');
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'refresh' }));
+    });
+
+    await waitFor(() => {
+      expect(hostApiFetchMock).toHaveBeenCalledWith('/api/channels/accounts?probe=1');
+    });
+  });
+
   it('refetches when the gateway transitions to running after mount', async () => {
     gatewayState.status = { state: 'starting', port: 18789 };
 
@@ -122,8 +277,802 @@ describe('Channels page status refresh', () => {
     await waitFor(() => {
       const channelFetchCalls = hostApiFetchMock.mock.calls.filter(([path]) => path === '/api/channels/accounts');
       const agentFetchCalls = hostApiFetchMock.mock.calls.filter(([path]) => path === '/api/agents');
-      expect(channelFetchCalls).toHaveLength(2);
-      expect(agentFetchCalls).toHaveLength(2);
+      expect(channelFetchCalls.length).toBeGreaterThanOrEqual(2);
+      expect(agentFetchCalls.length).toBeGreaterThanOrEqual(2);
     });
   });
+
+  it('shows the workbench and switches the selected channel', async () => {
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('channels-workbench')).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId('channel-rail-item-feishu')).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTestId('channel-account-item-default')).toHaveTextContent('Primary Account');
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('channel-rail-item-telegram'));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('channel-rail-item-telegram')).toHaveAttribute('aria-pressed', 'true');
+    });
+    expect(screen.getByTestId('channel-account-item-default')).toHaveTextContent('Telegram Account');
+  });
+
+  it('filters the rail with the search box', async () => {
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('searchPlaceholder')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      fireEvent.change(screen.getByPlaceholderText('searchPlaceholder'), {
+        target: { value: 'tele' },
+      });
+    });
+
+    expect(screen.queryByTestId('channel-rail-item-feishu')).not.toBeInTheDocument();
+    expect(screen.getByTestId('channel-rail-item-telegram')).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.change(screen.getByPlaceholderText('searchPlaceholder'), {
+        target: { value: 'missing-channel' },
+      });
+    });
+
+    expect(screen.getByText('emptySearch')).toBeInTheDocument();
+  });
+
+  it('shows configured summaries for collapsed advanced sections', async () => {
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('channels-workbench')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('channel-rail-item-dingtalk'));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('channel-rail-item-dingtalk')).toHaveAttribute('aria-pressed', 'true');
+    });
+
+    expect(
+      screen.getByText((text) =>
+        text.includes('Robot Code')
+        && text.includes('robot-code')
+        && text.includes('Corp ID')
+        && text.includes('corp-id')),
+    ).toBeInTheDocument();
+  });
+
+  it('asks before discarding unsaved editor changes when switching channel', async () => {
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('cli_xxx')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      fireEvent.change(screen.getByDisplayValue('cli_xxx'), {
+        target: { value: 'changed-app-id' },
+      });
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('channel-rail-item-telegram'));
+    });
+
+    expect(screen.getByText('editor.unsavedChangesTitle')).toBeInTheDocument();
+    expect(screen.getByText('editor.unsavedChangesMessage')).toBeInTheDocument();
+    expect(screen.getByTestId('channel-rail-item-feishu')).toHaveAttribute('aria-pressed', 'true');
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'editor.discardChangesConfirm' }));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('channel-rail-item-telegram')).toHaveAttribute('aria-pressed', 'true');
+    });
+    expect(screen.getByDisplayValue('telegram-token')).toBeInTheDocument();
+  });
+
+  it('uses theme-compatible surfaces instead of fixed warm-only fills', async () => {
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('channel-rail-item-feishu')).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId('channel-rail-item-feishu').className).not.toContain('#f7f2e9');
+    expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('bg-amber-50/70');
+    expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('dark:bg-white/10');
+
+    expect(screen.getByPlaceholderText('searchPlaceholder').className).not.toContain('#f5f1e8');
+    expect(screen.getByPlaceholderText('searchPlaceholder').className).toContain('bg-background/80');
+  });
+
+  it('uses a wider shell and removes plugin badges from crowded rail cards', async () => {
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('channels-shell')).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId('channels-shell').className).toContain('max-w-[1680px]');
+    expect(screen.getByTestId('channels-shell').className).not.toContain('max-w-5xl');
+    expect(screen.getByTestId('channels-workbench').className).toContain('xl:grid-cols-[minmax(250px,0.9fr)_minmax(360px,1.08fr)_minmax(460px,1.32fr)]');
+    expect(within(screen.getByTestId('channel-rail-item-feishu')).queryByText('pluginBadge')).not.toBeInTheDocument();
+  });
+
+  it('uses subtle page scrollbars and keeps only save as the primary action', async () => {
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('channels-scroll-area')).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId('channels-scroll-area').className).toContain('workspace-page-scroll');
+    expect(screen.getByTestId('channels-editor-scroll').className).toContain('subtle-scrollbar');
+    expect(screen.getByRole('button', { name: 'addChannel' }).className).not.toContain('bg-primary');
+    expect(screen.getByRole('button', { name: 'account.add' }).className).not.toContain('bg-primary');
+    expect(screen.getByRole('button', { name: 'dialog.updateAndReconnect' }).className).toContain('bg-primary');
+  });
+
+  it('keeps the behavior section concise instead of repeating extra helper copy', async () => {
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(screen.getByText('editor.behaviorTitle')).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText('account.bindAgentHint')).not.toBeInTheDocument();
+    expect(screen.getAllByText('account.unassigned').length).toBeGreaterThan(0);
+  });
+
+  it('uses custom select triggers for agent binding and policy fields instead of native selects', async () => {
+    hostApiFetchMock.mockImplementation(async (path: string) => {
+      if (path === '/api/channels/accounts') {
+        return {
+          success: true,
+          channels: [
+            {
+              channelType: 'wecom',
+              defaultAccountId: 'default',
+              enabled: true,
+              status: 'disconnected',
+              accounts: [
+                {
+                  accountId: 'default',
+                  name: 'WeCom Account',
+                  configured: true,
+                  enabled: true,
+                  status: 'disconnected',
+                  isDefault: true,
+                  agentId: 'pangtong',
+                },
+              ],
+            },
+          ],
+        };
+      }
+
+      if (path === '/api/agents') {
+        return {
+          success: true,
+          agents: [
+            { id: 'pangtong', name: 'pangtong' },
+            { id: 'zhugeliang', name: 'zhugeliang' },
+          ],
+        };
+      }
+
+      if (path.startsWith('/api/channels/config-editor/wecom')) {
+        return {
+          success: true,
+          values: {
+            botId: 'aibVSuoUd2im_LWIl',
+            secret: 'wecom-secret',
+            dmPolicy: 'open',
+            groupPolicy: 'allowlist',
+          },
+        };
+      }
+
+      throw new Error(`Unexpected host API path: ${path}`);
+    });
+
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('channel-agent-select-trigger')).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId('channel-agent-select-trigger').tagName).toBe('BUTTON');
+    expect(screen.getByTestId('channel-field-select-trigger-dmPolicy').tagName).toBe('BUTTON');
+    expect(screen.getByTestId('channel-field-select-trigger-groupPolicy').tagName).toBe('BUTTON');
+    expect(document.querySelector('select')).not.toBeInTheDocument();
+  });
+
+  it('keeps the selected account header actions compact without wrapping into a loose second row', async () => {
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('channel-account-header-actions')).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId('channel-account-header-actions').className).toContain('grid-flow-col');
+    expect(screen.getByTestId('channel-account-header-actions').className).not.toContain('flex-wrap');
+  });
+
+  it('shows human-readable rail connection copy and labels the account + agent controls', async () => {
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('channel-rail-item-feishu')).toBeInTheDocument();
+      expect(screen.getByLabelText('account.customIdLabel')).toHaveValue('default');
+      expect(screen.getByLabelText('account.bindAgentLabel')).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId('channel-rail-item-feishu')).toHaveTextContent('account.connectionStatus.connected');
+    expect(screen.getByTestId('channel-rail-item-telegram')).toHaveTextContent('account.connectionStatus.disconnected');
+  });
+
+  it('keeps configured rail indicators green when the channel is enabled even if it is currently disconnected', async () => {
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('channel-rail-indicator-wecom')).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId('channel-rail-item-wecom')).toHaveTextContent('account.connectionStatus.disconnected');
+    expect(screen.getByTestId('channel-rail-indicator-wecom').className).toContain('bg-emerald-500');
+  });
+
+  it('keeps the basic config stacked until wide screens so labels do not collapse into narrow columns', async () => {
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('channel-rail-item-wecom')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('channel-rail-item-wecom'));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('aibVSuoUd2im_LWIl')).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId('channel-basic-fields-grid').className).toContain('xl:grid-cols-2');
+    expect(screen.getByTestId('channel-basic-fields-grid').className).not.toContain('md:grid-cols-2');
+    expect(screen.getByTestId('channel-account-id-card').className).not.toContain('md:grid-cols-');
+    expect(screen.getByTestId('channel-field-header-botId').className).not.toContain('md:min-h-[3.5rem]');
+  });
+
+  it('retries channel account loading after the runtime becomes available', async () => {
+    const scheduledCallbacks: Array<() => void> = [];
+    const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout').mockImplementation(((callback: TimerHandler, delay?: number) => {
+      if (typeof callback === 'function' && delay === 1500) {
+        scheduledCallbacks.push(callback as () => void);
+      }
+      return 1 as ReturnType<typeof setTimeout>;
+    }) as typeof setTimeout);
+    const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout').mockImplementation(() => {});
+    try {
+      const runtimeStates = [
+        {
+          success: true,
+          runtimeAvailable: false,
+          gatewayState: 'starting',
+          channels: [
+            {
+              channelType: 'wecom',
+              defaultAccountId: 'default',
+              enabled: true,
+              status: 'disconnected',
+              accounts: [
+                {
+                  accountId: 'default',
+                  name: 'WeCom Account',
+                  configured: true,
+                  enabled: true,
+                  status: 'disconnected',
+                  isDefault: true,
+                },
+              ],
+            },
+          ],
+        },
+        {
+          success: true,
+          runtimeAvailable: true,
+          gatewayState: 'running',
+          channels: [
+            {
+              channelType: 'wecom',
+              defaultAccountId: 'default',
+              enabled: true,
+              status: 'connected',
+              accounts: [
+                {
+                  accountId: 'default',
+                  name: 'WeCom Account',
+                  configured: true,
+                  enabled: true,
+                  status: 'connected',
+                  isDefault: true,
+                },
+              ],
+            },
+          ],
+        },
+      ];
+
+      hostApiFetchMock.mockImplementation(async (path: string) => {
+        if (path === '/api/channels/accounts') {
+          return runtimeStates.shift() ?? runtimeStates[runtimeStates.length - 1];
+        }
+
+        if (path === '/api/agents') {
+          return {
+            success: true,
+            agents: [],
+          };
+        }
+
+        if (path.startsWith('/api/channels/config-editor/wecom')) {
+          return {
+            success: true,
+            values: {
+              botId: 'aibVSuoUd2im_LWIl',
+              secret: 'wecom-secret',
+              dmPolicy: 'open',
+              groupPolicy: 'allowlist',
+            },
+          };
+        }
+
+        throw new Error(`Unexpected host API path: ${path}`);
+      });
+
+      gatewayState.status = { state: 'running', port: 18789 };
+
+      render(<Channels />);
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(
+        hostApiFetchMock.mock.calls.filter(([path]) => path === '/api/channels/accounts'),
+      ).toHaveLength(1);
+      expect(scheduledCallbacks).toHaveLength(1);
+
+      await act(async () => {
+        scheduledCallbacks.shift()?.();
+      });
+
+      await waitFor(() => {
+        expect(
+          hostApiFetchMock.mock.calls.filter(([path]) => path === '/api/channels/accounts'),
+        ).toHaveLength(2);
+        expect(screen.getByTestId('channel-rail-item-wecom')).toHaveTextContent('account.connectionStatus.connected');
+      });
+    } finally {
+      setTimeoutSpy.mockRestore();
+      clearTimeoutSpy.mockRestore();
+    }
+  });
+
+  it('shows WeCom access allowlists inline with message access rules', async () => {
+    hostApiFetchMock.mockImplementation(async (path: string) => {
+      if (path === '/api/channels/accounts') {
+        return {
+          success: true,
+          channels: [
+            {
+              channelType: 'wecom',
+              defaultAccountId: 'default',
+              enabled: true,
+              status: 'connected',
+              accounts: [
+                {
+                  accountId: 'default',
+                  name: 'WeCom Account',
+                  configured: true,
+                  enabled: true,
+                  status: 'connected',
+                  isDefault: true,
+                },
+              ],
+            },
+          ],
+        };
+      }
+
+      if (path === '/api/agents') {
+        return {
+          success: true,
+          agents: [],
+        };
+      }
+
+      if (path.startsWith('/api/channels/config-editor/wecom')) {
+        return {
+          success: true,
+          values: {
+            botId: 'aibVSuoUd2im_LWIl',
+            secret: 'wecom-secret',
+            dmPolicy: 'allowlist',
+            allowFrom: ['pangtong'],
+            groupPolicy: 'allowlist',
+            groupAllowFrom: ['group-alpha'],
+            requireMention: true,
+          },
+        };
+      }
+
+      throw new Error(`Unexpected host API path: ${path}`);
+    });
+
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('aibVSuoUd2im_LWIl')).toBeInTheDocument();
+    }, { timeout: 3000 });
+
+    await waitFor(() => {
+      expect(screen.getByText('消息接入规则')).toBeInTheDocument();
+      expect(screen.getByText('允许进入的私聊用户')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('pangtong')).toBeInTheDocument();
+      expect(screen.getByText('允许进入的群聊')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('group-alpha')).toBeInTheDocument();
+      expect(screen.getByText('仅在被 @ 时回复')).toBeInTheDocument();
+    }, { timeout: 3000 });
+  });
+
+  it('uses runtime-unavailable copy instead of disconnected when the gateway state is not ready', async () => {
+    hostApiFetchMock.mockImplementation(async (path: string) => {
+      if (path === '/api/channels/accounts') {
+        return {
+          success: true,
+          runtimeAvailable: false,
+          gatewayState: 'stopped',
+          channels: [
+            {
+              channelType: 'wecom',
+              defaultAccountId: 'default',
+              enabled: true,
+              status: 'disconnected',
+              accounts: [
+                {
+                  accountId: 'default',
+                  name: 'WeCom Account',
+                  configured: true,
+                  enabled: true,
+                  status: 'disconnected',
+                  isDefault: true,
+                },
+              ],
+            },
+          ],
+        };
+      }
+
+      if (path === '/api/agents') {
+        return {
+          success: true,
+          agents: [],
+        };
+      }
+
+      if (path.startsWith('/api/channels/config-editor/wecom')) {
+        return {
+          success: true,
+          values: {
+            botId: 'aibVSuoUd2im_LWIl',
+            secret: 'wecom-secret',
+            dmPolicy: 'open',
+            groupPolicy: 'allowlist',
+          },
+        };
+      }
+
+      throw new Error(`Unexpected host API path: ${path}`);
+    });
+
+    gatewayState.status = { state: 'stopped', port: 18789 };
+
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(screen.getByText('gatewayRuntimeUnavailable')).toBeInTheDocument();
+      expect(screen.getByTestId('channel-account-item-default')).toBeInTheDocument();
+    }, { timeout: 3000 });
+
+    expect(screen.getByTestId('channel-rail-item-wecom')).toHaveTextContent('account.connectionStatus.runtimeUnavailable');
+    expect(screen.getByTestId('channel-account-item-default')).not.toHaveTextContent('account.connectionStatus.disconnected');
+  });
+
+  it('renames the selected account id and keeps the workbench focused on the renamed account', async () => {
+    let activeAccountId = 'default';
+    hostApiFetchMock.mockImplementation(async (path: string, init?: RequestInit) => {
+      if (path === '/api/channels/accounts') {
+        return {
+          success: true,
+          channels: [
+            {
+              channelType: 'feishu',
+              defaultAccountId: activeAccountId,
+              enabled: true,
+              status: 'connected',
+              accounts: [
+                {
+                  accountId: activeAccountId,
+                  name: 'Primary Account',
+                  configured: true,
+                  enabled: true,
+                  status: 'connected',
+                  isDefault: true,
+                },
+              ],
+            },
+          ],
+        };
+      }
+
+      if (path === '/api/agents') {
+        return { success: true, agents: [] };
+      }
+
+      if (path.startsWith('/api/channels/config-editor/feishu')) {
+        return {
+          success: true,
+          values: {
+            appId: activeAccountId === 'sales-bot' ? 'renamed-app' : 'cli_xxx',
+            appSecret: 'secret',
+            dmPolicy: 'open',
+            groupPolicy: 'allowlist',
+          },
+        };
+      }
+
+      if (path === '/api/channels/account-id/rename') {
+        const body = JSON.parse(String(init?.body || '{}')) as { nextAccountId?: string };
+        activeAccountId = body.nextAccountId || activeAccountId;
+        return { success: true, accountId: activeAccountId };
+      }
+
+      if (path === '/api/channels/config') {
+        return { success: true };
+      }
+
+      throw new Error(`Unexpected host API path: ${path}`);
+    });
+
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('account.customIdLabel')).toHaveValue('default');
+    });
+
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText('account.customIdLabel'), {
+        target: { value: 'sales-bot' },
+      });
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'dialog.updateAndReconnect' }));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('channel-account-item-sales-bot')).toBeInTheDocument();
+    });
+
+    expect(screen.queryByTestId('channel-account-item-default')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('account.customIdLabel')).toHaveValue('sales-bot');
+  });
+
+  it('asks before discarding unsaved editor changes when switching account', async () => {
+    hostApiFetchMock.mockImplementation(async (path: string) => {
+      if (path === '/api/channels/accounts') {
+        return {
+          success: true,
+          channels: [
+            {
+              channelType: 'feishu',
+              defaultAccountId: 'default',
+              enabled: true,
+              status: 'connected',
+              accounts: [
+                {
+                  accountId: 'default',
+                  name: 'Primary Account',
+                  configured: true,
+                  enabled: true,
+                  status: 'connected',
+                  isDefault: true,
+                },
+                {
+                  accountId: 'secondary',
+                  name: 'Secondary Account',
+                  configured: true,
+                  enabled: true,
+                  status: 'disconnected',
+                  isDefault: false,
+                },
+              ],
+            },
+          ],
+        };
+      }
+
+      if (path === '/api/agents') {
+        return {
+          success: true,
+          agents: [],
+        };
+      }
+
+      if (path.startsWith('/api/channels/config-editor/feishu')) {
+        const isSecondary = path.includes('accountId=secondary');
+        return {
+          success: true,
+          values: {
+            appId: isSecondary ? 'secondary-app' : 'primary-app',
+            appSecret: 'secret',
+            dmPolicy: 'open',
+            groupPolicy: 'allowlist',
+          },
+        };
+      }
+
+      throw new Error(`Unexpected host API path: ${path}`);
+    });
+
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('primary-app')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      fireEvent.change(screen.getByDisplayValue('primary-app'), {
+        target: { value: 'edited-primary-app' },
+      });
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('channel-account-item-secondary'));
+    });
+
+    expect(screen.getByText('editor.unsavedChangesTitle')).toBeInTheDocument();
+    expect(screen.getByTestId('channel-account-item-default')).toHaveTextContent('Primary Account');
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'editor.discardChangesConfirm' }));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('secondary-app')).toBeInTheDocument();
+    });
+  });
+
+  it('reloads editor values after save so normalized values are shown immediately', async () => {
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('cli_xxx')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      fireEvent.change(screen.getByDisplayValue('cli_xxx'), {
+        target: { value: '  next-app-id  ' },
+      });
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'dialog.updateAndReconnect' }));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('normalized-app-id')).toBeInTheDocument();
+    });
+  });
+
+  it('selects the newly saved account after the add-account modal closes', async () => {
+    let createdSecondaryAccount = false;
+    hostApiFetchMock.mockImplementation(async (path: string) => {
+      if (path === '/api/channels/accounts') {
+        return {
+          success: true,
+          channels: [
+            {
+              channelType: 'feishu',
+              defaultAccountId: 'default',
+              enabled: true,
+              status: 'connected',
+              accounts: [
+                {
+                  accountId: 'default',
+                  name: 'Primary Account',
+                  configured: true,
+                  enabled: true,
+                  status: 'connected',
+                  isDefault: true,
+                },
+                ...(createdSecondaryAccount
+                  ? [{
+                    accountId: 'secondary',
+                    name: 'Secondary Account',
+                    configured: true,
+                    enabled: true,
+                    status: 'connected',
+                    isDefault: false,
+                  }]
+                  : []),
+              ],
+            },
+          ],
+        };
+      }
+
+      if (path === '/api/agents') {
+        return {
+          success: true,
+          agents: [],
+        };
+      }
+
+      if (path.startsWith('/api/channels/config-editor/feishu')) {
+        const isSecondary = path.includes('accountId=secondary');
+        return {
+          success: true,
+          values: {
+            appId: isSecondary ? 'secondary-app' : 'primary-app',
+            appSecret: 'secret',
+            dmPolicy: 'open',
+            groupPolicy: 'allowlist',
+          },
+        };
+      }
+
+      throw new Error(`Unexpected host API path: ${path}`);
+    });
+
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('primary-app')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'account.add' }));
+    });
+
+    expect(screen.getByTestId('channel-config-modal')).toBeInTheDocument();
+
+    modalSavePayload.channelType = 'feishu';
+    modalSavePayload.accountId = 'secondary';
+    createdSecondaryAccount = true;
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'mock-modal-save' }));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('channel-account-item-secondary')).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('secondary-app')).toBeInTheDocument();
+    });
+  }, 15_000);
 });

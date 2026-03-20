@@ -4,7 +4,7 @@ import { logger } from './logger';
 import { withConfigLock } from './config-mutex';
 
 /**
- * Sync ClawX global proxy settings into OpenClaw channel config where the
+ * Sync XClaw global proxy settings into OpenClaw channel config where the
  * upstream runtime expects an explicit per-channel proxy knob.
  */
 export async function syncProxyConfigToOpenClaw(settings: ProxySettings): Promise<void> {

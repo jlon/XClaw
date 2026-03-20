@@ -27,19 +27,6 @@
 
 但 Windows 真机还没跑，因此不能把“双端可发布”当成已完成。
 
-### 通用 settings 对外 DTO 当前仍暴露过多内部字段
-
-当前 `/api/settings` 直接返回整份 settings，renderer `init()` 又会把返回结果整包写进 zustand 持久化层。
-
-这会带来一个明确边界风险：
-
-- `gatewayToken` 这类仅应留在主进程的字段，当前可能被带进 renderer / localStorage
-
-这个问题真实存在，但不应混进本功能的托管主链里顺手扩大范围。当前处理原则是：
-
-- 先登记为独立问题
-- 后续单独收 `settings 内部 schema` 与 `renderer 安全 DTO` 的边界
-
 ### Windows 仍是发布红线
 
 本功能同样必须满足：
@@ -60,16 +47,45 @@
 
 实现前需要把 route / IPC 行为再收一次。
 
-### `before-quit` 仍直接对 GatewayManager 做退出清理
+### `before-quit` 退出收口仍绕过 controller
 
-当前 `before-quit` 仍直接调用 `gatewayManager.stop({ shutdownExternal: false })`。
+当前 `before-quit` 仍直接调用 `gatewayManager.stop({ shutdownExternal: false })`，没有完全走 controller。
 
-这条路径不会把外部 Gateway 一起关掉，语义上已经比之前安全，但仍有一个待确认边界：
+这条边界原先已确认存在，当前批次已补成受控 handoff，不再继续保持 open issue 状态。
 
-- 退出语义是否继续允许绕过 controller
-- 还是也应该显式经由 controller 做一次 `quitting` 态收口
+本轮收口后：
 
-这不是当前最高风险旁路，但在“所有控制入口统一”完成前不能当成已完全闭环。
+- `before-quit` 会显式拦截退出，等待 Gateway quit handoff 至少被调度完成或超时后再退出
+- quit 时会落 `gateway-handoff.json`，供下一次启动优先等待并接管 handoff 中的 runtime
+- 启动重试时，如果“现有 Gateway”其实就是自己先前拉起的 managed child，不再丢掉 `pid/ownership`
+
+这条风险已从“功能缺口”降为“已收口，待双端验收”。
+
+## 本轮已收口
+
+### 通用 settings 对外边界已收紧
+
+当前 `/api/settings`、统一 `app:request(settings.*)`、legacy `settings:getAll / settings:get / settings:set / settings:setMany` 都已经改成只暴露 renderer 允许读写的字段。
+
+本轮收口后：
+
+- `gatewayToken` 不再混进通用 settings DTO
+- renderer 初始化不会再把内部字段整包写进持久化状态
+- `gatewayToken` 改为只走 `gateway:getControlUiUrl` 这条专门通道
+
+这条风险不再是当前阻断项，但后续仍需防止回退。
+
+### `refresh / stop` 并发重入已加二次栅栏
+
+当前 `GatewayManager` 已经在 `debouncedRestart / debouncedReload / restart / reload / replaceRuntime` 这条链上补了 stop generation 栅栏。
+
+本轮收口后：
+
+- 已排队但尚未执行的 refresh 不会在 stop 之后偷跑
+- 已经进入 teardown 的 restart，如果中途收到 stop，也不会再继续 `start()`
+- 观测日志会明确标记为 `aborted_by_stop`，不再误报成已应用刷新
+
+这条风险当前已从 open issue 降为已收口项。
 
 ### 极端崩溃后的首次恢复仍可能出现一次瞬时锁竞争
 
@@ -85,6 +101,15 @@
 - 但极端崩溃后的首次恢复时延还有继续压缩空间
 
 当前将它登记为“加固项”，不是主链阻断项。
+
+### 本机历史残留 Gateway 与 ABI 异常仍会污染 quit/relaunch 现场
+
+当前你本机真实环境里还有两类噪音，会让手工 smoke 的观感比代码真实状态更差：
+
+- 历史残留的旧 `openclaw-gateway` 进程偶尔会占住 `18789`，导致新一轮 `pnpm dev` 首次启动先撞一次 `gateway already running`
+- `memos-local-openclaw-plugin` 的 `better-sqlite3` ABI 不匹配会显著拖慢 Gateway 启动，进而拉长 handoff 后重新接管的等待时间
+
+这两条都不是本轮 quit handoff 逻辑直接引入的问题，但它们会放大“重开 app 时要等多久”的现场噪音。
 
 ### `setup-activation` 的 direct-start fallback 已移除
 

@@ -4,7 +4,7 @@
 
 当前阶段：开发完成，待发布验收
 
-当前批次进展：`Task 1` 到 `Task 6` 的主链都已经打通。除了前面已完成的 settings 语义迁移、runtime controller、恢复仲裁、setup/startup 接入、route / IPC / settings / provider / channel / agent 收口之外，这一轮又补了两块生产兜底：`sanitizeOpenClawConfig()` 现在会按“当前 runtime 可解析的插件清单”清理陈旧 `plugins.allow / plugins.entries`，不再让 `skillhub` 这类历史残留直接卡死 Gateway 启动；`removeProviderFromOpenClaw()` 现在也会同步移除 `plugins.allow` 里的 `*-auth` 插件 id，避免 provider 删除后再次留下 `qwen-portal-auth` 这类 stale config。基于你本机真实 `~/.openclaw` 的 smoke / E2E 已经跑通：启动 XClaw 后，旧配置里的 `skillhub` 被自动收敛掉，Gateway 最终进入 `running`；随后手工 `kill -9` 当前 `openclaw-gateway` 进程后，controller 会进入自动恢复链，最终重新拉起新 pid 并恢复到 `health ok=true`。
+当前批次进展：`Task 1` 到 `Task 6` 的主链都已经打通。除了前面已完成的 settings 语义迁移、runtime controller、恢复仲裁、setup/startup 接入、route / IPC / settings / provider / channel / agent 收口之外，这一轮又补了两块直接影响“退出后不误重启 OpenClaw”的兜底：一是 `before-quit` 不再 fire-and-forget 地丢出异步 handoff，而是显式拦住退出，等 `GatewayManager.handoffForQuit()` 至少完成 handoff 调度或超时后再 `app.exit(0)`；二是启动重试时，如果探测到的“现有 Gateway”其实就是自己刚拉起但握手抖动过一次的子进程，现在会保住 `pid/ownership`，不再错误降级成 external attach，导致后续 quit 看不到 `pid` 只能退化成 `detach(reason=quit)`。此外，startup attach 也补了 `gateway-handoff.json` 标记与最小接管窗口：如果 XClaw 在 quit handoff 进行中被重新打开，会优先等待 pending handoff，并在监听者已出现时把它作为 handoff 候选接回，而不是立刻再次拉起一个新 Gateway。基于你本机真实 `~/.openclaw` 的 smoke 验证，日志已经能稳定看到 `Scheduling detached Gateway handoff` 与 `Waiting for pending Gateway handoff` 两个关键事实，证明退出交接和启动等待都已接上线；当前剩余的主要噪音来自你本机长期残留的旧 gateway 实例与 `memos-local-openclaw-plugin` 的 `better-sqlite3` ABI 异常，它们会显著拉长启动时间并污染个别手工场景。
 
 ## 里程碑
 
@@ -27,12 +27,14 @@
 - [x] 完成 macOS 真实环境托管 E2E
 - [x] 补齐托管主链测试
 - [ ] 完成 macOS / Windows 验收
+- [x] 收紧 settings 对外 DTO 与 renderer 持久化边界
+- [x] 收口 `refresh / stop` 并发重入竞态
+- [x] 收口 `before-quit` 退出路径到受控 handoff
 
 ## 下一步
 
-1. 在 Windows 真机上补完启动、手动停止、自动恢复验收
-2. 决定是否把 `before-quit` 这条退出边界也显式收口到 controller
-3. 评估是否继续加固极端崩溃后的首次恢复时延
+1. 在 Windows 真机上补完启动、手动停止、自动恢复、quit handoff 验收
+2. 继续压缩“handoff 中途重开 app”时的最坏等待时长
 
 ## 备注
 

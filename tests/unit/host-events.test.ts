@@ -55,7 +55,7 @@ describe('host-events', () => {
   });
 
   it('uses SSE fallback only when explicitly enabled', async () => {
-    window.localStorage.setItem('clawx:allow-sse-fallback', '1');
+    window.localStorage.setItem('XClaw:allow-sse-fallback', '1');
     const { subscribeHostEvent } = await import('@/lib/host-events');
     const handler = vi.fn();
     const unsubscribe = subscribeHostEvent('unknown:event', handler);

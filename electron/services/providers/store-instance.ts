@@ -2,11 +2,11 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let providerStore: any = null;
 
-export async function getClawXProviderStore() {
+export async function getXClawProviderStore() {
   if (!providerStore) {
     const Store = (await import('electron-store')).default;
     providerStore = new Store({
-      name: 'clawx-providers',
+      name: 'XClaw-providers',
       defaults: {
         schemaVersion: 0,
         providers: {} as Record<string, unknown>,

@@ -2,10 +2,12 @@ import type { IncomingMessage, ServerResponse } from 'http';
 import {
   deleteChannelAccountConfig,
   deleteChannelConfig,
+  getChannelEditorValues,
   getChannelFormValues,
   listConfiguredChannelAccounts,
   listConfiguredChannels,
   readOpenClawConfig,
+  renameChannelAccountConfig,
   saveChannelConfig,
   setChannelDefaultAccount,
   setChannelEnabled,
@@ -17,6 +19,7 @@ import {
   clearAllBindingsForChannel,
   clearChannelBinding,
   listAgentsSnapshot,
+  renameChannelAccountBinding,
 } from '../../utils/agent-config';
 import {
   ensureDingTalkPluginInstalled,
@@ -66,21 +69,26 @@ function toComparableConfig(input: Record<string, unknown>): Record<string, stri
     }
     if (typeof value === 'number' || typeof value === 'boolean') {
       next[key] = String(value);
+      continue;
+    }
+    if (Array.isArray(value) && value.every((item) => typeof item === 'string')) {
+      next[key] = value.map((item) => item.trim()).join('\n');
     }
   }
   return next;
 }
 
 function isSameConfigValues(
-  existing: Record<string, string> | undefined,
+  existing: Record<string, unknown> | undefined,
   incoming: Record<string, unknown>,
 ): boolean {
   if (!existing) return false;
+  const current = toComparableConfig(existing);
   const next = toComparableConfig(incoming);
-  const keys = new Set([...Object.keys(existing), ...Object.keys(next)]);
+  const keys = new Set([...Object.keys(current), ...Object.keys(next)]);
   if (keys.size === 0) return false;
   for (const key of keys) {
-    if ((existing[key] ?? '') !== (next[key] ?? '')) {
+    if ((current[key] ?? '') !== (next[key] ?? '')) {
       return false;
     }
   }
@@ -137,6 +145,7 @@ interface ChannelAccountView {
   connected: boolean;
   running: boolean;
   linked: boolean;
+  enabled: boolean;
   lastError?: string;
   status: 'connected' | 'connecting' | 'disconnected' | 'error';
   isDefault: boolean;
@@ -146,11 +155,18 @@ interface ChannelAccountView {
 interface ChannelAccountsView {
   channelType: string;
   defaultAccountId: string;
+  enabled: boolean;
   status: 'connected' | 'connecting' | 'disconnected' | 'error';
   accounts: ChannelAccountView[];
 }
 
-async function buildChannelAccountsView(ctx: HostApiContext): Promise<ChannelAccountsView[]> {
+interface ChannelAccountsPayload {
+  channels: ChannelAccountsView[];
+  runtimeAvailable: boolean;
+  gatewayState: string;
+}
+
+async function buildChannelAccountsView(ctx: HostApiContext, shouldProbe = false): Promise<ChannelAccountsPayload> {
   const [configuredChannels, configuredAccounts, openClawConfig, agentsSnapshot] = await Promise.all([
     listConfiguredChannels(),
     listConfiguredChannelAccounts(),
@@ -158,10 +174,15 @@ async function buildChannelAccountsView(ctx: HostApiContext): Promise<ChannelAcc
     listAgentsSnapshot(),
   ]);
 
+  const gatewayState = ctx.gatewayManager.getStatus().state;
   let gatewayStatus: GatewayChannelStatusPayload | null;
-  try {
-    gatewayStatus = await ctx.gatewayManager.rpc<GatewayChannelStatusPayload>('channels.status', { probe: true });
-  } catch {
+  if (gatewayState === 'running') {
+    try {
+      gatewayStatus = await ctx.gatewayManager.rpc<GatewayChannelStatusPayload>('channels.status', { probe: shouldProbe });
+    } catch {
+      gatewayStatus = null;
+    }
+  } else {
     gatewayStatus = null;
   }
 
@@ -182,6 +203,10 @@ async function buildChannelAccountsView(ctx: HostApiContext): Promise<ChannelAcc
       typeof channelSection?.defaultAccount === 'string' && channelSection.defaultAccount.trim()
         ? channelSection.defaultAccount
         : 'default';
+    const enabled =
+      channelType === 'whatsapp'
+        ? openClawConfig.plugins?.entries?.[channelType]?.enabled !== false
+        : channelSection?.enabled !== false;
     const defaultAccountId = configuredAccounts[channelType]?.defaultAccountId
       ?? gatewayStatus?.channelDefaultAccountId?.[channelType]
       ?? fallbackDefault;
@@ -206,6 +231,7 @@ async function buildChannelAccountsView(ctx: HostApiContext): Promise<ChannelAcc
         connected: runtime?.connected === true,
         running: runtime?.running === true,
         linked: runtime?.linked === true,
+        enabled,
         lastError: typeof runtime?.lastError === 'string' ? runtime.lastError : undefined,
         status,
         isDefault: accountId === defaultAccountId,
@@ -220,12 +246,17 @@ async function buildChannelAccountsView(ctx: HostApiContext): Promise<ChannelAcc
     channels.push({
       channelType,
       defaultAccountId,
+      enabled,
       status: pickChannelRuntimeStatus(runtimeAccounts, channelSummary),
       accounts,
     });
   }
 
-  return channels.sort((left, right) => left.channelType.localeCompare(right.channelType));
+  return {
+    channels: channels.sort((left, right) => left.channelType.localeCompare(right.channelType)),
+    runtimeAvailable: gatewayStatus !== null,
+    gatewayState,
+  };
 }
 
 export async function handleChannelRoutes(
@@ -241,8 +272,8 @@ export async function handleChannelRoutes(
 
   if (url.pathname === '/api/channels/accounts' && req.method === 'GET') {
     try {
-      const channels = await buildChannelAccountsView(ctx);
-      sendJson(res, 200, { success: true, channels });
+      const payload = await buildChannelAccountsView(ctx, url.searchParams.get('probe') === '1');
+      sendJson(res, 200, { success: true, ...payload });
     } catch (error) {
       sendJson(res, 500, { success: false, error: String(error) });
     }
@@ -279,6 +310,19 @@ export async function handleChannelRoutes(
       await clearChannelBinding(body.channelType, body.accountId);
       scheduleGatewayChannelSaveRefresh(ctx, body.channelType, `channel:clearBinding:${body.channelType}`);
       sendJson(res, 200, { success: true });
+    } catch (error) {
+      sendJson(res, 500, { success: false, error: String(error) });
+    }
+    return true;
+  }
+
+  if (url.pathname === '/api/channels/account-id/rename' && req.method === 'PUT') {
+    try {
+      const body = await parseJsonBody<{ channelType: string; accountId: string; nextAccountId: string }>(req);
+      await renameChannelAccountConfig(body.channelType, body.accountId, body.nextAccountId);
+      await renameChannelAccountBinding(body.channelType, body.accountId, body.nextAccountId);
+      scheduleGatewayChannelSaveRefresh(ctx, body.channelType, `channel:renameAccount:${body.channelType}`);
+      sendJson(res, 200, { success: true, accountId: body.nextAccountId.trim() });
     } catch (error) {
       sendJson(res, 500, { success: false, error: String(error) });
     }
@@ -357,7 +401,7 @@ export async function handleChannelRoutes(
           return true;
         }
       }
-      const existingValues = await getChannelFormValues(body.channelType, body.accountId);
+      const existingValues = await getChannelEditorValues(body.channelType, body.accountId);
       if (isSameConfigValues(existingValues, body.config)) {
         await ensureScopedChannelBinding(body.channelType, body.accountId);
         sendJson(res, 200, { success: true, noChange: true });
@@ -379,6 +423,20 @@ export async function handleChannelRoutes(
       await setChannelEnabled(body.channelType, body.enabled);
       scheduleGatewayChannelRestart(ctx, `channel:setEnabled:${body.channelType}`);
       sendJson(res, 200, { success: true });
+    } catch (error) {
+      sendJson(res, 500, { success: false, error: String(error) });
+    }
+    return true;
+  }
+
+  if (url.pathname.startsWith('/api/channels/config-editor/') && req.method === 'GET') {
+    try {
+      const channelType = decodeURIComponent(url.pathname.slice('/api/channels/config-editor/'.length));
+      const accountId = url.searchParams.get('accountId') || undefined;
+      sendJson(res, 200, {
+        success: true,
+        values: await getChannelEditorValues(channelType, accountId),
+      });
     } catch (error) {
       sendJson(res, 500, { success: false, error: String(error) });
     }
