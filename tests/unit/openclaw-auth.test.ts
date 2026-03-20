@@ -184,6 +184,42 @@ describe('sanitizeOpenClawConfig', () => {
     expect(allow).toContain('skillhub');
     expect(entries).toHaveProperty('skillhub');
   });
+
+  it('migrates legacy feishu plugin entries to openclaw-lark', async () => {
+    const legacyPluginDir = join(testHome, '.openclaw', 'extensions', 'feishu-openclaw-plugin');
+    await mkdir(legacyPluginDir, { recursive: true });
+    await writeFile(
+      join(legacyPluginDir, 'openclaw.plugin.json'),
+      JSON.stringify({ id: 'openclaw-lark', name: 'Feishu' }, null, 2),
+      'utf8',
+    );
+
+    await writeOpenClawJson({
+      plugins: {
+        allow: ['feishu-openclaw-plugin', 'feishu'],
+        entries: {
+          'feishu-openclaw-plugin': { enabled: true, appId: 'legacy-app' },
+          feishu: { enabled: true },
+        },
+      },
+    });
+
+    const { sanitizeOpenClawConfig } = await import('@electron/utils/openclaw-auth');
+
+    await sanitizeOpenClawConfig();
+
+    const result = await readOpenClawJson();
+    const plugins = result.plugins as Record<string, unknown>;
+    const allow = plugins.allow as string[];
+    const entries = plugins.entries as Record<string, Record<string, unknown>>;
+
+    expect(allow).toContain('openclaw-lark');
+    expect(allow).not.toContain('feishu-openclaw-plugin');
+    expect(allow).not.toContain('feishu');
+    expect(entries['openclaw-lark']).toEqual(expect.objectContaining({ enabled: true, appId: 'legacy-app' }));
+    expect(entries).not.toHaveProperty('feishu-openclaw-plugin');
+    expect(entries.feishu).toEqual({ enabled: false });
+  });
 });
 
 describe('removeProviderFromOpenClaw', () => {

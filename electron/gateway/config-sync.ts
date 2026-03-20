@@ -31,12 +31,25 @@ export interface GatewayLaunchContext {
 
 // ── Auto-upgrade bundled plugins on startup ──────────────────────
 
-const CHANNEL_PLUGIN_MAP: Record<string, { dirName: string; npmName: string }> = {
+const CHANNEL_PLUGIN_MAP: Record<string, { dirName: string; npmName: string; legacyDirNames?: string[] }> = {
   dingtalk: { dirName: 'dingtalk', npmName: '@soimy/dingtalk' },
-  wecom: { dirName: 'wecom', npmName: '@wecom/wecom-openclaw-plugin' },
-  feishu: { dirName: 'feishu-openclaw-plugin', npmName: '@larksuite/openclaw-lark' },
+  wecom: { dirName: 'wecom', npmName: '@openclaw-china/wecom' },
+  feishu: { dirName: 'openclaw-lark', npmName: '@larksuite/openclaw-lark', legacyDirNames: ['feishu-openclaw-plugin'] },
   qqbot: { dirName: 'qqbot', npmName: '@sliverp/qqbot' },
 };
+
+function cleanupLegacyPluginDirs(channelType: string, legacyDirNames: string[]): void {
+  for (const legacyDirName of legacyDirNames) {
+    const legacyDir = join(homedir(), '.openclaw', 'extensions', legacyDirName);
+    if (!existsSync(legacyDir)) continue;
+    try {
+      rmSync(legacyDir, { recursive: true, force: true });
+      logger.info(`[plugin] Removed legacy ${channelType} plugin directory: ${legacyDirName}`);
+    } catch (err) {
+      logger.warn(`[plugin] Failed to remove legacy ${channelType} plugin directory ${legacyDirName}:`, err);
+    }
+  }
+}
 
 function readPluginVersion(pkgJsonPath: string): string | null {
   try {
@@ -70,7 +83,7 @@ function ensureConfiguredPluginsUpgraded(configuredChannels: string[]): void {
   for (const channelType of configuredChannels) {
     const pluginInfo = CHANNEL_PLUGIN_MAP[channelType];
     if (!pluginInfo) continue;
-    const { dirName, npmName } = pluginInfo;
+    const { dirName, npmName, legacyDirNames = [] } = pluginInfo;
 
     const targetDir = join(homedir(), '.openclaw', 'extensions', dirName);
     const targetManifest = join(targetDir, 'openclaw.plugin.json');
@@ -91,9 +104,12 @@ function ensureConfiguredPluginsUpgraded(configuredChannels: string[]): void {
           rmSync(targetDir, { recursive: true, force: true });
           cpSync(bundledDir, targetDir, { recursive: true, dereference: true });
           fixupPluginManifest(targetDir);
+          cleanupLegacyPluginDirs(channelType, legacyDirNames);
         } catch (err) {
           logger.warn(`[plugin] Failed to ${isInstalled ? 'auto-upgrade' : 'install'} ${channelType} plugin:`, err);
         }
+      } else if (isInstalled) {
+        cleanupLegacyPluginDirs(channelType, legacyDirNames);
       }
       continue;
     }
@@ -112,9 +128,12 @@ function ensureConfiguredPluginsUpgraded(configuredChannels: string[]): void {
         mkdirSync(join(homedir(), '.openclaw', 'extensions'), { recursive: true });
         copyPluginFromNodeModules(npmPkgPath, targetDir, npmName);
         fixupPluginManifest(targetDir);
+        cleanupLegacyPluginDirs(channelType, legacyDirNames);
       } catch (err) {
         logger.warn(`[plugin] Failed to ${isInstalled ? 'auto-upgrade' : 'install'} ${channelType} plugin from node_modules:`, err);
       }
+    } else if (isInstalled) {
+      cleanupLegacyPluginDirs(channelType, legacyDirNames);
     }
   }
 }

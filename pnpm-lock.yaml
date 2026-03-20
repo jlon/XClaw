@@ -37,8 +37,11 @@ importers:
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.0.0(jiti@1.21.7))
       '@larksuite/openclaw-lark':
-        specifier: 2026.3.15
-        version: 2026.3.15
+        specifier: 2026.3.17
+        version: 2026.3.17
+      '@openclaw-china/wecom':
+        specifier: 2026.3.19
+        version: 2026.3.19(moltbot@0.1.0)
       '@radix-ui/react-dialog':
         specifier: ^1.1.15
         version: 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -108,9 +111,6 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^5.1.4
         version: 5.1.4(vite@7.3.1(@types/node@25.3.0)(jiti@1.21.7)(yaml@2.8.2))
-      '@wecom/wecom-openclaw-plugin':
-        specifier: ^1.0.11
-        version: 1.0.11
       autoprefixer:
         specifier: ^10.4.24
         version: 10.4.24(postcss@8.5.6)
@@ -1221,8 +1221,9 @@ packages:
   '@kwsites/promise-deferred@1.1.1':
     resolution: {integrity: sha512-GaHYm+c0O9MjZRu0ongGBRbinu8gVAMd2UZjji6jVmqKtZluZnptXGWhz1E8j8D2HJ3f/yMxKAUC0b+57wncIw==}
 
-  '@larksuite/openclaw-lark@2026.3.15':
-    resolution: {integrity: sha512-YGk63CgYG+YDUO2+TxdSPJZA6km52OpqAqf26vZHMUqawEKhiT4bcfD5JHh6VGazjUwRk5Bze1UyVKncc0csBA==}
+  '@larksuite/openclaw-lark@2026.3.17':
+    resolution: {integrity: sha512-7GxqBu7jIe0jmApQXt/9hpvorV04Vpqkcr9LvAOMZJzbhmI0+XZKVJgvzw0Ypxz+UfWJ9tlcSw7WpkBcyqvo8g==}
+    hasBin: true
 
   '@larksuiteoapi/node-sdk@1.59.0':
     resolution: {integrity: sha512-sBpkruTvZDOxnVtoTbepWKRX0j1Y1ZElQYu0x7+v088sI9pcpbVp6ZzCGn62dhrKPatzNyCJyzYCPXPYQWccrA==}
@@ -1772,6 +1773,17 @@ packages:
   '@octokit/webhooks@14.2.0':
     resolution: {integrity: sha512-da6KbdNCV5sr1/txD896V+6W0iamFWrvVl8cHkBSPT+YlvmT3DwXa4jxZnQc+gnuTEqSWbBeoSZYTayXH9wXcw==}
     engines: {node: '>= 20'}
+
+  '@openclaw-china/shared@2026.3.19':
+    resolution: {integrity: sha512-GuyfMhr6vR6ZpJeUn1gPNXJBWhjiCt0MWu6JAQ9F83ab7yCiF9HMszqggTMI3Or91hPYPB5J0s6FTuFg9BeAGw==}
+
+  '@openclaw-china/wecom@2026.3.19':
+    resolution: {integrity: sha512-3XdZGYogf2mOEwZWPMAytH0cx0k4Fn9glxbrNY3kPdOiNoYJZ4otpx9zqGgkdO2NYe5AVRTxxRpDJnx1UjPUqA==}
+    peerDependencies:
+      moltbot: '>=0.1.0'
+    peerDependenciesMeta:
+      moltbot:
+        optional: true
 
   '@pinojs/redact@0.4.0':
     resolution: {integrity: sha512-k2ENnmBugE/rzQfEcdWHcCY+/FM3VLzH9cYEsbdsoqrvzAKRhUZeRNhAZvB8OitQJ1TBed3yqWtdjzS6wJKBwg==}
@@ -3218,9 +3230,6 @@ packages:
 
   '@wecom/aibot-node-sdk@1.0.2':
     resolution: {integrity: sha512-azClUIMWWF5vs8K1YWBiNykTFUawej0Z1ooN0ZMGX/PlLB/BK0dQfwbLc1a5Wj3bLRLaFb8HuCTuBrxLnJKJ7g==}
-
-  '@wecom/wecom-openclaw-plugin@1.0.11':
-    resolution: {integrity: sha512-TqyWvi8AxPyii/fUZk/rVR4a5jXl6PHte6wuqgtbrWXFoOfYyKtnyjmtGJk3/kf1ZOjgHu2N6lfhz5fA6bTCyw==}
 
   '@whiskeysockets/baileys@7.0.0-rc.9':
     resolution: {integrity: sha512-YFm5gKXfDP9byCXCW3OPHKXLzrAKzolzgVUlRosHHgwbnf2YOO3XknkMm6J7+F0ns8OA0uuSBhgkRHTDtqkacw==}
@@ -8598,7 +8607,7 @@ snapshots:
   '@kwsites/promise-deferred@1.1.1':
     optional: true
 
-  '@larksuite/openclaw-lark@2026.3.15':
+  '@larksuite/openclaw-lark@2026.3.17':
     dependencies:
       '@larksuiteoapi/node-sdk': 1.59.0
       '@sinclair/typebox': 0.34.48
@@ -9233,6 +9242,22 @@ snapshots:
       '@octokit/request-error': 7.1.0
       '@octokit/webhooks-methods': 6.0.0
     optional: true
+
+  '@openclaw-china/shared@2026.3.19':
+    dependencies:
+      '@clack/prompts': 1.1.0
+
+  '@openclaw-china/wecom@2026.3.19(moltbot@0.1.0)':
+    dependencies:
+      '@openclaw-china/shared': 2026.3.19
+      '@wecom/aibot-node-sdk': 1.0.2
+      ws: 8.19.0
+    optionalDependencies:
+      moltbot: 0.1.0
+    transitivePeerDependencies:
+      - bufferutil
+      - debug
+      - utf-8-validate
 
   '@pinojs/redact@0.4.0': {}
 
@@ -10889,16 +10914,6 @@ snapshots:
     transitivePeerDependencies:
       - bufferutil
       - debug
-      - utf-8-validate
-
-  '@wecom/wecom-openclaw-plugin@1.0.11':
-    dependencies:
-      '@wecom/aibot-node-sdk': 1.0.2
-      file-type: 21.3.2
-    transitivePeerDependencies:
-      - bufferutil
-      - debug
-      - supports-color
       - utf-8-validate
 
   '@whiskeysockets/baileys@7.0.0-rc.9(sharp@0.34.5)':

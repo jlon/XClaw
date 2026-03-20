@@ -158,3 +158,26 @@ describe('WeCom plugin configuration', () => {
     expect(plugins.entries['wecom'].enabled).toBe(true);
   });
 });
+
+describe('Feishu plugin configuration', () => {
+  beforeEach(async () => {
+    vi.resetAllMocks();
+    vi.resetModules();
+    await rm(testHome, { recursive: true, force: true });
+    await rm(testUserData, { recursive: true, force: true });
+  });
+
+  it('sets plugins.entries.openclaw-lark.enabled when saving feishu config', async () => {
+    const { saveChannelConfig } = await import('@electron/utils/channel-config');
+
+    await saveChannelConfig('feishu', { appId: 'test-app', appSecret: 'test-secret' }, 'agent-a');
+
+    const config = await readOpenClawJson();
+    const plugins = config.plugins as { allow: string[], entries: Record<string, { enabled?: boolean }> };
+
+    expect(plugins.allow).toContain('openclaw-lark');
+    expect(plugins.allow).not.toContain('feishu-openclaw-plugin');
+    expect(plugins.entries['openclaw-lark'].enabled).toBe(true);
+    expect(plugins.entries).not.toHaveProperty('feishu-openclaw-plugin');
+  });
+});

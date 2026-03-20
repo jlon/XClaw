@@ -131,8 +131,8 @@ function patchPluginEntryIds(targetDir: string): void {
 
 const PLUGIN_NPM_NAMES: Record<string, string> = {
   dingtalk: '@soimy/dingtalk',
-  wecom: '@wecom/wecom-openclaw-plugin',
-  'feishu-openclaw-plugin': '@larksuite/openclaw-lark',
+  wecom: '@openclaw-china/wecom',
+  'openclaw-lark': '@larksuite/openclaw-lark',
   qqbot: '@sliverp/qqbot',
 };
 
@@ -262,20 +262,38 @@ export function ensurePluginInstalled(
   pluginDirName: string,
   candidateSources: string[],
   pluginLabel: string,
+  legacyPluginDirNames: string[] = [],
 ): { installed: boolean; warning?: string } {
+  const extensionsRoot = join(homedir(), '.openclaw', 'extensions');
   const targetDir = join(homedir(), '.openclaw', 'extensions', pluginDirName);
   const targetManifest = join(targetDir, 'openclaw.plugin.json');
   const targetPkgJson = join(targetDir, 'package.json');
+  const cleanupLegacyPluginDirs = (): void => {
+    for (const legacyDirName of legacyPluginDirNames) {
+      const legacyDir = join(extensionsRoot, legacyDirName);
+      if (!existsSync(legacyDir)) continue;
+      try {
+        rmSync(legacyDir, { recursive: true, force: true });
+        logger.info(`[plugin] Removed legacy ${pluginLabel} plugin directory: ${legacyDirName}`);
+      } catch (error) {
+        logger.warn(`[plugin] Failed to remove legacy ${pluginLabel} plugin directory: ${legacyDirName}`, error);
+      }
+    }
+  };
 
   const sourceDir = candidateSources.find((dir) => existsSync(join(dir, 'openclaw.plugin.json')));
 
   // If already installed, check whether an upgrade is available
   if (existsSync(targetManifest)) {
-    if (!sourceDir) return { installed: true }; // no bundled source to compare, keep existing
+    if (!sourceDir) {
+      cleanupLegacyPluginDirs();
+      return { installed: true };
+    }
     const installedVersion = readPluginVersion(targetPkgJson);
     const sourceVersion = readPluginVersion(join(sourceDir, 'package.json'));
     if (!sourceVersion || !installedVersion || sourceVersion === installedVersion) {
-      return { installed: true }; // same version or unable to compare
+      cleanupLegacyPluginDirs();
+      return { installed: true };
     }
     // Version differs — fall through to overwrite install
     logger.info(
@@ -293,6 +311,7 @@ export function ensurePluginInstalled(
         return { installed: false, warning: `Failed to install ${pluginLabel} plugin mirror (manifest missing).` };
       }
       fixupPluginManifest(targetDir);
+      cleanupLegacyPluginDirs();
       logger.info(`Installed ${pluginLabel} plugin from bundled mirror: ${sourceDir}`);
       return { installed: true };
     } catch {
@@ -318,12 +337,14 @@ export function ensurePluginInstalled(
             copyPluginFromNodeModules(npmPkgPath, targetDir, npmName);
             fixupPluginManifest(targetDir);
             if (existsSync(join(targetDir, 'openclaw.plugin.json'))) {
+              cleanupLegacyPluginDirs();
               return { installed: true };
             }
           } catch (err) {
             logger.warn(`[plugin] Failed to install ${pluginLabel} plugin from node_modules:`, err);
           }
         } else if (existsSync(targetManifest)) {
+          cleanupLegacyPluginDirs();
           return { installed: true }; // same version, already installed
         }
       }
@@ -364,9 +385,10 @@ export function ensureWeComPluginInstalled(): { installed: boolean; warning?: st
 
 export function ensureFeishuPluginInstalled(): { installed: boolean; warning?: string } {
   return ensurePluginInstalled(
-    'feishu-openclaw-plugin',
-    buildCandidateSources('feishu-openclaw-plugin'),
+    'openclaw-lark',
+    buildCandidateSources('openclaw-lark'),
     'Feishu',
+    ['feishu-openclaw-plugin'],
   );
 }
 

@@ -6,7 +6,8 @@
  * Build a self-contained mirror of OpenClaw third-party plugins for packaging.
  * Current plugins:
  *   - @soimy/dingtalk -> build/openclaw-plugins/dingtalk
- *   - @wecom/wecom-openclaw-plugin -> build/openclaw-plugins/wecom
+ *   - @openclaw-china/wecom -> build/openclaw-plugins/wecom
+ *   - @larksuite/openclaw-lark -> build/openclaw-plugins/openclaw-lark
  *
  * The output plugin directory contains:
  *   - plugin source files (index.ts, openclaw.plugin.json, package.json, ...)
@@ -36,9 +37,9 @@ function normWin(p) {
 
 const PLUGINS = [
   { npmName: '@soimy/dingtalk', pluginId: 'dingtalk' },
-  { npmName: '@wecom/wecom-openclaw-plugin', pluginId: 'wecom' },
+  { npmName: '@openclaw-china/wecom', pluginId: 'wecom' },
   { npmName: '@sliverp/qqbot', pluginId: 'qqbot' },
-  { npmName: '@larksuite/openclaw-lark', pluginId: 'feishu-openclaw-plugin' },
+  { npmName: '@larksuite/openclaw-lark', pluginId: 'openclaw-lark' },
 ];
 
 function getVirtualStoreNodeModules(realPkgPath) {
