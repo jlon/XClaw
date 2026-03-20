@@ -1,0 +1,89 @@
+name: Package Windows (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Git ref to build (branch, tag, or SHA). Leave empty for current default ref.'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  package-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Download uv binaries for Windows
+        run: pnpm run uv:download:win
+
+      - name: Build Windows package (no publish)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm run package:win
+
+      - name: Upload Windows Installer (x64)
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer-x64
+          path: release/*-win-x64.exe
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload Windows Installer (arm64)
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer-arm64
+          path: release/*-win-arm64.exe
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Upload Windows Blockmap Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-blockmap
+          path: release/*.blockmap
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Upload Windows Update Manifests
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-update-manifests
+          path: |
+            release/*.yml
+            !release/builder-debug.yml
+          if-no-files-found: warn
+          retention-days: 7

@@ -1,0 +1,557 @@
+# ClawX Release Workflow
+# Builds and publishes releases for macOS, Windows, and Linux
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.0)'
+        required: true
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  release:
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            platform: mac
+          - os: windows-latest
+            platform: win
+          - os: ubuntu-latest
+            platform: linux
+
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Download uv binaries for macOS
+        if: matrix.platform == 'mac'
+        run: pnpm run uv:download:mac
+
+      - name: Download uv binaries for Windows
+        if: matrix.platform == 'win'
+        run: pnpm run uv:download:win
+
+      - name: Download uv binaries for Linux
+        if: matrix.platform == 'linux'
+        run: pnpm run uv:download:linux
+
+      # macOS specific steps
+      # --publish never: prevent electron-builder from auto-publishing to GitHub.
+      # All artifacts are collected and published atomically in the publish job.
+      - name: Build macOS
+        if: matrix.platform == 'mac'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_LINK: ${{ secrets.MAC_CERTS }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTS_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          ulimit -n 65536
+          echo "File descriptor limit: $(ulimit -n)"
+          pnpm run package:mac
+
+      # Windows specific steps
+      - name: Build Windows
+        if: matrix.platform == 'win'
+        run: pnpm run package:win
+
+      # Detect release channel from tag to skip code signing for alpha/beta builds
+      - name: Detect Windows release channel
+        if: matrix.platform == 'win'
+        id: win-channel
+        shell: bash
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            TAG="${GITHUB_REF#refs/tags/v}"
+          else
+            TAG="${{ github.event.inputs.version }}"
+          fi
+          if [[ "$TAG" =~ (alpha|beta) ]]; then
+            echo "is_stable=false" >> $GITHUB_OUTPUT
+            echo "Channel: prerelease ($TAG) — skipping code signing"
+          else
+            echo "is_stable=true" >> $GITHUB_OUTPUT
+            echo "Channel: stable ($TAG) — will sign"
+          fi
+
+      - name: Validate unsigned Windows artifacts before SignPath
+        if: matrix.platform == 'win' && steps.win-channel.outputs.is_stable == 'true'
+        shell: pwsh
+        run: |
+          $unsignedExeFiles = Get-ChildItem -Path "release" -Filter *.exe -File
+          if (-not $unsignedExeFiles) {
+            throw "No unsigned .exe files found in release/ before SignPath upload"
+          }
+          $unsignedCount = $unsignedExeFiles.Count
+          "UNSIGNED_EXE_COUNT=$unsignedCount" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "Found $unsignedCount unsigned .exe file(s):"
+          $unsignedExeFiles | ForEach-Object { Write-Host " - $($_.Name)" }
+
+      - name: Upload unsigned Windows artifacts for SignPath
+        if: matrix.platform == 'win' && steps.win-channel.outputs.is_stable == 'true'
+        id: upload-unsigned-windows-artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-win-exe-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release/*.exe
+          retention-days: 1
+
+      - name: Sign Windows artifacts via SignPath
+        if: matrix.platform == 'win' && steps.win-channel.outputs.is_stable == 'true'
+        id: signpath-sign-windows
+        uses: signpath/github-action-submit-signing-request@v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: "78e37079-23df-4800-b41c-33312ad7c1e3"
+          project-slug: "ValueCell"
+          signing-policy-slug: "ValueCell-sign"
+          github-artifact-id: ${{ steps.upload-unsigned-windows-artifact.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: release/signed
+
+      - name: Replace unsigned executables with signed ones
+        if: matrix.platform == 'win' && steps.win-channel.outputs.is_stable == 'true'
+        shell: pwsh
+        run: |
+          Write-Host "SignPath GitHub artifact ID: ${{ steps.upload-unsigned-windows-artifact.outputs.artifact-id }}"
+          $signedExeFiles = Get-ChildItem -Path "release/signed" -Filter *.exe -File -Recurse
+          if (-not $signedExeFiles) {
+            throw "No signed .exe files found in release/signed"
+          }
+          $signedCount = $signedExeFiles.Count
+          if ($env:UNSIGNED_EXE_COUNT -and ($signedCount -ne [int]$env:UNSIGNED_EXE_COUNT)) {
+            throw "Signed .exe count ($signedCount) does not match unsigned count ($env:UNSIGNED_EXE_COUNT)"
+          }
+          foreach ($file in $signedExeFiles) {
+            Copy-Item -Path $file.FullName -Destination "release/$($file.Name)" -Force
+          }
+          $finalExeFiles = Get-ChildItem -Path "release" -Filter *.exe -File
+          if ($env:UNSIGNED_EXE_COUNT -and ($finalExeFiles.Count -ne [int]$env:UNSIGNED_EXE_COUNT)) {
+            throw "Final release .exe count ($($finalExeFiles.Count)) does not match unsigned count ($env:UNSIGNED_EXE_COUNT)"
+          }
+          Write-Host "Signed executables copied to release/ ($($finalExeFiles.Count) file(s))"
+
+      # Code signing changes the .exe binary, invalidating the sha512 hash that
+      # electron-builder wrote into latest.yml during the initial build.
+      # Recalculate the hash for each signed .exe and patch the yml files so
+      # electron-updater can verify the download successfully.
+      #
+      # Actual latest.yml structure (from electron-builder NSIS):
+      #   files:
+      #     - url: ClawX-0.2.4-win-x64.exe    ← files[] entries have url/sha512/size
+      #       sha512: <base64>
+      #       size: 430775882
+      #   path: ClawX-0.2.4-win-arm64.exe      ← top-level has path/sha512 (no size!)
+      #   sha512: <base64>
+      #   releaseDate: '...'
+      - name: Update latest.yml sha512 after code signing
+        if: matrix.platform == 'win' && steps.win-channel.outputs.is_stable == 'true'
+        shell: pwsh
+        run: |
+          $ymlFiles = Get-ChildItem -Path "release" -Filter "*.yml" -File | Where-Object { $_.Name -ne "builder-debug.yml" }
+          $exeFiles = Get-ChildItem -Path "release" -Filter "*.exe" -File
+
+          foreach ($yml in $ymlFiles) {
+            $content = Get-Content $yml.FullName -Raw
+            $modified = $false
+
+            foreach ($exe in $exeFiles) {
+              # Compute new sha512 (base64) for the signed exe
+              $hash = Get-FileHash -Path $exe.FullName -Algorithm SHA512
+              $hashBytes = [byte[]]::new($hash.Hash.Length / 2)
+              for ($i = 0; $i -lt $hashBytes.Length; $i++) {
+                $hashBytes[$i] = [Convert]::ToByte($hash.Hash.Substring($i * 2, 2), 16)
+              }
+              $newSha512 = [Convert]::ToBase64String($hashBytes)
+              $newSize = (Get-Item $exe.FullName).Length
+              $escapedName = [Regex]::Escape($exe.Name)
+
+              # 1) files[] entries:  url: <name>\n    sha512: <hash>\n    size: <n>
+              $urlPattern = "(?m)(url:\s*${escapedName}\s*\r?\n\s*sha512:\s*)(\S+)(\s*\r?\n\s*size:\s*)(\d+)"
+              if ($content -match $urlPattern) {
+                $content = $content -replace $urlPattern, "`${1}${newSha512}`${3}${newSize}"
+                $modified = $true
+                Write-Host "Updated $($yml.Name) files[]: $($exe.Name) sha512=$newSha512 size=$newSize"
+              }
+
+              # 2) Top-level entry:  path: <name>\nsha512: <hash>\n  (no size field)
+              $pathPattern = "(?m)(path:\s*${escapedName}\s*\r?\n)sha512:\s*\S+"
+              if ($content -match $pathPattern) {
+                $content = $content -replace $pathPattern, "`${1}sha512: ${newSha512}"
+                $modified = $true
+                Write-Host "Updated $($yml.Name) top-level: $($exe.Name) sha512=$newSha512"
+              }
+            }
+
+            if ($modified) {
+              Set-Content -Path $yml.FullName -Value $content -NoNewline
+              Write-Host "Saved updated $($yml.Name)"
+            }
+          }
+
+          Write-Host ""
+          Write-Host "=== Final yml contents ==="
+          foreach ($yml in $ymlFiles) {
+            Write-Host "--- $($yml.Name) ---"
+            Get-Content $yml.FullName
+            Write-Host ""
+          }
+
+      # Linux specific steps
+      - name: Build Linux
+        if: matrix.platform == 'linux'
+        run: pnpm run package:linux
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.platform }}
+          path: |
+            release/*.dmg
+            release/*.zip
+            release/*.blockmap
+            release/*.exe
+            release/*.AppImage
+            release/*.deb
+            release/*.rpm
+            release/*.yml
+            !release/builder-debug.yml
+          retention-days: 7
+
+  # ──────────────────────────────────────────────────────────────
+  # Job: Publish to GitHub Releases
+  # ──────────────────────────────────────────────────────────────
+  publish:
+    needs: release
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Download release artifacts only
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+          pattern: release-*
+
+      - name: List all downloaded artifacts
+        run: |
+          echo "=== All artifacts downloaded ==="
+          find release-artifacts/ -type f -exec ls -lh {} \;
+          echo ""
+          echo "=== File tree ==="
+          tree release-artifacts/ || find release-artifacts/ -print
+
+      - name: Remove duplicate builder-debug files
+        run: |
+          echo "Removing builder-debug.yml files to avoid duplicate asset upload conflicts..."
+          find release-artifacts/ -name "builder-debug.yml" -delete -print || true
+
+      - name: Create GitHub Release (as pre-release)
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            release-artifacts/**/*.dmg
+            release-artifacts/**/*.zip
+            release-artifacts/**/*.exe
+            release-artifacts/**/*.AppImage
+            release-artifacts/**/*.deb
+            release-artifacts/**/*.rpm
+            release-artifacts/**/*.yml
+          draft: false
+          prerelease: true
+          make_latest: false
+          generate_release_notes: true
+          body: |
+            ## 🚀 ClawX ${{ github.ref_name }}
+            
+            ClawX - Graphical AI Assistant based on OpenClaw
+            
+            ### 📦 Downloads
+            
+            Please select the appropriate installer for your operating system and architecture:
+            
+            #### macOS
+            - **Apple Silicon (M1/M2/M3/M4)**: `ClawX-*-mac-arm64.dmg`
+            - **Intel (x64)**: `ClawX-*-mac-x64.dmg`
+            
+            #### Windows
+            - **Installer (x64)**: `ClawX-*-win-x64.exe`
+            - **Installer (ARM64)**: `ClawX-*-win-arm64.exe`
+            
+            #### Linux
+            - **AppImage (x64)**: `ClawX-*-linux-x86_64.AppImage` (Universal format, recommended)
+            - **AppImage (ARM64)**: `ClawX-*-linux-arm64.AppImage`
+            - **Debian/Ubuntu (x64)**: `ClawX-*-linux-amd64.deb`
+            - **Debian/Ubuntu (ARM64)**: `ClawX-*-linux-arm64.deb`
+            - **RPM (x64)**: `ClawX-*-linux-x86_64.rpm`
+            
+            ### 📝 Release Notes
+            
+            See the auto-generated release notes below for detailed changes.
+            
+            ### ⚠️ Installation Notes
+            
+            - **macOS**: On first launch, you may see "cannot verify developer". Go to System Preferences → Security & Privacy to allow the app to run
+            - **Windows**: SmartScreen may block the app. Click "More info" → "Run anyway" to proceed
+            - **Linux AppImage**: First run `chmod +x ClawX-*.AppImage` to add execute permission. On Ubuntu 22.04 you may also need `sudo apt install libfuse2`; on Ubuntu 24.04 use `sudo apt install libfuse2t64`
+            - **Linux .deb (Ubuntu 24.04)**: If installation fails due to missing dependencies, use `sudo apt install libgtk-3-0t64 libnotify4t64 libxss1t64` before installing
+            
+            ---
+            
+            💬 Found an issue? Please submit an [Issue](https://github.com/${{ github.repository }}/issues)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ──────────────────────────────────────────────────────────────
+  # Job: Upload to Alibaba Cloud OSS
+  # Uploads all release artifacts to OSS for:
+  #   - Official website downloads (via release-info.json)
+  #   - electron-updater auto-update (via {channel}-*.yml)
+  #
+  # Directory structure on OSS (channel-separated):
+  #   latest/          → stable releases (latest.yml, latest-mac.yml, …)
+  #   alpha/           → alpha  releases (alpha.yml,  alpha-mac.yml, …)
+  #   beta/            → beta   releases (beta.yml,   beta-mac.yml,  …)
+  #   releases/vX.Y.Z/ → permanent archive, never deleted
+  # ──────────────────────────────────────────────────────────────
+  upload-oss:
+    needs: release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download release artifacts only
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+          pattern: release-*
+
+      - name: Extract version and channel
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          else
+            VERSION="${{ github.event.inputs.version }}"
+          fi
+
+          # Detect channel from semver prerelease tag
+          # e.g. 0.1.8-alpha.0 → alpha, 1.0.0-beta.1 → beta, 1.0.0 → latest
+          if [[ "$VERSION" =~ -([a-zA-Z]+) ]]; then
+            CHANNEL="${BASH_REMATCH[1]}"
+          else
+            CHANNEL="latest"
+          fi
+
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tag=v${VERSION}" >> $GITHUB_OUTPUT
+          echo "channel=${CHANNEL}" >> $GITHUB_OUTPUT
+          echo "Detected version: ${VERSION}, channel: ${CHANNEL}"
+
+      - name: Prepare upload directories
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          TAG="${{ steps.version.outputs.tag }}"
+          CHANNEL="${{ steps.version.outputs.channel }}"
+
+          mkdir -p staging/${CHANNEL}
+          mkdir -p staging/releases/${TAG}
+
+          # Flatten all platform artifacts into staging directories
+          find release-artifacts/ -type f | while read file; do
+            filename=$(basename "$file")
+            cp "$file" "staging/${CHANNEL}/${filename}"
+            cp "$file" "staging/releases/${TAG}/${filename}"
+          done
+
+          echo "=== staging/${CHANNEL}/ ==="
+          ls -lh staging/${CHANNEL}/
+          echo ""
+          echo "=== staging/releases/${TAG}/ ==="
+          ls -lh staging/releases/${TAG}/
+
+      # Note: Do NOT rename yml files. electron-updater (generic provider) always
+      # requests "latest-mac.yml", "latest.yml", etc. regardless of feed URL.
+      # Channel separation is achieved by directory: /alpha/, /beta/, /latest/.
+      - name: Verify yml files present
+        run: |
+          CHANNEL="${{ steps.version.outputs.channel }}"
+          echo "=== staging/${CHANNEL}/ (update metadata) ==="
+          ls -la staging/${CHANNEL}/*.yml 2>/dev/null || echo "No yml files found (check electron-builder outputs)"
+
+      - name: Generate release-info.json
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          CHANNEL="${{ steps.version.outputs.channel }}"
+          BASE_URL="https://oss.intelli-spectrum.com/${CHANNEL}"
+
+          jq -n \
+            --arg version "$VERSION" \
+            --arg channel "$CHANNEL" \
+            --arg date "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --arg base "$BASE_URL" \
+            --arg changelog "https://github.com/${{ github.repository }}/releases/tag/v${VERSION}" \
+            '{
+              version: $version,
+              channel: $channel,
+              releaseDate: $date,
+              downloads: {
+                mac: {
+                  x64: ($base + "/ClawX-" + $version + "-mac-x64.dmg"),
+                  arm64: ($base + "/ClawX-" + $version + "-mac-arm64.dmg")
+                },
+                win: {
+                  x64: ($base + "/ClawX-" + $version + "-win-x64.exe"),
+                  arm64: ($base + "/ClawX-" + $version + "-win-arm64.exe")
+                },
+                linux: {
+                  deb_amd64: ($base + "/ClawX-" + $version + "-linux-amd64.deb"),
+                  deb_arm64: ($base + "/ClawX-" + $version + "-linux-arm64.deb"),
+                  appimage_x64: ($base + "/ClawX-" + $version + "-linux-x86_64.AppImage"),
+                  appimage_arm64: ($base + "/ClawX-" + $version + "-linux-arm64.AppImage"),
+                  rpm_x64: ($base + "/ClawX-" + $version + "-linux-x86_64.rpm")
+                }
+              },
+              changelog: $changelog
+            }' > staging/${CHANNEL}/release-info.json
+
+          echo "=== release-info.json ==="
+          cat staging/${CHANNEL}/release-info.json
+
+      - name: Install and configure ossutil
+        env:
+          OSS_ACCESS_KEY_ID: ${{ secrets.OSS_ACCESS_KEY_ID }}
+          OSS_ACCESS_KEY_SECRET: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
+        run: |
+          curl -sL https://gosspublic.alicdn.com/ossutil/install.sh | sudo bash
+
+          # Write config file for non-interactive use
+          cat > $HOME/.ossutilconfig << EOF
+          [Credentials]
+          language=EN
+          endpoint=oss-cn-hangzhou.aliyuncs.com
+          accessKeyID=${OSS_ACCESS_KEY_ID}
+          accessKeySecret=${OSS_ACCESS_KEY_SECRET}
+          EOF
+
+          ossutil --version
+
+      - name: "Upload to OSS: {channel}/ (overwrite)"
+        run: |
+          CHANNEL="${{ steps.version.outputs.channel }}"
+
+          # Only clean the current channel's directory — never touch other channels
+          ossutil rm -r -f oss://valuecell-clawx/${CHANNEL}/ || true
+
+          # Upload all files with no-cache so clients always get the freshest version
+          ossutil cp -r -f \
+            --meta="Cache-Control:no-cache,no-store,must-revalidate" \
+            staging/${CHANNEL}/ \
+            oss://valuecell-clawx/${CHANNEL}/
+
+          echo "Uploaded to ${CHANNEL}/"
+
+      - name: "Upload to OSS: releases/vX.Y.Z/ (archive)"
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+
+          # Upload to permanent archive (long cache, immutable)
+          ossutil cp -r \
+            staging/releases/${TAG}/ \
+            oss://valuecell-clawx/releases/${TAG}/ \
+            --meta "Cache-Control:public,max-age=31536000,immutable"
+
+          echo "Uploaded to releases/${TAG}/"
+
+      - name: Verify OSS upload
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          CHANNEL="${{ steps.version.outputs.channel }}"
+
+          echo "=== ${CHANNEL}/ ==="
+          ossutil ls oss://valuecell-clawx/${CHANNEL}/ --short
+
+          echo ""
+          echo "=== releases/${TAG}/ ==="
+          ossutil ls oss://valuecell-clawx/releases/${TAG}/ --short
+
+          echo ""
+          echo "=== Verify release-info.json ==="
+          ossutil cp oss://valuecell-clawx/${CHANNEL}/release-info.json /tmp/release-info.json -f
+          jq . /tmp/release-info.json
+
+          echo ""
+          echo "=== Verify update yml ==="
+          if [ "${CHANNEL}" = "latest" ]; then
+            YML_PREFIX="latest"
+          else
+            YML_PREFIX="${CHANNEL}"
+          fi
+          echo "electron-updater expects ${YML_PREFIX}-mac.yml, ${YML_PREFIX}.yml, etc. in ${CHANNEL}/:"
+          ossutil ls oss://valuecell-clawx/${CHANNEL}/ --short | grep "${YML_PREFIX}.*\\.yml" || echo "(none found)"
+          
+          echo ""
+          echo "All files uploaded and verified successfully!"
+
+  # ──────────────────────────────────────────────────────────────
+  # Job: Finalize Release
+  # Promotes the GitHub Release from pre-release to latest AFTER
+  # both GitHub Release assets and OSS uploads are fully complete.
+  # This ensures /releases/latest API never returns an incomplete
+  # release — the website and electron-updater only see it when
+  # all platform artifacts are ready.
+  # ──────────────────────────────────────────────────────────────
+  finalize:
+    needs: [publish, upload-oss]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Promote release from pre-release to latest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          IS_PRERELEASE_CHANNEL=false
+
+          if [[ "$TAG" == *"alpha"* ]] || [[ "$TAG" == *"beta"* ]]; then
+            IS_PRERELEASE_CHANNEL=true
+          fi
+
+          if [ "$IS_PRERELEASE_CHANNEL" = "true" ]; then
+            echo "Tag $TAG is an alpha/beta release — keeping as pre-release."
+          else
+            echo "Promoting $TAG from pre-release to latest release..."
+            gh release edit "$TAG" \
+              --prerelease=false \
+              --latest \
+              --repo "${{ github.repository }}"
+            echo "Release $TAG is now the latest release."
+          fi

@@ -1,0 +1,66 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+dist-electron/
+release/
+*.local
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+
+# Cache
+.cache/
+.turbo/
+*.tsbuildinfo
+
+# Electron
+*.dmg
+*.exe
+*.AppImage
+*.deb
+*.rpm
+
+resources/bin
+
+# Secrets
+*.p12
+*.pem
+*.key
+
+build/
+artifacts/
+docs/pr-session-notes-*.md
+
+.cursor/
+.pnpm-store/

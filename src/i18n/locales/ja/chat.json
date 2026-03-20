@@ -1,0 +1,53 @@
+{
+    "gatewayNotRunning": "ゲートウェイが停止中",
+    "gatewayRequired": "チャットを利用するには OpenClaw ゲートウェイが実行されている必要があります。自動的に起動するか、設定から起動できます。",
+    "welcome": {
+        "title": "XClaw チャット",
+        "subtitle": "お手伝いできることはありますか？",
+        "askQuestions": "タスク対応",
+        "askQuestionsDesc": "タスク指向の依頼に対応します",
+        "creativeTasks": "連続実行",
+        "creativeTasksDesc": "複数ステップの作業を継続して進めます",
+        "brainstorming": "マルチエージェント並列実行"
+    },
+    "noLogs": "（ログはまだありません）",
+    "toolbar": {
+        "refresh": "チャットを更新",
+        "showThinking": "思考を表示",
+        "hideThinking": "思考を非表示",
+        "currentAgent": "現在の会話相手: {{agent}}"
+    },
+    "composer": {
+        "attachFiles": "ファイルを添付",
+        "pickAgent": "Agent を選択",
+        "pickModel": "モデルを選択",
+        "clearTarget": "送信先 Agent をクリア",
+        "targetChip": "@{{agent}}",
+        "agentPickerTitle": "次のメッセージを別の Agent に直接送信します",
+        "modelPickerTitle": "現在のセッションモデルを切り替える",
+        "modelPickerLoading": "モデルを読み込み中...",
+        "modelPickerEmpty": "利用可能なモデルがありません",
+        "modelPickerDefault": "OpenClaw の既定モデルを使う",
+        "modelPickerDefaultHint": "このセッションの一時モデル上書きを解除する",
+        "modelPickerLoadFailed": "モデルの読み込みに失敗しました",
+        "gatewayDisconnectedPlaceholder": "ゲートウェイ未接続...",
+        "send": "送信",
+        "stop": "停止",
+        "gatewayConnected": "接続済み",
+        "gatewayStatus": "ゲートウェイ {{state}} | ポート: {{port}} {{pid}}",
+        "retryFailedAttachments": "失敗した添付を再試行"
+    },
+    "historyBuckets": {
+        "today": "今日",
+        "yesterday": "昨日",
+        "withinWeek": "1週間以内",
+        "withinTwoWeeks": "2週間以内",
+        "withinMonth": "1か月以内",
+        "older": "1か月より前"
+    },
+    "sessionPane": {
+        "searchLabel": "チャットを検索",
+        "searchPlaceholder": "チャット、Agent、タイトルを検索",
+        "emptySearch": "一致するチャットはありません"
+    }
+}

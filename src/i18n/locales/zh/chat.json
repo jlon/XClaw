@@ -1,0 +1,53 @@
+{
+    "gatewayNotRunning": "网关未运行",
+    "gatewayRequired": "OpenClaw 网关需要运行才能使用聊天。它将自动启动，或者您可以从设置中启动。",
+    "welcome": {
+        "title": "XClaw 聊天",
+        "subtitle": "我能为你做些什么？",
+        "askQuestions": "处理任务",
+        "askQuestionsDesc": "处理面向任务的请求",
+        "creativeTasks": "持续执行",
+        "creativeTasksDesc": "持续推进多步骤工作",
+        "brainstorming": "多智能体并行"
+    },
+    "noLogs": "（暂无日志）",
+    "toolbar": {
+        "refresh": "刷新聊天",
+        "showThinking": "显示思考过程",
+        "hideThinking": "隐藏思考过程",
+        "currentAgent": "当前对话对象：{{agent}}"
+    },
+    "composer": {
+        "attachFiles": "添加文件",
+        "pickAgent": "选择 Agent",
+        "pickModel": "选择模型",
+        "clearTarget": "清除目标 Agent",
+        "targetChip": "@{{agent}}",
+        "agentPickerTitle": "将下一条消息直接发送给其他 Agent",
+        "modelPickerTitle": "切换当前会话模型",
+        "modelPickerLoading": "正在加载模型...",
+        "modelPickerEmpty": "当前没有可用模型",
+        "modelPickerDefault": "使用 OpenClaw 默认模型",
+        "modelPickerDefaultHint": "清除当前会话的临时模型覆盖",
+        "modelPickerLoadFailed": "加载模型失败",
+        "gatewayDisconnectedPlaceholder": "网关未连接...",
+        "send": "发送",
+        "stop": "停止",
+        "gatewayConnected": "已连接",
+        "gatewayStatus": "gateway {{state}} | port: {{port}} {{pid}}",
+        "retryFailedAttachments": "重试失败的附件"
+    },
+    "historyBuckets": {
+        "today": "今天",
+        "yesterday": "昨天",
+        "withinWeek": "一周内",
+        "withinTwoWeeks": "两周内",
+        "withinMonth": "一个月内",
+        "older": "一个月之前"
+    },
+    "sessionPane": {
+        "searchLabel": "搜索聊天",
+        "searchPlaceholder": "搜索聊天、Agent 或标题",
+        "emptySearch": "没有匹配的聊天"
+    }
+}

@@ -1,0 +1,227 @@
+{
+    "steps": {
+        "welcome": {
+            "title": "XClawへようこそ",
+            "description": "AIアシスタントの設定準備が整いました"
+        },
+        "takeover": {
+            "title": "既存の OpenClaw を引き継ぐ",
+            "description": "ローカルの OpenClaw 環境を検出しました"
+        },
+        "runtime": {
+            "title": "環境チェック",
+            "description": "システム要件を確認中"
+        },
+        "provider": {
+            "title": "AIプロバイダー",
+            "description": "AIサービスを構成"
+        },
+        "providerReview": {
+            "title": "インポートした Provider を確認",
+            "description": "確認が必要な導入項目があります"
+        },
+        "channel": {
+            "title": "チャンネル接続",
+            "description": "メッセージングプラットフォームを接続（オプション）"
+        },
+        "installing": {
+            "title": "セットアップ中",
+            "description": "必須コンポーネントをインストール中"
+        },
+        "complete": {
+            "title": "完了！",
+            "description": "XClawを使用する準備が整いました"
+        }
+    },
+    "welcome": {
+        "title": "XClawへようこそ",
+        "description": "XClawはOpenClawのグラフィカルインターフェースで、お気に入りのメッセージングプラットフォームでAIアシスタントを簡単に使用できます。",
+        "features": {
+            "noCommand": "コマンドライン不要",
+            "modernUI": "モダンで美しいインターフェース",
+            "bundles": "プリインストールされたスキルバンドル",
+            "crossPlatform": "クロスプラットフォーム対応"
+        }
+    },
+    "takeover": {
+        "title": "既存の OpenClaw を検出しました",
+        "description": "現在の環境を引き継ぐか、新しい XClaw 設定を続けるか選択できます。",
+        "choice": {
+            "takeover": "既存の環境を引き継ぐ",
+            "fresh": "新規に設定する",
+            "takeoverDescription": "現在の OpenClaw の Provider、スキル、ワークスペース状態をそのまま利用します。",
+            "freshDescription": "現在の OpenClaw は残したまま、XClaw 用の新しい既定設定を作成します。"
+        },
+        "summary": {
+            "providers": "プロバイダー",
+            "skills": "スキル",
+            "extensions": "拡張",
+            "workspace": "ワークスペース"
+        },
+        "mode": {
+            "takeoverTitle": "現在の OpenClaw 環境を引き継ぎます",
+            "takeoverDescription": "XClaw は現在の Provider、ワークスペース、スキル状態を取り込み、完了後すぐ使える状態にします。",
+            "freshTitle": "新しい XClaw 設定を作成します",
+            "freshDescription": "現在の OpenClaw は変更せず、XClaw が競合しにくいワークスペースとゲートウェイポートを提案します。",
+            "currentWorkspace": "現在のワークスペース",
+            "recommendedWorkspace": "推奨される新しいワークスペース",
+            "currentPort": "現在のゲートウェイポート",
+            "recommendedPort": "推奨される新しいポート",
+            "workspaceHint": "XClaw はこのディレクトリを既定で使用し、あとから設定で変更できます。",
+            "portHint": "現在のポートが OpenClaw に使われている場合、XClaw が競合しないポートへ案内します。",
+            "nextHint": "次の手順でこれらの既定値を確認します。",
+            "freshBlockingTitle": "現在の設定では続行できません",
+            "freshWarningsTitle": "新規設定時の注意"
+        },
+        "blockingTitle": "現在は引き継ぎを実行できません",
+        "warningsTitle": "引き継ぎ時の注意",
+        "running": "現在の環境を引き継いでインポートしています...",
+        "progress": {
+            "idle": "引き継ぎ開始を待機中",
+            "blocked": "引き継ぎ可能か確認しています",
+            "backup": "現在の XClaw ローカル状態をバックアップしています",
+            "import": "OpenClaw の Provider と認証情報を取り込んでいます",
+            "commit": "引き継ぎ結果とセットアップ完了状態を保存しています",
+            "rollback": "引き継ぎに失敗したためローカル状態をロールバックしています",
+            "complete": "引き継ぎが完了しました"
+        },
+        "importFailed": "引き継ぎに失敗しました。問題を解消してから再試行してください。"
+    },
+    "providerReview": {
+        "title": "インポートされた Provider 状態を確認してください",
+        "description": "引き継ぎは完了しましたが、確認が必要な Provider 導入項目が残っています。",
+        "summary": {
+            "imported": "導入済みアカウント",
+            "default": "デフォルトアカウント",
+            "conflicts": "競合項目",
+            "unsupported": "直接導入されていない項目"
+        },
+        "defaultMissing": "自動判定できませんでした",
+        "conflictsTitle": "手動確認が必要な導入項目",
+        "nextHint": "ひとまずアプリに進み、後で設定画面からこれらの Provider を修正できます。"
+    },
+    "runtime": {
+        "title": "環境をチェック中",
+        "viewLogs": "ログを表示",
+        "recheck": "再チェック",
+        "setup": {
+            "title": "新規セットアップの実行設定",
+            "description": "完了前にデフォルトのワークスペースとゲートウェイポートを確認します。",
+            "workspaceLabel": "デフォルトワークスペース",
+            "workspacePlaceholder": "/Users/you/.openclaw/workspace",
+            "workspaceHint": "絶対パスと ~/... 展開を利用できます。",
+            "workspaceRequired": "ワークスペースのパスを入力してください",
+            "portLabel": "ゲートウェイポート",
+            "portHint": "1 から 65535 の整数である必要があります。",
+            "portRequired": "ゲートウェイポートを入力してください",
+            "portInvalid": "ゲートウェイポートは 1 から 65535 の整数である必要があります",
+            "planChecking": "ポートとパスの競合を確認しています...",
+            "blockingTitle": "現在の設定では続行できません",
+            "warningsTitle": "設定時の注意"
+        },
+        "nodejs": "Node.js ランタイム",
+        "openclaw": "OpenClaw パッケージ",
+        "gateway": "ゲートウェイサービス",
+        "startGateway": "ゲートウェイを起動",
+        "status": {
+            "checking": "確認中...",
+            "success": "Node.js は利用可能です",
+            "error": "失敗",
+            "gatewayRunning": "ポート {{port}} で実行中",
+            "packageReady": "OpenClaw パッケージ準備完了"
+        },
+        "issue": {
+            "title": "環境の問題が検出されました",
+            "desc": "OpenClawが正しくインストールされていることを確認してください。詳細はログを確認してください。"
+        },
+        "logs": {
+            "title": "アプリケーションログ",
+            "openFolder": "ログフォルダを開く",
+            "close": "閉じる",
+            "noLogs": "（ログはまだありません）"
+        }
+    },
+    "provider": {
+        "label": "モデルプロバイダー",
+        "selectPlaceholder": "プロバイダーを選択...",
+        "baseUrl": "ベース URL",
+        "modelId": "モデル ID",
+        "modelIdDesc": "プロバイダーのモデル識別子（例：deepseek-ai/DeepSeek-V3）",
+        "protocol": "プロトコル",
+        "protocols": {
+            "openaiCompletions": "OpenAI Completions",
+            "openaiResponses": "OpenAI Responses",
+            "anthropic": "Anthropic 互換"
+        },
+        "apiKey": "API キー",
+        "save": "保存",
+        "validateSave": "検証して保存",
+        "valid": "プロバイダーが正常に構成されました",
+        "invalid": "無効な API キー",
+        "storedLocally": "API キーはローカルマシンに保存されます。"
+    },
+    "channel": {
+        "title": "メッセージングチャンネルを接続",
+        "subtitle": "AIアシスタントを接続するプラットフォームを選択してください。チャンネルは後で設定で追加できます。",
+        "configure": "{{name}} を構成",
+        "howTo": "接続方法：",
+        "viewDocs": "ドキュメントを表示",
+        "validationError": "検証に失敗しました",
+        "connected": "{{name}} 接続済み",
+        "connectedDesc": "チャンネルが構成されました。ゲートウェイ起動時に接続されます。",
+        "configureAnother": "別のチャンネルを構成"
+    },
+    "installing": {
+        "title": "必須コンポーネントをインストール中",
+        "subtitle": "AIアシスタントに必要なツールをセットアップしています",
+        "progress": "進捗",
+        "status": {
+            "pending": "待機中",
+            "installing": "インストール中...",
+            "installed": "インストール済み",
+            "failed": "失敗"
+        },
+        "error": "セットアップエラー：",
+        "restart": "アプリを再起動してください",
+        "wait": "これには少し時間がかかる場合があります...",
+        "skip": "この手順をスキップ"
+    },
+    "complete": {
+        "title": "セットアップ完了！",
+        "subtitle": "XClawの構成が完了し、使用準備が整いました。AIアシスタントとのチャットを開始できます。",
+        "provider": "AI プロバイダー",
+        "components": "コンポーネント",
+        "gateway": "ゲートウェイ",
+        "running": "実行中",
+        "footer": "設定でスキルをカスタマイズしたり、チャンネルを接続したりできます"
+    },
+    "nav": {
+        "next": "次へ",
+        "back": "戻る",
+        "skipStep": "この手順をスキップ",
+        "skipSetup": "セットアップをスキップ",
+        "getStarted": "始める"
+    },
+    "defaultSkills": {
+        "opencode": {
+            "name": "OpenCode",
+            "description": "AI コーディングアシスタントのバックエンド"
+        },
+        "python-env": {
+            "name": "Python 環境",
+            "description": "スキルのための Python ランタイム"
+        },
+        "code-assist": {
+            "name": "コードアシスト",
+            "description": "コードの分析と提案"
+        },
+        "file-tools": {
+            "name": "ファイルツール",
+            "description": "ファイルの操作と管理"
+        },
+        "terminal": {
+            "name": "ターミナル",
+            "description": "シェルコマンドの実行"
+        }
+    }
+}

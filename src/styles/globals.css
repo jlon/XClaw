@@ -1,0 +1,262 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* #f1ede1 */
+    --background: 45 36.4% 91.4%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+
+  /* Neutral deep-gray dark palette */
+  .dark {
+    --background: 240 4% 11%;
+    --foreground: 210 20% 96%;
+    --card: 240 3% 14%;
+    --card-foreground: 210 20% 96%;
+    --popover: 240 3% 14%;
+    --popover-foreground: 210 20% 96%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 240 3% 18%;
+    --secondary-foreground: 210 20% 96%;
+    --muted: 240 3% 18%;
+    --muted-foreground: 220 8% 72%;
+    --accent: 240 3% 22%;
+    --accent-foreground: 210 20% 96%;
+    --destructive: 0 65% 42%;
+    --destructive-foreground: 210 20% 96%;
+    --border: 240 3% 24%;
+    --input: 240 3% 18%;
+    --ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-border rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/30;
+}
+
+.subtle-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.subtle-scrollbar::-webkit-scrollbar {
+  width: 2px;
+  height: 2px;
+}
+
+.subtle-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.subtle-scrollbar::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 9999px;
+}
+
+.subtle-scrollbar::-webkit-scrollbar-thumb:hover,
+.subtle-scrollbar::-webkit-scrollbar-thumb:active {
+  background-color: hsl(var(--foreground) / 0.05);
+}
+
+.subtle-scrollbar-win {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.subtle-scrollbar-win::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.subtle-scrollbar-win::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.subtle-scrollbar-win::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 9999px;
+}
+
+.subtle-scrollbar-win::-webkit-scrollbar-thumb:hover,
+.subtle-scrollbar-win::-webkit-scrollbar-thumb:active {
+  background-color: hsl(var(--foreground) / 0.06);
+}
+
+.sidebar-brand-mark {
+  filter: brightness(0) saturate(100%) invert(21%) sepia(89%) saturate(2590%) hue-rotate(345deg) brightness(95%) contrast(98%);
+}
+
+.dark .sidebar-brand-mark {
+  filter: brightness(0) saturate(100%) invert(74%) sepia(24%) saturate(1316%) hue-rotate(309deg) brightness(101%) contrast(91%);
+}
+
+.sidebar-brand-wordmark {
+  display: inline-flex;
+  align-items: baseline;
+  color: hsl(var(--foreground) / 0.78);
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+.sidebar-brand-wordmark-initial {
+  color: rgb(185 28 28 / 0.92);
+  font-size: 1.08rem;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: -0.08em;
+  margin-right: 0.02em;
+}
+
+.sidebar-brand-wordmark-rest {
+  color: rgb(127 29 29 / 0.82);
+  font-size: 0.9rem;
+  letter-spacing: 0.14em;
+  text-transform: none;
+}
+
+.dark .sidebar-brand-wordmark {
+  color: hsl(var(--foreground) / 0.82);
+}
+
+.dark .sidebar-brand-wordmark-initial {
+  color: rgb(252 165 165 / 0.95);
+}
+
+.dark .sidebar-brand-wordmark-rest {
+  color: rgb(254 202 202 / 0.82);
+}
+
+/* macOS traffic light spacing */
+.drag-region {
+  -webkit-app-region: drag;
+}
+
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* Smooth transitions */
+.transition-theme {
+  @apply transition-colors duration-200;
+}
+
+/* Focus ring */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+}
+
+/* Prose styling for markdown */
+.prose {
+  line-height: 1.6;
+}
+
+.prose p {
+  margin-bottom: 0.75em;
+}
+
+.prose p:last-child {
+  margin-bottom: 0;
+}
+
+.prose ul,
+.prose ol {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  padding-left: 1.5em;
+}
+
+.prose li {
+  margin-bottom: 0.25em;
+}
+
+.prose pre {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.prose blockquote {
+  border-left: 3px solid hsl(var(--border));
+  padding-left: 1em;
+  margin: 0.5em 0;
+  color: hsl(var(--muted-foreground));
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5em 0;
+}
+
+.prose th,
+.prose td {
+  border: 1px solid hsl(var(--border));
+  padding: 0.5em;
+  text-align: left;
+}
+
+.prose th {
+  background: hsl(var(--muted));
+}
+
+/* Typing indicator animation */
+@keyframes bounce {
+
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+  }
+
+  30% {
+    transform: translateY(-4px);
+  }
+}

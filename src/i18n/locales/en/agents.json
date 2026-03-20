@@ -1,0 +1,54 @@
+{
+    "title": "Agents",
+    "subtitle": "When adding a new Agent, XClaw will copy the main Agent's workspace files and runtime auth setup. The configuration can be modified through a dialog.",
+    "refresh": "Refresh",
+    "addAgent": "Add Agent",
+    "gatewayWarning": "Gateway service is not running. Agent/channel changes may take a moment to apply.",
+    "defaultBadge": "default",
+    "inherited": "inherited",
+    "none": "none",
+    "modelLine": "Model: {{model}}{{suffix}}",
+    "channelsLine": "Channels: {{channels}}",
+    "deleteAgent": "Delete Agent",
+    "settings": "Settings",
+    "creating": "Creating...",
+    "createDialog": {
+        "title": "Add Agent",
+        "description": "Create a new agent by name. XClaw will copy the main agent's workspace bootstrap files and runtime auth setup.",
+        "nameLabel": "Agent Name",
+        "namePlaceholder": "Coding Helper"
+    },
+    "deleteDialog": {
+        "title": "Delete Agent",
+        "message": "Delete \"{{name}}\" from XClaw? This permanently deletes the agent and its XClaw-managed workspace, runtime, and session files from disk."
+    },
+    "settingsDialog": {
+        "title": "{{name}} Settings",
+        "description": "Update the agent name and manage which channels belong to this agent.",
+        "nameLabel": "Agent Name",
+        "agentIdLabel": "Agent ID",
+        "modelLabel": "Model",
+        "channelsTitle": "Channels",
+        "channelsDescription": "This list is read-only. Manage channel accounts and bindings in the Channels page.",
+        "mainAccount": "Main account",
+        "channelsManagedInChannels": "This agent is linked to channel types. Manage exact account bindings in the Channels page.",
+        "addChannel": "Add Channel",
+        "noChannels": "No channels are assigned to this agent yet."
+    },
+    "removeChannelDialog": {
+        "title": "Remove Channel",
+        "message": "Remove {{name}} from XClaw? This deletes the current channel configuration."
+    },
+    "toast": {
+        "agentCreated": "Agent created",
+        "agentCreateFailed": "Failed to create agent: {{error}}",
+        "agentDeleted": "Agent deleted",
+        "agentDeleteFailed": "Failed to delete agent: {{error}}",
+        "agentUpdated": "Agent updated",
+        "agentUpdateFailed": "Failed to update agent: {{error}}",
+        "channelAssigned": "{{channel}} assigned to agent",
+        "channelAssignFailed": "Failed to assign channel: {{error}}",
+        "channelRemoved": "{{channel}} removed",
+        "channelRemoveFailed": "Failed to remove channel: {{error}}"
+    }
+}

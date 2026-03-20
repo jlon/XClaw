@@ -1,0 +1,53 @@
+{
+    "gatewayNotRunning": "Gateway Not Running",
+    "gatewayRequired": "The OpenClaw Gateway needs to be running to use chat. It will start automatically, or you can start it from Settings.",
+    "welcome": {
+        "title": "XClaw Chat",
+        "subtitle": "What can I do for you?",
+        "askQuestions": "Handle Tasks",
+        "askQuestionsDesc": "Work on task-oriented requests",
+        "creativeTasks": "Continuous Execution",
+        "creativeTasksDesc": "Keep running through multi-step work",
+        "brainstorming": "Multi-Agent Parallel"
+    },
+    "noLogs": "(No logs available yet)",
+    "toolbar": {
+        "refresh": "Refresh chat",
+        "showThinking": "Show thinking",
+        "hideThinking": "Hide thinking",
+        "currentAgent": "Talking to {{agent}}"
+    },
+    "composer": {
+        "attachFiles": "Attach files",
+        "pickAgent": "Choose agent",
+        "pickModel": "Choose model",
+        "clearTarget": "Clear target agent",
+        "targetChip": "@{{agent}}",
+        "agentPickerTitle": "Route the next message to another agent",
+        "modelPickerTitle": "Switch session model",
+        "modelPickerLoading": "Loading models...",
+        "modelPickerEmpty": "No models available",
+        "modelPickerDefault": "Use OpenClaw default",
+        "modelPickerDefaultHint": "Clear this session override",
+        "modelPickerLoadFailed": "Failed to load models",
+        "gatewayDisconnectedPlaceholder": "Gateway not connected...",
+        "send": "Send",
+        "stop": "Stop",
+        "gatewayConnected": "connected",
+        "gatewayStatus": "gateway {{state}} | port: {{port}} {{pid}}",
+        "retryFailedAttachments": "Retry failed attachments"
+    },
+    "historyBuckets": {
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "withinWeek": "Within 1 Week",
+        "withinTwoWeeks": "Within 2 Weeks",
+        "withinMonth": "Within 1 Month",
+        "older": "Older than 1 Month"
+    },
+    "sessionPane": {
+        "searchLabel": "Search chats",
+        "searchPlaceholder": "Search chats, agents, or titles",
+        "emptySearch": "No matching chats"
+    }
+}

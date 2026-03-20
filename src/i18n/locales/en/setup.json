@@ -1,0 +1,227 @@
+{
+    "steps": {
+        "welcome": {
+            "title": "Welcome to XClaw",
+            "description": "Your AI assistant is ready to be configured"
+        },
+        "takeover": {
+            "title": "Adopt Existing OpenClaw",
+            "description": "Detected a local OpenClaw environment"
+        },
+        "runtime": {
+            "title": "Environment Check",
+            "description": "Verifying system requirements"
+        },
+        "provider": {
+            "title": "AI Provider",
+            "description": "Configure your AI service"
+        },
+        "providerReview": {
+            "title": "Review Imported Providers",
+            "description": "These imported items need confirmation"
+        },
+        "channel": {
+            "title": "Connect a Channel",
+            "description": "Connect a messaging platform (optional)"
+        },
+        "installing": {
+            "title": "Setting Up",
+            "description": "Installing essential components"
+        },
+        "complete": {
+            "title": "All Set!",
+            "description": "XClaw is ready to use"
+        }
+    },
+    "welcome": {
+        "title": "Welcome to XClaw",
+        "description": "XClaw is a graphical interface for OpenClaw, making it easy to use AI assistants across your favorite messaging platforms.",
+        "features": {
+            "noCommand": "Zero command-line required",
+            "modernUI": "Modern, beautiful interface",
+            "bundles": "Pre-installed skill bundles",
+            "crossPlatform": "Cross-platform support"
+        }
+    },
+    "takeover": {
+        "title": "Existing OpenClaw Detected",
+        "description": "You can adopt the current environment or continue with a fresh XClaw setup.",
+        "choice": {
+            "takeover": "Adopt Existing Install",
+            "fresh": "Start Fresh",
+            "takeoverDescription": "Reuse the current OpenClaw providers, skills, and workspace state.",
+            "freshDescription": "Keep the current OpenClaw install and create a new default XClaw configuration."
+        },
+        "summary": {
+            "providers": "Providers",
+            "skills": "Skills",
+            "extensions": "Extensions",
+            "workspace": "Workspace"
+        },
+        "mode": {
+            "takeoverTitle": "Adopt the current OpenClaw environment",
+            "takeoverDescription": "XClaw will import the current providers, workspace, and skill state so the app is ready to use immediately.",
+            "freshTitle": "Create a new XClaw configuration",
+            "freshDescription": "The current OpenClaw install stays untouched. XClaw will suggest a non-conflicting workspace and gateway port.",
+            "currentWorkspace": "Current workspace",
+            "recommendedWorkspace": "Recommended new workspace",
+            "currentPort": "Current gateway port",
+            "recommendedPort": "Recommended new port",
+            "workspaceHint": "XClaw will use this directory by default, and you can still change it later in Settings.",
+            "portHint": "If the current port is already used by OpenClaw, XClaw will guide you to a non-conflicting port.",
+            "nextHint": "Continue to the next step to confirm these defaults.",
+            "freshBlockingTitle": "This configuration cannot continue yet",
+            "freshWarningsTitle": "Fresh setup notes"
+        },
+        "blockingTitle": "Takeover is currently blocked",
+        "warningsTitle": "Takeover notes",
+        "running": "Adopting and importing the current environment...",
+        "progress": {
+            "idle": "Waiting to start takeover",
+            "blocked": "Validating whether takeover can proceed",
+            "backup": "Backing up the current local XClaw state",
+            "import": "Importing OpenClaw providers and auth data",
+            "commit": "Committing takeover results and setup completion",
+            "rollback": "Takeover failed, rolling back local state",
+            "complete": "Takeover complete"
+        },
+        "importFailed": "Takeover failed. Resolve the blocking issue and try again."
+    },
+    "providerReview": {
+        "title": "Review Imported Provider State",
+        "description": "Takeover is complete, but some imported provider state still needs your confirmation.",
+        "summary": {
+            "imported": "Imported Accounts",
+            "default": "Default Account",
+            "conflicts": "Conflicts",
+            "unsupported": "Not Directly Imported"
+        },
+        "defaultMissing": "Not determined automatically",
+        "conflictsTitle": "Imported Items Requiring Review",
+        "nextHint": "You can continue into the app now and fix these providers later in Settings."
+    },
+    "runtime": {
+        "title": "Checking Environment",
+        "viewLogs": "View Logs",
+        "recheck": "Re-check",
+        "setup": {
+            "title": "Fresh Runtime Settings",
+            "description": "Confirm the default workspace and gateway port before finishing setup.",
+            "workspaceLabel": "Default Workspace",
+            "workspacePlaceholder": "/Users/you/.openclaw/workspace",
+            "workspaceHint": "Absolute paths and ~/... expansion are supported.",
+            "workspaceRequired": "Workspace path is required",
+            "portLabel": "Gateway Port",
+            "portHint": "Must be an integer between 1 and 65535.",
+            "portRequired": "Gateway port is required",
+            "portInvalid": "Gateway port must be an integer between 1 and 65535",
+            "planChecking": "Checking port and path conflicts...",
+            "blockingTitle": "This configuration cannot continue yet",
+            "warningsTitle": "Configuration notes"
+        },
+        "nodejs": "Node.js Runtime",
+        "openclaw": "OpenClaw Package",
+        "gateway": "Gateway Service",
+        "startGateway": "Start Gateway",
+        "status": {
+            "checking": "Checking...",
+            "success": "Node.js is available",
+            "error": "Failed",
+            "gatewayRunning": "Running on port {{port}}",
+            "packageReady": "OpenClaw package ready"
+        },
+        "issue": {
+            "title": "Environment issue detected",
+            "desc": "Please ensure OpenClaw is properly installed. Check the logs for details."
+        },
+        "logs": {
+            "title": "Application Logs",
+            "openFolder": "Open Log Folder",
+            "close": "Close",
+            "noLogs": "(No logs available yet)"
+        }
+    },
+    "provider": {
+        "label": "Model Provider",
+        "selectPlaceholder": "Select a provider...",
+        "baseUrl": "Base URL",
+        "modelId": "Model ID",
+        "modelIdDesc": "The model identifier from your provider (e.g. deepseek-ai/DeepSeek-V3)",
+        "protocol": "Protocol",
+        "protocols": {
+            "openaiCompletions": "OpenAI Completions",
+            "openaiResponses": "OpenAI Responses",
+            "anthropic": "Anthropic Compatible"
+        },
+        "apiKey": "API Key",
+        "save": "Save",
+        "validateSave": "Validate & Save",
+        "valid": "Provider configured successfully",
+        "invalid": "Invalid API key",
+        "storedLocally": "Your API key is stored locally on your machine."
+    },
+    "channel": {
+        "title": "Connect a Messaging Channel",
+        "subtitle": "Choose a platform to connect your AI assistant to. You can add more channels later in Settings.",
+        "configure": "Configure {{name}}",
+        "howTo": "How to connect:",
+        "viewDocs": "View docs",
+        "validationError": "Validation failed",
+        "connected": "{{name}} Connected",
+        "connectedDesc": "Your channel has been configured. It will connect when the Gateway starts.",
+        "configureAnother": "Configure another channel"
+    },
+    "installing": {
+        "title": "Installing Essential Components",
+        "subtitle": "Setting up the tools needed to power your AI assistant",
+        "progress": "Progress",
+        "status": {
+            "pending": "Pending",
+            "installing": "Installing...",
+            "installed": "Installed",
+            "failed": "Failed"
+        },
+        "error": "Setup Error:",
+        "restart": "Try restarting the app",
+        "wait": "This may take a few moments...",
+        "skip": "Skip this step"
+    },
+    "complete": {
+        "title": "Setup Complete!",
+        "subtitle": "XClaw is configured and ready to use. You can now start chatting with your AI assistant.",
+        "provider": "AI Provider",
+        "components": "Components",
+        "gateway": "Gateway",
+        "running": "Running",
+        "footer": "You can customize skills and connect channels in Settings"
+    },
+    "nav": {
+        "next": "Next",
+        "back": "Back",
+        "skipStep": "Skip this step",
+        "skipSetup": "Skip Setup",
+        "getStarted": "Get Started"
+    },
+    "defaultSkills": {
+        "opencode": {
+            "name": "OpenCode",
+            "description": "AI coding assistant backend"
+        },
+        "python-env": {
+            "name": "Python Environment",
+            "description": "Python runtime for skills"
+        },
+        "code-assist": {
+            "name": "Code Assist",
+            "description": "Code analysis and suggestions"
+        },
+        "file-tools": {
+            "name": "File Tools",
+            "description": "File operations and management"
+        },
+        "terminal": {
+            "name": "Terminal",
+            "description": "Shell command execution"
+        }
+    }
+}
