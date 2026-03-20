@@ -216,6 +216,66 @@
   background-color: hsl(var(--foreground) / 0.06);
 }
 
+@keyframes status-indicator-breathe {
+  0%, 100% {
+    opacity: 0.9;
+    transform: scale(1);
+    box-shadow: 0 0 0 0 transparent;
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+    box-shadow: 0 0 0 6px var(--status-indicator-ring, transparent);
+  }
+}
+
+.status-indicator {
+  box-shadow: 0 0 0 0 transparent;
+  transform: translateZ(0);
+  transition: background-color 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+  will-change: transform, box-shadow, opacity;
+}
+
+.status-indicator-glow {
+  animation: status-indicator-breathe 3.4s ease-in-out infinite;
+}
+
+.status-indicator-connected {
+  --status-indicator-ring: rgb(16 185 129 / 0.14);
+  background-color: rgb(16 185 129 / 0.94);
+}
+
+.status-indicator-disconnected {
+  --status-indicator-ring: rgb(217 119 6 / 0.12);
+  background-color: rgb(217 119 6 / 0.78);
+}
+
+.status-indicator-connecting {
+  --status-indicator-ring: rgb(245 158 11 / 0.14);
+  background-color: rgb(245 158 11 / 0.86);
+}
+
+.status-indicator-runtime {
+  --status-indicator-ring: rgb(148 163 184 / 0.12);
+  background-color: rgb(148 163 184 / 0.78);
+}
+
+.status-indicator-error {
+  --status-indicator-ring: rgb(239 68 68 / 0.12);
+  background-color: rgb(239 68 68 / 0.84);
+}
+
+.status-indicator-idle {
+  background-color: hsl(var(--muted-foreground) / 0.38);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-indicator-glow {
+    animation: none;
+  }
+}
+
 .sidebar-brand-mark {
   filter: brightness(0) saturate(100%) invert(21%) sepia(89%) saturate(2590%) hue-rotate(345deg) brightness(95%) contrast(98%);
 }

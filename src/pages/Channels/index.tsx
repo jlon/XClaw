@@ -287,13 +287,13 @@ function getSectionSummary(
 function getChannelStatusTone(status: ChannelGroupItem['status'] | ChannelAccountItem['status']): string {
   switch (status) {
     case 'connected':
-      return 'bg-emerald-500';
+      return 'status-indicator status-indicator-connected status-indicator-glow';
     case 'connecting':
-      return 'bg-amber-500 animate-pulse';
+      return 'status-indicator status-indicator-connecting status-indicator-glow';
     case 'error':
-      return 'bg-destructive';
+      return 'status-indicator status-indicator-error status-indicator-glow';
     default:
-      return 'bg-muted-foreground/45';
+      return 'status-indicator status-indicator-disconnected status-indicator-glow';
   }
 }
 
@@ -301,7 +301,7 @@ function getRuntimeAwareStatusTone(
   status: ChannelGroupItem['status'] | ChannelAccountItem['status'],
   runtimeAvailable: boolean,
 ): string {
-  return runtimeAvailable ? getChannelStatusTone(status) : 'bg-amber-400/80';
+  return runtimeAvailable ? getChannelStatusTone(status) : 'status-indicator status-indicator-runtime status-indicator-glow';
 }
 
 function getRuntimeAwareStatusLabel(
@@ -313,7 +313,9 @@ function getRuntimeAwareStatusLabel(
 }
 
 function getConfiguredChannelRailTone(enabled: boolean): string {
-  return enabled ? 'bg-emerald-500' : 'bg-muted-foreground/45';
+  return enabled
+    ? 'status-indicator status-indicator-connected status-indicator-glow'
+    : 'status-indicator status-indicator-idle';
 }
 
 export function Channels() {
@@ -910,298 +912,300 @@ export function Channels() {
 
           <div
             data-testid="channels-workbench"
-            className="grid min-w-0 gap-5 xl:grid-cols-[minmax(250px,0.9fr)_minmax(360px,1.08fr)_minmax(460px,1.32fr)] 2xl:grid-cols-[minmax(260px,0.86fr)_minmax(380px,1.02fr)_minmax(520px,1.38fr)]"
+            className="grid min-w-0 gap-5 xl:grid-cols-[minmax(320px,0.94fr)_minmax(540px,1.28fr)] min-[1440px]:grid-cols-[minmax(250px,0.9fr)_minmax(360px,1.08fr)_minmax(460px,1.32fr)]"
           >
-            <section className="min-w-0 rounded-[28px] border border-black/10 bg-white/80 p-3.5 shadow-[0_18px_40px_rgba(15,23,42,0.04)] dark:border-white/10 dark:bg-background/70 xl:p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h2 className="text-sm font-semibold text-foreground">{t('supportedChannels')}</h2>
-                  <p className="mt-0.5 text-xs leading-5 text-muted-foreground">{t('availableDesc')}</p>
+            <div data-testid="channels-navigation-stack" className="grid min-w-0 gap-5 min-[1440px]:contents">
+              <section className="min-w-0 rounded-[28px] border border-black/10 bg-white/80 p-3.5 shadow-[0_18px_40px_rgba(15,23,42,0.04)] dark:border-white/10 dark:bg-background/70 xl:p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h2 className="text-sm font-semibold text-foreground">{t('supportedChannels')}</h2>
+                    <p className="mt-0.5 text-xs leading-5 text-muted-foreground">{t('availableDesc')}</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-9 rounded-full border-black/10 bg-background/70 px-3 text-xs text-foreground/80 shadow-none hover:bg-black/5 hover:text-foreground dark:border-white/10 dark:bg-white/[0.04] dark:hover:bg-white/[0.08]"
+                    onClick={() => {
+                      const nextChannel = unsupportedGroups[0] || allChannelTypes[0];
+                      if (nextChannel) {
+                        requestSelectionChange(nextChannel);
+                      }
+                    }}
+                  >
+                    <Plus className="mr-1 h-3.5 w-3.5" />
+                    {t('addChannel')}
+                  </Button>
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-9 rounded-full border-black/10 bg-background/70 px-3 text-xs text-foreground/80 shadow-none hover:bg-black/5 hover:text-foreground dark:border-white/10 dark:bg-white/[0.04] dark:hover:bg-white/[0.08]"
-                  onClick={() => {
-                    const nextChannel = unsupportedGroups[0] || allChannelTypes[0];
-                    if (nextChannel) {
-                      requestSelectionChange(nextChannel);
-                    }
-                  }}
-                >
-                  <Plus className="mr-1 h-3.5 w-3.5" />
-                  {t('addChannel')}
-                </Button>
-              </div>
 
-              <div className="relative mt-3">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/70" />
-                <Input
-                  value={channelQuery}
-                  onChange={(event) => setChannelQuery(event.target.value)}
-                  placeholder={t('searchPlaceholder')}
-                  className="h-9 rounded-2xl border-black/10 bg-background/80 pl-9 text-sm shadow-none dark:bg-background"
-                />
-              </div>
+                <div className="relative mt-3">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/70" />
+                  <Input
+                    value={channelQuery}
+                    onChange={(event) => setChannelQuery(event.target.value)}
+                    placeholder={t('searchPlaceholder')}
+                    className="h-9 rounded-2xl border-black/10 bg-background/80 pl-9 text-sm shadow-none dark:bg-background"
+                  />
+                </div>
 
-              <div className="mt-3 space-y-3">
-                {configuredFilteredChannelTypes.length > 0 && (
-                  <div className="space-y-1.5">
-                    <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/80">
-                      {t('configuredSection')}
-                    </p>
-                    {configuredFilteredChannelTypes.map((channelType) => {
-                      const meta = CHANNEL_META[channelType];
-                      const group = groupedByType[channelType];
-                      const isSelected = selectedChannelType === channelType;
-                      return (
-                        <button
-                          key={channelType}
-                          type="button"
-                          data-testid={`channel-rail-item-${channelType}`}
-                          aria-pressed={isSelected}
-                          onClick={() => requestSelectionChange(channelType)}
-                          className={cn(
-                            'w-full rounded-2xl border px-3 py-2.5 text-left transition-all',
-                            isSelected
-                              ? selectedWorkbenchItemClass
-                              : 'border-transparent hover:border-black/10 hover:bg-black/[0.03] dark:hover:border-white/10 dark:hover:bg-white/[0.04]',
-                          )}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-black/5 bg-black/5 dark:border-white/10 dark:bg-white/5">
-                              <ChannelLogo type={channelType} />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm font-medium text-foreground">{meta.name}</p>
-                              <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                                {`${group.accounts.length} · ${getRuntimeAwareStatusLabel(group.status, runtimeAvailable, t)} · ${group.enabled ? t('enabledLabel') : t('disabledLabel')}`}
-                              </p>
-                            </div>
-                            <div
-                              data-testid={`channel-rail-indicator-${channelType}`}
-                              className={cn('h-2.5 w-2.5 shrink-0 rounded-full', getConfiguredChannelRailTone(group.enabled))}
-                            />
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {unconfiguredFilteredChannelTypes.length > 0 && (
-                  <div className="space-y-1.5">
-                    <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/80">
-                      {t('availableSection')}
-                    </p>
-                    {unconfiguredFilteredChannelTypes.map((channelType) => {
-                      const meta = CHANNEL_META[channelType];
-                      const isSelected = selectedChannelType === channelType;
-                      return (
-                        <button
-                          key={channelType}
-                          type="button"
-                          data-testid={`channel-rail-item-${channelType}`}
-                          aria-pressed={isSelected}
-                          onClick={() => requestSelectionChange(channelType)}
-                          className={cn(
-                            'w-full rounded-2xl border px-3 py-2.5 text-left transition-all',
-                            isSelected
-                              ? selectedWorkbenchItemClass
-                              : 'border-transparent hover:border-black/10 hover:bg-black/[0.03] dark:hover:border-white/10 dark:hover:bg-white/[0.04]',
-                          )}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-black/5 bg-black/5 dark:border-white/10 dark:bg-white/5">
-                              <ChannelLogo type={channelType} />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm font-medium text-foreground">{meta.name}</p>
-                              <p className="mt-0.5 truncate text-xs text-muted-foreground">{t('available')}</p>
-                            </div>
-                            <div className="h-2.5 w-2.5 shrink-0 rounded-full bg-muted-foreground/45" />
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {filteredChannelTypes.length === 0 && (
-                  <div className="rounded-2xl border border-dashed border-black/10 px-3 py-4 text-xs text-muted-foreground dark:border-white/10">
-                    {t('emptySearch')}
-                  </div>
-                )}
-              </div>
-            </section>
-
-            <section className="min-w-0 rounded-[28px] border border-black/10 bg-white/80 p-4 shadow-[0_18px_40px_rgba(15,23,42,0.04)] dark:border-white/10 dark:bg-background/70">
-              {selectedMeta && (
-                <>
-                  <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                    <div className="min-w-0">
-                      <h2 className="text-sm font-semibold text-foreground">{selectedMeta.name}</h2>
-                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                        {selectedGroup
-                          ? t('accountListSummary', { count: selectedGroup.accounts.length, default: selectedGroup.defaultAccountId })
-                          : t('availableDesc')}
+                <div className="mt-3 space-y-3">
+                  {configuredFilteredChannelTypes.length > 0 && (
+                    <div className="space-y-1.5">
+                      <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/80">
+                        {t('configuredSection')}
                       </p>
+                      {configuredFilteredChannelTypes.map((channelType) => {
+                        const meta = CHANNEL_META[channelType];
+                        const group = groupedByType[channelType];
+                        const isSelected = selectedChannelType === channelType;
+                        return (
+                          <button
+                            key={channelType}
+                            type="button"
+                            data-testid={`channel-rail-item-${channelType}`}
+                            aria-pressed={isSelected}
+                            onClick={() => requestSelectionChange(channelType)}
+                            className={cn(
+                              'w-full rounded-2xl border px-3 py-2.5 text-left transition-all',
+                              isSelected
+                                ? selectedWorkbenchItemClass
+                                : 'border-transparent hover:border-black/10 hover:bg-black/[0.03] dark:hover:border-white/10 dark:hover:bg-white/[0.04]',
+                            )}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-black/5 bg-black/5 dark:border-white/10 dark:bg-white/5">
+                                <ChannelLogo type={channelType} />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-sm font-medium text-foreground">{meta.name}</p>
+                                <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                                  {`${group.accounts.length} · ${getRuntimeAwareStatusLabel(group.status, runtimeAvailable, t)} · ${group.enabled ? t('enabledLabel') : t('disabledLabel')}`}
+                                </p>
+                              </div>
+                              <div
+                                data-testid={`channel-rail-indicator-${channelType}`}
+                                className={cn('h-2.5 w-2.5 shrink-0 rounded-full', getConfiguredChannelRailTone(group.enabled))}
+                              />
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
-                    <div
-                      data-testid="channel-account-header-actions"
-                      className="grid shrink-0 grid-flow-col auto-cols-max items-center justify-end gap-2 self-start"
-                    >
-                      {selectedGroup && (
+                  )}
+
+                  {unconfiguredFilteredChannelTypes.length > 0 && (
+                    <div className="space-y-1.5">
+                      <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/80">
+                        {t('availableSection')}
+                      </p>
+                      {unconfiguredFilteredChannelTypes.map((channelType) => {
+                        const meta = CHANNEL_META[channelType];
+                        const isSelected = selectedChannelType === channelType;
+                        return (
+                          <button
+                            key={channelType}
+                            type="button"
+                            data-testid={`channel-rail-item-${channelType}`}
+                            aria-pressed={isSelected}
+                            onClick={() => requestSelectionChange(channelType)}
+                            className={cn(
+                              'w-full rounded-2xl border px-3 py-2.5 text-left transition-all',
+                              isSelected
+                                ? selectedWorkbenchItemClass
+                                : 'border-transparent hover:border-black/10 hover:bg-black/[0.03] dark:hover:border-white/10 dark:hover:bg-white/[0.04]',
+                            )}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-black/5 bg-black/5 dark:border-white/10 dark:bg-white/5">
+                                <ChannelLogo type={channelType} />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-sm font-medium text-foreground">{meta.name}</p>
+                                <p className="mt-0.5 truncate text-xs text-muted-foreground">{t('available')}</p>
+                              </div>
+                              <div className="status-indicator status-indicator-idle h-2.5 w-2.5 shrink-0 rounded-full" />
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {filteredChannelTypes.length === 0 && (
+                    <div className="rounded-2xl border border-dashed border-black/10 px-3 py-4 text-xs text-muted-foreground dark:border-white/10">
+                      {t('emptySearch')}
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              <section className="min-w-0 rounded-[28px] border border-black/10 bg-white/80 p-4 shadow-[0_18px_40px_rgba(15,23,42,0.04)] dark:border-white/10 dark:bg-background/70">
+                {selectedMeta && (
+                  <>
+                    <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                      <div className="min-w-0">
+                        <h2 className="text-sm font-semibold text-foreground">{selectedMeta.name}</h2>
+                        <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                          {selectedGroup
+                            ? t('accountListSummary', { count: selectedGroup.accounts.length, default: selectedGroup.defaultAccountId })
+                            : t('availableDesc')}
+                        </p>
+                      </div>
+                      <div
+                        data-testid="channel-account-header-actions"
+                        className="grid shrink-0 grid-flow-col auto-cols-max items-center justify-end gap-2 self-start"
+                      >
+                        {selectedGroup && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 rounded-full border-black/10 bg-background/70 px-3 text-xs text-foreground/80 shadow-none hover:bg-black/5 hover:text-foreground dark:border-white/10 dark:bg-white/[0.04] dark:hover:bg-white/[0.08]"
+                            onClick={() => {
+                              const nextAccountId = createNewAccountId(
+                                selectedGroup.channelType,
+                                selectedGroup.accounts.map((item) => item.accountId),
+                              );
+                              void openConfigModal(selectedGroup.channelType as ChannelType, {
+                                accountId: nextAccountId,
+                                allowExistingConfig: false,
+                                allowEditAccountId: true,
+                                existingAccountIds: selectedGroup.accounts.map((item) => item.accountId),
+                              });
+                            }}
+                          >
+                            <Plus className="mr-1 h-3.5 w-3.5" />
+                            {t('account.add')}
+                          </Button>
+                        )}
+                        {selectedGroup && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                            onClick={() => setDeleteTarget({ channelType: selectedGroup.channelType })}
+                            title={t('account.deleteChannel')}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+
+                    {selectedGroup ? (
+                      <div className="space-y-2">
+                        {selectedGroup.accounts.map((account) => {
+                          const displayName =
+                            account.accountId === 'default' && account.name === account.accountId
+                              ? t('account.mainAccount')
+                              : account.name;
+                          const isSelected = selectedAccountId === account.accountId;
+                          return (
+                            <div
+                              key={`${selectedGroup.channelType}-${account.accountId}`}
+                              role="button"
+                              tabIndex={0}
+                              data-testid={`channel-account-item-${account.accountId}`}
+                              onClick={() => requestSelectionChange(selectedGroup.channelType as ChannelType, account.accountId)}
+                              onKeyDown={(event) => {
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                  event.preventDefault();
+                                  requestSelectionChange(selectedGroup.channelType as ChannelType, account.accountId);
+                                }
+                              }}
+                              className={cn(
+                                'w-full rounded-2xl border px-4 py-4 text-left transition-all',
+                                isSelected
+                                  ? selectedWorkbenchItemClass
+                                  : 'border-black/5 bg-black/[0.03] hover:bg-black/[0.05] dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]',
+                              )}
+                            >
+                              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <p className="truncate text-sm font-medium text-foreground">{displayName}</p>
+                                    {account.isDefault && (
+                                      <Badge variant="secondary" className="h-5 rounded-full px-1.5 text-[10px] shadow-none">
+                                        {t('account.default')}
+                                      </Badge>
+                                    )}
+                                    {!account.enabled && (
+                                      <Badge variant="outline" className="h-5 rounded-full px-1.5 text-[10px] shadow-none">
+                                        {t('disabledLabel')}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <p className="mt-1 text-xs leading-5 text-muted-foreground">{t('account.idLabel', { id: account.accountId })}</p>
+                                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                                    {account.agentId ? t('account.boundTo', { agent: account.agentId }) : t('account.unassigned')}
+                                  </p>
+                                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                                    {t('account.connectionStatusLabel', {
+                                      status: getRuntimeAwareStatusLabel(account.status, runtimeAvailable, t),
+                                    })}
+                                  </p>
+                                  {account.lastError && (
+                                    <p className="mt-1 text-xs leading-5 text-destructive">{account.lastError}</p>
+                                  )}
+                                </div>
+
+                                <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+                                  <div className={cn('h-2.5 w-2.5 rounded-full', getRuntimeAwareStatusTone(account.status, runtimeAvailable))} />
+                                  {!account.isDefault && (
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-8 rounded-full px-3 text-xs"
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        void handleSetDefaultAccount(selectedGroup.channelType, account.accountId);
+                                      }}
+                                    >
+                                      {t('account.setDefault')}
+                                    </Button>
+                                  )}
+                                  <Button
+                                    type="button"
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      setDeleteTarget({ channelType: selectedGroup.channelType, accountId: account.accountId });
+                                    }}
+                                    title={t('account.delete')}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="rounded-2xl border border-dashed border-black/10 px-4 py-6 dark:border-white/10">
+                        <p className="mb-1 text-sm font-medium text-foreground">{selectedMeta.name}</p>
+                        <p className="text-xs leading-5 text-muted-foreground">{t(selectedMeta.description.replace('channels:', ''))}</p>
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-8 rounded-full border-black/10 bg-background/70 px-3 text-xs text-foreground/80 shadow-none hover:bg-black/5 hover:text-foreground dark:border-white/10 dark:bg-white/[0.04] dark:hover:bg-white/[0.08]"
+                          className="mt-4 h-8 rounded-full border-black/10 bg-background/70 px-3 text-xs text-foreground/80 shadow-none hover:bg-black/5 hover:text-foreground dark:border-white/10 dark:bg-white/[0.04] dark:hover:bg-white/[0.08]"
                           onClick={() => {
-                            const nextAccountId = createNewAccountId(
-                              selectedGroup.channelType,
-                              selectedGroup.accounts.map((item) => item.accountId),
-                            );
-                            void openConfigModal(selectedGroup.channelType as ChannelType, {
-                              accountId: nextAccountId,
-                              allowExistingConfig: false,
-                              allowEditAccountId: true,
-                              existingAccountIds: selectedGroup.accounts.map((item) => item.accountId),
+                            if (!selectedChannelType) return;
+                            void openConfigModal(selectedChannelType, {
+                              allowExistingConfig: true,
                             });
                           }}
                         >
                           <Plus className="mr-1 h-3.5 w-3.5" />
-                          {t('account.add')}
+                          {t('addChannel')}
                         </Button>
-                      )}
-                      {selectedGroup && (
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8 rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                          onClick={() => setDeleteTarget({ channelType: selectedGroup.channelType })}
-                          title={t('account.deleteChannel')}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-
-                  {selectedGroup ? (
-                    <div className="space-y-2">
-                      {selectedGroup.accounts.map((account) => {
-                        const displayName =
-                          account.accountId === 'default' && account.name === account.accountId
-                            ? t('account.mainAccount')
-                            : account.name;
-                        const isSelected = selectedAccountId === account.accountId;
-                        return (
-                          <div
-                            key={`${selectedGroup.channelType}-${account.accountId}`}
-                            role="button"
-                            tabIndex={0}
-                            data-testid={`channel-account-item-${account.accountId}`}
-                            onClick={() => requestSelectionChange(selectedGroup.channelType as ChannelType, account.accountId)}
-                            onKeyDown={(event) => {
-                              if (event.key === 'Enter' || event.key === ' ') {
-                                event.preventDefault();
-                                requestSelectionChange(selectedGroup.channelType as ChannelType, account.accountId);
-                              }
-                            }}
-                            className={cn(
-                              'w-full rounded-2xl border px-4 py-4 text-left transition-all',
-                              isSelected
-                                ? selectedWorkbenchItemClass
-                                : 'border-black/5 bg-black/[0.03] hover:bg-black/[0.05] dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]',
-                            )}
-                          >
-                            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                              <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-2">
-                                  <p className="truncate text-sm font-medium text-foreground">{displayName}</p>
-                                  {account.isDefault && (
-                                    <Badge variant="secondary" className="h-5 rounded-full px-1.5 text-[10px] shadow-none">
-                                      {t('account.default')}
-                                    </Badge>
-                                  )}
-                                  {!account.enabled && (
-                                    <Badge variant="outline" className="h-5 rounded-full px-1.5 text-[10px] shadow-none">
-                                      {t('disabledLabel')}
-                                    </Badge>
-                                  )}
-                                </div>
-                                <p className="mt-1 text-xs leading-5 text-muted-foreground">{t('account.idLabel', { id: account.accountId })}</p>
-                                <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                                  {account.agentId ? t('account.boundTo', { agent: account.agentId }) : t('account.unassigned')}
-                                </p>
-                                <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                                  {t('account.connectionStatusLabel', {
-                                    status: getRuntimeAwareStatusLabel(account.status, runtimeAvailable, t),
-                                  })}
-                                </p>
-                                {account.lastError && (
-                                  <p className="mt-1 text-xs leading-5 text-destructive">{account.lastError}</p>
-                                )}
-                              </div>
-
-                              <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-                                <div className={cn('h-2.5 w-2.5 rounded-full', getRuntimeAwareStatusTone(account.status, runtimeAvailable))} />
-                                {!account.isDefault && (
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="outline"
-                                    className="h-8 rounded-full px-3 text-xs"
-                                    onClick={(event) => {
-                                      event.stopPropagation();
-                                      void handleSetDefaultAccount(selectedGroup.channelType, account.accountId);
-                                    }}
-                                  >
-                                    {t('account.setDefault')}
-                                  </Button>
-                                )}
-                                <Button
-                                  type="button"
-                                  size="icon"
-                                  variant="ghost"
-                                  className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    setDeleteTarget({ channelType: selectedGroup.channelType, accountId: account.accountId });
-                                  }}
-                                  title={t('account.delete')}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="rounded-2xl border border-dashed border-black/10 px-4 py-6 dark:border-white/10">
-                      <p className="mb-1 text-sm font-medium text-foreground">{selectedMeta.name}</p>
-                      <p className="text-xs leading-5 text-muted-foreground">{t(selectedMeta.description.replace('channels:', ''))}</p>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="mt-4 h-8 rounded-full border-black/10 bg-background/70 px-3 text-xs text-foreground/80 shadow-none hover:bg-black/5 hover:text-foreground dark:border-white/10 dark:bg-white/[0.04] dark:hover:bg-white/[0.08]"
-                        onClick={() => {
-                          if (!selectedChannelType) return;
-                          void openConfigModal(selectedChannelType, {
-                            allowExistingConfig: true,
-                          });
-                        }}
-                      >
-                        <Plus className="mr-1 h-3.5 w-3.5" />
-                        {t('addChannel')}
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )}
-            </section>
+                      </div>
+                    )}
+                  </>
+                )}
+              </section>
+            </div>
 
             <section className="min-w-0 rounded-[28px] border border-black/10 bg-white/80 p-4 shadow-[0_18px_40px_rgba(15,23,42,0.04)] dark:border-white/10 dark:bg-background/70">
               {!selectedMeta && (

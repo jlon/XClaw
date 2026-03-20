@@ -2,7 +2,7 @@
 
 ## 目标
 
-确认频道页从“列表 + 弹窗”重构为“三栏工作台”后，新增、编辑、验证、保存、删除、默认账号、绑定 Agent、高级配置显示都能稳定工作，并且不破坏 Win/mac 可用性、暖色/深色主题兼容性与缩放后的布局稳定性。
+确认频道页从“列表 + 弹窗”重构为“分段式工作台”后，新增、编辑、验证、保存、删除、默认账号、绑定 Agent、高级配置显示都能稳定工作，并且不破坏 Win/mac 可用性、暖色/深色主题兼容性与缩放后的布局稳定性。
 
 ## 必跑验证
 
@@ -65,6 +65,12 @@
 - `pnpm exec vitest run tests/unit/channels-page.test.tsx`
 - `pnpm run build:vite`
 - `pnpm run test:e2e -- tests/e2e/channels.spec.ts`
+- 本轮“分段式响应布局”收口后，再次通过：
+- `pnpm exec eslint src/pages/Channels/index.tsx tests/unit/channels-page.test.tsx --max-warnings=0`
+- `pnpm run typecheck`
+- `pnpm exec vitest run tests/unit/channels-page.test.tsx -t "uses theme-compatible surfaces|uses a staged responsive workbench|uses subtle page scrollbars"`
+- `pnpm exec vitest run tests/unit/workspace-page-layout.test.tsx`
+- `pnpm run build:vite`
 
 ## 建议新增测试
 
@@ -107,6 +113,7 @@
 - 页面壳层会更充分使用宽屏空间，不再固定卡死在较窄的 `max-width`
 - 主要工作区页面统一挂到共享壳层，避免全局留白策略再次分叉
 - `MainLayout` 主内容区由容器接管滚动，不再默认让页面自己叠一层大外边距滚动
+- 频道页工作区遵守“默认两栏、超宽三栏”的分段式响应规则，不再在标准窗口下硬挤三栏
 - 左栏插件角标不会继续挤压频道卡片
 - 新增账号进入空白编辑态
 - 删除账号后，选中态正确回退
@@ -155,6 +162,8 @@
 6. 确认右栏字段可被 label 聚焦，而不是只能依赖 placeholder 点击
 7. 放大窗口或调高系统缩放后，确认左右留白合理，三栏不会出现明显错位
 8. 确认左栏状态摘要明确显示连接状态，而不是只剩彩点
+9. 在默认窗口宽度下确认页面优先展示两栏，不需要手动放大窗口才能完整看到右侧编辑区
+10. 继续放大窗口后，确认频道导航、账号列表、编辑区才拆成三栏，且三栏都保持可读宽度
 
 ### 场景 2：新增渠道与账号
 

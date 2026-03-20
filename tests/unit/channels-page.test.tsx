@@ -386,7 +386,7 @@ describe('Channels page status refresh', () => {
     render(<Channels />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('channel-rail-item-feishu')).toBeInTheDocument();
+      expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('bg-amber-50/70');
     });
 
     expect(screen.getByTestId('channel-rail-item-feishu').className).not.toContain('#f7f2e9');
@@ -397,7 +397,7 @@ describe('Channels page status refresh', () => {
     expect(screen.getByPlaceholderText('searchPlaceholder').className).toContain('bg-background/80');
   });
 
-  it('uses a wider shell and removes plugin badges from crowded rail cards', async () => {
+  it('uses a staged responsive workbench so default windows prefer two columns before expanding to three', async () => {
     render(<Channels />);
 
     await waitFor(() => {
@@ -406,7 +406,9 @@ describe('Channels page status refresh', () => {
 
     expect(screen.getByTestId('channels-shell').className).toContain('max-w-[1680px]');
     expect(screen.getByTestId('channels-shell').className).not.toContain('max-w-5xl');
-    expect(screen.getByTestId('channels-workbench').className).toContain('xl:grid-cols-[minmax(250px,0.9fr)_minmax(360px,1.08fr)_minmax(460px,1.32fr)]');
+    expect(screen.getByTestId('channels-workbench').className).toContain('xl:grid-cols-[minmax(320px,0.94fr)_minmax(540px,1.28fr)]');
+    expect(screen.getByTestId('channels-workbench').className).toContain('min-[1440px]:grid-cols-[minmax(250px,0.9fr)_minmax(360px,1.08fr)_minmax(460px,1.32fr)]');
+    expect(screen.getByTestId('channels-navigation-stack').className).toContain('min-[1440px]:contents');
     expect(within(screen.getByTestId('channel-rail-item-feishu')).queryByText('pluginBadge')).not.toBeInTheDocument();
   });
 
@@ -414,7 +416,7 @@ describe('Channels page status refresh', () => {
     render(<Channels />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('channels-scroll-area')).toBeInTheDocument();
+      expect(screen.getByTestId('channels-editor-scroll')).toBeInTheDocument();
     });
 
     expect(screen.getByTestId('channels-scroll-area').className).toContain('workspace-page-scroll');
@@ -531,7 +533,7 @@ describe('Channels page status refresh', () => {
     });
 
     expect(screen.getByTestId('channel-rail-item-wecom')).toHaveTextContent('account.connectionStatus.disconnected');
-    expect(screen.getByTestId('channel-rail-indicator-wecom').className).toContain('bg-emerald-500');
+    expect(screen.getByTestId('channel-rail-indicator-wecom').className).toContain('status-indicator-connected');
   });
 
   it('keeps the basic config stacked until wide screens so labels do not collapse into narrow columns', async () => {
