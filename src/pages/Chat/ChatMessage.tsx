@@ -4,10 +4,11 @@
  * with markdown, thinking sections, images, and tool cards.
  */
 import { useState, useCallback, useEffect, memo } from 'react';
-import { Sparkles, Copy, Check, ChevronDown, ChevronRight, Wrench, FileText, Film, Music, FileArchive, File, X, FolderOpen, ZoomIn, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Copy, Check, ChevronDown, ChevronRight, Wrench, FileText, Film, Music, FileArchive, File, X, FolderOpen, ZoomIn, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { createPortal } from 'react-dom';
+import { AgentAvatar } from '@/components/chat/AgentAvatar';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { invokeIpc } from '@/lib/api-client';
@@ -17,6 +18,10 @@ import { extractText, extractThinking, extractImages, extractToolUse, formatTime
 interface ChatMessageProps {
   message: RawMessage;
   showThinking: boolean;
+  assistantAvatar?: {
+    label: string;
+    style: string;
+  };
   isStreaming?: boolean;
   streamingTools?: Array<{
     id?: string;
@@ -40,6 +45,7 @@ function imageSrc(img: ExtractedImage): string | null {
 export const ChatMessage = memo(function ChatMessage({
   message,
   showThinking,
+  assistantAvatar,
   isStreaming = false,
   streamingTools = [],
 }: ChatMessageProps) {
@@ -66,21 +72,23 @@ export const ChatMessage = memo(function ChatMessage({
   return (
     <div
       className={cn(
-        'flex gap-3 group',
+        'group flex gap-3',
         isUser ? 'flex-row-reverse' : 'flex-row',
       )}
     >
-      {/* Avatar */}
       {!isUser && (
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full mt-1 bg-black/5 dark:bg-white/5 text-foreground">
-          <Sparkles className="h-4 w-4" />
-        </div>
+        <AgentAvatar
+          label={assistantAvatar?.label ?? 'A'}
+          style={assistantAvatar?.style ?? 'from-amber-500 to-red-500'}
+          className="mt-1 h-9 w-9"
+          textClassName="text-sm"
+        />
       )}
 
-      {/* Content */}
       <div
         className={cn(
-          'flex flex-col w-full min-w-0 max-w-[80%] space-y-2',
+          'flex min-w-0 flex-col space-y-2',
+          isUser ? 'w-full max-w-[78%] md:max-w-[72%]' : 'w-full max-w-[min(78%,44rem)]',
           isUser ? 'items-end' : 'items-start',
         )}
       >
@@ -88,12 +96,10 @@ export const ChatMessage = memo(function ChatMessage({
           <ToolStatusBar tools={streamingTools} />
         )}
 
-        {/* Thinking section */}
         {visibleThinking && (
           <ThinkingBlock content={visibleThinking} />
         )}
 
-        {/* Tool use cards */}
         {visibleTools.length > 0 && (
           <div className="space-y-1">
             {visibleTools.map((tool, i) => (
@@ -102,8 +108,6 @@ export const ChatMessage = memo(function ChatMessage({
           </div>
         )}
 
-        {/* Images — rendered ABOVE text bubble for user messages */}
-        {/* Images from content blocks (Gateway session data / channel push photos) */}
         {isUser && images.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {images.map((img, i) => {
@@ -123,7 +127,6 @@ export const ChatMessage = memo(function ChatMessage({
           </div>
         )}
 
-        {/* File attachments — images above text for user, file cards below */}
         {isUser && attachedFiles.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {attachedFiles.map((file, i) => {
@@ -155,7 +158,6 @@ export const ChatMessage = memo(function ChatMessage({
           </div>
         )}
 
-        {/* Main text bubble */}
         {hasText && (
           <MessageBubble
             text={text}
@@ -164,7 +166,6 @@ export const ChatMessage = memo(function ChatMessage({
           />
         )}
 
-        {/* Images from content blocks — assistant messages (below text) */}
         {!isUser && images.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {images.map((img, i) => {
@@ -184,7 +185,6 @@ export const ChatMessage = memo(function ChatMessage({
           </div>
         )}
 
-        {/* File attachments — assistant messages (below text) */}
         {!isUser && attachedFiles.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {attachedFiles.map((file, i) => {
@@ -214,20 +214,17 @@ export const ChatMessage = memo(function ChatMessage({
           </div>
         )}
 
-        {/* Hover row for user messages — timestamp only */}
         {isUser && message.timestamp && (
           <span className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200 select-none">
             {formatTimestamp(message.timestamp)}
           </span>
         )}
 
-        {/* Hover row for assistant messages — only when there is real text content */}
         {!isUser && hasText && (
           <AssistantHoverBar text={text} timestamp={message.timestamp} />
         )}
       </div>
 
-      {/* Image lightbox portal */}
       {lightboxImg && (
         <ImageLightbox
           src={lightboxImg.src}
@@ -304,7 +301,7 @@ function AssistantHoverBar({ text, timestamp }: { text: string; timestamp?: numb
   }, [text]);
 
   return (
-    <div className="flex items-center justify-between w-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 select-none px-1">
+    <div className="flex w-full items-center justify-between px-1 opacity-0 transition-opacity duration-200 select-none group-hover:opacity-100">
       <span className="text-xs text-muted-foreground">
         {timestamp ? formatTimestamp(timestamp) : ''}
       </span>
@@ -335,17 +332,16 @@ function MessageBubble({
     <div
       data-testid={isUser ? 'chat-user-bubble' : undefined}
       className={cn(
-        'relative rounded-2xl px-4 py-3',
-        !isUser && 'w-full',
+        'relative max-w-full px-4 py-3 text-[14px] leading-6 shadow-[0_10px_28px_rgba(15,23,42,0.06)]',
         isUser
-          ? 'border border-[#e5d6c2] bg-[#f4ece0] text-foreground/90 shadow-[0_1px_2px_rgba(15,23,42,0.05)] dark:border-white/10 dark:bg-white/[0.07] dark:text-foreground'
-          : 'bg-black/5 dark:bg-white/5 text-foreground',
+          ? 'rounded-[22px] rounded-br-[10px] border border-[#e5d6c2] bg-[#f4ece0] text-foreground/90 dark:border-white/10 dark:bg-white/[0.08] dark:text-foreground'
+          : 'rounded-[22px] rounded-tl-[10px] border border-black/[0.06] bg-white/90 text-foreground dark:border-white/10 dark:bg-white/[0.05]',
       )}
     >
       {isUser ? (
-        <p className="whitespace-pre-wrap break-words break-all text-sm">{text}</p>
+        <p className="whitespace-pre-wrap break-words text-[14px] leading-6">{text}</p>
       ) : (
-        <div className="prose prose-sm dark:prose-invert max-w-none break-words break-all">
+        <div className="prose prose-sm dark:prose-invert max-w-none break-words text-[14px] leading-6 prose-p:my-2 prose-ul:my-3 prose-ol:my-3 prose-li:my-1 prose-pre:my-3 prose-headings:mb-2 prose-headings:mt-4">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
@@ -354,13 +350,13 @@ function MessageBubble({
                 const isInline = !match && !className;
                 if (isInline) {
                   return (
-                    <code className="bg-background/50 px-1.5 py-0.5 rounded text-sm font-mono break-words break-all" {...props}>
+                    <code className="rounded bg-background/60 px-1.5 py-0.5 text-sm font-mono break-words" {...props}>
                       {children}
                     </code>
                   );
                 }
                 return (
-                  <pre className="bg-background/50 rounded-lg p-4 overflow-x-auto">
+                  <pre className="overflow-x-auto rounded-2xl bg-background/60 p-4">
                     <code className={cn('text-sm font-mono', className)} {...props}>
                       {children}
                     </code>
@@ -369,7 +365,7 @@ function MessageBubble({
               },
               a({ href, children }) {
                 return (
-                  <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline break-words break-all">
+                  <a href={href} target="_blank" rel="noopener noreferrer" className="break-words text-primary hover:underline">
                     {children}
                   </a>
                 );
@@ -394,9 +390,9 @@ function ThinkingBlock({ content }: { content: string }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="w-full rounded-xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-[14px]">
+    <div className="w-full rounded-[20px] border border-black/[0.08] bg-white/70 text-[14px] shadow-[0_8px_24px_rgba(15,23,42,0.04)] dark:border-white/10 dark:bg-white/[0.04]">
       <button
-        className="flex items-center gap-2 w-full px-3 py-2 text-muted-foreground hover:text-foreground transition-colors"
+        className="flex w-full items-center gap-2 px-3 py-2 text-muted-foreground transition-colors hover:text-foreground"
         onClick={() => setExpanded(!expanded)}
       >
         {expanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
@@ -441,8 +437,8 @@ function FileCard({ file }: { file: AttachedFileMeta }) {
   return (
     <div 
       className={cn(
-        "flex items-center gap-3 rounded-xl border border-black/10 dark:border-white/10 px-3 py-2.5 bg-black/5 dark:bg-white/5 max-w-[220px]",
-        file.filePath && "cursor-pointer hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+        "flex max-w-[220px] items-center gap-3 rounded-[18px] border border-black/[0.08] bg-white/75 px-3 py-2.5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] dark:border-white/10 dark:bg-white/[0.05]",
+        file.filePath && "cursor-pointer transition-colors hover:bg-white dark:hover:bg-white/[0.08]"
       )}
       onClick={handleOpen}
       title={file.filePath ? "Open file" : undefined}
@@ -478,7 +474,7 @@ function ImageThumbnail({
   void filePath; void base64; void mimeType;
   return (
     <div
-      className="relative w-36 h-36 rounded-xl border overflow-hidden border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 group/img cursor-zoom-in"
+      className="group/img relative h-36 w-36 cursor-zoom-in overflow-hidden rounded-[18px] border border-black/[0.08] bg-white/70 shadow-[0_8px_24px_rgba(15,23,42,0.04)] dark:border-white/10 dark:bg-white/[0.05]"
       onClick={onPreview}
     >
       <img src={src} alt={fileName} className="w-full h-full object-cover" />
@@ -509,7 +505,7 @@ function ImagePreviewCard({
   void filePath; void base64; void mimeType;
   return (
     <div
-      className="relative max-w-xs rounded-xl border overflow-hidden border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 group/img cursor-zoom-in"
+      className="group/img relative max-w-xs cursor-zoom-in overflow-hidden rounded-[18px] border border-black/[0.08] bg-white/75 shadow-[0_8px_24px_rgba(15,23,42,0.04)] dark:border-white/10 dark:bg-white/[0.05]"
       onClick={onPreview}
     >
       <img src={src} alt={fileName} className="block w-full" />

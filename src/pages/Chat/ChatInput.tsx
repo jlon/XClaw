@@ -202,13 +202,16 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
     ? getModelLabel(selectedModel)
     : (currentModelId || currentAgent?.modelDisplay || t('composer.modelPickerDefault'));
 
-  // Auto-resize textarea
   useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    if (!input) {
+      textarea.style.height = '36px';
+      return;
     }
-  }, [input]);
+    textarea.style.height = 'auto';
+    textarea.style.height = `${Math.min(Math.max(textarea.scrollHeight, 36), 180)}px`;
+  });
 
   // Focus textarea on mount (avoids Windows focus loss after session delete + native dialog)
   useEffect(() => {
@@ -535,7 +538,7 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
         )}
 
         {/* Input Row */}
-        <div className={`relative bg-white dark:bg-card rounded-[28px] shadow-sm border p-1.5 transition-all ${dragOver ? 'border-primary ring-1 ring-primary' : 'border-black/10 dark:border-white/10'}`}>
+        <div className={`relative bg-white dark:bg-card rounded-[28px] shadow-sm border p-1 transition-all ${dragOver ? 'border-primary ring-1 ring-primary' : 'border-black/10 dark:border-white/10'}`}>
           {selectedTarget && (
             <div className="px-2.5 pt-2 pb-1">
               <button
@@ -550,12 +553,12 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
             </div>
           )}
 
-          <div className="flex items-end gap-1.5">
+          <div className="flex items-end gap-1">
             {/* Attach Button */}
             <Button
               variant="ghost"
               size="icon"
-              className="shrink-0 h-10 w-10 rounded-full text-muted-foreground hover:bg-black/5 dark:hover:bg-white/10 hover:text-foreground transition-colors"
+              className="h-9 w-9 shrink-0 rounded-full text-muted-foreground transition-colors hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10"
               onClick={pickFiles}
               disabled={disabled || sending}
               title={t('composer.attachFiles')}
@@ -569,7 +572,7 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
                   variant="ghost"
                   size="icon"
                   className={cn(
-                    'h-10 w-10 rounded-full text-muted-foreground hover:bg-black/5 dark:hover:bg-white/10 hover:text-foreground transition-colors',
+                    'h-9 w-9 rounded-full text-muted-foreground transition-colors hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10',
                     (pickerOpen || selectedTarget) && 'bg-primary/10 text-primary hover:bg-primary/20'
                   )}
                   onClick={() => {
@@ -621,7 +624,8 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
                 onPaste={handlePaste}
                 placeholder={disabled ? t('composer.gatewayDisconnectedPlaceholder') : ''}
                 disabled={disabled}
-                className="min-h-[40px] max-h-[200px] resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none bg-transparent py-2.5 px-2 text-[15px] placeholder:text-muted-foreground/60 leading-relaxed"
+                className="min-h-[36px] max-h-[180px] resize-none border-0 bg-transparent px-2 py-1.5 text-[15px] leading-6 placeholder:text-muted-foreground/60 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                style={!input ? { height: '36px' } : undefined}
                 rows={1}
               />
             </div>
@@ -633,7 +637,7 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  'h-10 max-w-[220px] rounded-2xl border px-3.5 text-foreground/80 shadow-none transition-[background-color,border-color,color,box-shadow] duration-200',
+                  'h-9 max-w-[220px] rounded-2xl border px-3 text-foreground/80 shadow-none transition-[background-color,border-color,color,box-shadow] duration-200',
                   'border-[#e2d6c6]/90 bg-[#f7f1e6]/90 hover:bg-[#f2eadf] hover:border-[#d7c5b2] hover:text-foreground dark:border-white/10 dark:bg-white/[0.05] dark:hover:bg-white/[0.08]',
                   modelPickerOpen && 'border-[#d3bea8] bg-[#efe4d7] text-foreground shadow-[inset_0_0_0_1px_rgba(120,53,15,0.06)] dark:border-white/15 dark:bg-white/[0.08]',
                 )}

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Plus, Search, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { AgentAvatar } from '@/components/chat/AgentAvatar';
+import { getAgentIdFromSessionKey, getSessionAvatar } from '@/lib/chat-avatar';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
@@ -19,15 +21,6 @@ type SessionBucketKey =
   | 'older';
 
 const INITIAL_NOW_MS = Date.now();
-const AVATAR_STYLES = [
-  'from-sky-500 to-indigo-500',
-  'from-rose-500 to-orange-500',
-  'from-emerald-500 to-lime-500',
-  'from-fuchsia-500 to-pink-500',
-  'from-amber-500 to-red-500',
-  'from-cyan-500 to-blue-500',
-];
-
 function getSessionBucket(activityMs: number, nowMs: number): SessionBucketKey {
   if (!activityMs || activityMs <= 0) return 'older';
 
@@ -43,16 +36,6 @@ function getSessionBucket(activityMs: number, nowMs: number): SessionBucketKey {
   if (daysAgo <= 14) return 'withinTwoWeeks';
   if (daysAgo <= 30) return 'withinMonth';
   return 'older';
-}
-
-function getAgentIdFromSessionKey(sessionKey: string): string {
-  if (!sessionKey.startsWith('agent:')) return 'main';
-  const [, agentId] = sessionKey.split(':');
-  return agentId || 'main';
-}
-
-function getAvatarIndex(value: string): number {
-  return Array.from(value).reduce((sum, char) => sum + char.charCodeAt(0), 0) % AVATAR_STYLES.length;
 }
 
 function getSessionTimeLabel(activityMs: number | undefined, nowMs: number): string {
@@ -216,7 +199,7 @@ export function ChatSessionsPane() {
                     const agentId = getAgentIdFromSessionKey(session.key);
                     const agentName = agentNameById[agentId] || agentId;
                     const label = getSessionLabel(session.key, session.displayName, session.label);
-                    const avatarStyle = AVATAR_STYLES[getAvatarIndex(`${agentId}:${label}`)];
+                    const avatar = getSessionAvatar({ sessionKey: session.key, agentId, agentName });
                     const timeLabel = getSessionTimeLabel(sessionLastActivity[session.key], nowMs);
 
                     return (
@@ -234,12 +217,12 @@ export function ChatSessionsPane() {
                               : 'hover:bg-white/60 dark:hover:bg-white/5',
                           )}
                         >
-                          <div
-                            aria-hidden="true"
-                            className={cn('mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-sm font-semibold text-white', avatarStyle)}
-                          >
-                            {agentName.slice(0, 1).toUpperCase()}
-                          </div>
+                          <AgentAvatar
+                            label={avatar.label}
+                            style={avatar.style}
+                            className="mt-0.5 h-9 w-9"
+                            textClassName="text-sm"
+                          />
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
                               <span className="truncate text-[14px] font-semibold text-foreground">

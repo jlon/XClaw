@@ -5,7 +5,8 @@
  * are in the toolbar; messages render with markdown + streaming.
  */
 import { useEffect, useState } from 'react';
-import { AlertCircle, Loader2, Sparkles } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
+import { AgentAvatar } from '@/components/chat/AgentAvatar';
 import { useChatStore, type RawMessage } from '@/stores/chat';
 import { useGatewayStore } from '@/stores/gateway';
 import { useAgentsStore } from '@/stores/agents';
@@ -15,6 +16,7 @@ import { ChatInput } from './ChatInput';
 import { ChatToolbar } from './ChatToolbar';
 import { extractImages, extractText, extractThinking, extractToolUse } from './message-utils';
 import { useTranslation } from 'react-i18next';
+import { getSessionAvatar } from '@/lib/chat-avatar';
 import { cn } from '@/lib/utils';
 import { useStickToBottomInstant } from '@/hooks/use-stick-to-bottom-instant';
 import { useMinLoading } from '@/hooks/use-min-loading';
@@ -26,6 +28,9 @@ export function Chat() {
 
   const messages = useChatStore((s) => s.messages);
   const currentSessionKey = useChatStore((s) => s.currentSessionKey);
+  const currentAgentId = useChatStore((s) => s.currentAgentId);
+  const sessions = useChatStore((s) => s.sessions);
+  const sessionLabels = useChatStore((s) => s.sessionLabels);
   const loading = useChatStore((s) => s.loading);
   const sending = useChatStore((s) => s.sending);
   const error = useChatStore((s) => s.error);
@@ -36,6 +41,7 @@ export function Chat() {
   const sendMessage = useChatStore((s) => s.sendMessage);
   const abortRun = useChatStore((s) => s.abortRun);
   const clearError = useChatStore((s) => s.clearError);
+  const agents = useAgentsStore((s) => s.agents);
   const fetchAgents = useAgentsStore((s) => s.fetchAgents);
 
   const cleanupEmptySession = useChatStore((s) => s.cleanupEmptySession);
@@ -87,6 +93,14 @@ export function Chat() {
   const hasStreamToolStatus = streamingTools.length > 0;
   const shouldRenderStreaming = sending && (hasStreamText || hasStreamThinking || hasStreamTools || hasStreamImages || hasStreamToolStatus);
   const hasAnyStreamContent = hasStreamText || hasStreamThinking || hasStreamTools || hasStreamImages || hasStreamToolStatus;
+  const activeSession = sessions.find((session) => session.key === currentSessionKey);
+  const currentAgentName = agents.find((agent) => agent.id === currentAgentId)?.name || currentAgentId;
+  const currentSessionLabel = sessionLabels[currentSessionKey] ?? activeSession?.label ?? activeSession?.displayName ?? currentAgentName;
+  const assistantAvatar = getSessionAvatar({
+    sessionKey: currentSessionKey || currentSessionLabel,
+    agentId: currentAgentId,
+    agentName: currentAgentName,
+  });
 
   const isEmpty = messages.length === 0 && !sending;
 
@@ -109,6 +123,7 @@ export function Chat() {
                   key={msg.id || `msg-${idx}`}
                   message={msg}
                   showThinking={showThinking}
+                  assistantAvatar={assistantAvatar}
                 />
               ))}
 
@@ -128,6 +143,7 @@ export function Chat() {
                         timestamp: streamingTimestamp,
                       }) as RawMessage}
                   showThinking={showThinking}
+                  assistantAvatar={assistantAvatar}
                   isStreaming
                   streamingTools={streamingTools}
                 />
@@ -135,12 +151,12 @@ export function Chat() {
 
               {/* Activity indicator: waiting for next AI turn after tool execution */}
               {sending && pendingFinal && !shouldRenderStreaming && (
-                <ActivityIndicator phase="tool_processing" />
+                <ActivityIndicator phase="tool_processing" avatar={assistantAvatar} />
               )}
 
               {/* Typing indicator when sending but no stream content yet */}
               {sending && !pendingFinal && !hasAnyStreamContent && (
-                <TypingIndicator />
+                <TypingIndicator avatar={assistantAvatar} />
               )}
             </>
           )}
@@ -218,13 +234,18 @@ function WelcomeScreen() {
 
 // ── Typing Indicator ────────────────────────────────────────────
 
-function TypingIndicator() {
+function TypingIndicator({
+  avatar,
+}: {
+  avatar: {
+    label: string;
+    style: string;
+  };
+}) {
   return (
     <div className="flex gap-3">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full mt-1 bg-black/5 dark:bg-white/5 text-foreground">
-        <Sparkles className="h-4 w-4" />
-      </div>
-      <div className="bg-black/5 dark:bg-white/5 text-foreground rounded-2xl px-4 py-3">
+      <AgentAvatar label={avatar.label} style={avatar.style} className="mt-1 h-9 w-9" textClassName="text-sm" />
+      <div className="rounded-[22px] rounded-tl-[10px] border border-black/[0.06] bg-white/90 px-4 py-3 text-foreground shadow-[0_10px_28px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-white/[0.05]">
         <div className="flex gap-1">
           <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
           <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -237,14 +258,21 @@ function TypingIndicator() {
 
 // ── Activity Indicator (shown between tool cycles) ─────────────
 
-function ActivityIndicator({ phase }: { phase: 'tool_processing' }) {
+function ActivityIndicator({
+  phase,
+  avatar,
+}: {
+  phase: 'tool_processing';
+  avatar: {
+    label: string;
+    style: string;
+  };
+}) {
   void phase;
   return (
     <div className="flex gap-3">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full mt-1 bg-black/5 dark:bg-white/5 text-foreground">
-        <Sparkles className="h-4 w-4" />
-      </div>
-      <div className="bg-black/5 dark:bg-white/5 text-foreground rounded-2xl px-4 py-3">
+      <AgentAvatar label={avatar.label} style={avatar.style} className="mt-1 h-9 w-9" textClassName="text-sm" />
+      <div className="rounded-[22px] rounded-tl-[10px] border border-black/[0.06] bg-white/90 px-4 py-3 text-foreground shadow-[0_10px_28px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-white/[0.05]">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
           <span>Processing tool results…</span>
