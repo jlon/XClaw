@@ -112,8 +112,8 @@ export function Chat() {
       </div>
 
       {/* Messages Area */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4">
-        <div ref={contentRef} className="max-w-4xl mx-auto space-y-4">
+      <div ref={scrollRef} className="chat-im-font flex-1 overflow-y-auto px-5 py-3">
+        <div ref={contentRef} className="mx-auto max-w-4xl space-y-3.5">
           {isEmpty ? (
             <WelcomeScreen />
           ) : (
@@ -243,9 +243,9 @@ function TypingIndicator({
   };
 }) {
   return (
-    <div className="flex gap-3">
+    <div className="chat-im-font flex gap-2.5">
       <AgentAvatar label={avatar.label} style={avatar.style} className="mt-1 h-9 w-9" textClassName="text-sm" />
-      <div className="rounded-[22px] rounded-tl-[10px] border border-black/[0.06] bg-white/90 px-4 py-3 text-foreground shadow-[0_10px_28px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-white/[0.05]">
+      <div className="chat-im-assistant-bubble rounded-[18px] rounded-tl-[6px] border px-4 py-2.5 text-foreground shadow-[0_6px_18px_rgba(15,23,42,0.04)]">
         <div className="flex gap-1">
           <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
           <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -270,9 +270,9 @@ function ActivityIndicator({
 }) {
   void phase;
   return (
-    <div className="flex gap-3">
+    <div className="chat-im-font flex gap-2.5">
       <AgentAvatar label={avatar.label} style={avatar.style} className="mt-1 h-9 w-9" textClassName="text-sm" />
-      <div className="rounded-[22px] rounded-tl-[10px] border border-black/[0.06] bg-white/90 px-4 py-3 text-foreground shadow-[0_10px_28px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-white/[0.05]">
+      <div className="chat-im-assistant-bubble rounded-[18px] rounded-tl-[6px] border px-4 py-2.5 text-foreground shadow-[0_6px_18px_rgba(15,23,42,0.04)]">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
           <span>Processing tool results…</span>

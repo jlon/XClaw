@@ -175,6 +175,32 @@
   color: rgb(254 202 202 / 0.82);
 }
 
+.chat-im-font {
+  font-family: "SF Pro Text", "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Segoe UI", system-ui, sans-serif;
+}
+
+.chat-im-user-bubble {
+  background: linear-gradient(180deg, #dff1ca 0%, #d8efc0 100%);
+  border-color: #bdd6a0;
+  color: rgba(34, 49, 24, 0.94);
+}
+
+.chat-im-assistant-bubble {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(15, 23, 42, 0.07);
+}
+
+.dark .chat-im-user-bubble {
+  background: rgba(120, 176, 86, 0.2);
+  border-color: rgba(146, 206, 108, 0.26);
+  color: hsl(var(--foreground));
+}
+
+.dark .chat-im-assistant-bubble {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
 /* macOS traffic light spacing */
 .drag-region {
   -webkit-app-region: drag;

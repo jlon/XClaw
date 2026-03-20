@@ -516,7 +516,7 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
   return (
     <div
       className={cn(
-        "p-4 pb-6 w-full mx-auto transition-all duration-300",
+        "chat-im-font mx-auto w-full p-4 pb-5 transition-all duration-300",
         isEmpty ? "max-w-3xl" : "max-w-4xl"
       )}
       onDragOver={handleDragOver}
@@ -538,7 +538,7 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
         )}
 
         {/* Input Row */}
-        <div className={`relative bg-white dark:bg-card rounded-[28px] shadow-sm border p-1 transition-all ${dragOver ? 'border-primary ring-1 ring-primary' : 'border-black/10 dark:border-white/10'}`}>
+        <div className={`relative rounded-[24px] border bg-white p-1 shadow-[0_18px_40px_rgba(160,136,96,0.12),0_1px_0_rgba(255,255,255,0.9)] backdrop-blur transition-all dark:bg-card/94 ${dragOver ? 'border-[#b9d69f] ring-1 ring-[#b9d69f]/70' : 'border-[#d9cbb9] dark:border-white/10'}`}>
           {selectedTarget && (
             <div className="px-2.5 pt-2 pb-1">
               <button
@@ -553,12 +553,12 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
             </div>
           )}
 
-          <div className="flex items-end gap-1">
+          <div className="flex items-end gap-1 px-1">
             {/* Attach Button */}
             <Button
               variant="ghost"
               size="icon"
-              className="h-9 w-9 shrink-0 rounded-full text-muted-foreground transition-colors hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10"
+              className="h-9 w-9 shrink-0 rounded-full text-muted-foreground transition-colors hover:bg-[#f7f1e7] hover:text-foreground dark:hover:bg-white/10"
               onClick={pickFiles}
               disabled={disabled || sending}
               title={t('composer.attachFiles')}
@@ -572,7 +572,7 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
                   variant="ghost"
                   size="icon"
                   className={cn(
-                    'h-9 w-9 rounded-full text-muted-foreground transition-colors hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10',
+                    'h-9 w-9 rounded-full text-muted-foreground transition-colors hover:bg-[#f7f1e7] hover:text-foreground dark:hover:bg-white/10',
                     (pickerOpen || selectedTarget) && 'bg-primary/10 text-primary hover:bg-primary/20'
                   )}
                   onClick={() => {
@@ -624,22 +624,22 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
                 onPaste={handlePaste}
                 placeholder={disabled ? t('composer.gatewayDisconnectedPlaceholder') : ''}
                 disabled={disabled}
-                className="min-h-[36px] max-h-[180px] resize-none border-0 bg-transparent px-2 py-1.5 text-[15px] leading-6 placeholder:text-muted-foreground/60 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="min-h-[36px] max-h-[180px] resize-none border-0 bg-transparent px-1.5 py-1.5 text-[15px] leading-[1.62] placeholder:text-muted-foreground/60 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                 style={!input ? { height: '36px' } : undefined}
                 rows={1}
               />
             </div>
 
             <div ref={modelPickerRef} className="relative shrink-0 flex items-center gap-1.5">
-              <div className="hidden sm:block h-6 w-px bg-[#ddd2c2] dark:bg-white/10" />
+              <div className="hidden h-6 w-px bg-[#ddd1c3] dark:bg-white/10 sm:block" />
               <Button
                 data-testid="chat-model-trigger"
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  'h-9 max-w-[220px] rounded-2xl border px-3 text-foreground/80 shadow-none transition-[background-color,border-color,color,box-shadow] duration-200',
-                  'border-[#e2d6c6]/90 bg-[#f7f1e6]/90 hover:bg-[#f2eadf] hover:border-[#d7c5b2] hover:text-foreground dark:border-white/10 dark:bg-white/[0.05] dark:hover:bg-white/[0.08]',
-                  modelPickerOpen && 'border-[#d3bea8] bg-[#efe4d7] text-foreground shadow-[inset_0_0_0_1px_rgba(120,53,15,0.06)] dark:border-white/15 dark:bg-white/[0.08]',
+                  'h-[34px] max-w-[220px] rounded-full border px-3 text-foreground/80 shadow-none transition-[background-color,border-color,color,box-shadow] duration-200',
+                  'border-[#ded2c1] bg-[#f8f3ea] hover:border-[#d3c6b3] hover:bg-[#f4ede3] hover:text-foreground dark:border-white/10 dark:bg-white/[0.05] dark:hover:bg-white/[0.08]',
+                  modelPickerOpen && 'border-[#d3c4b0] bg-[#f0e8dc] text-foreground shadow-[inset_0_0_0_1px_rgba(120,53,15,0.05)] dark:border-white/15 dark:bg-white/[0.08]',
                 )}
                 onClick={() => {
                   setPickerOpen(false);
@@ -707,10 +707,12 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
               onClick={sending ? handleStop : handleSend}
               disabled={sending ? !canStop : !canSend}
               size="icon"
-              className={`shrink-0 h-10 w-10 rounded-full transition-colors ${
-                (sending || canSend)
-                  ? 'bg-black/5 dark:bg-white/10 text-foreground hover:bg-black/10 dark:hover:bg-white/20'
-                  : 'text-muted-foreground/50 hover:bg-transparent bg-transparent'
+              className={`h-9 w-9 shrink-0 rounded-full transition-[background-color,color,box-shadow] ${
+                sending
+                  ? 'bg-black/5 text-foreground hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20'
+                  : canSend
+                    ? 'bg-[#84cf62] text-white shadow-[0_8px_18px_rgba(132,207,98,0.28)] hover:bg-[#78c157]'
+                    : 'bg-transparent text-muted-foreground/45 hover:bg-transparent'
               }`}
               variant="ghost"
               title={sending ? t('composer.stop') : t('composer.send')}
@@ -723,7 +725,7 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
             </Button>
           </div>
         </div>
-        <div className="mt-2.5 flex items-center justify-between gap-2 text-[11px] text-muted-foreground/60 px-4">
+        <div className="mt-2 flex items-center justify-between gap-2 px-3 text-[10.5px] text-muted-foreground/55">
           <div className="flex items-center gap-1.5">
             <div className={cn("w-1.5 h-1.5 rounded-full", gatewayStatus.state === 'running' ? "bg-green-500/80" : "bg-red-500/80")} />
             <span>

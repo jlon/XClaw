@@ -72,7 +72,7 @@ export const ChatMessage = memo(function ChatMessage({
   return (
     <div
       className={cn(
-        'group flex gap-3',
+        'chat-im-font group flex gap-2.5',
         isUser ? 'flex-row-reverse' : 'flex-row',
       )}
     >
@@ -80,15 +80,15 @@ export const ChatMessage = memo(function ChatMessage({
         <AgentAvatar
           label={assistantAvatar?.label ?? 'A'}
           style={assistantAvatar?.style ?? 'from-amber-500 to-red-500'}
-          className="mt-1 h-9 w-9"
+          className="mt-0.5 h-[34px] w-[34px]"
           textClassName="text-sm"
         />
       )}
 
       <div
         className={cn(
-          'flex min-w-0 flex-col space-y-2',
-          isUser ? 'w-full max-w-[78%] md:max-w-[72%]' : 'w-full max-w-[min(78%,44rem)]',
+          'flex min-w-0 flex-col space-y-1.5',
+          isUser ? 'w-full max-w-[76%] md:max-w-[68%]' : 'w-full max-w-[min(78%,42rem)]',
           isUser ? 'items-end' : 'items-start',
         )}
       >
@@ -332,16 +332,16 @@ function MessageBubble({
     <div
       data-testid={isUser ? 'chat-user-bubble' : undefined}
       className={cn(
-        'relative max-w-full px-4 py-3 text-[14px] leading-6 shadow-[0_10px_28px_rgba(15,23,42,0.06)]',
+        'relative max-w-full border px-4 py-2.5 text-[15px] leading-[1.62] shadow-[0_4px_14px_rgba(15,23,42,0.04)]',
         isUser
-          ? 'rounded-[22px] rounded-br-[10px] border border-[#e5d6c2] bg-[#f4ece0] text-foreground/90 dark:border-white/10 dark:bg-white/[0.08] dark:text-foreground'
-          : 'rounded-[22px] rounded-tl-[10px] border border-black/[0.06] bg-white/90 text-foreground dark:border-white/10 dark:bg-white/[0.05]',
+          ? 'chat-im-user-bubble rounded-[18px] rounded-br-[6px]'
+          : 'chat-im-assistant-bubble rounded-[18px] rounded-tl-[6px] text-foreground',
       )}
     >
       {isUser ? (
-        <p className="whitespace-pre-wrap break-words text-[14px] leading-6">{text}</p>
+        <p className="whitespace-pre-wrap break-words text-[15px] leading-[1.62]">{text}</p>
       ) : (
-        <div className="prose prose-sm dark:prose-invert max-w-none break-words text-[14px] leading-6 prose-p:my-2 prose-ul:my-3 prose-ol:my-3 prose-li:my-1 prose-pre:my-3 prose-headings:mb-2 prose-headings:mt-4">
+        <div className="prose prose-sm dark:prose-invert max-w-none break-words text-[15px] leading-[1.62] prose-p:my-2 prose-ul:my-2.5 prose-ol:my-2.5 prose-li:my-1 prose-pre:my-3 prose-headings:mb-2 prose-headings:mt-4">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
@@ -390,7 +390,7 @@ function ThinkingBlock({ content }: { content: string }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="w-full rounded-[20px] border border-black/[0.08] bg-white/70 text-[14px] shadow-[0_8px_24px_rgba(15,23,42,0.04)] dark:border-white/10 dark:bg-white/[0.04]">
+    <div className="chat-im-assistant-bubble w-full rounded-[16px] border text-[14px] shadow-[0_4px_14px_rgba(15,23,42,0.03)]">
       <button
         className="flex w-full items-center gap-2 px-3 py-2 text-muted-foreground transition-colors hover:text-foreground"
         onClick={() => setExpanded(!expanded)}
@@ -437,7 +437,7 @@ function FileCard({ file }: { file: AttachedFileMeta }) {
   return (
     <div 
       className={cn(
-        "flex max-w-[220px] items-center gap-3 rounded-[18px] border border-black/[0.08] bg-white/75 px-3 py-2.5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] dark:border-white/10 dark:bg-white/[0.05]",
+        "chat-im-assistant-bubble flex max-w-[220px] items-center gap-3 rounded-[16px] border px-3 py-2.5 shadow-[0_4px_14px_rgba(15,23,42,0.03)]",
         file.filePath && "cursor-pointer transition-colors hover:bg-white dark:hover:bg-white/[0.08]"
       )}
       onClick={handleOpen}
@@ -474,7 +474,7 @@ function ImageThumbnail({
   void filePath; void base64; void mimeType;
   return (
     <div
-      className="group/img relative h-36 w-36 cursor-zoom-in overflow-hidden rounded-[18px] border border-black/[0.08] bg-white/70 shadow-[0_8px_24px_rgba(15,23,42,0.04)] dark:border-white/10 dark:bg-white/[0.05]"
+      className="group/img chat-im-assistant-bubble relative h-36 w-36 cursor-zoom-in overflow-hidden rounded-[16px] border shadow-[0_4px_14px_rgba(15,23,42,0.03)]"
       onClick={onPreview}
     >
       <img src={src} alt={fileName} className="w-full h-full object-cover" />
@@ -505,7 +505,7 @@ function ImagePreviewCard({
   void filePath; void base64; void mimeType;
   return (
     <div
-      className="group/img relative max-w-xs cursor-zoom-in overflow-hidden rounded-[18px] border border-black/[0.08] bg-white/75 shadow-[0_8px_24px_rgba(15,23,42,0.04)] dark:border-white/10 dark:bg-white/[0.05]"
+      className="group/img chat-im-assistant-bubble relative max-w-xs cursor-zoom-in overflow-hidden rounded-[16px] border shadow-[0_4px_14px_rgba(15,23,42,0.03)]"
       onClick={onPreview}
     >
       <img src={src} alt={fileName} className="block w-full" />
