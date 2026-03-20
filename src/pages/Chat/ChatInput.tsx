@@ -7,8 +7,9 @@
  * are sent with the message (no base64 over WebSocket).
  */
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { SendHorizontal, Square, X, Paperclip, FileText, Film, Music, FileArchive, File, Loader2, AtSign, Box, ChevronDown, Check } from 'lucide-react';
+import { SendHorizontal, Square, X, Paperclip, FileText, Film, Music, FileArchive, File, Loader2, AtSign, Box, ChevronDown, Check, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { hostApiFetch } from '@/lib/host-api';
 import { invokeIpc } from '@/lib/api-client';
@@ -152,11 +153,13 @@ function readFileAsBase64(file: globalThis.File): Promise<string> {
 
 export function ChatInput({ onSend, onStop, disabled = false, sending = false, isEmpty = false }: ChatInputProps) {
   const { t } = useTranslation('chat');
+  const isWindows = window.electron?.platform === 'win32';
   const [input, setInput] = useState('');
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
   const [targetAgentId, setTargetAgentId] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [modelPickerOpen, setModelPickerOpen] = useState(false);
+  const [modelSearchQuery, setModelSearchQuery] = useState('');
   const [models, setModels] = useState<ChatModelOption[]>([]);
   const [modelsLoading, setModelsLoading] = useState(false);
   const [modelsLoadError, setModelsLoadError] = useState<string | null>(null);
@@ -198,6 +201,19 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
     () => models.find((model) => model.ref === currentModelId) ?? null,
     [models, currentModelId],
   );
+  const filteredModels = useMemo(() => {
+    const normalizedQuery = modelSearchQuery.trim().toLowerCase();
+    if (!normalizedQuery) {
+      return models;
+    }
+    return models.filter((model) => [
+      getModelLabel(model),
+      getModelHint(model) ?? '',
+      model.ref,
+      model.modelId ?? '',
+      model.vendorId ?? '',
+    ].join(' ').toLowerCase().includes(normalizedQuery));
+  }, [modelSearchQuery, models]);
   const currentModelLabel = selectedModel
     ? getModelLabel(selectedModel)
     : (currentModelId || currentAgent?.modelDisplay || t('composer.modelPickerDefault'));
@@ -270,6 +286,11 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
     if (!modelPickerOpen) return;
     void loadModels();
   }, [loadModels, modelPickerOpen]);
+
+  useEffect(() => {
+    if (modelPickerOpen) return;
+    setModelSearchQuery('');
+  }, [modelPickerOpen]);
 
   const handleModelSelect = useCallback(async (model: string | null) => {
     setSwitchingModel(true);
@@ -657,11 +678,28 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
                 <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               </Button>
               {modelPickerOpen && (
-                <div className="absolute right-0 bottom-full z-20 mb-2 w-80 overflow-hidden rounded-[22px] border border-[#e6dac9] bg-[#fcf8f0]/95 p-1.5 shadow-[0_20px_50px_rgba(15,23,42,0.12)] backdrop-blur dark:border-white/10 dark:bg-card/95">
+                <div className="absolute right-0 bottom-full z-20 mb-2 w-64 overflow-hidden rounded-[22px] border border-[#e6dac9] bg-[#fcf8f0]/95 p-1.5 shadow-[0_20px_50px_rgba(15,23,42,0.12)] backdrop-blur dark:border-white/10 dark:bg-card/95">
                   <div className="px-3 py-2 text-[11px] font-medium text-muted-foreground/80">
                     {t('composer.modelPickerTitle')}
                   </div>
-                  <div className="max-h-72 overflow-y-auto">
+                  <div className="px-2 pb-2">
+                    <div className="relative">
+                      <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/55" />
+                      <Input
+                        aria-label={t('composer.modelPickerSearchLabel')}
+                        value={modelSearchQuery}
+                        placeholder={t('composer.modelPickerSearchPlaceholder')}
+                        onChange={(event) => setModelSearchQuery(event.target.value)}
+                        className="h-8 rounded-full border-[#e5dccf] bg-white/85 pl-9 pr-3 text-[12px] shadow-none placeholder:text-muted-foreground/55 focus-visible:ring-black/5 focus-visible:ring-offset-0 dark:border-white/10 dark:bg-white/[0.05]"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    className={cn(
+                      'max-h-72 overflow-y-auto pr-0.5',
+                      isWindows ? 'subtle-scrollbar-win' : 'subtle-scrollbar',
+                    )}
+                  >
                     <button
                       type="button"
                       onClick={() => {
@@ -677,7 +715,7 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
                         {t('composer.modelPickerLoading')}
                       </div>
                     )}
-                    {!modelsLoading && models.map((model) => (
+                    {!modelsLoading && filteredModels.map((model) => (
                       <ModelPickerItem
                         key={model.ref}
                         model={model}
@@ -690,6 +728,11 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
                     {!modelsLoading && !models.length && !modelsLoadError && (
                       <div className="px-3 py-6 text-center text-[12px] text-muted-foreground">
                         {t('composer.modelPickerEmpty')}
+                      </div>
+                    )}
+                    {!modelsLoading && !!models.length && !filteredModels.length && !modelsLoadError && (
+                      <div className="px-3 py-6 text-center text-[12px] text-muted-foreground">
+                        {t('composer.modelPickerEmptySearch')}
                       </div>
                     )}
                     {modelsLoadError && (
