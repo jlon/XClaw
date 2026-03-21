@@ -13,6 +13,8 @@
 - `Chat` 最新一轮“信息上吸到工作区顶层 + 弱化头部分界”已落地，本轮只做最小静态校验，完整自动化仍需在后续收尾时补回
 - `Chat` 最新一轮“并入 TitleBar，取消页面内第二条页头”已落地，本轮仍按快速收口策略只做最小静态校验
 - `Chat` 最新一轮“移除顶栏标题与会话元信息”已落地，本轮仍按快速收口策略未补完整自动化
+- `Chat` 最新一轮“移除底部 gateway 状态栏，并将微状态上移到顶栏工具区”已落地，本轮已补一条定向主题结构回归和最小静态校验
+- `Chat` 最新一轮“为顶栏 gateway 微状态补柔和呼吸反馈”已落地，本轮同样只补定向结构回归和最小静态校验
 
 ## 设计阶段验证
 
@@ -83,6 +85,7 @@
 - `pnpm exec vitest run tests/unit/theme-application.test.tsx tests/unit/ui-primitives-theme.test.tsx tests/unit/theme-second-wave-pages.test.ts tests/unit/workspace-page-layout.test.tsx`
 - `pnpm exec vitest run tests/unit/chat-layout.test.tsx`
 - `pnpm exec vitest run tests/unit/chat-theme-shell.test.ts tests/unit/chat-layout.test.tsx`
+- `pnpm exec vitest run tests/unit/chat-theme-shell.test.ts -t "keeps the header minimal and limits desktop-grade surfaces to tools and composer"`
 - `pnpm exec vitest run tests/unit/chat-session-presentation.test.ts tests/unit/chat-theme-shell.test.ts tests/unit/chat-layout.test.tsx --testTimeout=15000`
 - `pnpm exec vitest run tests/unit/channels-page.test.tsx`
 - `pnpm exec vitest run tests/unit/setup-primary-action.test.ts tests/unit/setup-page-i18n.test.tsx tests/unit/setup-preparation-stage.test.tsx tests/unit/setup-locale.test.ts tests/unit/setup-wizard-flow.test.ts tests/unit/setup-wizard-layout.test.tsx tests/unit/setup-takeover.test.tsx`
@@ -90,6 +93,7 @@
 - `pnpm exec eslint src/pages/Chat/index.tsx src/pages/Chat/ChatMessage.tsx tests/unit/chat-theme-shell.test.ts tests/unit/chat-layout.test.tsx --max-warnings=0`
 - `pnpm exec eslint src/pages/Chat/index.tsx src/pages/Chat/ChatInput.tsx src/pages/Chat/ChatMessage.tsx tests/unit/chat-theme-shell.test.ts tests/unit/chat-layout.test.tsx --max-warnings=0`
 - `pnpm exec eslint src/pages/Chat/index.tsx src/pages/Chat/ChatToolbar.tsx src/pages/Chat/ChatInput.tsx src/pages/Chat/ChatMessage.tsx src/pages/Chat/session-presentation.ts tests/unit/chat-session-presentation.test.ts tests/unit/chat-theme-shell.test.ts tests/unit/chat-layout.test.tsx --max-warnings=0`
+- `pnpm exec eslint src/pages/Chat/ChatToolbar.tsx src/pages/Chat/ChatInput.tsx src/pages/Chat/gateway-ui.ts tests/unit/chat-theme-shell.test.ts --max-warnings=0`
 - `pnpm exec eslint src/components/settings/ProvidersSettings.tsx src/components/settings/UpdateSettings.tsx src/pages/Settings/index.tsx src/pages/Models/index.tsx src/pages/Agents/index.tsx src/pages/Skills/index.tsx src/pages/Cron/index.tsx src/pages/Chat/ChatInput.tsx src/pages/Channels/index.tsx tests/unit/channels-page.test.tsx --max-warnings=0`
 - `pnpm exec eslint src/pages/Setup/index.tsx src/components/setup/*.tsx src/components/setup/*.ts tests/unit/setup-*.ts tests/unit/setup-*.tsx --max-warnings=0`
 - `pnpm run typecheck`

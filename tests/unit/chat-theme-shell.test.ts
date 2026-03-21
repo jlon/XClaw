@@ -19,8 +19,10 @@ describe('chat desktop shell theme', () => {
     expect(pageSource).toContain('app-chat-header-meta');
     expect(pageSource).not.toContain('app-chat-meta-pill');
     expect(toolbarSource).toContain('app-chat-toolbar-group');
+    expect(toolbarSource).toContain('app-chat-connection-indicator');
+    expect(toolbarSource).toContain('status-indicator-glow');
     expect(inputSource).toContain('app-chat-composer-dock');
-    expect(inputSource).toContain('app-chat-statusbar');
+    expect(inputSource).not.toContain('app-chat-connection-indicator');
   });
 
   it('defines dedicated chat shell classes in the global theme layer', () => {
@@ -31,7 +33,7 @@ describe('chat desktop shell theme', () => {
     expect(source).toContain('.app-chat-header-meta');
     expect(source).toContain('.app-chat-toolbar-group');
     expect(source).toContain('.app-chat-composer-dock');
-    expect(source).toContain('.app-chat-statusbar');
+    expect(source).toContain('.app-chat-connection-indicator');
   });
 
   it('moves the message plane onto dedicated desktop-grade thread and bubble surfaces', () => {

@@ -312,11 +312,9 @@
   box-shadow: var(--shadow-md);
 }
 
-.app-chat-statusbar {
-  backdrop-filter: blur(16px);
-  background:
-    linear-gradient(180deg, hsl(var(--surface-elevated) / 0.64) 0%, hsl(var(--surface-base) / 0.7) 100%);
-  border: 1px solid hsl(var(--border-subtle) / 0.74);
+.app-chat-connection-indicator {
+  background: transparent;
+  color: hsl(var(--muted-foreground) / 0.78);
 }
 
 .app-chat-thread-stage {

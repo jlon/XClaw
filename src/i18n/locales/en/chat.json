@@ -47,10 +47,14 @@
         "modelPickerDefaultHint": "Clear this session override",
         "modelPickerLoadFailed": "Failed to load models",
         "gatewayDisconnectedPlaceholder": "Gateway not connected...",
+        "gatewayConnectingPlaceholder": "Connecting to gateway...",
         "send": "Send",
         "stop": "Stop",
-        "gatewayConnected": "connected",
-        "gatewayStatus": "gateway {{state}} | port: {{port}} {{pid}}",
+        "gatewayConnectedHint": "Connected",
+        "gatewayConnectingHint": "Connecting",
+        "gatewayReconnectingHint": "Reconnecting",
+        "gatewayDisconnectedHint": "Disconnected",
+        "gatewayErrorHint": "Connection issue",
         "retryFailedAttachments": "Retry failed attachments"
     },
     "historyBuckets": {

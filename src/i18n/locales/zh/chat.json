@@ -47,10 +47,14 @@
         "modelPickerDefaultHint": "清除当前会话的临时模型覆盖",
         "modelPickerLoadFailed": "加载模型失败",
         "gatewayDisconnectedPlaceholder": "网关未连接...",
+        "gatewayConnectingPlaceholder": "正在连接网关...",
         "send": "发送",
         "stop": "停止",
-        "gatewayConnected": "已连接",
-        "gatewayStatus": "gateway {{state}} | port: {{port}} {{pid}}",
+        "gatewayConnectedHint": "已连接",
+        "gatewayConnectingHint": "连接中",
+        "gatewayReconnectingHint": "重连中",
+        "gatewayDisconnectedHint": "已断开",
+        "gatewayErrorHint": "连接异常",
         "retryFailedAttachments": "重试失败的附件"
     },
     "historyBuckets": {

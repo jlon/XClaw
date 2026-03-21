@@ -19,6 +19,7 @@ import { useAgentsStore } from '@/stores/agents';
 import { useChatStore } from '@/stores/chat';
 import type { AgentSummary } from '@/types/agent';
 import { useTranslation } from 'react-i18next';
+import { resolveGatewayUi } from './gateway-ui';
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -438,6 +439,7 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
   const hasFailedAttachments = attachments.some((a) => a.status === 'error');
   const canSend = (input.trim() || attachments.length > 0) && allReady && !disabled && !sending;
   const canStop = sending && !disabled && !!onStop;
+  const gatewayUi = resolveGatewayUi(gatewayStatus.state);
 
   const handleSend = useCallback(() => {
     if (!canSend) return;
@@ -643,7 +645,7 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
                   isComposingRef.current = false;
                 }}
                 onPaste={handlePaste}
-                placeholder={disabled ? t('composer.gatewayDisconnectedPlaceholder') : ''}
+                placeholder={disabled && gatewayUi.placeholderKey ? t(gatewayUi.placeholderKey) : ''}
                 disabled={disabled}
                 className="min-h-[36px] max-h-[180px] resize-none border-0 bg-transparent px-1.5 py-1.5 text-[15px] leading-[1.62] placeholder:text-muted-foreground/60 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                 style={!input ? { height: '36px' } : undefined}
@@ -744,48 +746,32 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
               )}
             </div>
 
-            {/* Send Button */}
-            <Button
-              onClick={sending ? handleStop : handleSend}
-              disabled={sending ? !canStop : !canSend}
-              size="icon"
-              className={`h-9 w-9 shrink-0 rounded-full transition-[background-color,color,box-shadow] ${
-                sending
-                  ? 'app-field-surface text-foreground hover:bg-accent'
-                  : canSend
-                    ? 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md'
-                    : 'bg-transparent text-muted-foreground/45 hover:bg-transparent'
-              }`}
-              variant="ghost"
-              title={sending ? t('composer.stop') : t('composer.send')}
-            >
-              {sending ? (
-                <Square className="h-4 w-4" fill="currentColor" />
-              ) : (
-                <SendHorizontal className="h-[18px] w-[18px]" strokeWidth={2} />
-              )}
-            </Button>
+            <div className="ml-1 flex shrink-0 items-center gap-1">
+              <Button
+                onClick={sending ? handleStop : handleSend}
+                disabled={sending ? !canStop : !canSend}
+                size="icon"
+                className={`h-9 w-9 shrink-0 rounded-full transition-[background-color,color,box-shadow] ${
+                  sending
+                    ? 'app-field-surface text-foreground hover:bg-accent'
+                    : canSend
+                      ? 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md'
+                      : 'bg-transparent text-muted-foreground/45 hover:bg-transparent'
+                }`}
+                variant="ghost"
+                title={sending ? t('composer.stop') : t('composer.send')}
+              >
+                {sending ? (
+                  <Square className="h-4 w-4" fill="currentColor" />
+                ) : (
+                  <SendHorizontal className="h-[18px] w-[18px]" strokeWidth={2} />
+                )}
+              </Button>
+            </div>
           </div>
         </div>
-        <div className="app-chat-statusbar mt-2 flex items-center justify-between gap-2 rounded-full px-3 py-2 text-[10.5px] text-muted-foreground/70">
-          <div className="flex items-center gap-1.5">
-            <div
-              className={cn(
-                'status-indicator status-indicator-glow h-1.5 w-1.5 rounded-full',
-                gatewayStatus.state === 'running' ? 'status-indicator-connected' : 'status-indicator-disconnected',
-              )}
-            />
-            <span>
-              {t('composer.gatewayStatus', {
-                state: gatewayStatus.state === 'running'
-                  ? t('composer.gatewayConnected')
-                  : gatewayStatus.state,
-                port: gatewayStatus.port,
-                pid: gatewayStatus.pid ? `| pid: ${gatewayStatus.pid}` : '',
-              })}
-            </span>
-          </div>
-          {hasFailedAttachments && (
+        {hasFailedAttachments && (
+          <div className="mt-2 flex justify-end">
             <Button
               variant="link"
               size="sm"
@@ -797,8 +783,8 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
             >
               {t('composer.retryFailedAttachments')}
             </Button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
