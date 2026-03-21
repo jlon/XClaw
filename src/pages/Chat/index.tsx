@@ -4,8 +4,8 @@
  * via gateway:rpc IPC. Session selector, thinking toggle, and refresh
  * are in the toolbar; messages render with markdown + streaming.
  */
-import { useEffect, useState } from 'react';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ChevronDown, Loader2, X } from 'lucide-react';
 import { AgentAvatar } from '@/components/chat/AgentAvatar';
 import { useChatStore, type RawMessage } from '@/stores/chat';
 import { useGatewayStore } from '@/stores/gateway';
@@ -46,8 +46,11 @@ export function Chat() {
   const cleanupEmptySession = useChatStore((s) => s.cleanupEmptySession);
 
   const [streamingTimestamp, setStreamingTimestamp] = useState<number>(0);
+  const [showScrollToLatest, setShowScrollToLatest] = useState(false);
+  const [hasPendingLatest, setHasPendingLatest] = useState(false);
   const minLoading = useMinLoading(loading && messages.length > 0);
   const { contentRef, scrollRef } = useStickToBottomInstant(currentSessionKey);
+  const isNearBottomRef = useRef(true);
 
   // Load data when gateway is running.
   // When the store already holds messages for this session (i.e. the user
@@ -100,8 +103,58 @@ export function Chat() {
     agentId: currentAgentId,
     agentName: currentAgentName,
   });
+  const composerErrorCopy = error
+    ? (/timed out/i.test(error) ? t('errors.requestTimeout') : error)
+    : null;
+  const syncScrollAffordance = useCallback(() => {
+    const scrollElement = scrollRef.current;
+    if (!scrollElement) return;
+    const distanceToBottom = scrollElement.scrollHeight - scrollElement.scrollTop - scrollElement.clientHeight;
+    const shouldShow = distanceToBottom > 180;
+    isNearBottomRef.current = !shouldShow;
+    setShowScrollToLatest(shouldShow);
+    if (!shouldShow) {
+      setHasPendingLatest(false);
+    }
+  }, [scrollRef]);
 
   const isEmpty = messages.length === 0 && !sending;
+
+  useEffect(() => {
+    const scrollElement = scrollRef.current;
+    if (!scrollElement) return;
+    syncScrollAffordance();
+    const handleScroll = () => {
+      syncScrollAffordance();
+    };
+    scrollElement.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll);
+    return () => {
+      scrollElement.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, [scrollRef, syncScrollAffordance]);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      syncScrollAffordance();
+      if (!isNearBottomRef.current && (messages.length > 0 || shouldRenderStreaming)) {
+        setHasPendingLatest(true);
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [messages.length, shouldRenderStreaming, syncScrollAffordance]);
+
+  const scrollToLatest = useCallback(() => {
+    const scrollElement = scrollRef.current;
+    if (!scrollElement) return;
+    if (typeof scrollElement.scrollTo === 'function') {
+      scrollElement.scrollTo({ top: scrollElement.scrollHeight, behavior: 'smooth' });
+    } else {
+      scrollElement.scrollTop = scrollElement.scrollHeight;
+    }
+    setHasPendingLatest(false);
+  }, [scrollRef]);
 
   return (
     <div className={cn('app-chat-shell relative flex h-full flex-col transition-colors duration-500')}>
@@ -160,19 +213,42 @@ export function Chat() {
         )}
       </div>
 
-      {/* Error bar */}
-      {error && (
-        <div className="px-4 py-2 bg-destructive/10 border-t border-destructive/20">
-          <div className="app-chat-workbench flex items-center justify-between gap-4">
-            <p className="text-sm text-destructive flex items-center gap-2">
-              <AlertCircle className="h-4 w-4" />
-              {error}
-            </p>
+      {composerErrorCopy && (
+        <div className="app-chat-workbench px-4 pb-2">
+          <div className="flex justify-end">
+            <div className="app-chat-composer-error" role="status" aria-live="polite">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span className="app-chat-composer-error-dot" aria-hidden="true" />
+                <p className="truncate text-[13px] font-medium">{composerErrorCopy}</p>
+              </div>
+              <button
+                type="button"
+                onClick={clearError}
+                className="app-chat-composer-error-action"
+                aria-label={t('common:actions.dismiss')}
+                title={t('common:actions.dismiss')}
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showScrollToLatest && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-24 z-20 md:bottom-28">
+          <div className="app-chat-workbench flex justify-end px-4">
             <button
-              onClick={clearError}
-              className="text-xs text-destructive/60 hover:text-destructive underline"
+              type="button"
+              onClick={scrollToLatest}
+              className="app-chat-scroll-to-latest pointer-events-auto"
+              aria-label={t('toolbar.scrollToLatest')}
+              title={t('toolbar.scrollToLatest')}
             >
-              {t('common:actions.dismiss')}
+              <ChevronDown className="h-4 w-4" />
+              {hasPendingLatest && (
+                <span className="status-indicator status-indicator-glow absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-[hsl(var(--primary))]" />
+              )}
             </button>
           </div>
         </div>
@@ -277,7 +353,7 @@ function TypingIndicator({
   return (
     <div className="chat-im-font flex gap-2.5">
       <AgentAvatar label={avatar.label} style={avatar.style} className="mt-1 h-9 w-9" textClassName="text-sm" />
-      <div className="app-chat-tool-status w-fit rounded-[14px] px-3 py-2 text-foreground">
+      <div className="app-chat-runtime-pill w-fit rounded-[14px] px-3 py-2 text-foreground">
         <div className="flex gap-1">
           <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
           <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -305,7 +381,7 @@ function ActivityIndicator({
   return (
     <div className="chat-im-font flex gap-2.5">
       <AgentAvatar label={avatar.label} style={avatar.style} className="mt-1 h-9 w-9" textClassName="text-sm" />
-      <div className="app-chat-tool-status w-fit rounded-[14px] px-3 py-2 text-foreground">
+      <div className="app-chat-runtime-pill w-fit rounded-[14px] px-3 py-2 text-foreground">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
           <span>{t('message.toolProcessing')}</span>

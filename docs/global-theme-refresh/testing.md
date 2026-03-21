@@ -26,6 +26,9 @@
 - `Chat` 最新一轮“修复工具轨 `overflow: hidden` 导致 `@` 与模型弹层被裁掉的回归”已落地，本轮继续使用定向结构回归和最小静态校验
 - `Chat` 最新一轮“继续收掉复制栏、代码块和图片预览的网页组件感”已落地，本轮补了定向主题结构回归和最小静态校验
 - `Chat` 最新一轮“继续将欢迎动作和工具/思考状态轨收成文档式次级行”已落地，本轮继续补了定向主题结构回归和最小静态校验
+- `Chat` 最新一轮“补模型 hover 提示、当前模型置顶、双向复制入口和快速回到底部按钮”已落地，本轮补了针对性的交互回归和最小静态校验
+- `Chat` 最新一轮“修复 typing / activity 指示器被状态轨样式裁成半边”的回归已落地，本轮补了定向结构回归和最小静态校验
+- `Chat` 最新一轮“将请求级错误从顶部全宽横幅收口成贴近输入区的轻错误气泡”已落地，本轮补了定向结构回归和交互测试
 
 ## 设计阶段验证
 
@@ -96,6 +99,10 @@
 - `pnpm exec vitest run tests/unit/theme-application.test.tsx tests/unit/ui-primitives-theme.test.tsx tests/unit/theme-second-wave-pages.test.ts tests/unit/workspace-page-layout.test.tsx`
 - `pnpm exec vitest run tests/unit/chat-layout.test.tsx`
 - `pnpm exec vitest run tests/unit/chat-theme-shell.test.ts tests/unit/chat-layout.test.tsx`
+- `pnpm exec vitest run tests/unit/chat-input.test.tsx tests/unit/chat-message.test.tsx tests/unit/chat-humanized-actions.test.tsx`
+- `pnpm exec vitest run tests/unit/chat-theme-shell.test.ts -t "keeps runtime typing pills separate from tool status rails so loading bubbles stay visually complete"`
+- `pnpm exec vitest run tests/unit/chat-theme-shell.test.ts -t "anchors chat errors near the composer instead of using a full-width destructive banner"`
+- `pnpm exec vitest run tests/unit/chat-humanized-actions.test.tsx -t "renders a compact composer-adjacent error bubble for request timeouts"`
 - `pnpm exec vitest run tests/unit/chat-theme-shell.test.ts -t "keeps the header minimal and limits desktop-grade surfaces to tools and composer"`
 - `pnpm exec vitest run tests/unit/chat-theme-shell.test.ts -t "keeps the composer aligned with the chat workbench width and uses a taller dock rhythm"`
 - `pnpm exec vitest run tests/unit/chat-theme-shell.test.ts tests/unit/chat-layout.test.tsx`
@@ -108,6 +115,8 @@
 - `pnpm exec eslint src/pages/Chat/index.tsx src/pages/Chat/ChatInput.tsx src/pages/Chat/ChatMessage.tsx tests/unit/chat-theme-shell.test.ts tests/unit/chat-layout.test.tsx --max-warnings=0`
 - `pnpm exec eslint src/pages/Chat/index.tsx src/pages/Chat/ChatToolbar.tsx src/pages/Chat/ChatInput.tsx src/pages/Chat/ChatMessage.tsx src/pages/Chat/session-presentation.ts tests/unit/chat-session-presentation.test.ts tests/unit/chat-theme-shell.test.ts tests/unit/chat-layout.test.tsx --max-warnings=0`
 - `pnpm exec eslint src/pages/Chat/ChatToolbar.tsx src/pages/Chat/ChatInput.tsx src/pages/Chat/gateway-ui.ts tests/unit/chat-theme-shell.test.ts --max-warnings=0`
+- `pnpm exec eslint src/pages/Chat/index.tsx src/pages/Chat/ChatInput.tsx src/pages/Chat/ChatMessage.tsx tests/unit/chat-input.test.tsx tests/unit/chat-message.test.tsx tests/unit/chat-humanized-actions.test.tsx --max-warnings=0`
+- `pnpm exec eslint src/pages/Chat/index.tsx tests/unit/chat-theme-shell.test.ts --max-warnings=0`
 - `pnpm exec eslint src/pages/Chat/index.tsx src/pages/Chat/ChatInput.tsx tests/unit/chat-theme-shell.test.ts --max-warnings=0`
 - `pnpm exec eslint src/pages/Chat/ChatInput.tsx tests/unit/chat-theme-shell.test.ts --max-warnings=0`
 - `pnpm exec eslint src/components/settings/ProvidersSettings.tsx src/components/settings/UpdateSettings.tsx src/pages/Settings/index.tsx src/pages/Models/index.tsx src/pages/Agents/index.tsx src/pages/Skills/index.tsx src/pages/Cron/index.tsx src/pages/Chat/ChatInput.tsx src/pages/Channels/index.tsx tests/unit/channels-page.test.tsx --max-warnings=0`

@@ -16,11 +16,15 @@
     "toolbar": {
         "refresh": "Refresh chat",
         "showThinking": "Show thinking",
-        "hideThinking": "Hide thinking"
+        "hideThinking": "Hide thinking",
+        "scrollToLatest": "Scroll to latest"
     },
     "header": {
         "sessionPlain": "Session {{id}}",
         "runtimeIssue": "Runtime issue: {{state}}"
+    },
+    "errors": {
+        "requestTimeout": "This request timed out"
     },
     "message": {
         "thinking": "Thinking",
@@ -38,6 +42,7 @@
         "targetChip": "@{{agent}}",
         "agentPickerTitle": "Route the next message to another agent",
         "modelPickerTitle": "Switch session model",
+        "currentModelTooltip": "Current model: {{model}}",
         "modelPickerLoading": "Loading models...",
         "modelPickerEmpty": "No models available",
         "modelPickerSearchLabel": "Search models",

@@ -55,6 +55,8 @@ function translate(key: string, vars?: Record<string, unknown>): string {
       return 'Choose model';
     case 'composer.modelPickerTitle':
       return 'Switch session model';
+    case 'composer.currentModelTooltip':
+      return `Current model: ${String(vars?.model ?? '')}`;
     case 'composer.modelPickerLoading':
       return 'Loading models...';
     case 'composer.modelPickerEmpty':
@@ -189,15 +191,26 @@ describe('ChatInput agent targeting', () => {
 
     render(<ChatInput onSend={vi.fn()} />);
 
-    expect(screen.getByTestId('chat-model-trigger')).toHaveClass('rounded-2xl');
+    expect(screen.getByTestId('chat-model-trigger')).toHaveAttribute('title', 'Current model: Kimi K2.5');
 
     await act(async () => {
-      fireEvent.click(screen.getByTitle('Choose model'));
+      fireEvent.click(screen.getByTestId('chat-model-trigger'));
     });
 
     await waitFor(() => {
       expect(gatewayRpcMock).toHaveBeenCalledWith('models.list', {});
     });
+
+    const items = await screen.findAllByRole('button');
+    const labels = items.map((item) => item.textContent ?? '');
+    const kimiIndex = labels.findIndex((label) => label.includes('Kimi K2.5'));
+    const defaultIndex = labels.findIndex((label) => label.includes('Use OpenClaw default'));
+    const openAiIndex = labels.findIndex((label) => label.includes('OpenAI Codex'));
+
+    expect(kimiIndex).toBeGreaterThanOrEqual(0);
+    expect(defaultIndex).toBeGreaterThanOrEqual(0);
+    expect(openAiIndex).toBeGreaterThan(kimiIndex);
+    expect(defaultIndex).toBeGreaterThan(kimiIndex);
 
     await act(async () => {
       fireEvent.click(await screen.findByText('OpenAI Codex'));
@@ -229,7 +242,7 @@ describe('ChatInput agent targeting', () => {
     render(<ChatInput onSend={vi.fn()} />);
 
     await act(async () => {
-      fireEvent.click(screen.getByTitle('Choose model'));
+      fireEvent.click(screen.getByTestId('chat-model-trigger'));
     });
 
     await act(async () => {

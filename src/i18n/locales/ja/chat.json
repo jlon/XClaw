@@ -16,11 +16,15 @@
     "toolbar": {
         "refresh": "チャットを更新",
         "showThinking": "思考を表示",
-        "hideThinking": "思考を非表示"
+        "hideThinking": "思考を非表示",
+        "scrollToLatest": "最新位置へ戻る"
     },
     "header": {
         "sessionPlain": "セッション {{id}}",
         "runtimeIssue": "実行異常: {{state}}"
+    },
+    "errors": {
+        "requestTimeout": "今回のリクエストはタイムアウトしました"
     },
     "message": {
         "thinking": "思考過程",
@@ -38,6 +42,7 @@
         "targetChip": "@{{agent}}",
         "agentPickerTitle": "次のメッセージを別の Agent に直接送信します",
         "modelPickerTitle": "現在のセッションモデルを切り替える",
+        "currentModelTooltip": "現在のモデル: {{model}}",
         "modelPickerLoading": "モデルを読み込み中...",
         "modelPickerEmpty": "利用可能なモデルがありません",
         "modelPickerSearchLabel": "モデルを検索",

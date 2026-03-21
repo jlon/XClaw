@@ -214,9 +214,24 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
       model.vendorId ?? '',
     ].join(' ').toLowerCase().includes(normalizedQuery));
   }, [modelSearchQuery, models]);
+  const orderedModels = useMemo(() => {
+    if (!currentModelId) {
+      return filteredModels;
+    }
+    const currentIndex = filteredModels.findIndex((model) => model.ref === currentModelId);
+    if (currentIndex <= 0) {
+      return filteredModels;
+    }
+    const nextModels = [...filteredModels];
+    const [currentModel] = nextModels.splice(currentIndex, 1);
+    return currentModel ? [currentModel, ...nextModels] : filteredModels;
+  }, [currentModelId, filteredModels]);
+  const pinnedCurrentModel = currentModelId && orderedModels[0]?.ref === currentModelId
+    ? orderedModels[0]
+    : null;
   const currentModelLabel = selectedModel
     ? getModelLabel(selectedModel)
-    : (currentModelId || currentAgent?.modelDisplay || t('composer.modelPickerDefault'));
+    : (currentAgent?.modelDisplay || currentModelId || t('composer.modelPickerDefault'));
   const composerTextareaMinHeight = isEmpty ? 88 : 72;
 
   useEffect(() => {
@@ -667,7 +682,8 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
                     setModelPickerOpen((open) => !open);
                   }}
                   disabled={disabled || sending || switchingModel}
-                  title={currentModelLabel}
+                  title={t('composer.currentModelTooltip', { model: currentModelLabel })}
+                  aria-label={t('composer.currentModelTooltip', { model: currentModelLabel })}
                 >
                   {switchingModel ? (
                     <Loader2 className="h-[17px] w-[17px] animate-spin" />
@@ -698,6 +714,15 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
                         isWindows ? 'subtle-scrollbar-win' : 'subtle-scrollbar',
                       )}
                     >
+                      {pinnedCurrentModel && (
+                        <ModelPickerItem
+                          model={pinnedCurrentModel}
+                          selected
+                          onSelect={() => {
+                            void handleModelSelect(pinnedCurrentModel.ref);
+                          }}
+                        />
+                      )}
                       <button
                         type="button"
                         onClick={() => {
@@ -713,7 +738,9 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
                           {t('composer.modelPickerLoading')}
                         </div>
                       )}
-                      {!modelsLoading && filteredModels.map((model) => (
+                      {!modelsLoading && orderedModels
+                        .filter((model) => model.ref !== pinnedCurrentModel?.ref)
+                        .map((model) => (
                         <ModelPickerItem
                           key={model.ref}
                           model={model}
@@ -728,7 +755,7 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
                           {t('composer.modelPickerEmpty')}
                         </div>
                       )}
-                      {!modelsLoading && !!models.length && !filteredModels.length && !modelsLoadError && (
+                      {!modelsLoading && !!models.length && !orderedModels.length && !modelsLoadError && (
                         <div className="px-3 py-6 text-center text-[12px] text-muted-foreground">
                           {t('composer.modelPickerEmptySearch')}
                         </div>

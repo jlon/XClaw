@@ -79,6 +79,27 @@ describe('chat desktop shell theme', () => {
     expect(themeSource).toContain('.app-chat-file-card');
   });
 
+  it('keeps runtime typing pills separate from tool status rails so loading bubbles stay visually complete', () => {
+    const pageSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/index.tsx'), 'utf8');
+    const themeSource = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
+
+    expect(pageSource).toContain('app-chat-runtime-pill');
+    expect(themeSource).toContain('.app-chat-runtime-pill');
+    expect(pageSource).not.toContain('app-chat-tool-status w-fit rounded-[14px] px-3 py-2 text-foreground');
+  });
+
+  it('anchors chat errors near the composer instead of using a full-width destructive banner', () => {
+    const pageSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/index.tsx'), 'utf8');
+    const themeSource = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
+    const zhLocale = readFileSync(resolve(process.cwd(), 'src/i18n/locales/zh/chat.json'), 'utf8');
+
+    expect(pageSource).toContain('app-chat-composer-error');
+    expect(themeSource).toContain('.app-chat-composer-error');
+    expect(pageSource).not.toContain("px-4 py-2 bg-destructive/10 border-t border-destructive/20");
+    expect(zhLocale).toContain('"errors"');
+    expect(zhLocale).toContain('"requestTimeout"');
+  });
+
   it('keeps chat message affordances inside existing i18n namespaces instead of hardcoded English copy', () => {
     const pageSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/index.tsx'), 'utf8');
     const messageSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/ChatMessage.tsx'), 'utf8');

@@ -216,14 +216,12 @@ export const ChatMessage = memo(function ChatMessage({
           </div>
         )}
 
-        {isUser && message.timestamp && (
-          <span className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200 select-none">
-            {formatTimestamp(message.timestamp)}
-          </span>
-        )}
-
-        {!isUser && hasText && (
-          <AssistantHoverBar text={text} timestamp={message.timestamp} />
+        {hasText && (
+          <MessageMetaBar
+            text={text}
+            timestamp={message.timestamp}
+            align={isUser ? 'end' : 'start'}
+          />
         )}
       </div>
 
@@ -294,8 +292,9 @@ function ToolStatusBar({
 
 // ── Assistant hover bar (timestamp + copy, shown on group hover) ─
 
-function AssistantHoverBar({ text, timestamp }: { text: string; timestamp?: number }) {
+function MessageMetaBar({ text, timestamp, align }: { text: string; timestamp?: number; align: 'start' | 'end' }) {
   const [copied, setCopied] = useState(false);
+  const { t } = useTranslation(['chat', 'common']);
 
   const copyContent = useCallback(() => {
     navigator.clipboard.writeText(text);
@@ -304,7 +303,12 @@ function AssistantHoverBar({ text, timestamp }: { text: string; timestamp?: numb
   }, [text]);
 
   return (
-    <div className="app-chat-hoverbar inline-flex items-center gap-2.5 px-0.5 py-0.5 opacity-0 transition-opacity duration-200 select-none group-hover:opacity-100">
+    <div
+      className={cn(
+        'app-chat-hoverbar inline-flex items-center gap-2.5 px-0.5 py-0.5 opacity-70 transition-opacity duration-200 select-none group-hover:opacity-100',
+        align === 'end' ? 'self-end justify-end' : 'self-start justify-start',
+      )}
+    >
       <span className="app-chat-meta-row text-[11px] text-muted-foreground">
         {timestamp ? formatTimestamp(timestamp) : ''}
       </span>
@@ -312,6 +316,8 @@ function AssistantHoverBar({ text, timestamp }: { text: string; timestamp?: numb
         type="button"
         className="app-chat-meta-action"
         onClick={copyContent}
+        title={t('common:actions.copy')}
+        aria-label={t('common:actions.copy')}
       >
         {copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
       </button>

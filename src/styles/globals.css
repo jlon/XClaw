@@ -414,6 +414,102 @@
   color: hsl(var(--muted-foreground) / 0.78);
 }
 
+.app-chat-runtime-pill {
+  border: 1px solid hsl(var(--border-subtle) / 0.7);
+  background: hsl(var(--surface-elevated) / 0.88);
+  box-shadow: 0 8px 20px hsl(var(--foreground) / 0.04);
+}
+
+.app-chat-composer-error {
+  display: inline-flex;
+  min-width: 0;
+  max-width: min(100%, 26rem);
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  position: relative;
+  border: 1px solid hsl(var(--destructive) / 0.12);
+  border-radius: 9999px;
+  background: linear-gradient(180deg, hsl(var(--surface-elevated) / 0.97) 0%, hsl(var(--surface-base) / 0.985) 100%);
+  color: hsl(var(--destructive) / 0.82);
+  box-shadow: 0 8px 18px hsl(var(--foreground) / 0.03);
+  padding: 0.46rem 0.5rem 0.46rem 0.72rem;
+}
+
+.app-chat-composer-error::after {
+  content: "";
+  position: absolute;
+  right: 1.1rem;
+  bottom: -0.28rem;
+  height: 0.56rem;
+  width: 0.56rem;
+  border-right: 1px solid hsl(var(--destructive) / 0.12);
+  border-bottom: 1px solid hsl(var(--destructive) / 0.12);
+  background: hsl(var(--surface-base) / 0.98);
+  transform: rotate(45deg);
+}
+
+.app-chat-composer-error-dot {
+  flex-shrink: 0;
+  height: 0.46rem;
+  width: 0.46rem;
+  border-radius: 9999px;
+  background: hsl(var(--destructive) / 0.74);
+  box-shadow: 0 0 0 0.22rem hsl(var(--destructive) / 0.08);
+}
+
+.app-chat-composer-error-action {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.55rem;
+  width: 1.55rem;
+  border-radius: 9999px;
+  color: hsl(var(--destructive) / 0.58);
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.app-chat-composer-error-action:hover {
+  background: hsl(var(--destructive) / 0.06);
+  color: hsl(var(--destructive) / 0.86);
+  transform: translateY(-0.5px);
+}
+
+.app-chat-composer-error-action:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px hsl(var(--destructive) / 0.14);
+}
+
+.app-chat-scroll-to-latest {
+  position: relative;
+  display: inline-flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid hsl(var(--border-subtle) / 0.74);
+  background: hsl(var(--surface-elevated) / 0.92);
+  color: hsl(var(--muted-foreground) / 0.92);
+  box-shadow: 0 10px 24px hsl(var(--foreground) / 0.06);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.app-chat-scroll-to-latest:hover {
+  border-color: hsl(var(--border-subtle) / 0.92);
+  background: hsl(var(--surface-hover) / 0.86);
+  color: hsl(var(--foreground));
+  transform: translateY(-1px);
+}
+
 .app-chat-thread-stage {
   position: relative;
   overflow: visible;
