@@ -7,10 +7,9 @@
  * are sent with the message (no base64 over WebSocket).
  */
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { SendHorizontal, Square, X, Paperclip, FileText, Film, Music, FileArchive, File, Loader2, AtSign, Box, ChevronDown, Check, Search } from 'lucide-react';
+import { SendHorizontal, Square, X, Paperclip, FileText, Film, Music, FileArchive, File, Loader2, AtSign, Box, Check, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { hostApiFetch } from '@/lib/host-api';
 import { invokeIpc } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
@@ -218,17 +217,18 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
   const currentModelLabel = selectedModel
     ? getModelLabel(selectedModel)
     : (currentModelId || currentAgent?.modelDisplay || t('composer.modelPickerDefault'));
+  const composerTextareaMinHeight = isEmpty ? 88 : 72;
 
   useEffect(() => {
     const textarea = textareaRef.current;
     if (!textarea) return;
     if (!input) {
-      textarea.style.height = '36px';
+      textarea.style.height = `${composerTextareaMinHeight}px`;
       return;
     }
     textarea.style.height = 'auto';
-    textarea.style.height = `${Math.min(Math.max(textarea.scrollHeight, 36), 180)}px`;
-  });
+    textarea.style.height = `${Math.min(Math.max(textarea.scrollHeight, composerTextareaMinHeight), 180)}px`;
+  }, [composerTextareaMinHeight, input]);
 
   // Focus textarea on mount (avoids Windows focus loss after session delete + native dialog)
   useEffect(() => {
@@ -539,8 +539,8 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
   return (
     <div
       className={cn(
-        "chat-im-font mx-auto w-full p-4 pb-5 transition-all duration-300",
-        isEmpty ? "max-w-3xl" : "max-w-4xl"
+        'chat-im-font app-chat-workbench px-4 pb-6 transition-all duration-300',
+        isEmpty ? 'pt-5' : 'pt-4',
       )}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -561,213 +561,209 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
         )}
 
         {/* Input Row */}
-        <div className={cn('app-panel-surface-elevated app-chat-composer-dock relative rounded-[26px] p-1.5 transition-all', dragOver ? 'border-primary/40 ring-2 ring-primary/15' : '')}>
-          {selectedTarget && (
-            <div className="px-2.5 pt-2 pb-1">
-              <button
-                type="button"
-                onClick={() => setTargetAgentId(null)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[13px] font-medium text-foreground transition-colors hover:bg-primary/10"
-                title={t('composer.clearTarget')}
+        <div className={cn('app-panel-surface-elevated app-chat-composer-dock relative rounded-[30px] px-4 py-3 transition-all', dragOver ? 'border-primary/40 ring-2 ring-primary/15' : '')}>
+          <div className="app-chat-composer-editor">
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onCompositionStart={() => {
+                isComposingRef.current = true;
+              }}
+              onCompositionEnd={() => {
+                isComposingRef.current = false;
+              }}
+              onPaste={handlePaste}
+              placeholder={disabled && gatewayUi.placeholderKey ? t(gatewayUi.placeholderKey) : ''}
+              disabled={disabled}
+              className={cn(
+                'w-full max-h-[180px] resize-none border-0 bg-transparent px-0 py-0 text-[15px] leading-[1.6] text-foreground outline-none placeholder:text-muted-foreground/60',
+                isEmpty ? 'min-h-[88px]' : 'min-h-[72px]',
+              )}
+              style={!input ? { height: `${composerTextareaMinHeight}px` } : undefined}
+              rows={1}
+            />
+          </div>
+
+          <div className="app-chat-composer-footer absolute inset-x-4 bottom-4 pointer-events-none">
+            <div className="app-chat-composer-tools pointer-events-auto">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="app-chat-composer-tool-button shrink-0"
+                onClick={pickFiles}
+                disabled={disabled || sending}
+                title={t('composer.attachFiles')}
               >
-                <span>{t('composer.targetChip', { agent: selectedTarget.name })}</span>
-                <X className="h-3.5 w-3.5 text-muted-foreground" />
-              </button>
-            </div>
-          )}
+                <Paperclip className="h-[17px] w-[17px]" />
+              </Button>
 
-          <div className="flex items-end gap-1 px-1">
-            {/* Attach Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 shrink-0 rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-              onClick={pickFiles}
-              disabled={disabled || sending}
-              title={t('composer.attachFiles')}
-            >
-              <Paperclip className="h-4 w-4" />
-            </Button>
+              {showAgentPicker && (
+                <div ref={pickerRef} className="relative shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn(
+                      'app-chat-composer-tool-button',
+                      (pickerOpen || selectedTarget) && 'app-chat-composer-tool-button--active'
+                    )}
+                    onClick={() => {
+                      setModelPickerOpen(false);
+                      setPickerOpen((open) => !open);
+                    }}
+                    disabled={disabled || sending}
+                    title={t('composer.pickAgent')}
+                  >
+                    <AtSign className="h-[17px] w-[17px]" />
+                  </Button>
+                  {pickerOpen && (
+                    <div className="app-panel-surface-elevated absolute left-0 bottom-full z-20 mb-2 w-72 overflow-hidden rounded-2xl p-1.5">
+                      <div className="px-3 py-2 text-[11px] font-medium text-muted-foreground/80">
+                        {t('composer.agentPickerTitle', { currentAgent: currentAgentName })}
+                      </div>
+                      <div className="max-h-64 overflow-y-auto">
+                        {mentionableAgents.map((agent) => (
+                          <AgentPickerItem
+                            key={agent.id}
+                            agent={agent}
+                            selected={agent.id === targetAgentId}
+                            onSelect={() => {
+                              setTargetAgentId(agent.id);
+                              setPickerOpen(false);
+                              textareaRef.current?.focus();
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
-            {showAgentPicker && (
-              <div ref={pickerRef} className="relative shrink-0">
+              {selectedTarget && (
+                <button
+                  type="button"
+                  onClick={() => setTargetAgentId(null)}
+                  className="app-field-surface inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium text-foreground transition-colors hover:bg-accent/70"
+                  title={t('composer.clearTarget')}
+                >
+                  <span className="max-w-[180px] truncate">{t('composer.targetChip', { agent: selectedTarget.name })}</span>
+                  <X className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+              )}
+
+              <div ref={modelPickerRef} className="relative shrink-0">
                 <Button
+                  data-testid="chat-model-trigger"
                   variant="ghost"
                   size="icon"
                   className={cn(
-                    'h-9 w-9 rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground',
-                    (pickerOpen || selectedTarget) && 'bg-primary/10 text-primary hover:bg-primary/20'
+                    'app-chat-composer-tool-button',
+                    modelPickerOpen && 'app-chat-composer-tool-button--active',
                   )}
                   onClick={() => {
-                    setModelPickerOpen(false);
-                    setPickerOpen((open) => !open);
+                    setPickerOpen(false);
+                    setModelPickerOpen((open) => !open);
                   }}
-                  disabled={disabled || sending}
-                  title={t('composer.pickAgent')}
+                  disabled={disabled || sending || switchingModel}
+                  title={currentModelLabel}
                 >
-                  <AtSign className="h-4 w-4" />
+                  {switchingModel ? (
+                    <Loader2 className="h-[17px] w-[17px] animate-spin" />
+                  ) : (
+                    <Box className="h-[17px] w-[17px] shrink-0" />
+                  )}
                 </Button>
-                {pickerOpen && (
-                  <div className="app-panel-surface-elevated absolute left-0 bottom-full z-20 mb-2 w-72 overflow-hidden rounded-2xl p-1.5">
+                {modelPickerOpen && (
+                  <div className="app-panel-surface-elevated absolute left-0 bottom-full z-20 mb-2 w-64 overflow-hidden rounded-[22px] p-1.5">
                     <div className="px-3 py-2 text-[11px] font-medium text-muted-foreground/80">
-                      {t('composer.agentPickerTitle', { currentAgent: currentAgentName })}
+                      {t('composer.modelPickerTitle')}
                     </div>
-                    <div className="max-h-64 overflow-y-auto">
-                      {mentionableAgents.map((agent) => (
-                        <AgentPickerItem
-                          key={agent.id}
-                          agent={agent}
-                          selected={agent.id === targetAgentId}
+                    <div className="px-2 pb-2">
+                      <div className="relative">
+                        <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/55" />
+                        <Input
+                          aria-label={t('composer.modelPickerSearchLabel')}
+                          value={modelSearchQuery}
+                          placeholder={t('composer.modelPickerSearchPlaceholder')}
+                          onChange={(event) => setModelSearchQuery(event.target.value)}
+                          className="h-8 rounded-full pl-9 pr-3 text-[12px] shadow-none placeholder:text-muted-foreground/55 focus-visible:ring-ring/20 focus-visible:ring-offset-0"
+                        />
+                      </div>
+                    </div>
+                    <div
+                      className={cn(
+                        'max-h-72 overflow-y-auto pr-0.5',
+                        isWindows ? 'subtle-scrollbar-win' : 'subtle-scrollbar',
+                      )}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void handleModelSelect(null);
+                        }}
+                        className="flex w-full flex-col items-start rounded-2xl px-3 py-2.5 text-left transition-[background-color,color,box-shadow] hover:bg-accent/70"
+                      >
+                        <span className="text-[14px] font-medium text-foreground">{t('composer.modelPickerDefault')}</span>
+                        <span className="text-[11px] text-muted-foreground">{t('composer.modelPickerDefaultHint')}</span>
+                      </button>
+                      {modelsLoading && (
+                        <div className="px-3 py-6 text-center text-[12px] text-muted-foreground">
+                          {t('composer.modelPickerLoading')}
+                        </div>
+                      )}
+                      {!modelsLoading && filteredModels.map((model) => (
+                        <ModelPickerItem
+                          key={model.ref}
+                          model={model}
+                          selected={model.ref === currentModelId}
                           onSelect={() => {
-                            setTargetAgentId(agent.id);
-                            setPickerOpen(false);
-                            textareaRef.current?.focus();
+                            void handleModelSelect(model.ref);
                           }}
                         />
                       ))}
+                      {!modelsLoading && !models.length && !modelsLoadError && (
+                        <div className="px-3 py-6 text-center text-[12px] text-muted-foreground">
+                          {t('composer.modelPickerEmpty')}
+                        </div>
+                      )}
+                      {!modelsLoading && !!models.length && !filteredModels.length && !modelsLoadError && (
+                        <div className="px-3 py-6 text-center text-[12px] text-muted-foreground">
+                          {t('composer.modelPickerEmptySearch')}
+                        </div>
+                      )}
+                      {modelsLoadError && (
+                        <div className="px-3 py-3 text-[12px] text-destructive">
+                          {t('composer.modelPickerLoadFailed')}: {modelsLoadError}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
               </div>
-            )}
-
-            {/* Textarea */}
-            <div className="flex-1 relative">
-              <Textarea
-                ref={textareaRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                onCompositionStart={() => {
-                  isComposingRef.current = true;
-                }}
-                onCompositionEnd={() => {
-                  isComposingRef.current = false;
-                }}
-                onPaste={handlePaste}
-                placeholder={disabled && gatewayUi.placeholderKey ? t(gatewayUi.placeholderKey) : ''}
-                disabled={disabled}
-                className="min-h-[36px] max-h-[180px] resize-none border-0 bg-transparent px-1.5 py-1.5 text-[15px] leading-[1.62] placeholder:text-muted-foreground/60 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                style={!input ? { height: '36px' } : undefined}
-                rows={1}
-              />
             </div>
 
-            <div ref={modelPickerRef} className="relative shrink-0 flex items-center gap-1.5">
-              <div className="hidden h-6 w-px bg-border/70 sm:block" />
-              <Button
-                data-testid="chat-model-trigger"
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  'app-field-surface h-[34px] max-w-[220px] rounded-full px-3 text-foreground/80 shadow-none transition-[background-color,border-color,color,box-shadow] duration-200 hover:bg-accent/70 hover:text-foreground',
-                  modelPickerOpen && 'border-primary/20 bg-primary/10 text-foreground shadow-sm',
-                )}
-                onClick={() => {
-                  setPickerOpen(false);
-                  setModelPickerOpen((open) => !open);
-                }}
-                disabled={disabled || sending || switchingModel}
-                title={t('composer.pickModel')}
-              >
-                {switchingModel ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Box className="h-4 w-4 shrink-0" />
-                )}
-                <span className="max-w-[140px] truncate text-[13px]">{currentModelLabel}</span>
-                <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              </Button>
-              {modelPickerOpen && (
-                <div className="app-panel-surface-elevated absolute right-0 bottom-full z-20 mb-2 w-64 overflow-hidden rounded-[22px] p-1.5">
-                  <div className="px-3 py-2 text-[11px] font-medium text-muted-foreground/80">
-                    {t('composer.modelPickerTitle')}
-                  </div>
-                  <div className="px-2 pb-2">
-                    <div className="relative">
-                      <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/55" />
-                      <Input
-                        aria-label={t('composer.modelPickerSearchLabel')}
-                        value={modelSearchQuery}
-                        placeholder={t('composer.modelPickerSearchPlaceholder')}
-                        onChange={(event) => setModelSearchQuery(event.target.value)}
-                        className="h-8 rounded-full pl-9 pr-3 text-[12px] shadow-none placeholder:text-muted-foreground/55 focus-visible:ring-ring/20 focus-visible:ring-offset-0"
-                      />
-                    </div>
-                  </div>
-                  <div
-                    className={cn(
-                      'max-h-72 overflow-y-auto pr-0.5',
-                      isWindows ? 'subtle-scrollbar-win' : 'subtle-scrollbar',
-                    )}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        void handleModelSelect(null);
-                      }}
-                      className="flex w-full flex-col items-start rounded-2xl px-3 py-2.5 text-left transition-[background-color,color,box-shadow] hover:bg-accent/70"
-                    >
-                      <span className="text-[14px] font-medium text-foreground">{t('composer.modelPickerDefault')}</span>
-                      <span className="text-[11px] text-muted-foreground">{t('composer.modelPickerDefaultHint')}</span>
-                    </button>
-                    {modelsLoading && (
-                      <div className="px-3 py-6 text-center text-[12px] text-muted-foreground">
-                        {t('composer.modelPickerLoading')}
-                      </div>
-                    )}
-                    {!modelsLoading && filteredModels.map((model) => (
-                      <ModelPickerItem
-                        key={model.ref}
-                        model={model}
-                        selected={model.ref === currentModelId}
-                        onSelect={() => {
-                          void handleModelSelect(model.ref);
-                        }}
-                      />
-                    ))}
-                    {!modelsLoading && !models.length && !modelsLoadError && (
-                      <div className="px-3 py-6 text-center text-[12px] text-muted-foreground">
-                        {t('composer.modelPickerEmpty')}
-                      </div>
-                    )}
-                    {!modelsLoading && !!models.length && !filteredModels.length && !modelsLoadError && (
-                      <div className="px-3 py-6 text-center text-[12px] text-muted-foreground">
-                        {t('composer.modelPickerEmptySearch')}
-                      </div>
-                    )}
-                    {modelsLoadError && (
-                      <div className="px-3 py-3 text-[12px] text-destructive">
-                        {t('composer.modelPickerLoadFailed')}: {modelsLoadError}
-                      </div>
-                    )}
-                  </div>
-                </div>
+            <Button
+              onClick={sending ? handleStop : handleSend}
+              disabled={sending ? !canStop : !canSend}
+              size="icon"
+              className={`pointer-events-auto h-9 w-9 shrink-0 rounded-full transition-[background-color,color,box-shadow] ${
+                sending
+                  ? 'app-field-surface text-foreground hover:bg-accent'
+                  : canSend
+                    ? 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md'
+                    : 'bg-transparent text-muted-foreground/45 hover:bg-transparent'
+              }`}
+              variant="ghost"
+              title={sending ? t('composer.stop') : t('composer.send')}
+            >
+              {sending ? (
+                <Square className="h-4 w-4" fill="currentColor" />
+              ) : (
+                <SendHorizontal className="h-[18px] w-[18px]" strokeWidth={2} />
               )}
-            </div>
-
-            <div className="ml-1 flex shrink-0 items-center gap-1">
-              <Button
-                onClick={sending ? handleStop : handleSend}
-                disabled={sending ? !canStop : !canSend}
-                size="icon"
-                className={`h-9 w-9 shrink-0 rounded-full transition-[background-color,color,box-shadow] ${
-                  sending
-                    ? 'app-field-surface text-foreground hover:bg-accent'
-                    : canSend
-                      ? 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md'
-                      : 'bg-transparent text-muted-foreground/45 hover:bg-transparent'
-                }`}
-                variant="ghost"
-                title={sending ? t('composer.stop') : t('composer.send')}
-              >
-                {sending ? (
-                  <Square className="h-4 w-4" fill="currentColor" />
-                ) : (
-                  <SendHorizontal className="h-[18px] w-[18px]" strokeWidth={2} />
-                )}
-              </Button>
-            </div>
+            </Button>
           </div>
         </div>
         {hasFailedAttachments && (

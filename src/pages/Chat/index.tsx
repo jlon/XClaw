@@ -105,18 +105,18 @@ export function Chat() {
 
   return (
     <div className={cn('app-chat-shell relative flex h-full flex-col transition-colors duration-500')}>
-      <div ref={scrollRef} className="chat-im-font flex-1 overflow-y-auto px-6 py-3">
+      <div ref={scrollRef} className="chat-im-font flex-1 overflow-y-auto px-5 py-3 md:px-6 md:py-4">
         {isEmpty ? (
-          <div ref={contentRef} className="mx-auto max-w-[1100px] space-y-4">
+          <div ref={contentRef} className="app-chat-workbench space-y-5">
             <WelcomeScreen
               currentAgentName={currentAgentName}
               gatewayState={gatewayStatus.state}
             />
           </div>
         ) : (
-          <div className="mx-auto max-w-[1120px]">
-            <div className="app-chat-thread-stage px-5 py-5 md:px-7 md:py-6">
-              <div ref={contentRef} className="space-y-4 pl-8">
+          <div className="app-chat-workbench">
+            <div className="app-chat-thread-stage px-1 py-4 md:px-2 md:py-5">
+              <div ref={contentRef} className="space-y-5">
                 {messages.map((msg, idx) => (
                   <ChatMessage
                     key={msg.id || `msg-${idx}`}
@@ -163,7 +163,7 @@ export function Chat() {
       {/* Error bar */}
       {error && (
         <div className="px-4 py-2 bg-destructive/10 border-t border-destructive/20">
-          <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div className="app-chat-workbench flex items-center justify-between gap-4">
             <p className="text-sm text-destructive flex items-center gap-2">
               <AlertCircle className="h-4 w-4" />
               {error}
@@ -229,14 +229,14 @@ function WelcomeScreen({
   const runtimeIssue = gatewayState !== 'running' ? t('header.runtimeIssue', { state: gatewayState }) : null;
 
   return (
-    <div data-testid="chat-welcome-hero" className="app-chat-welcome-hero mx-auto flex min-h-full w-full max-w-[1080px] flex-col px-2 pb-6 pt-2">
-      <div className="flex flex-1 flex-col justify-center gap-10">
-        <div className="mx-auto max-w-3xl text-center">
-          <p className="app-chat-header-meta text-sm">{currentAgentName}</p>
-          <h1 className="mt-4 text-[3rem] font-semibold tracking-[-0.07em] text-foreground md:text-[4.25rem]">
+    <div data-testid="chat-welcome-hero" className="app-chat-welcome-hero mx-auto flex min-h-full w-full max-w-[1000px] flex-col px-1 pb-5 pt-1">
+      <div className="mx-auto flex flex-1 w-full max-w-3xl flex-col justify-center gap-8">
+        <div className="max-w-2xl">
+          <p className="app-chat-header-meta text-[12px]">{currentAgentName}</p>
+          <h1 className="mt-3 text-[2.4rem] font-semibold tracking-[-0.06em] text-foreground md:text-[3.2rem]">
             {t('welcome.subtitle')}
           </h1>
-          <p className="mt-4 max-w-2xl text-[15px] leading-8 text-muted-foreground md:mx-auto md:text-[16px]">
+          <p className="mt-3 max-w-2xl text-[15px] leading-7 text-muted-foreground md:text-[16px]">
             {t('welcome.description')}
           </p>
           {runtimeIssue && (
@@ -246,14 +246,16 @@ function WelcomeScreen({
           )}
         </div>
 
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="space-y-2.5">
           {quickActions.map(({ key, label, description }) => (
             <button
               key={key}
-              className="app-chat-quick-action group rounded-[1.5rem] p-5 text-left transition-transform duration-200 hover:-translate-y-0.5"
+              className="app-chat-quick-action group px-1 py-3 text-left"
             >
-              <div className="text-[1rem] font-semibold tracking-[-0.03em] text-foreground">{label}</div>
-              <p className="mt-2 text-sm leading-7 text-muted-foreground">{description}</p>
+              <div className="app-chat-quick-action-copy min-w-0">
+                <div className="app-chat-quick-action-label">{label}</div>
+                <p className="app-chat-quick-action-desc">{description}</p>
+              </div>
             </button>
           ))}
         </div>
@@ -275,7 +277,7 @@ function TypingIndicator({
   return (
     <div className="chat-im-font flex gap-2.5">
       <AgentAvatar label={avatar.label} style={avatar.style} className="mt-1 h-9 w-9" textClassName="text-sm" />
-      <div className="app-chat-bubble-assistant rounded-[18px] rounded-tl-[6px] border px-4 py-2.5 text-foreground">
+      <div className="app-chat-tool-status w-fit rounded-[14px] px-3 py-2 text-foreground">
         <div className="flex gap-1">
           <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
           <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -303,7 +305,7 @@ function ActivityIndicator({
   return (
     <div className="chat-im-font flex gap-2.5">
       <AgentAvatar label={avatar.label} style={avatar.style} className="mt-1 h-9 w-9" textClassName="text-sm" />
-      <div className="app-chat-bubble-assistant rounded-[18px] rounded-tl-[6px] border px-4 py-2.5 text-foreground">
+      <div className="app-chat-tool-status w-fit rounded-[14px] px-3 py-2 text-foreground">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
           <span>{t('message.toolProcessing')}</span>

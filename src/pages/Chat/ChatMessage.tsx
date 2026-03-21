@@ -4,7 +4,7 @@
  * with markdown, thinking sections, images, and tool cards.
  */
 import { useState, useCallback, useEffect, memo } from 'react';
-import { Copy, Check, ChevronDown, ChevronRight, Wrench, FileText, Film, Music, FileArchive, File, X, FolderOpen, ZoomIn, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Copy, Check, ChevronDown, ChevronRight, Wrench, FileText, Film, Music, FileArchive, File, X, FolderOpen, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { createPortal } from 'react-dom';
@@ -74,7 +74,7 @@ export const ChatMessage = memo(function ChatMessage({
   return (
     <div
       className={cn(
-        'chat-im-font group flex gap-2.5',
+        'chat-im-font group flex gap-3',
         isUser ? 'flex-row-reverse' : 'flex-row',
       )}
     >
@@ -90,7 +90,7 @@ export const ChatMessage = memo(function ChatMessage({
       <div
         className={cn(
           'flex min-w-0 flex-col space-y-1.5',
-          isUser ? 'w-full max-w-[76%] md:max-w-[68%]' : 'w-full max-w-[min(78%,42rem)]',
+          isUser ? 'w-full max-w-[70%] md:max-w-[62%]' : 'w-full max-w-[min(76%,40rem)]',
           isUser ? 'items-end' : 'items-start',
         )}
       >
@@ -270,7 +270,7 @@ function ToolStatusBar({
             key={tool.toolCallId || tool.id || tool.name}
             data-state={tool.status}
             className={cn(
-              'app-chat-tool-status flex items-center gap-2 rounded-xl px-3 py-2 text-xs transition-colors',
+              'app-chat-tool-status flex items-center gap-2 rounded-[12px] px-2.5 py-1.5 text-xs transition-colors',
               isRunning && 'text-foreground',
               !isRunning && !isError && 'text-muted-foreground',
               isError && 'text-destructive',
@@ -304,18 +304,17 @@ function AssistantHoverBar({ text, timestamp }: { text: string; timestamp?: numb
   }, [text]);
 
   return (
-    <div className="app-chat-hoverbar inline-flex w-full items-center justify-between rounded-full px-2.5 py-1 opacity-0 transition-opacity duration-200 select-none group-hover:opacity-100">
-      <span className="text-xs text-muted-foreground">
+    <div className="app-chat-hoverbar inline-flex items-center gap-2.5 px-0.5 py-0.5 opacity-0 transition-opacity duration-200 select-none group-hover:opacity-100">
+      <span className="app-chat-meta-row text-[11px] text-muted-foreground">
         {timestamp ? formatTimestamp(timestamp) : ''}
       </span>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-6 w-6"
+      <button
+        type="button"
+        className="app-chat-meta-action"
         onClick={copyContent}
       >
         {copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
-      </Button>
+      </button>
     </div>
   );
 }
@@ -335,16 +334,16 @@ function MessageBubble({
     <div
       data-testid={isUser ? 'chat-user-bubble' : undefined}
       className={cn(
-        'relative max-w-full border px-4 py-2.5 text-[15px] leading-[1.62]',
+        'relative max-w-full text-[15px] leading-[1.62]',
         isUser
-          ? 'app-chat-bubble-user rounded-[18px] rounded-br-[6px]'
-          : 'app-chat-bubble-assistant rounded-[18px] rounded-tl-[6px] text-foreground',
+          ? 'app-chat-bubble-user rounded-[18px] rounded-br-[6px] border px-4 py-2.5'
+          : 'app-chat-bubble-assistant rounded-[18px] rounded-tl-[6px] px-0 py-0 text-foreground',
       )}
     >
       {isUser ? (
         <p className="whitespace-pre-wrap break-words text-[15px] leading-[1.62]">{text}</p>
       ) : (
-        <div className="prose prose-sm dark:prose-invert max-w-none break-words text-[15px] leading-[1.62] prose-p:my-2 prose-ul:my-2.5 prose-ol:my-2.5 prose-li:my-1 prose-pre:my-3 prose-headings:mb-2 prose-headings:mt-4">
+        <div className="prose prose-sm dark:prose-invert max-w-none break-words text-[15px] leading-[1.62] prose-p:my-2 prose-ul:my-2.5 prose-ol:my-2.5 prose-li:my-1 prose-pre:my-2.5 prose-headings:mb-2 prose-headings:mt-4">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
@@ -353,14 +352,14 @@ function MessageBubble({
                 const isInline = !match && !className;
                 if (isInline) {
                   return (
-                    <code className="app-chat-inline-code rounded px-1.5 py-0.5 text-sm font-mono break-words" {...props}>
+                    <code className="app-chat-inline-code rounded-[8px] px-1.5 py-0.5 text-[13px] font-mono break-words" {...props}>
                       {children}
                     </code>
                   );
                 }
                 return (
-                  <pre className="app-chat-code-block overflow-x-auto rounded-2xl p-4">
-                    <code className={cn('text-sm font-mono', className)} {...props}>
+                  <pre className="app-chat-code-block overflow-x-auto rounded-[16px] px-4 py-3">
+                    <code className={cn('text-[13px] font-mono leading-6', className)} {...props}>
                       {children}
                     </code>
                   </pre>
@@ -394,16 +393,16 @@ function ThinkingBlock({ content }: { content: string }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="app-chat-thinking-card w-full rounded-[16px] text-[14px]">
+    <div className="app-chat-thinking-card app-chat-secondary-block w-full text-[14px]">
       <button
-        className="flex w-full items-center gap-2 px-3 py-2 text-muted-foreground transition-colors hover:text-foreground"
+        className="app-chat-secondary-toggle"
         onClick={() => setExpanded(!expanded)}
       >
         {expanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
         <span className="font-medium">{t('message.thinking')}</span>
       </button>
       {expanded && (
-        <div className="px-3 pb-3 text-muted-foreground">
+        <div className="app-chat-secondary-body">
           <div className="prose prose-sm dark:prose-invert max-w-none opacity-75">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
           </div>
@@ -442,7 +441,7 @@ function FileCard({ file }: { file: AttachedFileMeta }) {
   return (
     <div
       className={cn(
-        'app-chat-file-card flex max-w-[220px] items-center gap-3 rounded-[16px] px-3 py-2.5',
+        'app-chat-file-card flex max-w-[200px] items-center gap-2.5 rounded-[12px] px-3 py-2',
         file.filePath && 'cursor-pointer transition-colors hover:bg-accent/60'
       )}
       onClick={handleOpen}
@@ -479,13 +478,10 @@ function ImageThumbnail({
   void filePath; void base64; void mimeType;
   return (
     <div
-      className="group/img app-chat-media-card relative h-36 w-36 cursor-zoom-in overflow-hidden rounded-[16px]"
+      className="group/img app-chat-media-card relative h-32 w-32 cursor-zoom-in overflow-hidden rounded-[12px]"
       onClick={onPreview}
     >
-      <img src={src} alt={fileName} className="w-full h-full object-cover" />
-      <div className="absolute inset-0 bg-black/0 group-hover/img:bg-black/25 transition-colors flex items-center justify-center">
-        <ZoomIn className="h-6 w-6 text-white opacity-0 group-hover/img:opacity-100 transition-opacity drop-shadow" />
-      </div>
+      <img src={src} alt={fileName} className="h-full w-full object-cover transition-transform duration-200 group-hover/img:scale-[1.01]" />
     </div>
   );
 }
@@ -510,13 +506,10 @@ function ImagePreviewCard({
   void filePath; void base64; void mimeType;
   return (
     <div
-      className="group/img app-chat-media-card relative max-w-xs cursor-zoom-in overflow-hidden rounded-[16px]"
+      className="group/img app-chat-media-card relative max-w-[220px] cursor-zoom-in overflow-hidden rounded-[12px]"
       onClick={onPreview}
     >
       <img src={src} alt={fileName} className="block w-full" />
-      <div className="absolute inset-0 bg-black/0 group-hover/img:bg-black/20 transition-colors flex items-center justify-center">
-        <ZoomIn className="h-6 w-6 text-white opacity-0 group-hover/img:opacity-100 transition-opacity drop-shadow" />
-      </div>
     </div>
   );
 }
@@ -560,24 +553,21 @@ function ImageLightbox({
       className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
       onClick={onClose}
     >
-      {/* Image + buttons stacked */}
       <div
-        className="flex flex-col items-center gap-3"
+        className="relative"
         onClick={(e) => e.stopPropagation()}
       >
         <img
           src={src}
           alt={fileName}
-          className="max-w-[90vw] max-h-[85vh] rounded-lg shadow-2xl object-contain"
+          className="max-h-[85vh] max-w-[90vw] rounded-[18px] border border-border/60 bg-background/96 object-contain shadow-2xl"
         />
-
-        {/* Action buttons below image */}
-        <div className="flex items-center gap-2">
+        <div className="absolute right-3 top-3 flex items-center gap-1.5">
           {filePath && (
             <Button
               variant="ghost"
               size="icon"
-              className="app-field-surface h-8 w-8 text-foreground hover:bg-accent/70"
+              className="app-chat-image-action h-8 w-8 text-foreground"
               onClick={handleShowInFolder}
               title={t('message.showInFolder')}
             >
@@ -587,7 +577,7 @@ function ImageLightbox({
           <Button
             variant="ghost"
             size="icon"
-            className="app-field-surface h-8 w-8 text-foreground hover:bg-accent/70"
+            className="app-chat-image-action h-8 w-8 text-foreground"
             onClick={onClose}
             title={t('common:actions.close')}
           >
@@ -606,9 +596,9 @@ function ToolCard({ name, input }: { name: string; input: unknown }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="app-chat-tool-card rounded-xl text-[14px]">
+    <div className="app-chat-tool-card app-chat-secondary-block text-[14px]">
       <button
-        className="flex items-center gap-2 w-full px-3 py-1.5 text-muted-foreground hover:text-foreground transition-colors"
+        className="app-chat-secondary-toggle"
         onClick={() => setExpanded(!expanded)}
       >
         <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[hsl(var(--success))]" />
@@ -617,7 +607,7 @@ function ToolCard({ name, input }: { name: string; input: unknown }) {
         {expanded ? <ChevronDown className="h-3 w-3 ml-auto" /> : <ChevronRight className="h-3 w-3 ml-auto" />}
       </button>
       {expanded && input != null && (
-        <pre className="px-3 pb-2 text-xs text-muted-foreground overflow-x-auto">
+        <pre className="app-chat-secondary-body overflow-x-auto text-xs text-muted-foreground">
           {typeof input === 'string' ? input : JSON.stringify(input, null, 2) as string}
         </pre>
       )}

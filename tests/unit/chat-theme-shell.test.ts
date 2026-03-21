@@ -25,6 +25,28 @@ describe('chat desktop shell theme', () => {
     expect(inputSource).not.toContain('app-chat-connection-indicator');
   });
 
+  it('keeps the composer aligned with the chat workbench width and uses a taller dock rhythm', () => {
+    const pageSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/index.tsx'), 'utf8');
+    const themeSource = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
+    const inputSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/ChatInput.tsx'), 'utf8');
+
+    expect(pageSource).toContain('app-chat-workbench');
+    expect(inputSource).toContain('app-chat-workbench');
+    expect(themeSource).toContain('.app-chat-workbench');
+    expect(inputSource).toContain('app-chat-composer-editor');
+    expect(inputSource).toContain('app-chat-composer-footer');
+    expect(themeSource).toContain('.app-chat-composer-editor');
+    expect(themeSource).toContain('.app-chat-composer-footer');
+    expect(inputSource).toContain("min-h-[88px]");
+    expect(inputSource).toContain("min-h-[72px]");
+    expect(inputSource).not.toContain("'h-[52px] w-[52px]");
+    expect(inputSource).toContain('absolute inset-x-4 bottom-4');
+    expect(inputSource).toContain('app-chat-composer-tool-button');
+    expect(themeSource).toContain('.app-chat-composer-tool-button');
+    expect(themeSource).toContain('overflow: visible;');
+    expect(themeSource).not.toContain('.app-chat-composer-tools {\n  display: flex;\n  min-width: 0;\n  flex-wrap: nowrap;\n  align-items: center;\n  gap: 0.375rem;\n  overflow: hidden;');
+  });
+
   it('defines dedicated chat shell classes in the global theme layer', () => {
     const source = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
 
@@ -33,6 +55,8 @@ describe('chat desktop shell theme', () => {
     expect(source).toContain('.app-chat-header-meta');
     expect(source).toContain('.app-chat-toolbar-group');
     expect(source).toContain('.app-chat-composer-dock');
+    expect(source).toContain('.app-chat-composer-editor');
+    expect(source).toContain('.app-chat-composer-footer');
     expect(source).toContain('.app-chat-connection-indicator');
   });
 

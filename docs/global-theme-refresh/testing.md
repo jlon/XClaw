@@ -15,6 +15,17 @@
 - `Chat` 最新一轮“移除顶栏标题与会话元信息”已落地，本轮仍按快速收口策略未补完整自动化
 - `Chat` 最新一轮“移除底部 gateway 状态栏，并将微状态上移到顶栏工具区”已落地，本轮已补一条定向主题结构回归和最小静态校验
 - `Chat` 最新一轮“为顶栏 gateway 微状态补柔和呼吸反馈”已落地，本轮同样只补定向结构回归和最小静态校验
+- `Chat` 最新一轮“统一 workbench 宽度基线并将输入坞站重构为上写作区、下工具行、右下发送”已落地，本轮补了定向结构回归和最小静态校验
+- `Chat` 最新一轮“将底部工具区改成同面板覆盖式工具层，并压缩左侧图标组密度”已落地，本轮同样只补定向结构回归和最小静态校验
+- `Chat` 最新一轮“统一左下角三个工具入口的按钮语义并继续压缩工具组间距”已落地，本轮继续使用定向结构回归和最小静态校验
+- `Chat` 最新一轮“基于本机解包的 `QClaw.app` 证据，继续把输入坞站压回更紧凑的桌面节奏”已落地，本轮继续使用定向结构回归和最小静态校验
+- `Chat` 最新一轮“继续按 `QClaw` 的工作区思路收平消息交互区”已落地，本轮继续使用定向结构回归和最小静态校验
+- `Chat` 最新一轮“继续按 `QClaw` 的轻量发送气泡思路收掉用户消息块的品牌厚重感”已落地，本轮继续使用最小静态校验
+- `Chat` 最新一轮“继续按 `QClaw` 的启动区与次级信息轨思路收欢迎态、thinking/tool、发送中状态”已落地，本轮继续使用定向结构回归和最小静态校验
+- `Chat` 最新一轮“继续压低欢迎动作与附件资产的存在感”已落地，本轮继续使用定向结构回归和最小静态校验
+- `Chat` 最新一轮“修复工具轨 `overflow: hidden` 导致 `@` 与模型弹层被裁掉的回归”已落地，本轮继续使用定向结构回归和最小静态校验
+- `Chat` 最新一轮“继续收掉复制栏、代码块和图片预览的网页组件感”已落地，本轮补了定向主题结构回归和最小静态校验
+- `Chat` 最新一轮“继续将欢迎动作和工具/思考状态轨收成文档式次级行”已落地，本轮继续补了定向主题结构回归和最小静态校验
 
 ## 设计阶段验证
 
@@ -86,6 +97,9 @@
 - `pnpm exec vitest run tests/unit/chat-layout.test.tsx`
 - `pnpm exec vitest run tests/unit/chat-theme-shell.test.ts tests/unit/chat-layout.test.tsx`
 - `pnpm exec vitest run tests/unit/chat-theme-shell.test.ts -t "keeps the header minimal and limits desktop-grade surfaces to tools and composer"`
+- `pnpm exec vitest run tests/unit/chat-theme-shell.test.ts -t "keeps the composer aligned with the chat workbench width and uses a taller dock rhythm"`
+- `pnpm exec vitest run tests/unit/chat-theme-shell.test.ts tests/unit/chat-layout.test.tsx`
+- `pnpm exec vitest run tests/unit/chat-theme-shell.test.ts -t "keeps the composer aligned with the chat workbench width and uses a taller dock rhythm"`
 - `pnpm exec vitest run tests/unit/chat-session-presentation.test.ts tests/unit/chat-theme-shell.test.ts tests/unit/chat-layout.test.tsx --testTimeout=15000`
 - `pnpm exec vitest run tests/unit/channels-page.test.tsx`
 - `pnpm exec vitest run tests/unit/setup-primary-action.test.ts tests/unit/setup-page-i18n.test.tsx tests/unit/setup-preparation-stage.test.tsx tests/unit/setup-locale.test.ts tests/unit/setup-wizard-flow.test.ts tests/unit/setup-wizard-layout.test.tsx tests/unit/setup-takeover.test.tsx`
@@ -94,6 +108,8 @@
 - `pnpm exec eslint src/pages/Chat/index.tsx src/pages/Chat/ChatInput.tsx src/pages/Chat/ChatMessage.tsx tests/unit/chat-theme-shell.test.ts tests/unit/chat-layout.test.tsx --max-warnings=0`
 - `pnpm exec eslint src/pages/Chat/index.tsx src/pages/Chat/ChatToolbar.tsx src/pages/Chat/ChatInput.tsx src/pages/Chat/ChatMessage.tsx src/pages/Chat/session-presentation.ts tests/unit/chat-session-presentation.test.ts tests/unit/chat-theme-shell.test.ts tests/unit/chat-layout.test.tsx --max-warnings=0`
 - `pnpm exec eslint src/pages/Chat/ChatToolbar.tsx src/pages/Chat/ChatInput.tsx src/pages/Chat/gateway-ui.ts tests/unit/chat-theme-shell.test.ts --max-warnings=0`
+- `pnpm exec eslint src/pages/Chat/index.tsx src/pages/Chat/ChatInput.tsx tests/unit/chat-theme-shell.test.ts --max-warnings=0`
+- `pnpm exec eslint src/pages/Chat/ChatInput.tsx tests/unit/chat-theme-shell.test.ts --max-warnings=0`
 - `pnpm exec eslint src/components/settings/ProvidersSettings.tsx src/components/settings/UpdateSettings.tsx src/pages/Settings/index.tsx src/pages/Models/index.tsx src/pages/Agents/index.tsx src/pages/Skills/index.tsx src/pages/Cron/index.tsx src/pages/Chat/ChatInput.tsx src/pages/Channels/index.tsx tests/unit/channels-page.test.tsx --max-warnings=0`
 - `pnpm exec eslint src/pages/Setup/index.tsx src/components/setup/*.tsx src/components/setup/*.ts tests/unit/setup-*.ts tests/unit/setup-*.tsx --max-warnings=0`
 - `pnpm run typecheck`
