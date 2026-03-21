@@ -26,6 +26,7 @@ import logoSvg from '@/assets/logo.svg';
 
 interface SidebarProps {
   railOnly?: boolean;
+  className?: string;
 }
 
 interface NavItemProps {
@@ -56,7 +57,7 @@ function RailTooltip({
         aria-hidden="true"
         className="pointer-events-none absolute left-full top-1/2 z-20 ml-2 -translate-y-1/2 translate-x-1 opacity-0 transition-[opacity,transform] duration-150 group-hover/sidebar-item:translate-x-0 group-hover/sidebar-item:opacity-100 group-focus-within/sidebar-item:translate-x-0 group-focus-within/sidebar-item:opacity-100"
       >
-        <span className="block max-w-[160px] overflow-hidden text-ellipsis whitespace-nowrap rounded-xl border border-[#e3d5c3] bg-[#fbf6ed]/95 px-3 py-1.5 text-[12px] font-medium text-foreground shadow-[0_10px_30px_rgba(15,23,42,0.10)] dark:border-white/10 dark:bg-card/95">
+        <span className="block max-w-[160px] overflow-hidden text-ellipsis whitespace-nowrap rounded-xl border border-border/70 bg-popover/95 px-3 py-1.5 text-[12px] font-medium text-popover-foreground shadow-[0_10px_30px_rgba(15,23,42,0.10)]">
           {label}
         </span>
       </div>
@@ -75,10 +76,10 @@ function NavItem({ to, icon, label, collapsed }: NavItemProps) {
             'flex w-full items-center rounded-lg px-2.5 py-2 text-[14px] font-medium transition-[background-color,color,padding,gap,border-color,box-shadow] duration-300 ease-out',
             'text-foreground/80',
             collapsed
-              ? 'mx-auto h-10 w-10 justify-center gap-0 rounded-2xl border border-transparent px-0 hover:bg-white/80 hover:text-foreground hover:shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:border-black/5 dark:hover:bg-white/[0.08] dark:hover:border-white/10'
-              : 'gap-2.5 hover:bg-black/5 dark:hover:bg-white/5',
+              ? 'mx-auto h-10 w-10 justify-center gap-0 rounded-2xl border border-transparent px-0 hover:bg-accent hover:text-foreground hover:shadow-sm'
+              : 'gap-2.5 hover:bg-accent/80',
             isActive
-              ? 'bg-white/90 text-foreground shadow-sm ring-1 ring-black/5 dark:bg-white/10 dark:ring-white/10'
+              ? 'bg-accent text-accent-foreground shadow-sm ring-1 ring-border/70'
               : '',
           )
         }
@@ -103,7 +104,7 @@ function NavItem({ to, icon, label, collapsed }: NavItemProps) {
   );
 }
 
-export function Sidebar({ railOnly = false }: SidebarProps) {
+export function Sidebar({ railOnly = false, className }: SidebarProps) {
   const sidebarCollapsed = useSettingsStore((state) => state.sidebarCollapsed);
   const setSidebarCollapsed = useSettingsStore((state) => state.setSidebarCollapsed);
   const { t } = useTranslation('common');
@@ -140,8 +141,10 @@ export function Sidebar({ railOnly = false }: SidebarProps) {
   return (
     <aside
       className={cn(
-        'flex shrink-0 flex-col border-r bg-[#eae8e1]/60 dark:bg-background transition-[width,background-color,border-color] duration-300 ease-out',
+        'desktop-app-sidebar desktop-app-sidebar-surface flex shrink-0 flex-col overflow-hidden border-r border-border/70 bg-background/85 shadow-[inset_-1px_0_0_hsl(var(--border)/0.35)] transition-[width,background-color,border-color] duration-300 ease-out',
+        railOnly ? 'desktop-app-sidebar-rail' : 'desktop-app-sidebar-panel',
         collapsed ? 'w-16' : 'w-64',
+        className,
       )}
     >
       <div className="px-2 pb-2 pt-3">
@@ -163,7 +166,7 @@ export function Sidebar({ railOnly = false }: SidebarProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 shrink-0 text-muted-foreground hover:bg-black/5 dark:hover:bg-white/10"
+            className="h-8 w-8 shrink-0 text-muted-foreground hover:bg-accent"
             onClick={() => {
               if (railOnly) {
                 setRailExpanded((value) => !value);
@@ -182,13 +185,13 @@ export function Sidebar({ railOnly = false }: SidebarProps) {
         </div>
       </div>
 
-      <nav className="flex flex-col px-2 gap-0.5">
+      <nav className="flex flex-col gap-0.5 px-2">
         {navItems.map((item) => (
           <NavItem key={item.to} {...item} collapsed={collapsed} />
         ))}
       </nav>
 
-      <div className="p-2 mt-auto">
+      <div className="mt-auto p-2">
         <NavItem
           to="/settings"
           icon={<SettingsIcon className="h-[18px] w-[18px]" strokeWidth={2} />}
@@ -204,8 +207,8 @@ export function Sidebar({ railOnly = false }: SidebarProps) {
               'flex items-center rounded-lg px-2.5 py-2 h-auto text-[14px] font-medium transition-[background-color,color,padding,gap,border-color,box-shadow] duration-300 ease-out w-full mt-1',
               'text-foreground/80',
               collapsed
-                ? 'mx-auto h-10 w-10 justify-center gap-0 rounded-2xl border border-transparent px-0 hover:bg-white/80 hover:text-foreground hover:shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:border-black/5 dark:hover:bg-white/[0.08] dark:hover:border-white/10'
-                : 'justify-start gap-2.5 hover:bg-black/5 dark:hover:bg-white/5',
+                ? 'mx-auto h-10 w-10 justify-center gap-0 rounded-2xl border border-transparent px-0 hover:bg-accent hover:text-foreground hover:shadow-sm'
+                : 'justify-start gap-2.5 hover:bg-accent/80',
             )}
             onClick={openDevConsole}
           >

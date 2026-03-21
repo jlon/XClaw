@@ -41,6 +41,17 @@ interface ChannelGroupItem {
   accounts: ChannelAccountItem[];
 }
 
+const headerButtonClasses =
+  'h-9 rounded-full px-4 text-[13px] font-medium shadow-none border-border/70 bg-transparent text-foreground/80 transition-colors hover:bg-accent/60 hover:text-foreground';
+const fieldInputClasses =
+  'h-[44px] rounded-xl font-mono text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30';
+const modalSurfaceClasses =
+  'w-full rounded-3xl border border-border/70 bg-background/90 shadow-[0_24px_80px_rgba(0,0,0,0.26)] backdrop-blur-xl';
+const badgeClasses =
+  'h-5 rounded-full border border-border/70 bg-background/70 px-2 text-[10px] font-medium text-foreground/70 shadow-none';
+const panelCardClasses =
+  'group flex items-start gap-4 rounded-3xl app-panel-surface p-4 text-left transition-all hover:border-primary/20 hover:shadow-[0_10px_24px_rgba(15,23,42,0.08)]';
+
 export function Agents() {
   const { t } = useTranslation('agents');
   const gatewayStatus = useGatewayStore((state) => state.status);
@@ -111,10 +122,7 @@ export function Agents() {
       <WorkspacePageShell>
         <div className="flex flex-col md:flex-row md:items-start justify-between mb-12 shrink-0 gap-4">
           <div>
-            <h1
-              className="text-5xl md:text-6xl font-serif text-foreground mb-3 font-normal tracking-tight"
-              style={{ fontFamily: 'Georgia, Cambria, "Times New Roman", Times, serif' }}
-            >
+            <h1 className="text-5xl md:text-6xl font-serif text-foreground mb-3 font-normal tracking-tight">
               {t('title')}
             </h1>
             <p className="text-[17px] text-foreground/70 font-medium">{t('subtitle')}</p>
@@ -123,7 +131,7 @@ export function Agents() {
             <Button
               variant="outline"
               onClick={handleRefresh}
-              className="h-9 text-[13px] font-medium rounded-full px-4 border-black/10 dark:border-white/10 bg-transparent hover:bg-black/5 dark:hover:bg-white/5 shadow-none text-foreground/80 hover:text-foreground transition-colors"
+              className={headerButtonClasses}
             >
               <RefreshCw className="h-3.5 w-3.5 mr-2" />
               {t('refresh')}
@@ -140,18 +148,18 @@ export function Agents() {
 
         <WorkspacePageScrollArea>
           {gatewayStatus.state !== 'running' && (
-            <div className="mb-8 p-4 rounded-xl border border-yellow-500/50 bg-yellow-500/10 flex items-center gap-3">
-              <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
-              <span className="text-yellow-700 dark:text-yellow-400 text-sm font-medium">
+            <div className="mb-8 flex items-center gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4 text-amber-950 dark:text-amber-50 app-panel-surface">
+              <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              <span className="text-sm font-medium text-amber-900 dark:text-amber-100">
                 {t('gatewayWarning')}
               </span>
             </div>
           )}
 
           {error && (
-            <div className="mb-8 p-4 rounded-xl border border-destructive/50 bg-destructive/10 flex items-center gap-3">
+            <div className="mb-8 flex items-center gap-3 rounded-2xl border border-destructive/20 bg-destructive/10 p-4 app-panel-surface">
               <AlertCircle className="h-5 w-5 text-destructive" />
-              <span className="text-destructive text-sm font-medium">
+              <span className="text-sm font-medium text-destructive">
                 {error}
               </span>
             </div>
@@ -248,11 +256,11 @@ function AgentCard({
   return (
     <div
       className={cn(
-        'group flex items-start gap-4 p-4 rounded-2xl transition-all text-left border relative overflow-hidden bg-transparent border-transparent hover:bg-black/5 dark:hover:bg-white/5',
-        agent.isDefault && 'bg-black/[0.04] dark:bg-white/[0.06]'
+        panelCardClasses,
+        agent.isDefault && 'border-primary/20 bg-primary/5'
       )}
     >
-      <div className="h-[46px] w-[46px] shrink-0 flex items-center justify-center text-primary bg-primary/10 rounded-full shadow-sm mb-3">
+      <div className="mb-3 flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-primary shadow-sm">
         <Bot className="h-[22px] w-[22px]" />
       </div>
       <div className="flex flex-col flex-1 min-w-0 py-0.5 mt-1">
@@ -262,7 +270,7 @@ function AgentCard({
             {agent.isDefault && (
               <Badge
                 variant="secondary"
-                className="flex items-center gap-1 font-mono text-[10px] font-medium px-2 py-0.5 rounded-full bg-black/[0.04] dark:bg-white/[0.08] border-0 shadow-none text-foreground/70"
+                className={cn('flex items-center gap-1 px-2 py-0.5 font-mono', badgeClasses, 'bg-primary/10 text-primary')}
               >
                 <Check className="h-3 w-3" />
                 {t('defaultBadge')}
@@ -274,7 +282,7 @@ function AgentCard({
               <Button
                 variant="ghost"
                 size="icon"
-                className="opacity-0 group-hover:opacity-100 h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+                className="h-7 w-7 text-muted-foreground opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
                 onClick={onDelete}
                 title={t('deleteAgent')}
               >
@@ -285,7 +293,7 @@ function AgentCard({
               variant="ghost"
               size="icon"
               className={cn(
-                'h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/10 transition-all',
+                'h-7 w-7 text-muted-foreground transition-all hover:bg-accent/60 hover:text-foreground',
                 !agent.isDefault && 'opacity-0 group-hover:opacity-100',
               )}
               onClick={onOpenSettings}
@@ -309,8 +317,8 @@ function AgentCard({
   );
 }
 
-const inputClasses = 'h-[44px] rounded-xl font-mono text-[13px] bg-[#eeece3] dark:bg-muted border-black/10 dark:border-white/10 focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:border-blue-500 shadow-sm transition-all text-foreground placeholder:text-foreground/40';
-const labelClasses = 'text-[14px] text-foreground/80 font-bold';
+const inputClasses = fieldInputClasses;
+const labelClasses = 'text-[14px] font-semibold text-foreground/80';
 
 function ChannelLogo({ type }: { type: ChannelType }) {
   switch (type) {
@@ -358,8 +366,8 @@ function AddAgentDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md rounded-3xl border-0 shadow-2xl bg-[#f3f1e9] dark:bg-card overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 p-4 backdrop-blur-sm">
+      <Card className={cn(modalSurfaceClasses, 'max-w-md overflow-hidden')}>
         <CardHeader className="pb-2">
           <CardTitle className="text-2xl font-serif font-normal tracking-tight">
             {t('createDialog.title')}
@@ -383,7 +391,7 @@ function AddAgentDialog({
             <Button
               variant="outline"
               onClick={onClose}
-              className="h-9 text-[13px] font-medium rounded-full px-4 border-black/10 dark:border-white/10 bg-transparent hover:bg-black/5 dark:hover:bg-white/5 shadow-none text-foreground/80 hover:text-foreground"
+              className={headerButtonClasses}
             >
               {t('common:actions.cancel')}
             </Button>
@@ -416,7 +424,7 @@ function AgentSettingsModal({
   agent: AgentSummary;
   channelGroups: ChannelGroupItem[];
   onClose: () => void;
-}) {
+  }) {
   const { t } = useTranslation('agents');
   const { updateAgent } = useAgentsStore();
   const [name, setName] = useState(agent.name);
@@ -454,8 +462,8 @@ function AgentSettingsModal({
   );
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-3xl border-0 shadow-2xl bg-[#f3f1e9] dark:bg-card overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 p-4 backdrop-blur-sm">
+      <Card className={cn(modalSurfaceClasses, 'max-h-[90vh] max-w-2xl flex flex-col overflow-hidden')}>
         <CardHeader className="flex flex-row items-start justify-between pb-2 shrink-0">
           <div>
             <CardTitle className="text-2xl font-serif font-normal tracking-tight">
@@ -469,7 +477,7 @@ function AgentSettingsModal({
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="rounded-full h-8 w-8 -mr-2 -mt-2 text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5"
+            className="h-8 w-8 rounded-full -mr-2 -mt-2 text-muted-foreground hover:bg-accent/60 hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </Button>
@@ -491,7 +499,7 @@ function AgentSettingsModal({
                     variant="outline"
                     onClick={() => void handleSaveName()}
                     disabled={savingName || !name.trim() || name.trim() === agent.name}
-                    className="h-[44px] text-[13px] font-medium rounded-xl px-4 border-black/10 dark:border-white/10 bg-[#eeece3] dark:bg-muted hover:bg-black/5 dark:hover:bg-white/5 shadow-none text-foreground/80 hover:text-foreground"
+                    className="h-[44px] rounded-xl border-border/70 bg-transparent px-4 text-[13px] font-medium text-foreground/80 shadow-none transition-colors hover:bg-accent/60 hover:text-foreground"
                   >
                     {savingName ? (
                       <RefreshCw className="h-4 w-4 animate-spin" />
@@ -504,13 +512,13 @@ function AgentSettingsModal({
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-1 rounded-2xl bg-black/5 dark:bg-white/5 border border-transparent p-4">
+              <div className="space-y-1 rounded-2xl app-panel-surface p-4">
                 <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground/80 font-medium">
                   {t('settingsDialog.agentIdLabel')}
                 </p>
                 <p className="font-mono text-[13px] text-foreground">{agent.id}</p>
               </div>
-              <div className="space-y-1 rounded-2xl bg-black/5 dark:bg-white/5 border border-transparent p-4">
+              <div className="space-y-1 rounded-2xl app-panel-surface p-4">
                 <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground/80 font-medium">
                   {t('settingsDialog.modelLabel')}
                 </p>
@@ -533,15 +541,15 @@ function AgentSettingsModal({
             </div>
 
             {assignedChannels.length === 0 && agent.channelTypes.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 p-4 text-[13.5px] text-muted-foreground">
+              <div className="rounded-2xl border border-dashed border-border/70 bg-background/70 p-4 text-[13.5px] text-muted-foreground">
                 {t('settingsDialog.noChannels')}
               </div>
             ) : (
               <div className="space-y-3">
                 {assignedChannels.map((channel) => (
-                  <div key={`${channel.channelType}-${channel.accountId}`} className="flex items-center justify-between rounded-2xl bg-black/5 dark:bg-white/5 border border-transparent p-4">
+                  <div key={`${channel.channelType}-${channel.accountId}`} className="flex items-center justify-between rounded-2xl border border-border/70 bg-background/70 p-4">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="h-[40px] w-[40px] shrink-0 flex items-center justify-center text-foreground bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-full shadow-sm">
+                      <div className="h-[40px] w-[40px] shrink-0 flex items-center justify-center rounded-full border border-border/70 bg-background/80 text-foreground shadow-sm">
                         <ChannelLogo type={channel.channelType} />
                       </div>
                       <div className="min-w-0">
@@ -558,7 +566,7 @@ function AgentSettingsModal({
                   </div>
                 ))}
                 {assignedChannels.length === 0 && agent.channelTypes.length > 0 && (
-                  <div className="rounded-2xl border border-dashed border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 p-4 text-[13.5px] text-muted-foreground">
+                  <div className="rounded-2xl border border-dashed border-border/70 bg-background/70 p-4 text-[13.5px] text-muted-foreground">
                     {t('settingsDialog.channelsManagedInChannels')}
                   </div>
                 )}

@@ -139,17 +139,23 @@ function App() {
   // Apply theme
   useEffect(() => {
     const root = window.document.documentElement;
-    root.classList.remove('light', 'dark');
+    root.dataset.platform = window.electron?.platform ?? 'unknown';
+  }, []);
 
-    if (theme === 'system') {
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove('light', 'dark');
+    const resolvedTheme = theme === 'system' && !setupComplete ? 'light' : theme;
+
+    if (resolvedTheme === 'system') {
       const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
         ? 'dark'
         : 'light';
       root.classList.add(systemTheme);
     } else {
-      root.classList.add(theme);
+      root.classList.add(resolvedTheme);
     }
-  }, [theme]);
+  }, [setupComplete, theme]);
 
   useEffect(() => {
     applyGatewayTransportPreference();

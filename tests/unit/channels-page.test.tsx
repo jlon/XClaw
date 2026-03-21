@@ -286,10 +286,9 @@ describe('Channels page status refresh', () => {
     render(<Channels />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('channels-workbench')).toBeInTheDocument();
+      expect(screen.getByTestId('channel-rail-item-feishu')).toHaveAttribute('aria-pressed', 'true');
     });
 
-    expect(screen.getByTestId('channel-rail-item-feishu')).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByTestId('channel-account-item-default')).toHaveTextContent('Primary Account');
 
     await act(async () => {
@@ -386,15 +385,15 @@ describe('Channels page status refresh', () => {
     render(<Channels />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('bg-amber-50/70');
+      expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('bg-primary/10');
     });
 
     expect(screen.getByTestId('channel-rail-item-feishu').className).not.toContain('#f7f2e9');
-    expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('bg-amber-50/70');
-    expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('dark:bg-white/10');
+    expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('bg-primary/10');
+    expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('border-primary/25');
 
     expect(screen.getByPlaceholderText('searchPlaceholder').className).not.toContain('#f5f1e8');
-    expect(screen.getByPlaceholderText('searchPlaceholder').className).toContain('bg-background/80');
+    expect(screen.getByPlaceholderText('searchPlaceholder').className).toContain('app-field-surface');
   });
 
   it('uses a staged responsive workbench so default windows prefer two columns before expanding to three', async () => {
@@ -558,7 +557,7 @@ describe('Channels page status refresh', () => {
   });
 
   it('retries channel account loading after the runtime becomes available', async () => {
-    const scheduledCallbacks: Array<() => void> = [];
+    const scheduledCallbacks: Array<() => void | Promise<void>> = [];
     const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout').mockImplementation(((callback: TimerHandler, delay?: number) => {
       if (typeof callback === 'function' && delay === 1500) {
         scheduledCallbacks.push(callback as () => void);
@@ -657,15 +656,15 @@ describe('Channels page status refresh', () => {
       expect(scheduledCallbacks).toHaveLength(1);
 
       await act(async () => {
-        scheduledCallbacks.shift()?.();
+        await scheduledCallbacks.shift()?.();
+        await Promise.resolve();
+        await Promise.resolve();
       });
 
-      await waitFor(() => {
-        expect(
-          hostApiFetchMock.mock.calls.filter(([path]) => path === '/api/channels/accounts'),
-        ).toHaveLength(2);
-        expect(screen.getByTestId('channel-rail-item-wecom')).toHaveTextContent('account.connectionStatus.connected');
-      });
+      expect(
+        hostApiFetchMock.mock.calls.filter(([path]) => path === '/api/channels/accounts'),
+      ).toHaveLength(2);
+      expect(screen.getByTestId('channel-rail-item-wecom')).toHaveTextContent('account.connectionStatus.connected');
     } finally {
       setTimeoutSpy.mockRestore();
       clearTimeoutSpy.mockRestore();

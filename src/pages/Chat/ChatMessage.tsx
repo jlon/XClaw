@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { invokeIpc } from '@/lib/api-client';
 import type { RawMessage, AttachedFileMeta } from '@/stores/chat';
 import { extractText, extractThinking, extractImages, extractToolUse, formatTimestamp } from './message-utils';
+import { useTranslation } from 'react-i18next';
 
 interface ChatMessageProps {
   message: RawMessage;
@@ -49,6 +50,7 @@ export const ChatMessage = memo(function ChatMessage({
   isStreaming = false,
   streamingTools = [],
 }: ChatMessageProps) {
+  const { t } = useTranslation('chat');
   const isUser = message.role === 'user';
   const role = typeof message.role === 'string' ? message.role.toLowerCase() : '';
   const isToolResult = role === 'toolresult' || role === 'tool_result';
@@ -79,7 +81,7 @@ export const ChatMessage = memo(function ChatMessage({
       {!isUser && (
         <AgentAvatar
           label={assistantAvatar?.label ?? 'A'}
-          style={assistantAvatar?.style ?? 'from-amber-500 to-red-500'}
+          style={assistantAvatar?.style ?? 'from-primary to-rose-500'}
           className="mt-0.5 h-[34px] w-[34px]"
           textClassName="text-sm"
         />
@@ -117,10 +119,10 @@ export const ChatMessage = memo(function ChatMessage({
                 <ImageThumbnail
                   key={`content-${i}`}
                   src={src}
-                  fileName="image"
+                  fileName={t('message.image')}
                   base64={img.data}
                   mimeType={img.mimeType}
-                  onPreview={() => setLightboxImg({ src, fileName: 'image', base64: img.data, mimeType: img.mimeType })}
+                  onPreview={() => setLightboxImg({ src, fileName: t('message.image'), base64: img.data, mimeType: img.mimeType })}
                 />
               );
             })}
@@ -146,7 +148,7 @@ export const ChatMessage = memo(function ChatMessage({
                 ) : (
                   <div
                     key={`local-${i}`}
-                    className="w-36 h-36 rounded-xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 flex items-center justify-center text-muted-foreground"
+                    className="app-field-surface flex h-36 w-36 items-center justify-center rounded-xl text-muted-foreground"
                   >
                     <File className="h-8 w-8" />
                   </div>
@@ -175,10 +177,10 @@ export const ChatMessage = memo(function ChatMessage({
                 <ImagePreviewCard
                   key={`content-${i}`}
                   src={src}
-                  fileName="image"
+                  fileName={t('message.image')}
                   base64={img.data}
                   mimeType={img.mimeType}
-                  onPreview={() => setLightboxImg({ src, fileName: 'image', base64: img.data, mimeType: img.mimeType })}
+                  onPreview={() => setLightboxImg({ src, fileName: t('message.image'), base64: img.data, mimeType: img.mimeType })}
                 />
               );
             })}
@@ -204,7 +206,7 @@ export const ChatMessage = memo(function ChatMessage({
               }
               if (isImage && !file.preview) {
                 return (
-                  <div key={`local-${i}`} className="w-36 h-36 rounded-xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 flex items-center justify-center text-muted-foreground">
+                  <div key={`local-${i}`} className="app-field-surface flex h-36 w-36 items-center justify-center rounded-xl text-muted-foreground">
                     <File className="h-8 w-8" />
                   </div>
                 );
@@ -266,15 +268,16 @@ function ToolStatusBar({
         return (
           <div
             key={tool.toolCallId || tool.id || tool.name}
+            data-state={tool.status}
             className={cn(
-              'flex items-center gap-2 rounded-lg border px-3 py-2 text-xs transition-colors',
-              isRunning && 'border-primary/30 bg-primary/5 text-foreground',
-              !isRunning && !isError && 'border-border/50 bg-muted/20 text-muted-foreground',
-              isError && 'border-destructive/30 bg-destructive/5 text-destructive',
+              'app-chat-tool-status flex items-center gap-2 rounded-xl px-3 py-2 text-xs transition-colors',
+              isRunning && 'text-foreground',
+              !isRunning && !isError && 'text-muted-foreground',
+              isError && 'text-destructive',
             )}
           >
             {isRunning && <Loader2 className="h-3.5 w-3.5 animate-spin text-primary shrink-0" />}
-            {!isRunning && !isError && <CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0" />}
+            {!isRunning && !isError && <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[hsl(var(--success))]" />}
             {isError && <AlertCircle className="h-3.5 w-3.5 text-destructive shrink-0" />}
             <Wrench className="h-3 w-3 shrink-0 opacity-60" />
             <span className="font-mono text-[12px] font-medium">{tool.name}</span>
@@ -301,7 +304,7 @@ function AssistantHoverBar({ text, timestamp }: { text: string; timestamp?: numb
   }, [text]);
 
   return (
-    <div className="flex w-full items-center justify-between px-1 opacity-0 transition-opacity duration-200 select-none group-hover:opacity-100">
+    <div className="app-chat-hoverbar inline-flex w-full items-center justify-between rounded-full px-2.5 py-1 opacity-0 transition-opacity duration-200 select-none group-hover:opacity-100">
       <span className="text-xs text-muted-foreground">
         {timestamp ? formatTimestamp(timestamp) : ''}
       </span>
@@ -332,10 +335,10 @@ function MessageBubble({
     <div
       data-testid={isUser ? 'chat-user-bubble' : undefined}
       className={cn(
-        'relative max-w-full border px-4 py-2.5 text-[15px] leading-[1.62] shadow-[0_4px_14px_rgba(15,23,42,0.04)]',
+        'relative max-w-full border px-4 py-2.5 text-[15px] leading-[1.62]',
         isUser
-          ? 'chat-im-user-bubble rounded-[18px] rounded-br-[6px]'
-          : 'chat-im-assistant-bubble rounded-[18px] rounded-tl-[6px] text-foreground',
+          ? 'app-chat-bubble-user rounded-[18px] rounded-br-[6px]'
+          : 'app-chat-bubble-assistant rounded-[18px] rounded-tl-[6px] text-foreground',
       )}
     >
       {isUser ? (
@@ -350,13 +353,13 @@ function MessageBubble({
                 const isInline = !match && !className;
                 if (isInline) {
                   return (
-                    <code className="rounded bg-background/60 px-1.5 py-0.5 text-sm font-mono break-words" {...props}>
+                    <code className="app-chat-inline-code rounded px-1.5 py-0.5 text-sm font-mono break-words" {...props}>
                       {children}
                     </code>
                   );
                 }
                 return (
-                  <pre className="overflow-x-auto rounded-2xl bg-background/60 p-4">
+                  <pre className="app-chat-code-block overflow-x-auto rounded-2xl p-4">
                     <code className={cn('text-sm font-mono', className)} {...props}>
                       {children}
                     </code>
@@ -387,16 +390,17 @@ function MessageBubble({
 // ── Thinking Block ──────────────────────────────────────────────
 
 function ThinkingBlock({ content }: { content: string }) {
+  const { t } = useTranslation('chat');
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="chat-im-assistant-bubble w-full rounded-[16px] border text-[14px] shadow-[0_4px_14px_rgba(15,23,42,0.03)]">
+    <div className="app-chat-thinking-card w-full rounded-[16px] text-[14px]">
       <button
         className="flex w-full items-center gap-2 px-3 py-2 text-muted-foreground transition-colors hover:text-foreground"
         onClick={() => setExpanded(!expanded)}
       >
         {expanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
-        <span className="font-medium">Thinking</span>
+        <span className="font-medium">{t('message.thinking')}</span>
       </button>
       {expanded && (
         <div className="px-3 pb-3 text-muted-foreground">
@@ -428,6 +432,7 @@ function FileIcon({ mimeType, className }: { mimeType: string; className?: strin
 }
 
 function FileCard({ file }: { file: AttachedFileMeta }) {
+  const { t } = useTranslation('chat');
   const handleOpen = useCallback(() => {
     if (file.filePath) {
       invokeIpc('shell:openPath', file.filePath);
@@ -435,19 +440,19 @@ function FileCard({ file }: { file: AttachedFileMeta }) {
   }, [file.filePath]);
 
   return (
-    <div 
+    <div
       className={cn(
-        "chat-im-assistant-bubble flex max-w-[220px] items-center gap-3 rounded-[16px] border px-3 py-2.5 shadow-[0_4px_14px_rgba(15,23,42,0.03)]",
-        file.filePath && "cursor-pointer transition-colors hover:bg-white dark:hover:bg-white/[0.08]"
+        'app-chat-file-card flex max-w-[220px] items-center gap-3 rounded-[16px] px-3 py-2.5',
+        file.filePath && 'cursor-pointer transition-colors hover:bg-accent/60'
       )}
       onClick={handleOpen}
-      title={file.filePath ? "Open file" : undefined}
+      title={file.filePath ? t('message.openFile') : undefined}
     >
       <FileIcon mimeType={file.mimeType} className="h-5 w-5 shrink-0 text-muted-foreground" />
       <div className="min-w-0 overflow-hidden">
         <p className="text-xs font-medium truncate">{file.fileName}</p>
         <p className="text-[10px] text-muted-foreground">
-          {file.fileSize > 0 ? formatFileSize(file.fileSize) : 'File'}
+          {file.fileSize > 0 ? formatFileSize(file.fileSize) : t('message.file')}
         </p>
       </div>
     </div>
@@ -474,7 +479,7 @@ function ImageThumbnail({
   void filePath; void base64; void mimeType;
   return (
     <div
-      className="group/img chat-im-assistant-bubble relative h-36 w-36 cursor-zoom-in overflow-hidden rounded-[16px] border shadow-[0_4px_14px_rgba(15,23,42,0.03)]"
+      className="group/img app-chat-media-card relative h-36 w-36 cursor-zoom-in overflow-hidden rounded-[16px]"
       onClick={onPreview}
     >
       <img src={src} alt={fileName} className="w-full h-full object-cover" />
@@ -505,7 +510,7 @@ function ImagePreviewCard({
   void filePath; void base64; void mimeType;
   return (
     <div
-      className="group/img chat-im-assistant-bubble relative max-w-xs cursor-zoom-in overflow-hidden rounded-[16px] border shadow-[0_4px_14px_rgba(15,23,42,0.03)]"
+      className="group/img app-chat-media-card relative max-w-xs cursor-zoom-in overflow-hidden rounded-[16px]"
       onClick={onPreview}
     >
       <img src={src} alt={fileName} className="block w-full" />
@@ -533,6 +538,7 @@ function ImageLightbox({
   mimeType?: string;
   onClose: () => void;
 }) {
+  const { t } = useTranslation(['chat', 'common']);
   void src; void base64; void mimeType; void fileName;
 
   useEffect(() => {
@@ -551,7 +557,7 @@ function ImageLightbox({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
       onClick={onClose}
     >
       {/* Image + buttons stacked */}
@@ -571,9 +577,9 @@ function ImageLightbox({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white"
+              className="app-field-surface h-8 w-8 text-foreground hover:bg-accent/70"
               onClick={handleShowInFolder}
-              title="在文件夹中显示"
+              title={t('message.showInFolder')}
             >
               <FolderOpen className="h-4 w-4" />
             </Button>
@@ -581,9 +587,9 @@ function ImageLightbox({
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white"
+            className="app-field-surface h-8 w-8 text-foreground hover:bg-accent/70"
             onClick={onClose}
-            title="关闭"
+            title={t('common:actions.close')}
           >
             <X className="h-4 w-4" />
           </Button>
@@ -600,12 +606,12 @@ function ToolCard({ name, input }: { name: string; input: unknown }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="rounded-xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-[14px]">
+    <div className="app-chat-tool-card rounded-xl text-[14px]">
       <button
         className="flex items-center gap-2 w-full px-3 py-1.5 text-muted-foreground hover:text-foreground transition-colors"
         onClick={() => setExpanded(!expanded)}
       >
-        <CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0" />
+        <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[hsl(var(--success))]" />
         <Wrench className="h-3 w-3 shrink-0 opacity-60" />
         <span className="font-mono text-xs">{name}</span>
         {expanded ? <ChevronDown className="h-3 w-3 ml-auto" /> : <ChevronRight className="h-3 w-3 ml-auto" />}

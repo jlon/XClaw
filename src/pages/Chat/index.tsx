@@ -13,7 +13,6 @@ import { useAgentsStore } from '@/stores/agents';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
-import { ChatToolbar } from './ChatToolbar';
 import { extractImages, extractText, extractThinking, extractToolUse } from './message-utils';
 import { useTranslation } from 'react-i18next';
 import { getSessionAvatar } from '@/lib/chat-avatar';
@@ -105,62 +104,60 @@ export function Chat() {
   const isEmpty = messages.length === 0 && !sending;
 
   return (
-    <div className={cn("relative flex flex-col -m-6 transition-colors duration-500 dark:bg-background")} style={{ height: 'calc(100vh - 2.5rem)' }}>
-      {/* Toolbar */}
-      <div className="flex shrink-0 items-center justify-end px-4 py-2">
-        <ChatToolbar />
-      </div>
+    <div className={cn('app-chat-shell relative flex h-full flex-col transition-colors duration-500')}>
+      <div ref={scrollRef} className="chat-im-font flex-1 overflow-y-auto px-6 py-3">
+        {isEmpty ? (
+          <div ref={contentRef} className="mx-auto max-w-[1100px] space-y-4">
+            <WelcomeScreen
+              currentAgentName={currentAgentName}
+              gatewayState={gatewayStatus.state}
+            />
+          </div>
+        ) : (
+          <div className="mx-auto max-w-[1120px]">
+            <div className="app-chat-thread-stage px-5 py-5 md:px-7 md:py-6">
+              <div ref={contentRef} className="space-y-4 pl-8">
+                {messages.map((msg, idx) => (
+                  <ChatMessage
+                    key={msg.id || `msg-${idx}`}
+                    message={msg}
+                    showThinking={showThinking}
+                    assistantAvatar={assistantAvatar}
+                  />
+                ))}
 
-      {/* Messages Area */}
-      <div ref={scrollRef} className="chat-im-font flex-1 overflow-y-auto px-5 py-3">
-        <div ref={contentRef} className="mx-auto max-w-4xl space-y-3.5">
-          {isEmpty ? (
-            <WelcomeScreen />
-          ) : (
-            <>
-              {messages.map((msg, idx) => (
-                <ChatMessage
-                  key={msg.id || `msg-${idx}`}
-                  message={msg}
-                  showThinking={showThinking}
-                  assistantAvatar={assistantAvatar}
-                />
-              ))}
+                {shouldRenderStreaming && (
+                  <ChatMessage
+                    message={(streamMsg
+                      ? {
+                          ...(streamMsg as Record<string, unknown>),
+                          role: (typeof streamMsg.role === 'string' ? streamMsg.role : 'assistant') as RawMessage['role'],
+                          content: streamMsg.content ?? streamText,
+                          timestamp: streamMsg.timestamp ?? streamingTimestamp,
+                        }
+                      : {
+                          role: 'assistant',
+                          content: streamText,
+                          timestamp: streamingTimestamp,
+                        }) as RawMessage}
+                    showThinking={showThinking}
+                    assistantAvatar={assistantAvatar}
+                    isStreaming
+                    streamingTools={streamingTools}
+                  />
+                )}
 
-              {/* Streaming message */}
-              {shouldRenderStreaming && (
-                <ChatMessage
-                  message={(streamMsg
-                    ? {
-                        ...(streamMsg as Record<string, unknown>),
-                        role: (typeof streamMsg.role === 'string' ? streamMsg.role : 'assistant') as RawMessage['role'],
-                        content: streamMsg.content ?? streamText,
-                        timestamp: streamMsg.timestamp ?? streamingTimestamp,
-                      }
-                    : {
-                        role: 'assistant',
-                        content: streamText,
-                        timestamp: streamingTimestamp,
-                      }) as RawMessage}
-                  showThinking={showThinking}
-                  assistantAvatar={assistantAvatar}
-                  isStreaming
-                  streamingTools={streamingTools}
-                />
-              )}
+                {sending && pendingFinal && !shouldRenderStreaming && (
+                  <ActivityIndicator phase="tool_processing" avatar={assistantAvatar} />
+                )}
 
-              {/* Activity indicator: waiting for next AI turn after tool execution */}
-              {sending && pendingFinal && !shouldRenderStreaming && (
-                <ActivityIndicator phase="tool_processing" avatar={assistantAvatar} />
-              )}
-
-              {/* Typing indicator when sending but no stream content yet */}
-              {sending && !pendingFinal && !hasAnyStreamContent && (
-                <TypingIndicator avatar={assistantAvatar} />
-              )}
-            </>
-          )}
-        </div>
+                {sending && !pendingFinal && !hasAnyStreamContent && (
+                  <TypingIndicator avatar={assistantAvatar} />
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Error bar */}
@@ -193,7 +190,7 @@ export function Chat() {
       {/* Transparent loading overlay */}
       {minLoading && !sending && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/20 backdrop-blur-[1px] rounded-xl pointer-events-auto">
-          <div className="bg-background shadow-lg rounded-full p-2.5 border border-border">
+          <div className="rounded-full border border-border/70 bg-card/92 p-2.5 shadow-lg">
             <LoadingSpinner size="md" />
           </div>
         </div>
@@ -204,29 +201,62 @@ export function Chat() {
 
 // ── Welcome Screen ──────────────────────────────────────────────
 
-function WelcomeScreen() {
+function WelcomeScreen({
+  currentAgentName,
+  gatewayState,
+}: {
+  currentAgentName: string;
+  gatewayState: string;
+}) {
   const { t } = useTranslation('chat');
   const quickActions = [
-    { key: 'askQuestions', label: t('welcome.askQuestions') },
-    { key: 'creativeTasks', label: t('welcome.creativeTasks') },
-    { key: 'brainstorming', label: t('welcome.brainstorming') },
+    {
+      key: 'askQuestions',
+      label: t('welcome.askQuestions'),
+      description: t('welcome.askQuestionsDesc'),
+    },
+    {
+      key: 'creativeTasks',
+      label: t('welcome.creativeTasks'),
+      description: t('welcome.creativeTasksDesc'),
+    },
+    {
+      key: 'brainstorming',
+      label: t('welcome.brainstorming'),
+      description: t('welcome.brainstormingDesc'),
+    },
   ];
+  const runtimeIssue = gatewayState !== 'running' ? t('header.runtimeIssue', { state: gatewayState }) : null;
 
   return (
-    <div className="flex flex-col items-center justify-center text-center h-[60vh]">
-      <h1 className="text-4xl md:text-5xl font-serif text-foreground/80 mb-8 font-normal tracking-tight" style={{ fontFamily: 'Georgia, Cambria, "Times New Roman", Times, serif' }}>
-        {t('welcome.subtitle')}
-      </h1>
+    <div data-testid="chat-welcome-hero" className="app-chat-welcome-hero mx-auto flex min-h-full w-full max-w-[1080px] flex-col px-2 pb-6 pt-2">
+      <div className="flex flex-1 flex-col justify-center gap-10">
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="app-chat-header-meta text-sm">{currentAgentName}</p>
+          <h1 className="mt-4 text-[3rem] font-semibold tracking-[-0.07em] text-foreground md:text-[4.25rem]">
+            {t('welcome.subtitle')}
+          </h1>
+          <p className="mt-4 max-w-2xl text-[15px] leading-8 text-muted-foreground md:mx-auto md:text-[16px]">
+            {t('welcome.description')}
+          </p>
+          {runtimeIssue && (
+            <p className="app-chat-header-meta mt-4 text-sm">
+              {runtimeIssue}
+            </p>
+          )}
+        </div>
 
-      <div className="flex flex-wrap items-center justify-center gap-2.5 max-w-lg w-full">
-        {quickActions.map(({ key, label }) => (
-          <button 
-            key={key}
-            className="px-4 py-1.5 rounded-full border border-black/10 dark:border-white/10 text-[13px] font-medium text-foreground/70 hover:bg-black/5 dark:hover:bg-white/5 transition-colors bg-black/[0.02]"
-          >
-            {label}
-          </button>
-        ))}
+        <div className="grid gap-3 md:grid-cols-3">
+          {quickActions.map(({ key, label, description }) => (
+            <button
+              key={key}
+              className="app-chat-quick-action group rounded-[1.5rem] p-5 text-left transition-transform duration-200 hover:-translate-y-0.5"
+            >
+              <div className="text-[1rem] font-semibold tracking-[-0.03em] text-foreground">{label}</div>
+              <p className="mt-2 text-sm leading-7 text-muted-foreground">{description}</p>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -245,7 +275,7 @@ function TypingIndicator({
   return (
     <div className="chat-im-font flex gap-2.5">
       <AgentAvatar label={avatar.label} style={avatar.style} className="mt-1 h-9 w-9" textClassName="text-sm" />
-      <div className="chat-im-assistant-bubble rounded-[18px] rounded-tl-[6px] border px-4 py-2.5 text-foreground shadow-[0_6px_18px_rgba(15,23,42,0.04)]">
+      <div className="app-chat-bubble-assistant rounded-[18px] rounded-tl-[6px] border px-4 py-2.5 text-foreground">
         <div className="flex gap-1">
           <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
           <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -268,14 +298,15 @@ function ActivityIndicator({
     style: string;
   };
 }) {
+  const { t } = useTranslation('chat');
   void phase;
   return (
     <div className="chat-im-font flex gap-2.5">
       <AgentAvatar label={avatar.label} style={avatar.style} className="mt-1 h-9 w-9" textClassName="text-sm" />
-      <div className="chat-im-assistant-bubble rounded-[18px] rounded-tl-[6px] border px-4 py-2.5 text-foreground shadow-[0_6px_18px_rgba(15,23,42,0.04)]">
+      <div className="app-chat-bubble-assistant rounded-[18px] rounded-tl-[6px] border px-4 py-2.5 text-foreground">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
-          <span>Processing tool results…</span>
+          <span>{t('message.toolProcessing')}</span>
         </div>
       </div>
     </div>

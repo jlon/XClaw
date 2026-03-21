@@ -85,7 +85,7 @@ type EditorValue = string | boolean | number | string[];
 const FALLBACK_ACCOUNT_ID = 'default';
 
 const selectedWorkbenchItemClass =
-  'border-amber-200/70 bg-amber-50/70 shadow-[0_10px_24px_rgba(15,23,42,0.05)] dark:border-white/15 dark:bg-white/10';
+  'border-primary/25 bg-primary/10 shadow-sm';
 
 function isRegistryChannelType(channelType: string): channelType is RegistryChannelType {
   return channelType in CHANNEL_FIELD_REGISTRY;
@@ -385,10 +385,22 @@ export function Channels() {
         throw new Error(agentsRes.error || 'Failed to load agents');
       }
 
-      setChannelGroups(channelsRes.channels || []);
+      const nextChannelGroups = channelsRes.channels || [];
+      const nextConfiguredTypes = nextChannelGroups.map((group) => group.channelType as ChannelType);
+      const nextExtraConfiguredTypes = nextConfiguredTypes.filter((type) => !displayedChannelTypes.includes(type));
+      const nextAllChannelTypes = [...displayedChannelTypes, ...nextExtraConfiguredTypes];
+      const preferredChannel = nextConfiguredTypes[0] ?? nextAllChannelTypes[0] ?? null;
+
+      setChannelGroups(nextChannelGroups);
       setRuntimeAvailable(channelsRes.runtimeAvailable !== false);
       setRuntimeGatewayState(channelsRes.gatewayState || gatewayStatus.state);
       setAgents(agentsRes.agents || []);
+      setSelectedChannelType((current) => {
+        if (current && nextAllChannelTypes.includes(current)) {
+          return current;
+        }
+        return preferredChannel;
+      });
 
       if (
         channelsRes.runtimeAvailable === false
@@ -409,7 +421,7 @@ export function Channels() {
         setRefreshing(false);
       }
     }
-  }, [gatewayStatus.state]);
+  }, [displayedChannelTypes, gatewayStatus.state]);
 
   useEffect(() => {
     void fetchPageData();
@@ -877,7 +889,7 @@ export function Channels() {
               variant="outline"
               onClick={handleRefresh}
               disabled={gatewayStatus.state !== 'running' || refreshing}
-              className="h-9 text-[13px] font-medium rounded-full px-4 border-black/10 dark:border-white/10 bg-transparent hover:bg-black/5 dark:hover:bg-white/5 shadow-none text-foreground/80 hover:text-foreground transition-colors"
+              className="h-9 rounded-full px-4 text-[13px] font-medium text-foreground/80 shadow-none transition-colors hover:text-foreground"
             >
               <RefreshCw className={cn('mr-2 h-3.5 w-3.5', refreshing && 'animate-spin')} />
               {t('refresh')}
@@ -887,9 +899,9 @@ export function Channels() {
 
         <WorkspacePageScrollArea data-testid="channels-scroll-area">
           {gatewayStatus.state !== 'running' && (
-            <div className="mb-8 p-4 rounded-xl border border-yellow-500/50 bg-yellow-500/10 flex items-center gap-3">
-              <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
-              <span className="text-yellow-700 dark:text-yellow-400 text-sm font-medium">
+            <div className="mb-8 flex items-center gap-3 rounded-xl border border-[hsl(var(--warning))/0.28] bg-[hsl(var(--warning))/0.1] p-4 text-[hsl(var(--warning))]">
+              <AlertCircle className="h-5 w-5" />
+              <span className="text-sm font-medium">
                 {t('gatewayWarning')}
               </span>
             </div>
@@ -905,7 +917,7 @@ export function Channels() {
           )}
 
           {!error && !runtimeAvailable && (
-            <div className="mb-8 rounded-xl border border-amber-300/60 bg-amber-50/70 p-4 text-sm text-amber-900 dark:border-amber-200/20 dark:bg-amber-400/10 dark:text-amber-50">
+            <div className="mb-8 rounded-xl border border-[hsl(var(--warning))/0.22] bg-[hsl(var(--warning))/0.08] p-4 text-sm text-[hsl(var(--warning))]">
               {t('gatewayRuntimeUnavailable', { state: runtimeGatewayState })}
             </div>
           )}
@@ -915,7 +927,7 @@ export function Channels() {
             className="grid min-w-0 gap-5 xl:grid-cols-[minmax(320px,0.94fr)_minmax(540px,1.28fr)] min-[1440px]:grid-cols-[minmax(250px,0.9fr)_minmax(360px,1.08fr)_minmax(460px,1.32fr)]"
           >
             <div data-testid="channels-navigation-stack" className="grid min-w-0 gap-5 min-[1440px]:contents">
-              <section className="min-w-0 rounded-[28px] border border-black/10 bg-white/80 p-3.5 shadow-[0_18px_40px_rgba(15,23,42,0.04)] dark:border-white/10 dark:bg-background/70 xl:p-4">
+              <section className="app-panel-surface min-w-0 rounded-[28px] p-3.5 xl:p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h2 className="text-sm font-semibold text-foreground">{t('supportedChannels')}</h2>
@@ -924,7 +936,7 @@ export function Channels() {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-9 rounded-full border-black/10 bg-background/70 px-3 text-xs text-foreground/80 shadow-none hover:bg-black/5 hover:text-foreground dark:border-white/10 dark:bg-white/[0.04] dark:hover:bg-white/[0.08]"
+                    className="h-9 rounded-full px-3 text-xs text-foreground/80 shadow-none hover:text-foreground"
                     onClick={() => {
                       const nextChannel = unsupportedGroups[0] || allChannelTypes[0];
                       if (nextChannel) {
@@ -943,7 +955,7 @@ export function Channels() {
                     value={channelQuery}
                     onChange={(event) => setChannelQuery(event.target.value)}
                     placeholder={t('searchPlaceholder')}
-                    className="h-9 rounded-2xl border-black/10 bg-background/80 pl-9 text-sm shadow-none dark:bg-background"
+                    className="app-field-surface h-9 rounded-2xl pl-9 text-sm shadow-none"
                   />
                 </div>
 
@@ -968,11 +980,11 @@ export function Channels() {
                               'w-full rounded-2xl border px-3 py-2.5 text-left transition-all',
                               isSelected
                                 ? selectedWorkbenchItemClass
-                                : 'border-transparent hover:border-black/10 hover:bg-black/[0.03] dark:hover:border-white/10 dark:hover:bg-white/[0.04]',
+                                : 'border-transparent hover:border-border/70 hover:bg-accent/50',
                             )}
                           >
                             <div className="flex items-center gap-3">
-                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-black/5 bg-black/5 dark:border-white/10 dark:bg-white/5">
+                              <div className="app-field-surface flex h-9 w-9 shrink-0 items-center justify-center rounded-full">
                                 <ChannelLogo type={channelType} />
                               </div>
                               <div className="min-w-0 flex-1">
@@ -1011,11 +1023,11 @@ export function Channels() {
                               'w-full rounded-2xl border px-3 py-2.5 text-left transition-all',
                               isSelected
                                 ? selectedWorkbenchItemClass
-                                : 'border-transparent hover:border-black/10 hover:bg-black/[0.03] dark:hover:border-white/10 dark:hover:bg-white/[0.04]',
+                                : 'border-transparent hover:border-border/70 hover:bg-accent/50',
                             )}
                           >
                             <div className="flex items-center gap-3">
-                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-black/5 bg-black/5 dark:border-white/10 dark:bg-white/5">
+                              <div className="app-field-surface flex h-9 w-9 shrink-0 items-center justify-center rounded-full">
                                 <ChannelLogo type={channelType} />
                               </div>
                               <div className="min-w-0 flex-1">
@@ -1031,14 +1043,14 @@ export function Channels() {
                   )}
 
                   {filteredChannelTypes.length === 0 && (
-                    <div className="rounded-2xl border border-dashed border-black/10 px-3 py-4 text-xs text-muted-foreground dark:border-white/10">
+                    <div className="rounded-2xl border border-dashed border-border/70 px-3 py-4 text-xs text-muted-foreground">
                       {t('emptySearch')}
                     </div>
                   )}
                 </div>
               </section>
 
-              <section className="min-w-0 rounded-[28px] border border-black/10 bg-white/80 p-4 shadow-[0_18px_40px_rgba(15,23,42,0.04)] dark:border-white/10 dark:bg-background/70">
+              <section className="app-panel-surface min-w-0 rounded-[28px] p-4">
                 {selectedMeta && (
                   <>
                     <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -1058,7 +1070,7 @@ export function Channels() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="h-8 rounded-full border-black/10 bg-background/70 px-3 text-xs text-foreground/80 shadow-none hover:bg-black/5 hover:text-foreground dark:border-white/10 dark:bg-white/[0.04] dark:hover:bg-white/[0.08]"
+                            className="h-8 rounded-full px-3 text-xs text-foreground/80 shadow-none hover:text-foreground"
                             onClick={() => {
                               const nextAccountId = createNewAccountId(
                                 selectedGroup.channelType,
@@ -1115,7 +1127,7 @@ export function Channels() {
                                 'w-full rounded-2xl border px-4 py-4 text-left transition-all',
                                 isSelected
                                   ? selectedWorkbenchItemClass
-                                  : 'border-black/5 bg-black/[0.03] hover:bg-black/[0.05] dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]',
+                                  : 'app-field-surface hover:bg-accent/45',
                               )}
                             >
                               <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
@@ -1183,13 +1195,13 @@ export function Channels() {
                         })}
                       </div>
                     ) : (
-                      <div className="rounded-2xl border border-dashed border-black/10 px-4 py-6 dark:border-white/10">
+                      <div className="app-field-surface rounded-2xl border-dashed px-4 py-6">
                         <p className="mb-1 text-sm font-medium text-foreground">{selectedMeta.name}</p>
                         <p className="text-xs leading-5 text-muted-foreground">{t(selectedMeta.description.replace('channels:', ''))}</p>
                         <Button
                           size="sm"
                           variant="outline"
-                          className="mt-4 h-8 rounded-full border-black/10 bg-background/70 px-3 text-xs text-foreground/80 shadow-none hover:bg-black/5 hover:text-foreground dark:border-white/10 dark:bg-white/[0.04] dark:hover:bg-white/[0.08]"
+                          className="mt-4 h-8 rounded-full px-3 text-xs text-foreground/80 shadow-none hover:text-foreground"
                           onClick={() => {
                             if (!selectedChannelType) return;
                             void openConfigModal(selectedChannelType, {
@@ -1207,9 +1219,9 @@ export function Channels() {
               </section>
             </div>
 
-            <section className="min-w-0 rounded-[28px] border border-black/10 bg-white/80 p-4 shadow-[0_18px_40px_rgba(15,23,42,0.04)] dark:border-white/10 dark:bg-background/70">
+            <section className="app-panel-surface min-w-0 rounded-[28px] p-4">
               {!selectedMeta && (
-                <div className="rounded-2xl border border-dashed border-black/10 p-6 text-sm text-muted-foreground dark:border-white/10">
+                <div className="rounded-2xl border border-dashed border-border/70 p-6 text-sm text-muted-foreground">
                   {t('availableDesc')}
                 </div>
               )}
@@ -1322,7 +1334,7 @@ export function Channels() {
                     data-testid="channels-editor-scroll"
                     className={cn('mt-5 flex-1 space-y-4 overflow-y-auto pr-2', editorScrollbarClass)}
                   >
-                    <div className="rounded-2xl border border-black/10 bg-background/70 p-5 dark:border-white/10 dark:bg-background/60">
+                    <div className="app-panel-surface-elevated rounded-2xl p-5">
                       <div className="mb-4">
                         <p className="text-sm font-semibold text-foreground">{t('editor.basicTitle')}</p>
                         <p className="mt-1 text-xs leading-5 text-muted-foreground">{t('editor.basicDesc')}</p>
@@ -1330,7 +1342,7 @@ export function Channels() {
                       <div data-testid="channel-basic-fields-grid" className="grid gap-3 xl:grid-cols-2">
                         <div
                           data-testid="channel-account-id-card"
-                          className="rounded-2xl border border-black/5 bg-background/80 px-4 py-3 dark:border-white/10 xl:col-span-2"
+                          className="app-field-surface rounded-2xl px-4 py-3 xl:col-span-2"
                         >
                           <div className="flex flex-wrap items-center gap-2">
                             <Label htmlFor="channel-account-id" className="text-xs font-medium text-foreground/80">
@@ -1351,7 +1363,7 @@ export function Channels() {
                             disabled={editorLoading || editorSaving}
                             onChange={(event) => setAccountIdDraft(event.target.value)}
                             placeholder={t('account.customIdPlaceholder')}
-                            className="mt-3 h-9 rounded-2xl border-black/10 bg-background/80 text-[13px] shadow-none"
+                            className="app-field-surface mt-3 h-9 rounded-2xl text-[13px] shadow-none"
                           />
                         </div>
                         {selectedRegistry.basicFields.map((field) => (
@@ -1367,13 +1379,13 @@ export function Channels() {
                       </div>
                     </div>
 
-                    <div className="rounded-2xl border border-black/10 bg-white/70 p-5 dark:border-white/10 dark:bg-background/60">
+                    <div className="app-panel-surface-elevated rounded-2xl p-5">
                       <div className="mb-4">
                         <p className="text-sm font-semibold text-foreground">{t('editor.behaviorTitle')}</p>
                         <p className="mt-1 text-xs leading-5 text-muted-foreground">{t('editor.behaviorDesc')}</p>
                       </div>
                       <div className="space-y-4">
-                        <div className="grid gap-3 rounded-2xl border border-black/5 bg-background/80 px-4 py-3 dark:border-white/10 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
+                        <div className="app-field-surface grid gap-3 rounded-2xl px-4 py-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
                           <div className="min-w-0">
                             <Label className="text-sm font-medium text-foreground">{t('dialog.enableChannel')}</Label>
                             <p className="mt-1 text-xs leading-5 text-muted-foreground">
@@ -1391,7 +1403,7 @@ export function Channels() {
                           />
                         </div>
 
-                        <div className="grid gap-3 rounded-2xl border border-black/5 bg-background/80 px-4 py-3 dark:border-white/10 md:grid-cols-[minmax(0,1fr)_minmax(220px,240px)] md:items-start">
+                        <div className="app-field-surface grid gap-3 rounded-2xl px-4 py-3 md:grid-cols-[minmax(0,1fr)_minmax(220px,240px)] md:items-start">
                           <div className="min-w-0">
                             <Label htmlFor="channel-account-agent" className="text-sm font-medium text-foreground">
                               {t('account.bindAgentLabel')}
@@ -1415,7 +1427,7 @@ export function Channels() {
                                 label: agent.name,
                               })),
                             ]}
-                            className="h-9 w-full max-w-full rounded-2xl border-black/10 bg-background/80 text-[13px] shadow-none"
+                            className="app-field-surface h-9 w-full max-w-full rounded-2xl text-[13px] shadow-none"
                           />
                         </div>
                       </div>
@@ -1486,7 +1498,7 @@ export function Channels() {
                     )}
                   </div>
 
-                  <div className="mt-5 flex flex-wrap items-center justify-end gap-2 border-t border-black/5 pt-4 dark:border-white/10">
+                  <div className="mt-5 flex flex-wrap items-center justify-end gap-2 border-t border-border/70 pt-4">
                     <Button
                       type="button"
                       variant="outline"
@@ -1585,7 +1597,7 @@ function ChannelEditorSection({
     <details
       open={open}
       onToggle={(event) => setOpen(event.currentTarget.open)}
-      className="rounded-2xl border border-black/10 bg-white/70 px-4 py-3 dark:border-white/10 dark:bg-background/60"
+      className="app-panel-surface-elevated rounded-2xl px-4 py-3"
     >
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
         <div className="min-w-0">
@@ -1633,7 +1645,7 @@ function ChannelFieldEditor({
 
   if (field.type === 'boolean') {
     return (
-      <div className="rounded-2xl border border-black/5 bg-background/80 px-4 py-3 dark:border-white/10">
+      <div className="app-field-surface rounded-2xl px-4 py-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1 space-y-1">
             <Label className="text-xs font-medium text-foreground/80">{label}</Label>
@@ -1641,7 +1653,7 @@ function ChannelFieldEditor({
           </div>
           {defaultBadgeLabel && (
             <span
-              className="max-w-[11rem] truncate rounded-full bg-black/[0.04] px-2 py-1 text-[10px] font-medium text-muted-foreground dark:bg-white/[0.08]"
+              className="max-w-[11rem] truncate rounded-full bg-secondary/80 px-2 py-1 text-[10px] font-medium text-muted-foreground"
               title={t('editor.defaultValueLabel', { value: defaultValueLabel })}
             >
               {defaultBadgeLabel}
@@ -1658,13 +1670,13 @@ function ChannelFieldEditor({
   }
 
   return (
-    <div className="space-y-1.5 rounded-2xl border border-black/5 bg-background/55 px-4 py-3 dark:border-white/10">
+    <div className="app-field-surface space-y-1.5 rounded-2xl px-4 py-3">
       <div data-testid={`channel-field-header-${field.key}`}>
         <div className="flex items-start justify-between gap-3">
           <Label htmlFor={inputId} className="min-w-0 flex-1 text-xs font-medium text-foreground/80">{label}</Label>
           {defaultBadgeLabel && (
             <span
-              className="max-w-[11rem] truncate rounded-full bg-black/[0.04] px-2 py-1 text-[10px] font-medium text-muted-foreground dark:bg-white/[0.08]"
+              className="max-w-[11rem] truncate rounded-full bg-secondary/80 px-2 py-1 text-[10px] font-medium text-muted-foreground"
               title={t('editor.defaultValueLabel', { value: defaultValueLabel })}
             >
               {defaultBadgeLabel}
@@ -1686,7 +1698,7 @@ function ChannelFieldEditor({
             value: option.value,
             label: resolveTranslationText(t, option.label),
           }))}
-          className="h-9 rounded-2xl border-black/10 bg-background/80 text-[13px] shadow-none"
+          className="app-field-surface h-9 rounded-2xl text-[13px] shadow-none"
         />
       ) : field.type === 'array' ? (
         <Input
@@ -1703,7 +1715,7 @@ function ChannelFieldEditor({
             )
           }
           placeholder={placeholder}
-          className="h-9 rounded-2xl border-black/10 bg-background/80 text-[13px] shadow-none"
+          className="app-field-surface h-9 rounded-2xl text-[13px] shadow-none"
         />
       ) : field.type === 'number' ? (
         <Input
@@ -1713,7 +1725,7 @@ function ChannelFieldEditor({
           disabled={disabled}
           onChange={(event) => onChange(event.target.value === '' ? '' : Number(event.target.value))}
           placeholder={placeholder}
-          className="h-9 rounded-2xl border-black/10 bg-background/80 text-[13px] shadow-none"
+          className="app-field-surface h-9 rounded-2xl text-[13px] shadow-none"
         />
       ) : (
         <Input
@@ -1723,7 +1735,7 @@ function ChannelFieldEditor({
           disabled={disabled}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
-          className="h-9 rounded-2xl border-black/10 bg-background/80 text-[13px] shadow-none"
+          className="app-field-surface h-9 rounded-2xl text-[13px] shadow-none"
         />
       )}
     </div>

@@ -146,8 +146,8 @@ export function ChatSessionsPane() {
   const hasVisibleSessions = sessionBuckets.some((bucket) => bucket.sessions.length > 0);
 
   return (
-    <aside className="flex w-[320px] shrink-0 flex-col border-r border-black/5 bg-[#f4f1ea]/80 dark:bg-background/80">
-      <div className="border-b border-black/5 px-4 py-3 dark:border-white/10">
+    <aside className="app-shell-surface flex w-[320px] shrink-0 flex-col border-r border-border/70">
+      <div className="border-b border-border/70 px-4 py-3">
         <div className="flex items-center justify-between">
           <h2 className="text-[18px] font-semibold tracking-tight text-foreground">
             {t('sidebar.chat')}
@@ -156,7 +156,7 @@ export function ChatSessionsPane() {
             variant="ghost"
             size="icon"
             title={t('sidebar.newChat')}
-            className="h-9 w-9 rounded-full text-foreground/70 hover:bg-black/5 dark:hover:bg-white/10"
+            className="h-9 w-9 rounded-full text-foreground/70 hover:bg-accent"
             onClick={() => {
               const { messages } = useChatStore.getState();
               if (messages.length > 0) {
@@ -175,7 +175,7 @@ export function ChatSessionsPane() {
             value={searchQuery}
             placeholder={t('chat:sessionPane.searchPlaceholder')}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="h-9 rounded-xl border-black/5 bg-white/65 pl-9 pr-3 text-[13px] shadow-none placeholder:text-muted-foreground/55 focus-visible:ring-black/10 focus-visible:ring-offset-0 dark:border-white/10 dark:bg-white/5"
+            className="h-9 rounded-xl pl-9 pr-3 text-[13px] shadow-none placeholder:text-muted-foreground/55 focus-visible:ring-ring/20 focus-visible:ring-offset-0"
           />
         </div>
       </div>
@@ -213,8 +213,8 @@ export function ChatSessionsPane() {
                           className={cn(
                             'flex w-full items-start gap-3 rounded-2xl px-3 py-2.5 text-left transition-colors pr-10',
                             currentSessionKey === session.key
-                              ? 'bg-white/90 shadow-sm ring-1 ring-black/5 dark:bg-white/10 dark:ring-white/10'
-                              : 'hover:bg-white/60 dark:hover:bg-white/5',
+                              ? 'bg-accent/80 shadow-sm ring-1 ring-border/70'
+                              : 'hover:bg-accent/60',
                           )}
                         >
                           <AgentAvatar

@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>XClaw Red Copper Light Preview</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4f1ec;
+        --bg-elevated: #fcfaf7;
+        --bg-panel: rgba(255, 255, 255, 0.82);
+        --bg-panel-strong: rgba(255, 255, 255, 0.92);
+        --bg-hover: rgba(63, 37, 34, 0.04);
+        --text: #221d1a;
+        --text-muted: rgba(34, 29, 26, 0.64);
+        --text-soft: rgba(34, 29, 26, 0.46);
+        --border: rgba(74, 52, 48, 0.1);
+        --border-strong: rgba(74, 52, 48, 0.16);
+        --brand: #8f3f37;
+        --brand-strong: #b3574a;
+        --brand-soft: rgba(179, 87, 74, 0.12);
+        --brand-glow: rgba(179, 87, 74, 0.18);
+        --teal: #3b8f88;
+        --shadow-xl: 0 24px 70px rgba(96, 74, 64, 0.14);
+        --shadow-md: 0 12px 30px rgba(96, 74, 64, 0.1);
+        --radius-xl: 28px;
+        --radius-lg: 22px;
+        --radius-md: 16px;
+        --radius-sm: 12px;
+        --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "PingFang SC", "Microsoft YaHei UI", sans-serif;
+        --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", "PingFang SC", "Microsoft YaHei UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: var(--font-body);
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(179, 87, 74, 0.14), transparent 26%),
+          radial-gradient(circle at 84% 16%, rgba(59, 143, 136, 0.08), transparent 20%),
+          linear-gradient(180deg, #f7f4ef 0%, #f3efe9 48%, #f1ece6 100%);
+      }
+
+      .shell {
+        display: grid;
+        min-height: 100vh;
+        grid-template-columns: 270px 1fr;
+      }
+
+      .sidebar {
+        padding: 22px 18px;
+        border-right: 1px solid var(--border);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0.22));
+        backdrop-filter: blur(24px);
+      }
+
+      .traffic {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+
+      .traffic span {
+        width: 12px;
+        height: 12px;
+        border-radius: 999px;
+        opacity: 0.95;
+      }
+
+      .traffic span:nth-child(1) { background: #ff5f57; }
+      .traffic span:nth-child(2) { background: #febc2e; }
+      .traffic span:nth-child(3) { background: #28c840; }
+
+      .search {
+        height: 42px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.74);
+        color: var(--text-soft);
+        display: flex;
+        align-items: center;
+        padding: 0 14px;
+        font-size: 14px;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      }
+
+      .brand {
+        margin-top: 56px;
+        padding: 18px 16px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: linear-gradient(180deg, rgba(179, 87, 74, 0.08), rgba(255, 255, 255, 0.74));
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+      }
+
+      .brand-kicker {
+        color: var(--brand-strong);
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .brand-title {
+        margin-top: 12px;
+        font-family: var(--font-display);
+        font-size: 28px;
+        font-weight: 720;
+        letter-spacing: -0.04em;
+      }
+
+      .brand-copy {
+        margin-top: 10px;
+        color: var(--text-muted);
+        font-size: 14px;
+        line-height: 1.65;
+      }
+
+      .sidebar-card {
+        margin-top: 18px;
+        padding: 14px 14px 16px;
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.52);
+        border: 1px solid rgba(74, 52, 48, 0.08);
+      }
+
+      .sidebar-card h4 {
+        margin: 0 0 8px;
+        font-size: 14px;
+      }
+
+      .sidebar-card p {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .main {
+        padding: 34px 34px 28px;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+      }
+
+      .topbar-meta {
+        color: var(--text-soft);
+        font-size: 13px;
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.6);
+        color: var(--text-muted);
+        font-size: 13px;
+      }
+
+      .status-pill::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--brand-strong);
+        box-shadow: 0 0 0 5px rgba(179, 87, 74, 0.12);
+      }
+
+      .hero {
+        margin-top: 26px;
+        border-radius: 34px;
+        padding: 44px 42px 34px;
+        border: 1px solid var(--border);
+        background:
+          radial-gradient(circle at top right, rgba(179, 87, 74, 0.14), transparent 28%),
+          radial-gradient(circle at 20% 100%, rgba(59, 143, 136, 0.08), transparent 18%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(251, 248, 243, 0.98));
+        box-shadow: var(--shadow-xl);
+      }
+
+      .hero h1 {
+        margin: 0;
+        max-width: 740px;
+        font-family: var(--font-display);
+        font-size: 58px;
+        font-weight: 740;
+        line-height: 1.02;
+        letter-spacing: -0.06em;
+      }
+
+      .hero h1 span {
+        color: var(--brand);
+        text-shadow: 0 0 16px rgba(179, 87, 74, 0.08);
+      }
+
+      .hero p {
+        margin: 18px 0 0;
+        max-width: 740px;
+        color: var(--text-muted);
+        font-size: 17px;
+        line-height: 1.75;
+      }
+
+      .hero-actions {
+        display: flex;
+        gap: 14px;
+        margin-top: 26px;
+      }
+
+      .btn {
+        height: 42px;
+        border-radius: 999px;
+        padding: 0 16px;
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.68);
+        color: var(--text);
+        font-size: 14px;
+      }
+
+      .btn-primary {
+        border-color: rgba(179, 87, 74, 0.32);
+        background: linear-gradient(180deg, rgba(179, 87, 74, 0.94), rgba(143, 63, 55, 0.94));
+        color: #fffaf8;
+        box-shadow: 0 10px 24px rgba(179, 87, 74, 0.2);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+        margin-top: 22px;
+      }
+
+      .card {
+        min-height: 184px;
+        padding: 20px;
+        border-radius: 26px;
+        border: 1px solid var(--border);
+        background: var(--bg-panel);
+        backdrop-filter: blur(16px);
+        box-shadow: var(--shadow-md);
+      }
+
+      .card.kpi {
+        background:
+          linear-gradient(180deg, rgba(179, 87, 74, 0.08), rgba(255, 255, 255, 0.78)),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(251, 248, 243, 0.92));
+      }
+
+      .eyebrow {
+        color: var(--text-soft);
+        font-size: 12px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .metric {
+        margin-top: 14px;
+        font-size: 40px;
+        font-weight: 720;
+        letter-spacing: -0.05em;
+      }
+
+      .card-copy {
+        margin-top: 10px;
+        color: var(--text-muted);
+        font-size: 14px;
+        line-height: 1.65;
+      }
+
+      .composer {
+        margin-top: 22px;
+        padding: 18px;
+        border-radius: 28px;
+        border: 1px solid var(--border-strong);
+        background: var(--bg-panel-strong);
+        box-shadow: var(--shadow-md);
+      }
+
+      .composer-label {
+        color: var(--text-soft);
+        font-size: 13px;
+      }
+
+      .composer-field {
+        margin-top: 12px;
+        height: 72px;
+        border-radius: 22px;
+        border: 1px solid rgba(74, 52, 48, 0.08);
+        background: rgba(255, 255, 255, 0.78);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 18px;
+        color: var(--text-muted);
+      }
+
+      .composer-send {
+        width: 38px;
+        height: 38px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, #b3574a, #8f3f37);
+        box-shadow: 0 8px 18px rgba(179, 87, 74, 0.18);
+      }
+
+      @media (max-width: 1180px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          border-right: 0;
+          border-bottom: 1px solid var(--border);
+        }
+
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .hero h1 {
+          font-size: 44px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="traffic"><span></span><span></span><span></span></div>
+        <div class="search">搜索工作区、Agent、频道或设置</div>
+
+        <div class="brand">
+          <div class="brand-kicker">XClaw Vision A</div>
+          <div class="brand-title">Porcelain Copper</div>
+          <div class="brand-copy">把浅色主题从暖米色网页感，收成更像桌面工作区的瓷白灰基底与深红铜品牌高光。</div>
+        </div>
+
+        <div class="sidebar-card">
+          <h4>浅色关键词</h4>
+          <p>冷静、洁净、精密、呼吸感、明亮但不空，品牌强调更准确地落在关键位置。</p>
+        </div>
+
+        <div class="sidebar-card">
+          <h4>视觉原则</h4>
+          <p>不要回到白底蓝按钮的 SaaS 模式，也不要继续暖米黄。浅色也必须像桌面应用。</p>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="topbar">
+          <div class="topbar-meta">XClaw 浅色品牌主题快速示意，不是最终 UI 定稿</div>
+          <div class="status-pill">已连接，浅色下的铜红高光</div>
+        </div>
+
+        <section class="hero">
+          <h1>让 XClaw 的浅色主题像 <span>桌面工作区</span>，而不是通用白底后台</h1>
+          <p>浅色端保持统一品牌逻辑：背景转向瓷白灰，品牌仍然是深红铜，科技感来自材质、边界、微光和干净层级。</p>
+
+          <div class="hero-actions">
+            <div class="btn btn-primary">采用这个浅色方向</div>
+            <div class="btn">继续对比深色版本</div>
+          </div>
+
+          <div class="grid">
+            <div class="card kpi">
+              <div class="eyebrow">Primary Surface</div>
+              <div class="metric">L-01</div>
+              <div class="card-copy">浅色基底走冷白灰，而不是米黄。品牌色只落在关键高亮和主动作上，保持专业和精密。</div>
+            </div>
+            <div class="card">
+              <div class="eyebrow">Navigation</div>
+              <div class="metric">24</div>
+              <div class="card-copy">侧栏和主工作区都用轻材质和柔边界来分层，避免重回网页感的分块式布局。</div>
+            </div>
+            <div class="card">
+              <div class="eyebrow">Accent Logic</div>
+              <div class="metric">0.12</div>
+              <div class="card-copy">浅色也要有科技感，但科技感来自精细对比和轻 glow，不来自高饱和彩块。</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="composer">
+          <div class="composer-label">命令输入区</div>
+          <div class="composer-field">
+            <span>描述你想执行的任务，或者继续输入浅色主题的细化偏好</span>
+            <div class="composer-send"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

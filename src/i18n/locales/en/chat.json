@@ -4,18 +4,31 @@
     "welcome": {
         "title": "XClaw Chat",
         "subtitle": "What can I do for you?",
+        "description": "Keep conversation, execution, and multi-agent collaboration inside one stable desktop workspace.",
         "askQuestions": "Handle Tasks",
         "askQuestionsDesc": "Work on task-oriented requests",
         "creativeTasks": "Continuous Execution",
         "creativeTasksDesc": "Keep running through multi-step work",
-        "brainstorming": "Multi-Agent Parallel"
+        "brainstorming": "Multi-Agent Parallel",
+        "brainstormingDesc": "Split complex work and push multiple roles in parallel"
     },
     "noLogs": "(No logs available yet)",
     "toolbar": {
         "refresh": "Refresh chat",
         "showThinking": "Show thinking",
-        "hideThinking": "Hide thinking",
-        "currentAgent": "Talking to {{agent}}"
+        "hideThinking": "Hide thinking"
+    },
+    "header": {
+        "sessionPlain": "Session {{id}}",
+        "runtimeIssue": "Runtime issue: {{state}}"
+    },
+    "message": {
+        "thinking": "Thinking",
+        "toolProcessing": "Processing tool results…",
+        "showInFolder": "Show in folder",
+        "openFile": "Open file",
+        "image": "Image",
+        "file": "File"
     },
     "composer": {
         "attachFiles": "Attach files",

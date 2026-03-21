@@ -208,7 +208,7 @@ describe('chat layout', () => {
     const chatLink = screen.getByRole('link', { name: 'Chat' });
     expect(chatLink).toHaveClass('h-10');
     expect(chatLink).toHaveClass('w-10');
-    expect(chatLink).toHaveClass('hover:bg-white/80');
+    expect(chatLink).toHaveClass('hover:bg-accent');
     expect(chatLink).not.toHaveAttribute('title');
 
     fireEvent.mouseEnter(chatLink);

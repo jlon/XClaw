@@ -48,7 +48,9 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
       <SelectPrimitive.Root
         disabled={disabled}
         value={normalizedValue}
-        onValueChange={(nextValue) => onValueChange?.(nextValue === EMPTY_SELECT_VALUE ? '' : nextValue)}
+        onValueChange={(nextValue) =>
+          onValueChange?.(nextValue === EMPTY_SELECT_VALUE ? '' : nextValue)
+        }
       >
         <SelectPrimitive.Trigger
           id={id}
@@ -56,7 +58,7 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
           aria-label={ariaLabel}
           data-testid={dataTestId}
           className={cn(
-            'inline-flex h-10 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-colors data-[placeholder]:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:truncate',
+            'inline-flex h-10 w-full items-center justify-between gap-2 rounded-xl border border-border/70 bg-card/90 px-3 py-2 text-sm text-foreground shadow-sm ring-offset-background transition-colors data-[placeholder]:text-muted-foreground/80 focus-visible:outline-none focus-visible:border-ring focus-visible:bg-background focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 [&>span]:truncate',
             className,
           )}
         >
@@ -70,7 +72,7 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
             position="popper"
             sideOffset={8}
             className={cn(
-              'z-50 max-h-72 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-2xl border border-black/10 bg-popover text-popover-foreground shadow-[0_18px_40px_rgba(15,23,42,0.12)] dark:border-white/10',
+              'z-50 max-h-72 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-2xl border border-border/70 bg-popover text-popover-foreground shadow-lg',
               contentClassName,
             )}
           >
@@ -82,7 +84,7 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
                     key={optionValue}
                     value={optionValue}
                     disabled={option.disabled}
-                    className="relative flex w-full cursor-default select-none items-center rounded-xl py-2 pl-9 pr-3 text-sm outline-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-40 data-[highlighted]:bg-black/[0.05] data-[highlighted]:text-foreground dark:data-[highlighted]:bg-white/[0.08]"
+                    className="relative flex w-full cursor-default select-none items-center rounded-xl py-2 pl-9 pr-3 text-sm outline-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-40 data-[highlighted]:bg-accent/70 data-[highlighted]:text-foreground"
                   >
                     <span className="absolute left-3 flex h-4 w-4 items-center justify-center">
                       <SelectPrimitive.ItemIndicator>

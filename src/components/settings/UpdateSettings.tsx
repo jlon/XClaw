@@ -9,6 +9,15 @@ import { Progress } from '@/components/ui/progress';
 import { useUpdateStore } from '@/stores/update';
 import { useTranslation } from 'react-i18next';
 
+const updatePanelClass =
+  'space-y-4 rounded-[24px] border border-border/70 bg-[hsl(var(--surface-base)/0.92)] p-4 shadow-sm';
+const statusRowClass =
+  'flex items-center justify-between rounded-2xl border border-border/60 bg-[hsl(var(--surface-base)/0.84)] px-4 py-3';
+const infoPanelClass =
+  'rounded-2xl border border-border/60 bg-[hsl(var(--surface-base)/0.86)] p-4';
+const errorPanelClass =
+  'rounded-2xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive';
+
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';
   const k = 1024;
@@ -148,7 +157,7 @@ export function UpdateSettings() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className={updatePanelClass}>
       {/* Current Version */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
@@ -159,7 +168,7 @@ export function UpdateSettings() {
       </div>
 
       {/* Status */}
-      <div className="flex items-center justify-between py-3 border-t border-b">
+      <div className={statusRowClass}>
         <p className="text-sm text-muted-foreground">{renderStatusText()}</p>
         {renderAction()}
       </div>
@@ -182,7 +191,7 @@ export function UpdateSettings() {
 
       {/* Update Info */}
       {updateInfo && (status === 'available' || status === 'downloaded') && (
-        <div className="rounded-lg bg-muted p-4 space-y-2">
+        <div className={infoPanelClass}>
           <div className="flex items-center justify-between">
             <p className="font-medium">Version {updateInfo.version}</p>
             {updateInfo.releaseDate && (
@@ -202,7 +211,7 @@ export function UpdateSettings() {
 
       {/* Error Details */}
       {status === 'error' && error && (
-        <div className="rounded-lg bg-red-50 dark:bg-red-900/10 p-4 text-red-600 dark:text-red-400 text-sm">
+        <div className={errorPanelClass}>
           <p className="font-medium mb-1">{t('updates.errorDetails')}</p>
           <p>{error}</p>
         </div>

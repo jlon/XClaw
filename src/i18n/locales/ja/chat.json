@@ -4,18 +4,31 @@
     "welcome": {
         "title": "XClaw チャット",
         "subtitle": "お手伝いできることはありますか？",
+        "description": "対話、実行、マルチ Agent 協調をひとつの安定したデスクトップ作業面にまとめます。",
         "askQuestions": "タスク対応",
         "askQuestionsDesc": "タスク指向の依頼に対応します",
         "creativeTasks": "連続実行",
         "creativeTasksDesc": "複数ステップの作業を継続して進めます",
-        "brainstorming": "マルチエージェント並列実行"
+        "brainstorming": "マルチエージェント並列実行",
+        "brainstormingDesc": "複雑な作業を分割し、複数の役割を並行して進めます"
     },
     "noLogs": "（ログはまだありません）",
     "toolbar": {
         "refresh": "チャットを更新",
         "showThinking": "思考を表示",
-        "hideThinking": "思考を非表示",
-        "currentAgent": "現在の会話相手: {{agent}}"
+        "hideThinking": "思考を非表示"
+    },
+    "header": {
+        "sessionPlain": "セッション {{id}}",
+        "runtimeIssue": "実行異常: {{state}}"
+    },
+    "message": {
+        "thinking": "思考過程",
+        "toolProcessing": "ツール実行結果を整理しています…",
+        "showInFolder": "フォルダで表示",
+        "openFile": "ファイルを開く",
+        "image": "画像",
+        "file": "ファイル"
     },
     "composer": {
         "attachFiles": "ファイルを添付",

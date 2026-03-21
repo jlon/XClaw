@@ -4,18 +4,31 @@
     "welcome": {
         "title": "XClaw 聊天",
         "subtitle": "我能为你做些什么？",
+        "description": "把对话、执行和多 Agent 协作收在同一个桌面工作区里，保持清晰、稳定、可持续推进。",
         "askQuestions": "处理任务",
         "askQuestionsDesc": "处理面向任务的请求",
         "creativeTasks": "持续执行",
         "creativeTasksDesc": "持续推进多步骤工作",
-        "brainstorming": "多智能体并行"
+        "brainstorming": "多智能体并行",
+        "brainstormingDesc": "把复杂任务拆开，并行推进不同角色的工作"
     },
     "noLogs": "（暂无日志）",
     "toolbar": {
         "refresh": "刷新聊天",
         "showThinking": "显示思考过程",
-        "hideThinking": "隐藏思考过程",
-        "currentAgent": "当前对话对象：{{agent}}"
+        "hideThinking": "隐藏思考过程"
+    },
+    "header": {
+        "sessionPlain": "会话 {{id}}",
+        "runtimeIssue": "运行异常：{{state}}"
+    },
+    "message": {
+        "thinking": "思考过程",
+        "toolProcessing": "正在整理工具执行结果…",
+        "showInFolder": "在文件夹中显示",
+        "openFile": "打开文件",
+        "image": "图片",
+        "file": "文件"
     },
     "composer": {
         "attachFiles": "添加文件",

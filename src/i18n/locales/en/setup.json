@@ -73,6 +73,11 @@
             "freshBlockingTitle": "This configuration cannot continue yet",
             "freshWarningsTitle": "Fresh setup notes"
         },
+        "preparation": {
+            "title": "Prepare the current OpenClaw environment",
+            "description": "Review what will be imported and any conflicts before the actual takeover starts.",
+            "pendingHint": "XClaw starts the real takeover and import only after you choose Import and Continue."
+        },
         "blockingTitle": "Takeover is currently blocked",
         "warningsTitle": "Takeover notes",
         "running": "Adopting and importing the current environment...",
@@ -128,11 +133,31 @@
             "success": "Node.js is available",
             "error": "Failed",
             "gatewayRunning": "Running on port {{port}}",
-            "packageReady": "OpenClaw package ready"
+            "packageReady": "OpenClaw package ready",
+            "packageReadyWithVersion": "OpenClaw package ready v{{version}}",
+            "packageMissingAt": "OpenClaw package not found at {{dir}}",
+            "packageDistMissing": "OpenClaw package was found, but the dist build output is missing",
+            "checkFailed": "Check failed: {{message}}",
+            "gatewayWaiting": "Waiting for the gateway to become ready...",
+            "gatewayStarting": "Starting the gateway...",
+            "gatewayStartFailed": "Failed to start the gateway",
+            "gatewayStartTimedOut": "Gateway startup timed out"
+        },
+        "summary": {
+            "description": "Confirm the runtime is ready before moving on to provider access.",
+            "ready": "Ready",
+            "attention": "Needs attention"
         },
         "issue": {
             "title": "Environment issue detected",
             "desc": "Please ensure OpenClaw is properly installed. Check the logs for details."
+        },
+        "advanced": {
+            "title": "Advanced diagnostics",
+            "description": "Keep the main flow focused on readiness. Logs, retries, and detailed runtime state live here.",
+            "descriptionOpen": "Detailed diagnostics, runtime status, and log actions are currently visible.",
+            "toggle": "Advanced diagnostics",
+            "hide": "Hide diagnostics"
         },
         "logs": {
             "title": "Application Logs",
@@ -158,7 +183,9 @@
         "validateSave": "Validate & Save",
         "valid": "Provider configured successfully",
         "invalid": "Invalid API key",
-        "storedLocally": "Your API key is stored locally on your machine."
+        "storedLocally": "Your API key is stored locally on your machine.",
+        "blockingTitle": "Blocking issues",
+        "warningsTitle": "Notes"
     },
     "channel": {
         "title": "Connect a Messaging Channel",
@@ -184,7 +211,10 @@
         "error": "Setup Error:",
         "restart": "Try restarting the app",
         "wait": "This may take a few moments...",
-        "skip": "Skip this step"
+        "skip": "Skip this step",
+        "toastFailed": "Environment setup failed",
+        "toastError": "Installation error",
+        "unknownError": "Unknown error during installation"
     },
     "complete": {
         "title": "Setup Complete!",
@@ -193,7 +223,9 @@
         "components": "Components",
         "gateway": "Gateway",
         "running": "Running",
-        "footer": "You can customize skills and connect channels in Settings"
+        "footer": "You can customize skills and connect channels in Settings",
+        "progress": "Progress",
+        "gatewayPendingHint": "If the gateway is not running yet, XClaw will keep taking over the startup process after you enter the app."
     },
     "nav": {
         "next": "Next",
@@ -201,6 +233,81 @@
         "skipStep": "Skip this step",
         "skipSetup": "Skip Setup",
         "getStarted": "Get Started"
+    },
+    "wizard": {
+        "rail": {
+            "title": "Guided Setup",
+            "aria": "Setup steps"
+        },
+        "stages": {
+            "start": {
+                "label": "Start",
+                "description": "Choose how to begin"
+            },
+            "preparation": {
+                "label": "Preparation",
+                "description": "Check the environment and import readiness"
+            },
+            "provider": {
+                "label": "Model Access",
+                "description": "Confirm provider access or reuse"
+            },
+            "complete": {
+                "label": "Finish",
+                "description": "Review the final summary and enter the app",
+                "applyingDescription": "Applying the final changes"
+            }
+        },
+        "actions": {
+            "takeoverImport": "Import and Continue",
+            "reviewSummary": "Review Summary",
+            "providerSubmit": "Save and Continue"
+        },
+        "footer": {
+            "start": {
+                "title": "Start setup",
+                "body": "Choose how to begin before moving on to preparation and access.",
+                "primary": "Next",
+                "secondary": "Exit setup"
+            },
+            "preparation": {
+                "title": "Prepare the environment",
+                "body": "Confirm local readiness before moving on to model access.",
+                "primary": "Next",
+                "secondary": "Back"
+            },
+            "provider": {
+                "title": "Model access",
+                "body": "Choose the access method before continuing.",
+                "primary": "Next",
+                "secondary": "Back"
+            },
+            "complete": {
+                "title": "Finish",
+                "body": "Confirm the changes and enter the app.",
+                "primary": "Enter XClaw",
+                "secondary": "Back"
+            },
+            "applying": {
+                "title": "Applying changes",
+                "body": "Keep this window open. The summary will appear automatically when everything is ready."
+            }
+        },
+        "exitDialog": {
+            "title": "Exit setup now?",
+            "message": "Leaving now will not mark setup as complete, and the wizard will return next time.",
+            "applyingTitle": "Changes are still applying. Exit anyway?",
+            "applyingMessage": "The current changes are not finished yet, and setup will not be marked as complete if you leave now.",
+            "confirm": "Exit",
+            "cancel": "Stay here"
+        },
+        "loading": {
+            "description": "Inspecting the local OpenClaw environment..."
+        },
+        "errorState": {
+            "title": "Unable to inspect the installation environment",
+            "retry": "Try again"
+        }
     },
     "defaultSkills": {
         "opencode": {

@@ -86,62 +86,101 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
+const { tMock } = vi.hoisted(() => ({
+  tMock: (key: string) => ({
+    'steps.takeover.title': '接管现有 OpenClaw',
+    'steps.takeover.description': '检测到本地已有 OpenClaw 环境',
+    'steps.providerReview.title': '复核 Provider 导入',
+    'steps.providerReview.description': '这些导入项需要你确认',
+    'providerReview.title': '请复核 Provider 导入结果',
+    'providerReview.description': '接管已经完成，但仍有部分导入项需要你确认。',
+    'providerReview.summary.imported': '已导入账户',
+    'providerReview.summary.default': '默认账户',
+    'providerReview.summary.conflicts': '冲突项',
+    'providerReview.summary.unsupported': '未直接导入',
+    'providerReview.defaultMissing': '未自动确定',
+    'providerReview.conflictsTitle': '需要人工复核的导入项',
+    'providerReview.nextHint': '你可以先继续进入应用，稍后在设置页修正这些 Provider。',
+    'takeover.title': '检测到现有 OpenClaw',
+    'takeover.description': '你可以接管当前环境，或继续创建新的 XClaw 配置。',
+    'takeover.preparation.title': '准备接管当前 OpenClaw 环境',
+    'takeover.preparation.description': '先确认将导入的内容和潜在冲突，再执行真正的接管。',
+    'takeover.preparation.pendingHint': '点击“导入并继续”后，XClaw 才会开始真正的接管和导入。',
+    'takeover.progress.idle': '等待开始接管',
+    'takeover.progress.blocked': '正在校验是否允许接管',
+    'takeover.progress.backup': '正在备份当前 XClaw 本地状态',
+    'takeover.progress.import': '正在导入 OpenClaw 的 Provider 与认证信息',
+    'takeover.progress.commit': '正在提交接管结果并写入完成状态',
+    'takeover.progress.rollback': '接管失败，正在回滚本地状态',
+    'takeover.progress.complete': '接管完成',
+    'takeover.choice.takeover': '接管现有安装',
+    'takeover.choice.fresh': '从头创建',
+    'takeover.choice.takeoverDescription': '复用现有的 OpenClaw 配置、技能和 Provider 状态。',
+    'takeover.choice.freshDescription': '保留现有 OpenClaw，同时创建一套新的 XClaw 默认配置。',
+    'takeover.summary.providers': 'Provider',
+    'takeover.summary.skills': '技能',
+    'takeover.summary.extensions': '扩展',
+    'takeover.summary.workspace': '工作区',
+    'takeover.blockingTitle': '当前不能直接接管',
+    'takeover.warningsTitle': '接管提醒',
+    'takeover.mode.takeoverTitle': '将接管当前 OpenClaw 环境',
+    'takeover.mode.takeoverDescription': 'XClaw 会导入现有 Provider、工作区和技能状态。',
+    'takeover.mode.freshTitle': '将创建新的 XClaw 配置',
+    'takeover.mode.freshDescription': '现有 OpenClaw 会保留不动，下一步继续确认不冲突的工作区和端口。',
+    'takeover.mode.currentWorkspace': '当前工作区',
+    'takeover.mode.recommendedWorkspace': '推荐新工作区',
+    'takeover.mode.currentPort': '当前网关端口',
+    'takeover.mode.recommendedPort': '推荐新端口',
+    'takeover.mode.workspaceHint': 'XClaw 会默认使用这个新目录，后续你仍可修改。',
+    'takeover.mode.portHint': '如果当前端口已被现有 OpenClaw 使用，XClaw 会引导你改成不冲突的端口。',
+    'takeover.mode.nextHint': '下一步继续检查环境并确认这些值。',
+    'takeover.mode.freshBlockingTitle': '当前配置还不能继续',
+    'takeover.mode.freshWarningsTitle': '新建提醒',
+    'wizard.rail.title': '引导流程',
+    'wizard.rail.aria': '引导步骤',
+    'wizard.stages.start.label': '开始',
+    'wizard.stages.start.description': '确认要接管还是全新开始',
+    'wizard.stages.preparation.label': '准备',
+    'wizard.stages.preparation.description': '检查环境并准备导入',
+    'wizard.stages.provider.label': '模型与接入',
+    'wizard.stages.provider.description': '确认模型接入或复用结果',
+    'wizard.stages.complete.label': '完成',
+    'wizard.stages.complete.description': '确认完成并进入应用',
+    'wizard.stages.complete.applyingDescription': '正在应用最终变更',
+    'wizard.actions.takeoverImport': '导入并继续',
+    'wizard.actions.reviewSummary': '查看摘要',
+    'wizard.actions.providerSubmit': '保存并继续',
+    'wizard.footer.start.title': '开始引导',
+    'wizard.footer.start.body': '先确认怎么开始，再继续后面的准备和接入。',
+    'wizard.footer.start.primary': '下一步',
+    'wizard.footer.start.secondary': '退出引导',
+    'wizard.footer.preparation.title': '准备环境',
+    'wizard.footer.preparation.body': '先完成本地环境确认，再进入模型与接入。',
+    'wizard.footer.preparation.primary': '下一步',
+    'wizard.footer.preparation.secondary': '返回',
+    'wizard.footer.provider.title': '模型与接入',
+    'wizard.footer.provider.body': '先选接入方式，再继续下一步。',
+    'wizard.footer.provider.primary': '下一步',
+    'wizard.footer.provider.secondary': '返回',
+    'wizard.footer.complete.title': '完成',
+    'wizard.footer.complete.body': '确认变更并进入应用。',
+    'wizard.footer.complete.primary': '进入 XClaw',
+    'wizard.footer.complete.secondary': '返回',
+    'wizard.footer.applying.title': '正在应用变更',
+    'wizard.footer.applying.body': '请保持窗口打开，完成后会自动进入摘要。',
+    'nav.next': '下一步',
+    'nav.back': '返回',
+    'nav.skipSetup': '跳过设置',
+    'nav.getStarted': '开始使用',
+  }[key] ?? key),
+}));
+
 vi.mock('react-i18next', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react-i18next')>();
   return {
     ...actual,
     useTranslation: () => ({
-      t: (key: string) => ({
-        'steps.takeover.title': '接管现有 OpenClaw',
-        'steps.takeover.description': '检测到本地已有 OpenClaw 环境',
-        'steps.providerReview.title': '复核 Provider 导入',
-        'steps.providerReview.description': '这些导入项需要你确认',
-        'providerReview.title': '请复核 Provider 导入结果',
-        'providerReview.description': '接管已经完成，但仍有部分导入项需要你确认。',
-        'providerReview.summary.imported': '已导入账户',
-        'providerReview.summary.default': '默认账户',
-        'providerReview.summary.conflicts': '冲突项',
-        'providerReview.summary.unsupported': '未直接导入',
-        'providerReview.defaultMissing': '未自动确定',
-        'providerReview.conflictsTitle': '需要人工复核的导入项',
-        'providerReview.nextHint': '你可以先继续进入应用，稍后在设置页修正这些 Provider。',
-        'takeover.title': '检测到现有 OpenClaw',
-        'takeover.description': '你可以接管当前环境，或继续创建新的 XClaw 配置。',
-        'takeover.progress.idle': '等待开始接管',
-        'takeover.progress.blocked': '正在校验是否允许接管',
-        'takeover.progress.backup': '正在备份当前 XClaw 本地状态',
-        'takeover.progress.import': '正在导入 OpenClaw 的 Provider 与认证信息',
-        'takeover.progress.commit': '正在提交接管结果并写入完成状态',
-        'takeover.progress.rollback': '接管失败，正在回滚本地状态',
-        'takeover.progress.complete': '接管完成',
-        'takeover.choice.takeover': '接管现有安装',
-        'takeover.choice.fresh': '从头创建',
-        'takeover.choice.takeoverDescription': '复用现有的 OpenClaw 配置、技能和 Provider 状态。',
-        'takeover.choice.freshDescription': '保留现有 OpenClaw，同时创建一套新的 XClaw 默认配置。',
-        'takeover.summary.providers': 'Provider',
-        'takeover.summary.skills': '技能',
-        'takeover.summary.extensions': '扩展',
-        'takeover.summary.workspace': '工作区',
-        'takeover.blockingTitle': '当前不能直接接管',
-        'takeover.warningsTitle': '接管提醒',
-        'takeover.mode.takeoverTitle': '将接管当前 OpenClaw 环境',
-        'takeover.mode.takeoverDescription': 'XClaw 会导入现有 Provider、工作区和技能状态。',
-        'takeover.mode.freshTitle': '将创建新的 XClaw 配置',
-        'takeover.mode.freshDescription': '现有 OpenClaw 会保留不动，下一步继续确认不冲突的工作区和端口。',
-        'takeover.mode.currentWorkspace': '当前工作区',
-        'takeover.mode.recommendedWorkspace': '推荐新工作区',
-        'takeover.mode.currentPort': '当前网关端口',
-        'takeover.mode.recommendedPort': '推荐新端口',
-        'takeover.mode.workspaceHint': 'XClaw 会默认使用这个新目录，后续你仍可修改。',
-        'takeover.mode.portHint': '如果当前端口已被现有 OpenClaw 使用，XClaw 会引导你改成不冲突的端口。',
-        'takeover.mode.nextHint': '下一步继续检查环境并确认这些值。',
-        'takeover.mode.freshBlockingTitle': '当前配置还不能继续',
-        'takeover.mode.freshWarningsTitle': '新建提醒',
-        'nav.next': '下一步',
-        'nav.back': '返回',
-        'nav.skipSetup': '跳过设置',
-        'nav.getStarted': '开始使用',
-      }[key] ?? key),
+      t: tMock,
       i18n: { language: 'zh-CN' },
     }),
   };
@@ -285,6 +324,140 @@ describe('Setup takeover flow', () => {
     expect(screen.getByRole('button', { name: '下一步' })).toBeEnabled();
   });
 
+  it('does not expose a global skip-setup action in the desktop wizard shell', async () => {
+    hostApiFetchMock.mockImplementation(async (path: string, init?: RequestInit) => {
+      if (path === '/api/app/setup-inspection') {
+        return {
+          hasExistingOpenClaw: false,
+          suggestedMode: 'fresh',
+          counts: {
+            runtimeProviders: 0,
+            skills: 0,
+            extensions: 0,
+          },
+          defaultWorkspacePath: '/Users/test/.openclaw/workspace',
+        };
+      }
+
+      if (path === '/api/app/setup-plan' && init?.method === 'POST') {
+        return {
+          mode: 'fresh',
+          canApply: true,
+          blockingIssues: [],
+          warnings: [],
+          runtime: {
+            gatewayPort: 18789,
+            portAvailable: true,
+            suggestedGatewayPort: 18789,
+            externalGatewayDetected: false,
+            configChanging: false,
+          },
+          workspace: {
+            defaultPath: '/Users/test/.openclaw/workspace',
+            configuredPaths: [],
+          },
+        };
+      }
+
+      if (path === '/api/app/takeover-status' && !init) {
+        return {
+          state: 'idle',
+          step: 'idle',
+          importedAccountCount: 0,
+          defaultAccountId: null,
+          warnings: [],
+          conflicts: [],
+          blockingIssues: [],
+        };
+      }
+
+      throw new Error(`Unexpected host API path: ${path}`);
+    });
+
+    render(<Setup />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '下一步' })).toBeInTheDocument();
+    });
+
+    expect(screen.queryByRole('button', { name: '跳过设置' })).not.toBeInTheDocument();
+  });
+
+  it('moves takeover import behind the preparation stage instead of running it from the start step', async () => {
+    hostApiFetchMock.mockImplementation((path: string, init?: RequestInit) => {
+      if (path === '/api/app/setup-inspection') {
+        return Promise.resolve({
+          hasExistingOpenClaw: true,
+          suggestedMode: 'takeover',
+          counts: {
+            runtimeProviders: 1,
+            skills: 1,
+            extensions: 0,
+          },
+          defaultWorkspacePath: '/Users/test/.openclaw/workspace',
+        });
+      }
+
+      if (path === '/api/app/setup-plan' && init?.method === 'POST') {
+        return Promise.resolve({
+          mode: JSON.parse(String(init.body)).mode,
+          canApply: true,
+          blockingIssues: [],
+          warnings: [],
+        });
+      }
+
+      if (path === '/api/app/takeover-status' && !init) {
+        return Promise.resolve({
+          state: 'idle',
+          step: 'idle',
+          importedAccountCount: 0,
+          defaultAccountId: null,
+          warnings: [],
+          conflicts: [],
+          blockingIssues: [],
+        });
+      }
+
+      if (path === '/api/app/takeover-import' && init?.method === 'POST') {
+        return Promise.resolve({
+          state: 'complete',
+          step: 'complete',
+          importedAccountCount: 1,
+          defaultAccountId: 'moonshot',
+          warnings: [],
+          conflicts: [],
+          blockingIssues: [],
+        });
+      }
+
+      if (path === '/api/app/setup-activation' && init?.method === 'POST') {
+        return Promise.resolve({ success: true });
+      }
+
+      return Promise.reject(new Error(`Unexpected host API path: ${path}`));
+    });
+
+    render(<Setup />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '下一步' })).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '下一步' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '返回' })).toBeInTheDocument();
+    });
+
+    expect(hostApiFetchMock).not.toHaveBeenCalledWith(
+      '/api/app/takeover-import',
+      expect.objectContaining({ method: 'POST' }),
+    );
+    expect(markSetupCompleteMock).not.toHaveBeenCalled();
+    expect(navigateMock).not.toHaveBeenCalled();
+  });
+
   it('runs takeover import, syncs renderer setup state and navigates home after success', async () => {
     hostApiFetchMock.mockImplementation(async (path: string, init?: RequestInit) => {
       if (path === '/api/app/setup-inspection') {
@@ -346,8 +519,8 @@ describe('Setup takeover flow', () => {
       expect(screen.getByText('接管现有安装')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('接管现有安装'));
     fireEvent.click(screen.getByRole('button', { name: '下一步' }));
+    fireEvent.click(screen.getByRole('button', { name: '导入并继续' }));
 
     await waitFor(() => {
       expect(hostApiFetchMock).toHaveBeenCalledWith(
@@ -357,14 +530,28 @@ describe('Setup takeover flow', () => {
         }),
       );
     });
-    expect(hostApiFetchMock).toHaveBeenCalledWith(
+    expect(hostApiFetchMock).not.toHaveBeenCalledWith(
       '/api/app/setup-activation',
       expect.objectContaining({
         method: 'POST',
       }),
     );
-    expect(markSetupCompleteMock).toHaveBeenCalledTimes(1);
-    expect(navigateMock).toHaveBeenCalledWith('/');
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '开始使用' })).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '开始使用' }));
+
+    await waitFor(() => {
+      expect(hostApiFetchMock).toHaveBeenCalledWith(
+        '/api/app/setup-activation',
+        expect.objectContaining({
+          method: 'POST',
+        }),
+      );
+      expect(navigateMock).toHaveBeenCalledWith('/');
+    });
   });
 
   it('routes takeover with provider review requirements into a review step before finishing setup', async () => {
@@ -438,6 +625,12 @@ describe('Setup takeover flow', () => {
     fireEvent.click(screen.getByRole('button', { name: '下一步' }));
 
     await waitFor(() => {
+      expect(screen.getByRole('button', { name: '导入并继续' })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '导入并继续' }));
+
+    await waitFor(() => {
       expect(screen.getByText('请复核 Provider 导入结果')).toBeInTheDocument();
     });
 
@@ -445,6 +638,12 @@ describe('Setup takeover flow', () => {
     expect(navigateMock).not.toHaveBeenCalled();
     expect(screen.getAllByText('moonshot').length).toBeGreaterThan(0);
     expect(screen.getByText('需要人工复核的导入项')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '下一步' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '开始使用' })).toBeInTheDocument();
+    });
 
     fireEvent.click(screen.getByRole('button', { name: '开始使用' }));
 
@@ -456,7 +655,7 @@ describe('Setup takeover flow', () => {
       expect(markSetupCompleteMock).toHaveBeenCalledTimes(1);
     });
     expect(navigateMock).toHaveBeenCalledWith('/');
-  });
+  }, 15000);
 
   it('polls takeover status while import is still running', async () => {
     let resolveTakeoverImport: ((value: unknown) => void) | null = null;
@@ -529,6 +728,7 @@ describe('Setup takeover flow', () => {
     });
 
     fireEvent.click(screen.getByRole('button', { name: '下一步' }));
+    fireEvent.click(screen.getByRole('button', { name: '导入并继续' }));
 
     await waitFor(() => {
       expect(hostApiFetchMock).toHaveBeenCalledWith(
@@ -555,6 +755,12 @@ describe('Setup takeover flow', () => {
     });
 
     await waitFor(() => {
+      expect(screen.getByRole('button', { name: '开始使用' })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '开始使用' }));
+
+    await waitFor(() => {
       expect(hostApiFetchMock).toHaveBeenCalledWith(
         '/api/app/setup-activation',
         expect.objectContaining({ method: 'POST' }),
@@ -562,7 +768,7 @@ describe('Setup takeover flow', () => {
       expect(markSetupCompleteMock).toHaveBeenCalledTimes(1);
     });
     expect(navigateMock).toHaveBeenCalledWith('/');
-  });
+  }, 15000);
 
   it('recovers an in-flight takeover after the setup page reloads', async () => {
     let takeoverStatusPolls = 0;
@@ -706,6 +912,12 @@ describe('Setup takeover flow', () => {
 
     expect(screen.queryByText('接管现有安装')).not.toBeInTheDocument();
 
+    fireEvent.click(screen.getByRole('button', { name: '下一步' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '开始使用' })).toBeInTheDocument();
+    });
+
     fireEvent.click(screen.getByRole('button', { name: '开始使用' }));
 
     await waitFor(() => {
@@ -790,6 +1002,7 @@ describe('Setup takeover flow', () => {
     });
 
     fireEvent.click(screen.getByRole('button', { name: '下一步' }));
+    fireEvent.click(screen.getByRole('button', { name: '导入并继续' }));
 
     await waitFor(() => {
       expect(hostApiFetchMock).toHaveBeenCalledWith(
@@ -802,7 +1015,7 @@ describe('Setup takeover flow', () => {
       expect(hostApiFetchMock).toHaveBeenCalledWith('/api/app/takeover-status');
     });
 
-    expect(screen.getByRole('button', { name: '下一步' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: '导入并继续' })).toBeDisabled();
 
     resolveTakeoverImport?.({
       state: 'complete',
@@ -813,6 +1026,12 @@ describe('Setup takeover flow', () => {
       conflicts: [],
       blockingIssues: [],
     });
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '开始使用' })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '开始使用' }));
 
     await waitFor(() => {
       expect(hostApiFetchMock).toHaveBeenCalledWith(
@@ -879,7 +1098,9 @@ describe('Setup takeover flow', () => {
       expect(screen.getByRole('button', { name: '下一步' })).toBeEnabled();
     });
 
-    const action = screen.getByRole('button', { name: '下一步' });
+    fireEvent.click(screen.getByRole('button', { name: '下一步' }));
+
+    const action = screen.getByRole('button', { name: '导入并继续' });
     fireEvent.click(action);
     fireEvent.click(action);
 
@@ -900,6 +1121,12 @@ describe('Setup takeover flow', () => {
       conflicts: [],
       blockingIssues: [],
     });
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '开始使用' })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '开始使用' }));
 
     await waitFor(() => {
       expect(hostApiFetchMock).toHaveBeenCalledWith(

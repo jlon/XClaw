@@ -47,6 +47,24 @@ type ControlUiInfo = {
   port: number;
 };
 
+const settingsSectionClass =
+  'space-y-6 rounded-[28px] border border-border/70 bg-[hsl(var(--surface-panel)/0.9)] p-5 md:p-6 shadow-[0_14px_36px_rgba(43,28,20,0.08)]';
+const settingsSubPanelClass =
+  'rounded-2xl border border-border/70 bg-[hsl(var(--surface-base)/0.92)] p-4 shadow-sm';
+const settingsHeadingClass = 'text-[28px] md:text-[30px] font-semibold tracking-tight text-foreground';
+const settingsLabelClass = 'text-[15px] font-medium text-foreground/85';
+const settingsHintClass = 'text-[13px] text-muted-foreground';
+const settingsPillClass =
+  'rounded-full px-5 h-10 border border-border/70 bg-[hsl(var(--surface-base)/0.95)] shadow-sm';
+const settingsPillActiveClass =
+  'bg-[hsl(var(--accent)/0.16)] text-foreground border-[hsl(var(--accent)/0.22)]';
+const settingsPillIdleClass =
+  'bg-transparent text-muted-foreground hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground';
+const settingsInputClass =
+  'h-10 rounded-xl border-border/70 bg-[hsl(var(--surface-base)/0.96)] font-mono text-[13px] text-foreground shadow-sm placeholder:text-muted-foreground';
+const settingsGhostButtonClass =
+  'rounded-full border-border/70 bg-transparent hover:bg-[hsl(var(--surface-hover)/0.9)]';
+
 export function Settings() {
   const { t } = useTranslation('settings');
   const {
@@ -453,32 +471,32 @@ export function Settings() {
       <WorkspacePageShell>
 
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-start justify-between mb-12 shrink-0 gap-4">
-          <div>
-            <h1 className="text-5xl md:text-6xl font-serif text-foreground mb-3 font-normal tracking-tight" style={{ fontFamily: 'Georgia, Cambria, "Times New Roman", Times, serif' }}>
+        <div className="mb-10 shrink-0 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-[820px]">
+            <h1 className="text-[42px] leading-[0.95] md:text-[56px] font-semibold tracking-tight text-foreground">
               {t('title')}
             </h1>
-            <p className="text-[17px] text-foreground/70 font-medium">
+            <p className="mt-3 max-w-[60ch] text-[16px] md:text-[17px] font-medium text-foreground/68">
               {t('subtitle')}
             </p>
           </div>
         </div>
 
         {/* Content Area */}
-        <WorkspacePageScrollArea className="space-y-12" platform={isWindows ? 'win32' : 'darwin'}>
+        <WorkspacePageScrollArea className="space-y-6" platform={isWindows ? 'win32' : 'darwin'}>
 
           {/* Appearance */}
-          <div>
-            <h2 className="text-3xl font-serif text-foreground mb-6 font-normal tracking-tight" style={{ fontFamily: 'Georgia, Cambria, "Times New Roman", Times, serif' }}>
+          <div className={settingsSectionClass}>
+            <h2 className={settingsHeadingClass}>
               {t('appearance.title')}
             </h2>
-            <div className="space-y-6">
+            <div className="space-y-5">
               <div className="space-y-3">
-                <Label className="text-[15px] font-medium text-foreground/80">{t('appearance.theme')}</Label>
+                <Label className={settingsLabelClass}>{t('appearance.theme')}</Label>
                 <div className="flex flex-wrap gap-2">
                   <Button
                     variant={theme === 'light' ? 'secondary' : 'outline'}
-                    className={cn("rounded-full px-5 h-10 border-black/10 dark:border-white/10", theme === 'light' ? "bg-black/5 dark:bg-white/10 text-foreground" : "bg-transparent text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5")}
+                    className={cn(settingsPillClass, theme === 'light' ? settingsPillActiveClass : settingsPillIdleClass)}
                     onClick={() => setTheme('light')}
                   >
                     <Sun className="h-4 w-4 mr-2" />
@@ -486,7 +504,7 @@ export function Settings() {
                   </Button>
                   <Button
                     variant={theme === 'dark' ? 'secondary' : 'outline'}
-                    className={cn("rounded-full px-5 h-10 border-black/10 dark:border-white/10", theme === 'dark' ? "bg-black/5 dark:bg-white/10 text-foreground" : "bg-transparent text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5")}
+                    className={cn(settingsPillClass, theme === 'dark' ? settingsPillActiveClass : settingsPillIdleClass)}
                     onClick={() => setTheme('dark')}
                   >
                     <Moon className="h-4 w-4 mr-2" />
@@ -494,7 +512,7 @@ export function Settings() {
                   </Button>
                   <Button
                     variant={theme === 'system' ? 'secondary' : 'outline'}
-                    className={cn("rounded-full px-5 h-10 border-black/10 dark:border-white/10", theme === 'system' ? "bg-black/5 dark:bg-white/10 text-foreground" : "bg-transparent text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5")}
+                    className={cn(settingsPillClass, theme === 'system' ? settingsPillActiveClass : settingsPillIdleClass)}
                     onClick={() => setTheme('system')}
                   >
                     <Monitor className="h-4 w-4 mr-2" />
@@ -503,13 +521,13 @@ export function Settings() {
                 </div>
               </div>
               <div className="space-y-3">
-                <Label className="text-[15px] font-medium text-foreground/80">{t('appearance.language')}</Label>
+                <Label className={settingsLabelClass}>{t('appearance.language')}</Label>
                 <div className="flex flex-wrap gap-2">
                   {SUPPORTED_LANGUAGES.map((lang) => (
                     <Button
                       key={lang.code}
                       variant={language === lang.code ? 'secondary' : 'outline'}
-                      className={cn("rounded-full px-5 h-10 border-black/10 dark:border-white/10", language === lang.code ? "bg-black/5 dark:bg-white/10 text-foreground" : "bg-transparent text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5")}
+                      className={cn(settingsPillClass, language === lang.code ? settingsPillActiveClass : settingsPillIdleClass)}
                       onClick={() => setLanguage(lang.code)}
                     >
                       {lang.label}
@@ -517,54 +535,51 @@ export function Settings() {
                   ))}
                 </div>
               </div>
-              <div className="flex items-center justify-between">
+              <div className={settingsSubPanelClass}>
                 <div>
-                  <Label className="text-[15px] font-medium text-foreground/80">{t('appearance.launchAtStartup')}</Label>
-                  <p className="text-[13px] text-muted-foreground mt-1">
+                  <Label className={settingsLabelClass}>{t('appearance.launchAtStartup')}</Label>
+                  <p className="mt-1 text-[13px] text-muted-foreground">
                     {t('appearance.launchAtStartupDesc')}
                   </p>
                 </div>
-                <Switch
-                  checked={launchAtStartup}
-                  onCheckedChange={setLaunchAtStartup}
-                />
+                <Switch checked={launchAtStartup} onCheckedChange={setLaunchAtStartup} />
               </div>
             </div>
           </div>
 
-          <Separator className="bg-black/5 dark:bg-white/5" />
+          <Separator className="bg-border/60" />
 
           {/* Gateway */}
-          <div>
-            <h2 className="text-3xl font-serif text-foreground mb-6 font-normal tracking-tight" style={{ fontFamily: 'Georgia, Cambria, "Times New Roman", Times, serif' }}>
+          <div className={settingsSectionClass}>
+            <h2 className={settingsHeadingClass}>
               {t('gateway.title')}
             </h2>
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-5">
+              <div className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-[hsl(var(--surface-base)/0.82)] p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <Label className="text-[15px] font-medium text-foreground">{t('gateway.status')}</Label>
-                  <p className="text-[13px] text-muted-foreground mt-1">
+                  <Label className={settingsLabelClass}>{t('gateway.status')}</Label>
+                  <p className="mt-1 text-[13px] text-muted-foreground">
                     {t('gateway.port')}: {gatewayStatus.port}
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <div className={cn(
                     "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium border",
-                    gatewayStatus.state === 'running' ? "bg-green-500/10 text-green-600 dark:text-green-500 border-green-500/20" :
-                      gatewayStatus.state === 'error' ? "bg-red-500/10 text-red-600 dark:text-red-500 border-red-500/20" :
-                        "bg-black/5 dark:bg-white/5 text-muted-foreground border-transparent"
+                    gatewayStatus.state === 'running' ? "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" :
+                      gatewayStatus.state === 'error' ? "bg-red-500/12 text-red-600 dark:text-red-400 border-red-500/20" :
+                        "bg-[hsl(var(--surface-hover)/0.75)] text-muted-foreground border-border/60"
                   )}>
                     <div className={cn("w-1.5 h-1.5 rounded-full",
-                      gatewayStatus.state === 'running' ? "bg-green-500" :
+                      gatewayStatus.state === 'running' ? "bg-emerald-500" :
                         gatewayStatus.state === 'error' ? "bg-red-500" : "bg-muted-foreground"
                     )} />
                     {gatewayStatus.state}
                   </div>
-                  <Button variant="outline" size="sm" onClick={restartGateway} className="rounded-full h-8 px-4 border-black/10 dark:border-white/10 bg-transparent hover:bg-black/5 dark:hover:bg-white/5">
+                  <Button variant="outline" size="sm" onClick={restartGateway} className={cn('h-8 px-4', settingsGhostButtonClass)}>
                     <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
                     {t('common:actions.restart')}
                   </Button>
-                  <Button variant="outline" size="sm" onClick={handleShowLogs} className="rounded-full h-8 px-4 border-black/10 dark:border-white/10 bg-transparent hover:bg-black/5 dark:hover:bg-white/5">
+                  <Button variant="outline" size="sm" onClick={handleShowLogs} className={cn('h-8 px-4', settingsGhostButtonClass)}>
                     <FileText className="h-3.5 w-3.5 mr-1.5" />
                     {t('gateway.logs')}
                   </Button>
@@ -572,63 +587,53 @@ export function Settings() {
               </div>
 
               {showLogs && (
-                <div className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5">
+                <div className={settingsSubPanelClass}>
                   <div className="flex items-center justify-between mb-3">
-                    <p className="font-medium text-[14px]">{t('gateway.appLogs')}</p>
+                    <p className="font-medium text-[14px] text-foreground">{t('gateway.appLogs')}</p>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" className="h-7 text-[12px] rounded-full hover:bg-black/5 dark:hover:bg-white/10" onClick={handleOpenLogDir}>
+                      <Button variant="ghost" size="sm" className="h-7 px-3 text-[12px] rounded-full hover:bg-[hsl(var(--surface-hover)/0.9)]" onClick={handleOpenLogDir}>
                         <ExternalLink className="h-3 w-3 mr-1.5" />
                         {t('gateway.openFolder')}
                       </Button>
-                      <Button variant="ghost" size="sm" className="h-7 text-[12px] rounded-full hover:bg-black/5 dark:hover:bg-white/10" onClick={() => setShowLogs(false)}>
+                      <Button variant="ghost" size="sm" className="h-7 px-3 text-[12px] rounded-full hover:bg-[hsl(var(--surface-hover)/0.9)]" onClick={() => setShowLogs(false)}>
                         {t('common:actions.close')}
                       </Button>
                     </div>
                   </div>
-                  <pre className="text-[12px] text-muted-foreground bg-white dark:bg-card p-4 rounded-xl max-h-60 overflow-auto whitespace-pre-wrap font-mono border border-black/5 dark:border-white/5 shadow-inner">
+                  <pre className="max-h-60 overflow-auto rounded-xl border border-border/60 bg-[hsl(var(--surface-base)/0.9)] p-4 font-mono text-[12px] whitespace-pre-wrap text-muted-foreground shadow-inner">
                     {logContent || t('chat:noLogs')}
                   </pre>
                 </div>
               )}
 
-              <div className="flex items-center justify-between">
+              <div className={settingsSubPanelClass}>
                 <div>
-                  <Label className="text-[15px] font-medium text-foreground">{t('gateway.autoStart')}</Label>
-                  <p className="text-[13px] text-muted-foreground mt-1">
+                  <Label className={settingsLabelClass}>{t('gateway.autoStart')}</Label>
+                  <p className="mt-1 text-[13px] text-muted-foreground">
                     {t('gateway.autoStartDesc')}
                   </p>
                 </div>
-                <Switch
-                  checked={gatewayAutoStart}
-                  onCheckedChange={setGatewayAutoStart}
-                />
+                <Switch checked={gatewayAutoStart} onCheckedChange={setGatewayAutoStart} />
               </div>
 
-
-              <div className="flex items-center justify-between">
+              <div className={settingsSubPanelClass}>
                 <div>
-                  <Label className="text-[15px] font-medium text-foreground">{t('advanced.devMode')}</Label>
-                  <p className="text-[13px] text-muted-foreground mt-1">
+                  <Label className={settingsLabelClass}>{t('advanced.devMode')}</Label>
+                  <p className="mt-1 text-[13px] text-muted-foreground">
                     {t('advanced.devModeDesc')}
                   </p>
                 </div>
-                <Switch
-                  checked={devModeUnlocked}
-                  onCheckedChange={setDevModeUnlocked}
-                />
+                <Switch checked={devModeUnlocked} onCheckedChange={setDevModeUnlocked} />
               </div>
 
-              <div className="flex items-center justify-between">
+              <div className={settingsSubPanelClass}>
                 <div>
-                  <Label className="text-[15px] font-medium text-foreground">{t('advanced.telemetry')}</Label>
-                  <p className="text-[13px] text-muted-foreground mt-1">
+                  <Label className={settingsLabelClass}>{t('advanced.telemetry')}</Label>
+                  <p className="mt-1 text-[13px] text-muted-foreground">
                     {t('advanced.telemetryDesc')}
                   </p>
                 </div>
-                <Switch
-                  checked={telemetryEnabled}
-                  onCheckedChange={setTelemetryEnabled}
-                />
+                <Switch checked={telemetryEnabled} onCheckedChange={setTelemetryEnabled} />
               </div>
 
             </div>
@@ -638,38 +643,35 @@ export function Settings() {
           {/* Developer */}
           {devModeUnlocked && (
             <>
-              <Separator className="bg-black/5 dark:bg-white/5" />
-              <div>
-                <h2 className="text-3xl font-serif text-foreground mb-6 font-normal tracking-tight" style={{ fontFamily: 'Georgia, Cambria, "Times New Roman", Times, serif' }}>
+              <Separator className="bg-border/60" />
+              <div className={settingsSectionClass}>
+                <h2 className={settingsHeadingClass}>
                   {t('developer.title')}
                 </h2>
-                <div className="space-y-8">
+                <div className="space-y-6">
                   {/* Gateway Proxy */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
+                  <div className={settingsSubPanelClass}>
+                    <div className="flex items-center justify-between gap-4">
                       <div>
-                        <Label className="text-[14px] font-medium text-foreground/80">Gateway Proxy</Label>
-                        <p className="text-[13px] text-muted-foreground">
+                        <Label className={settingsLabelClass}>Gateway Proxy</Label>
+                        <p className={settingsHintClass}>
                           {t('gateway.proxyDesc')}
                         </p>
                       </div>
-                      <Switch
-                        checked={proxyEnabledDraft}
-                        onCheckedChange={setProxyEnabledDraft}
-                      />
+                      <Switch checked={proxyEnabledDraft} onCheckedChange={setProxyEnabledDraft} />
                     </div>
 
                     {proxyEnabledDraft && (
-                      <div className="space-y-4 pt-2">
+                      <div className="space-y-4 pt-4">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label htmlFor="proxy-server" className="text-[13px] text-foreground/80">{t('gateway.proxyServer')}</Label>
+                            <Label htmlFor="proxy-server" className="text-[13px] font-medium text-foreground/85">{t('gateway.proxyServer')}</Label>
                             <Input
                               id="proxy-server"
                               value={proxyServerDraft}
                               onChange={(event) => setProxyServerDraft(event.target.value)}
                               placeholder="http://127.0.0.1:7890"
-                              className="h-10 rounded-xl bg-black/5 dark:bg-white/5 border-transparent font-mono text-[13px]"
+                              className={settingsInputClass}
                             />
                             <p className="text-[11px] text-muted-foreground">
                               {t('gateway.proxyServerHelp')}
@@ -677,13 +679,13 @@ export function Settings() {
                           </div>
 
                           <div className="space-y-2">
-                            <Label htmlFor="proxy-http-server" className="text-[13px] text-foreground/80">{t('gateway.proxyHttpServer')}</Label>
+                            <Label htmlFor="proxy-http-server" className="text-[13px] font-medium text-foreground/85">{t('gateway.proxyHttpServer')}</Label>
                             <Input
                               id="proxy-http-server"
                               value={proxyHttpServerDraft}
                               onChange={(event) => setProxyHttpServerDraft(event.target.value)}
                               placeholder={proxyServerDraft || 'http://127.0.0.1:7890'}
-                              className="h-10 rounded-xl bg-black/5 dark:bg-white/5 border-transparent font-mono text-[13px]"
+                              className={settingsInputClass}
                             />
                             <p className="text-[11px] text-muted-foreground">
                               {t('gateway.proxyHttpServerHelp')}
@@ -691,13 +693,13 @@ export function Settings() {
                           </div>
 
                           <div className="space-y-2">
-                            <Label htmlFor="proxy-https-server" className="text-[13px] text-foreground/80">{t('gateway.proxyHttpsServer')}</Label>
+                            <Label htmlFor="proxy-https-server" className="text-[13px] font-medium text-foreground/85">{t('gateway.proxyHttpsServer')}</Label>
                             <Input
                               id="proxy-https-server"
                               value={proxyHttpsServerDraft}
                               onChange={(event) => setProxyHttpsServerDraft(event.target.value)}
                               placeholder={proxyServerDraft || 'http://127.0.0.1:7890'}
-                              className="h-10 rounded-xl bg-black/5 dark:bg-white/5 border-transparent font-mono text-[13px]"
+                              className={settingsInputClass}
                             />
                             <p className="text-[11px] text-muted-foreground">
                               {t('gateway.proxyHttpsServerHelp')}
@@ -705,13 +707,13 @@ export function Settings() {
                           </div>
 
                           <div className="space-y-2">
-                            <Label htmlFor="proxy-all-server" className="text-[13px] text-foreground/80">{t('gateway.proxyAllServer')}</Label>
+                            <Label htmlFor="proxy-all-server" className="text-[13px] font-medium text-foreground/85">{t('gateway.proxyAllServer')}</Label>
                             <Input
                               id="proxy-all-server"
                               value={proxyAllServerDraft}
                               onChange={(event) => setProxyAllServerDraft(event.target.value)}
                               placeholder={proxyServerDraft || 'socks5://127.0.0.1:7891'}
-                              className="h-10 rounded-xl bg-black/5 dark:bg-white/5 border-transparent font-mono text-[13px]"
+                              className={settingsInputClass}
                             />
                             <p className="text-[11px] text-muted-foreground">
                               {t('gateway.proxyAllServerHelp')}
@@ -720,13 +722,13 @@ export function Settings() {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="proxy-bypass" className="text-[13px] text-foreground/80">{t('gateway.proxyBypass')}</Label>
+                          <Label htmlFor="proxy-bypass" className="text-[13px] font-medium text-foreground/85">{t('gateway.proxyBypass')}</Label>
                           <Input
                             id="proxy-bypass"
                             value={proxyBypassRulesDraft}
                             onChange={(event) => setProxyBypassRulesDraft(event.target.value)}
                             placeholder="<local>;localhost;127.0.0.1;::1"
-                            className="h-10 rounded-xl bg-black/5 dark:bg-white/5 border-transparent font-mono text-[13px]"
+                            className={settingsInputClass}
                           />
                           <p className="text-[11px] text-muted-foreground">
                             {t('gateway.proxyBypassHelp')}
@@ -738,7 +740,7 @@ export function Settings() {
                             variant="outline"
                             onClick={handleSaveProxySettings}
                             disabled={savingProxy}
-                            className="rounded-xl h-10 px-5 bg-transparent border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5"
+                            className={cn('h-10 px-5', settingsGhostButtonClass)}
                           >
                             <RefreshCw className={`h-4 w-4 mr-2${savingProxy ? ' animate-spin' : ''}`} />
                             {savingProxy ? t('common:status.saving') : t('common:actions.save')}
@@ -751,8 +753,8 @@ export function Settings() {
                     )}
                   </div>
                   <div className="space-y-4 pt-4">
-                    <Label className="text-[14px] font-medium text-foreground/80">{t('developer.gatewayToken')}</Label>
-                    <p className="text-[13px] text-muted-foreground">
+                    <Label className={settingsLabelClass}>{t('developer.gatewayToken')}</Label>
+                    <p className={settingsHintClass}>
                       {t('developer.gatewayTokenDesc')}
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -760,14 +762,14 @@ export function Settings() {
                         readOnly
                         value={controlUiInfo?.token || ''}
                         placeholder={t('developer.tokenUnavailable')}
-                        className="font-mono text-[13px] h-10 rounded-xl bg-black/5 dark:bg-white/5 border-transparent flex-1 min-w-[200px]"
+                        className={cn(settingsInputClass, 'flex-1 min-w-[200px]')}
                       />
                       <Button
                         type="button"
                         variant="outline"
                         onClick={refreshControlUiInfo}
                         disabled={!devModeUnlocked}
-                        className="rounded-xl h-10 px-4 bg-transparent border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5"
+                        className={cn('h-10 px-4', settingsGhostButtonClass)}
                       >
                         <RefreshCw className="h-4 w-4 mr-2" />
                         {t('common:actions.load')}
@@ -777,7 +779,7 @@ export function Settings() {
                         variant="outline"
                         onClick={handleCopyGatewayToken}
                         disabled={!controlUiInfo?.token}
-                        className="rounded-xl h-10 px-4 bg-transparent border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5"
+                        className={cn('h-10 px-4', settingsGhostButtonClass)}
                       >
                         <Copy className="h-4 w-4 mr-2" />
                         {t('common:actions.copy')}
@@ -787,8 +789,8 @@ export function Settings() {
 
                   {showCliTools && (
                     <div className="space-y-3">
-                      <Label className="text-[15px] font-medium text-foreground">{t('developer.cli')}</Label>
-                      <p className="text-[13px] text-muted-foreground">
+                      <Label className={settingsLabelClass}>{t('developer.cli')}</Label>
+                      <p className={settingsHintClass}>
                         {t('developer.cliDesc')}
                       </p>
                       {isWindows && (
@@ -801,14 +803,14 @@ export function Settings() {
                           readOnly
                           value={openclawCliCommand}
                           placeholder={openclawCliError || t('developer.cmdUnavailable')}
-                          className="font-mono text-[13px] h-10 rounded-xl bg-black/5 dark:bg-white/5 border-transparent flex-1 min-w-[200px]"
+                          className={cn(settingsInputClass, 'flex-1 min-w-[200px]')}
                         />
                         <Button
                           type="button"
                           variant="outline"
                           onClick={handleCopyCliCommand}
                           disabled={!openclawCliCommand}
-                          className="rounded-xl h-10 px-4 bg-transparent border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5"
+                          className={cn('h-10 px-4', settingsGhostButtonClass)}
                         >
                           <Copy className="h-4 w-4 mr-2" />
                           {t('common:actions.copy')}
@@ -820,8 +822,8 @@ export function Settings() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <Label className="text-[14px] font-medium text-foreground">{t('developer.doctor')}</Label>
-                        <p className="text-[13px] text-muted-foreground mt-1">
+                        <Label className={settingsLabelClass}>{t('developer.doctor')}</Label>
+                        <p className="mt-1 text-[13px] text-muted-foreground">
                           {t('developer.doctorDesc')}
                         </p>
                       </div>
@@ -831,7 +833,7 @@ export function Settings() {
                           variant="outline"
                           onClick={() => void handleRunOpenClawDoctor('diagnose')}
                           disabled={doctorRunningMode !== null}
-                          className="rounded-xl h-10 px-4 bg-transparent border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5"
+                          className={cn('h-10 px-4', settingsGhostButtonClass)}
                         >
                           <RefreshCw className={`h-4 w-4 mr-2${doctorRunningMode === 'diagnose' ? ' animate-spin' : ''}`} />
                           {doctorRunningMode === 'diagnose' ? t('common:status.running') : t('developer.runDoctor')}
@@ -841,7 +843,7 @@ export function Settings() {
                           variant="outline"
                           onClick={() => void handleRunOpenClawDoctor('fix')}
                           disabled={doctorRunningMode !== null}
-                          className="rounded-xl h-10 px-4 bg-transparent border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5"
+                          className={cn('h-10 px-4', settingsGhostButtonClass)}
                         >
                           <RefreshCw className={`h-4 w-4 mr-2${doctorRunningMode === 'fix' ? ' animate-spin' : ''}`} />
                           {doctorRunningMode === 'fix' ? t('common:status.running') : t('developer.runDoctorFix')}
@@ -851,7 +853,7 @@ export function Settings() {
                           variant="outline"
                           onClick={handleCopyDoctorOutput}
                           disabled={!doctorResult}
-                          className="rounded-xl h-10 px-4 bg-transparent border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5"
+                          className={cn('h-10 px-4', settingsGhostButtonClass)}
                         >
                           <Copy className="h-4 w-4 mr-2" />
                           {t('common:actions.copy')}
@@ -860,7 +862,7 @@ export function Settings() {
                     </div>
 
                     {doctorResult && (
-                      <div className="space-y-3 rounded-2xl border border-black/10 dark:border-white/10 p-5 bg-black/5 dark:bg-white/5">
+                      <div className={cn(settingsSubPanelClass, 'space-y-3')}>
                         <div className="flex flex-wrap gap-2 text-[12px]">
                           <Badge variant={doctorResult.success ? 'secondary' : 'destructive'} className="rounded-full px-3 py-1">
                             {doctorResult.mode === 'fix'
@@ -881,14 +883,14 @@ export function Settings() {
                         </div>
                         <div className="grid gap-3 md:grid-cols-2">
                           <div className="space-y-2">
-                            <p className="text-[12px] font-semibold text-foreground/80">{t('developer.doctorStdout')}</p>
-                            <pre className="max-h-72 overflow-auto rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-card p-3 text-[11px] font-mono whitespace-pre-wrap break-words">
+                            <p className="text-[12px] font-semibold text-foreground/85">{t('developer.doctorStdout')}</p>
+                            <pre className="max-h-72 overflow-auto rounded-xl border border-border/60 bg-[hsl(var(--surface-base)/0.9)] p-3 text-[11px] font-mono whitespace-pre-wrap break-words text-foreground">
                               {doctorResult.stdout.trim() || t('developer.doctorOutputEmpty')}
                             </pre>
                           </div>
                           <div className="space-y-2">
-                            <p className="text-[12px] font-semibold text-foreground/80">{t('developer.doctorStderr')}</p>
-                            <pre className="max-h-72 overflow-auto rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-card p-3 text-[11px] font-mono whitespace-pre-wrap break-words">
+                            <p className="text-[12px] font-semibold text-foreground/85">{t('developer.doctorStderr')}</p>
+                            <pre className="max-h-72 overflow-auto rounded-xl border border-border/60 bg-[hsl(var(--surface-base)/0.9)] p-3 text-[11px] font-mono whitespace-pre-wrap break-words text-foreground">
                               {doctorResult.stderr.trim() || t('developer.doctorOutputEmpty')}
                             </pre>
                           </div>
@@ -898,10 +900,10 @@ export function Settings() {
                   </div>
 
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between rounded-2xl border border-black/10 dark:border-white/10 p-5 bg-transparent">
+                    <div className={cn(settingsSubPanelClass, 'flex items-center justify-between gap-4')}>
                       <div>
-                        <Label className="text-[14px] font-medium text-foreground">{t('developer.wsDiagnostic')}</Label>
-                        <p className="text-[13px] text-muted-foreground mt-1">
+                        <Label className={settingsLabelClass}>{t('developer.wsDiagnostic')}</Label>
+                        <p className="mt-1 text-[13px] text-muted-foreground">
                           {t('developer.wsDiagnosticDesc')}
                         </p>
                       </div>
@@ -923,7 +925,7 @@ export function Settings() {
                         variant="outline"
                         size="sm"
                         onClick={() => setShowTelemetryViewer((prev) => !prev)}
-                        className="rounded-full px-5 h-9 bg-transparent border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5"
+                        className={cn('h-9 px-5', settingsGhostButtonClass)}
                       >
                         {showTelemetryViewer
                           ? t('common:actions.hide')
@@ -932,29 +934,29 @@ export function Settings() {
                     </div>
 
                     {showTelemetryViewer && (
-                      <div className="space-y-4 rounded-2xl border border-black/10 dark:border-white/10 p-5 bg-black/5 dark:bg-white/5">
+                      <div className={cn(settingsSubPanelClass, 'space-y-4')}>
                         <div className="flex flex-wrap items-center gap-2">
-                          <Badge variant="secondary" className="rounded-full px-3 py-1 bg-white dark:bg-card border border-black/5 dark:border-white/5">{t('developer.telemetryTotal')}: {telemetryStats.total}</Badge>
-                          <Badge variant={telemetryStats.errorCount > 0 ? 'destructive' : 'secondary'} className={cn("rounded-full px-3 py-1", telemetryStats.errorCount === 0 && "bg-white dark:bg-card border border-black/5 dark:border-white/5")}>
+                          <Badge variant="secondary" className="rounded-full px-3 py-1 bg-background/60 border border-border/60">{t('developer.telemetryTotal')}: {telemetryStats.total}</Badge>
+                          <Badge variant={telemetryStats.errorCount > 0 ? 'destructive' : 'secondary'} className={cn("rounded-full px-3 py-1", telemetryStats.errorCount === 0 && "bg-background/60 border border-border/60")}>
                             {t('developer.telemetryErrors')}: {telemetryStats.errorCount}
                           </Badge>
-                          <Badge variant={telemetryStats.slowCount > 0 ? 'secondary' : 'outline'} className={cn("rounded-full px-3 py-1", telemetryStats.slowCount === 0 && "bg-white dark:bg-card border border-black/5 dark:border-white/5")}>
+                          <Badge variant={telemetryStats.slowCount > 0 ? 'secondary' : 'outline'} className={cn("rounded-full px-3 py-1", telemetryStats.slowCount === 0 && "bg-background/60 border border-border/60")}>
                             {t('developer.telemetrySlow')}: {telemetryStats.slowCount}
                           </Badge>
                           <div className="ml-auto flex gap-2">
-                            <Button type="button" variant="outline" size="sm" onClick={handleCopyTelemetry} className="rounded-full h-8 px-4 bg-white dark:bg-card border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/10">
+                            <Button type="button" variant="outline" size="sm" onClick={handleCopyTelemetry} className={cn('h-8 px-4', settingsGhostButtonClass)}>
                               <Copy className="h-3.5 w-3.5 mr-1.5" />
                               {t('common:actions.copy')}
                             </Button>
-                            <Button type="button" variant="outline" size="sm" onClick={handleClearTelemetry} className="rounded-full h-8 px-4 bg-white dark:bg-card border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/10">
+                            <Button type="button" variant="outline" size="sm" onClick={handleClearTelemetry} className={cn('h-8 px-4', settingsGhostButtonClass)}>
                               {t('common:actions.clear')}
                             </Button>
                           </div>
                         </div>
 
-                        <div className="max-h-80 overflow-auto rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-card shadow-inner">
+                        <div className="max-h-80 overflow-auto rounded-xl border border-border/60 bg-[hsl(var(--surface-base)/0.9)] shadow-inner">
                           {telemetryByEvent.length > 0 && (
-                            <div className="border-b border-black/5 dark:border-white/5 bg-black/5 dark:bg-white/5 p-3">
+                            <div className="border-b border-border/60 bg-[hsl(var(--surface-hover)/0.7)] p-3">
                               <p className="mb-3 text-[12px] font-semibold text-muted-foreground">
                                 {t('developer.telemetryAggregated')}
                               </p>
@@ -962,7 +964,7 @@ export function Settings() {
                                 {telemetryByEvent.map((item) => (
                                   <div
                                     key={item.event}
-                                    className="grid grid-cols-[minmax(0,1.6fr)_0.7fr_0.9fr_0.8fr_1fr] gap-2 rounded-lg border border-black/5 dark:border-white/5 bg-white dark:bg-card px-3 py-2"
+                                    className="grid grid-cols-[minmax(0,1.6fr)_0.7fr_0.9fr_0.8fr_1fr] gap-2 rounded-lg border border-border/60 bg-background/70 px-3 py-2"
                                   >
                                     <span className="truncate font-medium" title={item.event}>{item.event}</span>
                                     <span className="text-muted-foreground">n={item.count}</span>
@@ -984,7 +986,7 @@ export function Settings() {
                                 .slice()
                                 .reverse()
                                 .map((entry) => (
-                                  <div key={entry.id} className="rounded-lg border border-black/5 dark:border-white/5 bg-black/5 dark:bg-white/5 p-3">
+                                  <div key={entry.id} className="rounded-lg border border-border/60 bg-[hsl(var(--surface-hover)/0.65)] p-3">
                                     <div className="flex items-center justify-between gap-3 mb-2">
                                       <span className="font-semibold text-foreground">{entry.event}</span>
                                       <span className="text-muted-foreground text-[11px]">{entry.ts}</span>
@@ -1005,33 +1007,30 @@ export function Settings() {
             </>
           )}
 
-          <Separator className="bg-black/5 dark:bg-white/5" />
+          <Separator className="bg-border/60" />
 
           {/* Updates */}
-          <div>
-            <h2 className="text-3xl font-serif text-foreground mb-6 font-normal tracking-tight" style={{ fontFamily: 'Georgia, Cambria, "Times New Roman", Times, serif' }}>
+          <div className={settingsSectionClass}>
+            <h2 className={settingsHeadingClass}>
               {t('updates.title')}
             </h2>
-            <div className="space-y-6">
+            <div className="space-y-5">
               <UpdateSettings />
 
-              <div className="flex items-center justify-between">
+              <div className={settingsSubPanelClass}>
                 <div>
-                  <Label className="text-[15px] font-medium text-foreground">{t('updates.autoCheck')}</Label>
-                  <p className="text-[13px] text-muted-foreground mt-1">
+                  <Label className={settingsLabelClass}>{t('updates.autoCheck')}</Label>
+                  <p className="mt-1 text-[13px] text-muted-foreground">
                     {t('updates.autoCheckDesc')}
                   </p>
                 </div>
-                <Switch
-                  checked={autoCheckUpdate}
-                  onCheckedChange={setAutoCheckUpdate}
-                />
+                <Switch checked={autoCheckUpdate} onCheckedChange={setAutoCheckUpdate} />
               </div>
 
-              <div className="flex items-center justify-between">
+              <div className={settingsSubPanelClass}>
                 <div>
-                  <Label className="text-[15px] font-medium text-foreground">{t('updates.autoDownload')}</Label>
-                  <p className="text-[13px] text-muted-foreground mt-1">
+                  <Label className={settingsLabelClass}>{t('updates.autoDownload')}</Label>
+                  <p className="mt-1 text-[13px] text-muted-foreground">
                     {t('updates.autoDownloadDesc')}
                   </p>
                 </div>
@@ -1046,11 +1045,11 @@ export function Settings() {
             </div>
           </div>
 
-          <Separator className="bg-black/5 dark:bg-white/5" />
+          <Separator className="bg-border/60" />
 
           {/* About */}
-          <div>
-            <h2 className="text-3xl font-serif text-foreground mb-6 font-normal tracking-tight" style={{ fontFamily: 'Georgia, Cambria, "Times New Roman", Times, serif' }}>
+          <div className={settingsSectionClass}>
+            <h2 className={settingsHeadingClass}>
               {t('about.title')}
             </h2>
             <div className="space-y-3 text-[14px] text-muted-foreground">
@@ -1062,21 +1061,21 @@ export function Settings() {
               <div className="flex gap-4 pt-3">
                 <Button
                   variant="link"
-                  className="h-auto p-0 text-[14px] text-blue-500 hover:text-blue-600 font-medium"
+                  className="h-auto p-0 text-[14px] text-primary hover:text-primary/80 font-medium"
                   onClick={() => window.electron.openExternal('https://claw-x.com')}
                 >
                   {t('about.docs')}
                 </Button>
                 <Button
                   variant="link"
-                  className="h-auto p-0 text-[14px] text-blue-500 hover:text-blue-600 font-medium"
+                  className="h-auto p-0 text-[14px] text-primary hover:text-primary/80 font-medium"
                   onClick={() => window.electron.openExternal('https://github.com/jlon/XClaw')}
                 >
                   {t('about.github')}
                 </Button>
                 <Button
                   variant="link"
-                  className="h-auto p-0 text-[14px] text-blue-500 hover:text-blue-600 font-medium"
+                  className="h-auto p-0 text-[14px] text-primary hover:text-primary/80 font-medium"
                   onClick={() => window.electron.openExternal('https://icnnp7d0dymg.feishu.cn/wiki/UyfOwQ2cAiJIP6kqUW8cte5Bnlc')}
                 >
                   {t('about.faq')}

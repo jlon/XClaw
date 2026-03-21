@@ -73,6 +73,11 @@
             "freshBlockingTitle": "当前配置还不能继续",
             "freshWarningsTitle": "新建提醒"
         },
+        "preparation": {
+            "title": "准备接管当前 OpenClaw 环境",
+            "description": "先确认将导入的内容和潜在冲突，再执行真正的接管。",
+            "pendingHint": "点击“导入并继续”后，XClaw 才会开始真正的接管和导入。"
+        },
         "blockingTitle": "当前不能直接接管",
         "warningsTitle": "接管提醒",
         "running": "正在接管并导入当前环境...",
@@ -128,11 +133,31 @@
             "success": "Node.js 可用",
             "error": "失败",
             "gatewayRunning": "运行在端口 {{port}}",
-            "packageReady": "OpenClaw 包已就绪"
+            "packageReady": "OpenClaw 包已就绪",
+            "packageReadyWithVersion": "OpenClaw 包已就绪 v{{version}}",
+            "packageMissingAt": "未在 {{dir}} 找到 OpenClaw 包",
+            "packageDistMissing": "已检测到 OpenClaw 包，但缺少 dist 构建产物",
+            "checkFailed": "检查失败：{{message}}",
+            "gatewayWaiting": "等待网关进入运行态...",
+            "gatewayStarting": "正在启动网关...",
+            "gatewayStartFailed": "启动网关失败",
+            "gatewayStartTimedOut": "网关启动超时"
+        },
+        "summary": {
+            "description": "先确认运行环境是否就绪，再继续模型接入。",
+            "ready": "已就绪",
+            "attention": "需要处理"
         },
         "issue": {
             "title": "检测到环境问题",
             "desc": "请确保 OpenClaw 已正确安装。查看日志以获取详情。"
+        },
+        "advanced": {
+            "title": "高级诊断",
+            "description": "默认先聚焦可继续与否。日志、重试和详细运行状态收在这里。",
+            "descriptionOpen": "当前正在显示详细诊断、运行状态和日志操作。",
+            "toggle": "查看高级诊断",
+            "hide": "收起诊断"
         },
         "logs": {
             "title": "应用程序日志",
@@ -159,6 +184,9 @@
         "valid": "提供商配置成功",
         "invalid": "无效的 API 密钥",
         "storedLocally": "您的 API 密钥存储在本地机器上。"
+        ,
+        "blockingTitle": "存在阻塞项",
+        "warningsTitle": "提示"
     },
     "channel": {
         "title": "连接消息渠道",
@@ -184,7 +212,10 @@
         "error": "设置错误：",
         "restart": "尝试重启应用",
         "wait": "这可能需要一点时间...",
-        "skip": "跳过此步骤"
+        "skip": "跳过此步骤",
+        "toastFailed": "环境设置失败",
+        "toastError": "安装出错",
+        "unknownError": "安装过程中出现未知错误"
     },
     "complete": {
         "title": "设置完成！",
@@ -193,7 +224,9 @@
         "components": "组件",
         "gateway": "网关",
         "running": "运行中",
-        "footer": "您可以在设置中自定义技能并连接渠道"
+        "footer": "您可以在设置中自定义技能并连接渠道",
+        "progress": "进度",
+        "gatewayPendingHint": "Gateway 尚未进入运行态时，进入应用后仍会继续接管启动。"
     },
     "nav": {
         "next": "下一步",
@@ -201,6 +234,81 @@
         "skipStep": "跳过此步骤",
         "skipSetup": "跳过设置",
         "getStarted": "开始使用"
+    },
+    "wizard": {
+        "rail": {
+            "title": "引导流程",
+            "aria": "引导步骤"
+        },
+        "stages": {
+            "start": {
+                "label": "开始",
+                "description": "确认要接管还是全新开始"
+            },
+            "preparation": {
+                "label": "准备",
+                "description": "检查环境并准备导入"
+            },
+            "provider": {
+                "label": "模型与接入",
+                "description": "确认模型接入或复用结果"
+            },
+            "complete": {
+                "label": "完成",
+                "description": "确认完成并进入应用",
+                "applyingDescription": "正在应用最终变更"
+            }
+        },
+        "actions": {
+            "takeoverImport": "导入并继续",
+            "reviewSummary": "查看摘要",
+            "providerSubmit": "保存并继续"
+        },
+        "footer": {
+            "start": {
+                "title": "开始引导",
+                "body": "先确认怎么开始，再继续后面的准备和接入。",
+                "primary": "下一步",
+                "secondary": "退出引导"
+            },
+            "preparation": {
+                "title": "准备环境",
+                "body": "先完成本地环境确认，再进入模型与接入。",
+                "primary": "下一步",
+                "secondary": "返回"
+            },
+            "provider": {
+                "title": "模型与接入",
+                "body": "先选接入方式，再继续下一步。",
+                "primary": "下一步",
+                "secondary": "返回"
+            },
+            "complete": {
+                "title": "完成",
+                "body": "确认变更并进入应用。",
+                "primary": "进入 XClaw",
+                "secondary": "返回"
+            },
+            "applying": {
+                "title": "正在应用变更",
+                "body": "请保持窗口打开，完成后会自动进入摘要。"
+            }
+        },
+        "exitDialog": {
+            "title": "确定要退出引导吗？",
+            "message": "退出后不会写入 setup 完成状态，下次打开仍会回到引导页。",
+            "applyingTitle": "正在应用变更，确定要退出吗？",
+            "applyingMessage": "当前变更尚未完成，退出后不会写入 setup 完成状态。",
+            "confirm": "退出",
+            "cancel": "继续留在这里"
+        },
+        "loading": {
+            "description": "正在检查本地 OpenClaw 环境..."
+        },
+        "errorState": {
+            "title": "无法完成安装环境检测",
+            "retry": "重新检测"
+        }
     },
     "defaultSkills": {
         "opencode": {

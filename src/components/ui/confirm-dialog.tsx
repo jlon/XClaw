@@ -73,7 +73,7 @@ export function ConfirmDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-dialog-title"
@@ -81,7 +81,7 @@ export function ConfirmDialog({
     >
       <div
         className={cn(
-          'mx-4 max-w-md rounded-lg border bg-card p-6 shadow-lg',
+          'app-panel-surface-elevated mx-4 max-w-md rounded-2xl p-6 shadow-lg',
           'focus:outline-none'
         )}
         tabIndex={-1}
