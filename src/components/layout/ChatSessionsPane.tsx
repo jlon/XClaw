@@ -1,11 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Plus, Search, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { AgentAvatar } from '@/components/chat/AgentAvatar';
-import { getAgentIdFromSessionKey, getSessionAvatar } from '@/lib/chat-avatar';
-import { Button } from '@/components/ui/button';
+import { getAgentIdFromSessionKey } from '@/lib/chat-avatar';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useAgentsStore } from '@/stores/agents';
 import { useChatStore } from '@/stores/chat';
@@ -14,49 +11,24 @@ import { useTranslation } from 'react-i18next';
 
 type SessionBucketKey =
   | 'today'
-  | 'yesterday'
   | 'withinWeek'
-  | 'withinTwoWeeks'
   | 'withinMonth'
   | 'older';
 
-const INITIAL_NOW_MS = Date.now();
 function getSessionBucket(activityMs: number, nowMs: number): SessionBucketKey {
   if (!activityMs || activityMs <= 0) return 'older';
 
   const now = new Date(nowMs);
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const startOfYesterday = startOfToday - 24 * 60 * 60 * 1000;
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+  startOfWeek.setHours(0, 0, 0, 0);
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
 
   if (activityMs >= startOfToday) return 'today';
-  if (activityMs >= startOfYesterday) return 'yesterday';
-
-  const daysAgo = (startOfToday - activityMs) / (24 * 60 * 60 * 1000);
-  if (daysAgo <= 7) return 'withinWeek';
-  if (daysAgo <= 14) return 'withinTwoWeeks';
-  if (daysAgo <= 30) return 'withinMonth';
+  if (activityMs >= startOfWeek.getTime()) return 'withinWeek';
+  if (activityMs >= startOfMonth) return 'withinMonth';
   return 'older';
-}
-
-function getSessionTimeLabel(activityMs: number | undefined, nowMs: number): string {
-  if (!activityMs || !Number.isFinite(activityMs)) {
-    return '';
-  }
-
-  const activity = new Date(activityMs);
-  const now = new Date(nowMs);
-  const sameYear = activity.getFullYear() === now.getFullYear();
-  const sameMonth = activity.getMonth() === now.getMonth();
-  const sameDate = activity.getDate() === now.getDate();
-
-  if (sameYear && sameMonth && sameDate) {
-    return activity.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  }
-
-  return activity.toLocaleDateString([], {
-    month: 'numeric',
-    day: 'numeric',
-  });
 }
 
 export function ChatSessionsPane() {
@@ -78,8 +50,10 @@ export function ChatSessionsPane() {
 
   const isGatewayRunning = gatewayStatus.state === 'running';
   const [sessionToDelete, setSessionToDelete] = useState<{ key: string; label: string } | null>(null);
-  const [nowMs, setNowMs] = useState(INITIAL_NOW_MS);
+  const [nowMs, setNowMs] = useState(() => Date.now());
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -87,6 +61,11 @@ export function ChatSessionsPane() {
     }, 60 * 1000);
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (!searchOpen) return;
+    searchInputRef.current?.focus();
+  }, [searchOpen]);
 
   useEffect(() => {
     void fetchAgents();
@@ -116,9 +95,7 @@ export function ChatSessionsPane() {
 
   const sessionBuckets: Array<{ key: SessionBucketKey; label: string; sessions: typeof sessions }> = [
     { key: 'today', label: t('chat:historyBuckets.today'), sessions: [] },
-    { key: 'yesterday', label: t('chat:historyBuckets.yesterday'), sessions: [] },
     { key: 'withinWeek', label: t('chat:historyBuckets.withinWeek'), sessions: [] },
-    { key: 'withinTwoWeeks', label: t('chat:historyBuckets.withinTwoWeeks'), sessions: [] },
     { key: 'withinMonth', label: t('chat:historyBuckets.withinMonth'), sessions: [] },
     { key: 'older', label: t('chat:historyBuckets.older'), sessions: [] },
   ];
@@ -128,6 +105,7 @@ export function ChatSessionsPane() {
     (typeof sessionBuckets)[number]
   >;
   const normalizedQuery = searchQuery.trim().toLowerCase();
+  const visibleLabelCounts: Record<string, number> = {};
 
   for (const session of [...sessions].sort((a, b) =>
     (sessionLastActivity[b.key] ?? 0) - (sessionLastActivity[a.key] ?? 0)
@@ -139,6 +117,7 @@ export function ChatSessionsPane() {
     if (normalizedQuery && !searchableText.includes(normalizedQuery)) {
       continue;
     }
+    visibleLabelCounts[label] = (visibleLabelCounts[label] ?? 0) + 1;
     const bucketKey = getSessionBucket(sessionLastActivity[session.key] ?? 0, nowMs);
     sessionBucketMap[bucketKey].sessions.push(session);
   }
@@ -146,17 +125,14 @@ export function ChatSessionsPane() {
   const hasVisibleSessions = sessionBuckets.some((bucket) => bucket.sessions.length > 0);
 
   return (
-    <aside className="app-shell-surface flex w-[320px] shrink-0 flex-col border-r border-border/70">
-      <div className="border-b border-border/70 px-4 py-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-[18px] font-semibold tracking-tight text-foreground">
-            {t('sidebar.chat')}
-          </h2>
-          <Button
-            variant="ghost"
-            size="icon"
+    <aside className="flex w-[236px] shrink-0 flex-col bg-transparent">
+      <div className="px-1.5 pb-1 pt-1.5">
+        <div className="flex h-7 items-center justify-end px-1">
+          <button
+            type="button"
+            aria-label={t('sidebar.newChat')}
             title={t('sidebar.newChat')}
-            className="h-9 w-9 rounded-full text-foreground/70 hover:bg-accent"
+            className="flex h-6 w-6 items-center justify-center rounded-[8px] text-foreground/54 transition-[background-color,color] duration-150 hover:bg-[hsl(var(--foreground)/0.035)] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/18 focus-visible:ring-offset-0"
             onClick={() => {
               const { messages } = useChatStore.getState();
               if (messages.length > 0) {
@@ -165,25 +141,48 @@ export function ChatSessionsPane() {
               navigate('/');
             }}
           >
-            <Plus className="h-[18px] w-[18px]" strokeWidth={2} />
-          </Button>
+            <Plus className="h-[17px] w-[17px]" strokeWidth={2} />
+          </button>
         </div>
-        <div className="relative mt-3">
-          <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/60" />
-          <Input
+        {searchOpen || searchQuery ? (
+          <div className="relative mt-1 flex h-9 items-center rounded-full border border-transparent bg-[hsl(var(--foreground)/0.035)] px-3.5 transition-[background-color,border-color] duration-150 hover:bg-[hsl(var(--foreground)/0.04)] focus-within:border-[hsl(var(--border-strong)/0.32)] focus-within:bg-[hsl(var(--surface-elevated)/0.98)]">
+            <Search aria-hidden="true" className="pointer-events-none h-[15px] w-[15px] shrink-0 text-muted-foreground/44" />
+            <input
+              ref={searchInputRef}
+              aria-label={t('chat:sessionPane.searchLabel')}
+              value={searchQuery}
+              placeholder={t('chat:sessionPane.searchPlaceholder')}
+              onBlur={() => {
+                if (!searchQuery.trim()) {
+                  setSearchOpen(false);
+                }
+              }}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape' && !searchQuery.trim()) {
+                  setSearchOpen(false);
+                }
+              }}
+              className="h-full min-w-0 flex-1 bg-transparent pl-2 pr-1 text-[12.5px] text-foreground/84 outline-none placeholder:text-muted-foreground/42"
+            />
+          </div>
+        ) : (
+          <button
+            type="button"
             aria-label={t('chat:sessionPane.searchLabel')}
-            value={searchQuery}
-            placeholder={t('chat:sessionPane.searchPlaceholder')}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            className="h-9 rounded-xl pl-9 pr-3 text-[13px] shadow-none placeholder:text-muted-foreground/55 focus-visible:ring-ring/20 focus-visible:ring-offset-0"
-          />
-        </div>
+            className="mt-1 flex h-9 w-full items-center gap-2 rounded-full border border-transparent bg-[hsl(var(--foreground)/0.035)] px-3.5 text-left text-[12.5px] text-muted-foreground/44 transition-[background-color,color,border-color] duration-150 hover:bg-[hsl(var(--foreground)/0.04)] hover:text-muted-foreground/58 focus-visible:border-[hsl(var(--border-strong)/0.32)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/18 focus-visible:ring-offset-0"
+            onClick={() => setSearchOpen(true)}
+          >
+            <Search aria-hidden="true" className="h-[15px] w-[15px] shrink-0" />
+            <span>{t('chat:sessionPane.searchPlaceholder')}</span>
+          </button>
+        )}
       </div>
 
       <div
         data-testid="chat-sessions-scroll-area"
         className={cn(
-          'flex-1 overflow-y-auto overflow-x-hidden px-2 py-3',
+          'flex-1 overflow-y-auto overflow-x-hidden px-1.5 pb-3',
           isWindows ? 'subtle-scrollbar-win' : 'subtle-scrollbar',
         )}
       >
@@ -191,7 +190,7 @@ export function ChatSessionsPane() {
           sessionBuckets.map((bucket) => (
             bucket.sessions.length > 0 ? (
               <div key={bucket.key} className="pt-2 first:pt-0">
-                <div className="px-3 pb-1.5 text-[11px] font-medium text-muted-foreground/60 tracking-tight">
+                <div className="px-3 pb-1 text-[10.5px] font-medium tracking-tight text-muted-foreground/48">
                   {bucket.label}
                 </div>
                 <div className="space-y-1">
@@ -199,60 +198,42 @@ export function ChatSessionsPane() {
                     const agentId = getAgentIdFromSessionKey(session.key);
                     const agentName = agentNameById[agentId] || agentId;
                     const label = getSessionLabel(session.key, session.displayName, session.label);
-                    const avatar = getSessionAvatar({ sessionKey: session.key, agentId, agentName });
-                    const timeLabel = getSessionTimeLabel(sessionLastActivity[session.key], nowMs);
-
+                    const shouldShowAgentSuffix = (visibleLabelCounts[label] ?? 0) > 1 && agentName && agentName !== label;
+                    const isCurrent = currentSessionKey === session.key;
                     return (
                       <div key={session.key} className="group relative">
                         <button
-                          aria-label={label === agentName ? agentName : `${agentName} ${label}`}
+                          aria-label={label === agentName ? agentName : `${label} ${agentName}`}
                           onClick={() => {
                             switchSession(session.key);
                             navigate('/');
                           }}
                           className={cn(
-                            'flex w-full items-start gap-3 rounded-2xl px-3 py-2.5 text-left transition-colors pr-10',
-                            currentSessionKey === session.key
-                              ? 'bg-accent/80 shadow-sm ring-1 ring-border/70'
-                              : 'hover:bg-accent/60',
+                            'flex h-9 w-full items-center rounded-[10px] px-3 pr-8 text-left transition-[background-color,color] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/18 focus-visible:ring-offset-0',
+                            isCurrent
+                              ? 'bg-[hsl(var(--foreground)/0.052)] text-foreground'
+                              : 'hover:bg-[hsl(var(--foreground)/0.038)]',
                           )}
                         >
-                          <AgentAvatar
-                            label={avatar.label}
-                            style={avatar.style}
-                            className="mt-0.5 h-9 w-9"
-                            textClassName="text-sm"
-                          />
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="truncate text-[14px] font-semibold text-foreground">
-                                {agentName}
-                              </span>
-                              {timeLabel && (
-                                <span aria-hidden="true" className="ml-auto shrink-0 text-[11px] text-muted-foreground">
-                                  {timeLabel}
-                                </span>
-                              )}
-                            </div>
-                            <div className="mt-1 truncate text-[12px] text-muted-foreground">
-                              {label}
-                            </div>
+                          <div className="min-w-0 flex-1 truncate text-[13px] font-medium leading-5 tracking-[-0.012em]">
+                            <span className="truncate text-foreground/92">{label}</span>
+                            {shouldShowAgentSuffix ? (
+                              <span className="truncate text-muted-foreground/46">{` · ${agentName}`}</span>
+                            ) : null}
                           </div>
                         </button>
 
                         <button
-                          aria-label="Delete session"
+                          aria-label={t('actions.delete')}
                           onClick={(event) => {
                             event.stopPropagation();
                             setSessionToDelete({ key: session.key, label });
                           }}
                           className={cn(
-                            'absolute right-3 top-3 flex items-center justify-center rounded-full p-1 transition-opacity',
-                            currentSessionKey === session.key ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
-                            'text-muted-foreground hover:text-destructive hover:bg-destructive/10',
+                            'absolute right-1.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-md p-0 text-muted-foreground/36 opacity-0 pointer-events-none transition-[opacity,color,background-color] duration-150 group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto hover:bg-[hsl(var(--foreground)/0.045)] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/18 focus-visible:ring-offset-0',
                           )}
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Trash2 className="h-3 w-3" />
                         </button>
                       </div>
                     );
@@ -263,10 +244,17 @@ export function ChatSessionsPane() {
           ))
         ) : (
           normalizedQuery ? (
-            <div className="flex min-h-[180px] items-center justify-center px-6 text-center text-[13px] text-muted-foreground">
+            <div className="flex min-h-[180px] items-center justify-center px-6 text-center text-[12.5px] text-muted-foreground/76">
               {t('chat:sessionPane.emptySearch')}
             </div>
-          ) : null
+          ) : (
+            <div className="flex min-h-[220px] flex-col items-center justify-center gap-1.5 px-6 text-center">
+              <div className="text-[12.5px] font-medium text-foreground/72">{t('chat:sessionPane.empty')}</div>
+              <div className="max-w-[168px] text-[12px] leading-5 text-muted-foreground/68">
+                {t('chat:sessionPane.emptyHint')}
+              </div>
+            </div>
+          )
         )}
       </div>
 

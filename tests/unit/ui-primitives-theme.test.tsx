@@ -13,19 +13,19 @@ import { Switch } from '@/components/ui/switch';
 
 describe('shared ui primitives theme', () => {
   it('makes the button system read like a desktop control instead of the default shadcn web button', () => {
-    expect(buttonVariants({ variant: 'default' })).toContain('rounded-xl');
-    expect(buttonVariants({ variant: 'default' })).toContain('shadow-sm');
+    expect(buttonVariants({ variant: 'default' })).toContain('rounded-[11px]');
+    expect(buttonVariants({ variant: 'default' })).toContain('shadow-none');
     expect(buttonVariants({ variant: 'default' })).toContain('bg-primary');
     expect(buttonVariants({ variant: 'default' })).toContain('text-primary-foreground');
     expect(buttonVariants({ variant: 'outline' })).toContain('border-border/70');
-    expect(buttonVariants({ variant: 'outline' })).toContain('bg-background/80');
-    expect(buttonVariants({ variant: 'outline' })).toContain('hover:bg-accent/70');
-    expect(buttonVariants({ variant: 'secondary' })).toContain('bg-muted');
-    expect(buttonVariants({ variant: 'ghost' })).toContain('hover:bg-accent/60');
+    expect(buttonVariants({ variant: 'outline' })).toContain('bg-[hsl(var(--surface-elevated)/0.98)]');
+    expect(buttonVariants({ variant: 'outline' })).toContain('hover:bg-[hsl(var(--foreground)/0.05)]');
+    expect(buttonVariants({ variant: 'secondary' })).toContain('bg-[hsl(var(--surface-panel)/1)]');
+    expect(buttonVariants({ variant: 'ghost' })).toContain('hover:bg-[hsl(var(--foreground)/0.05)]');
 
     render(<Button>Launch</Button>);
 
-    expect(screen.getByRole('button', { name: 'Launch' })).toHaveClass('rounded-xl');
+    expect(screen.getByRole('button', { name: 'Launch' })).toHaveClass('rounded-[11px]');
   });
 
   it('aligns input-like controls with the shared desktop surface language', () => {
@@ -44,11 +44,11 @@ describe('shared ui primitives theme', () => {
       </div>,
     );
 
-    expect(screen.getByLabelText('input')).toHaveClass('rounded-xl');
+    expect(screen.getByLabelText('input')).toHaveClass('rounded-[11px]');
     expect(screen.getByLabelText('input')).toHaveClass('border-border/70');
-    expect(screen.getByLabelText('textarea')).toHaveClass('rounded-xl');
+    expect(screen.getByLabelText('textarea')).toHaveClass('rounded-[11px]');
     expect(screen.getByLabelText('textarea')).toHaveClass('border-border/70');
-    expect(screen.getByLabelText('select')).toHaveClass('rounded-xl');
+    expect(screen.getByLabelText('select')).toHaveClass('rounded-[11px]');
     expect(screen.getByLabelText('select')).toHaveClass('border-border/70');
   });
 
@@ -68,7 +68,7 @@ describe('shared ui primitives theme', () => {
 
     expect(screen.getByTestId('tabs-list')).toHaveClass('rounded-2xl');
     expect(screen.getByTestId('badge')).toHaveClass('rounded-full');
-    expect(screen.getByTestId('card')).toHaveClass('rounded-2xl');
+    expect(screen.getByTestId('card')).toHaveClass('rounded-[18px]');
     expect(screen.getByTestId('switch')).toHaveClass('rounded-full');
   });
 
@@ -90,7 +90,7 @@ describe('shared ui primitives theme', () => {
     expect(source).not.toContain('bg-black/[0.05]');
     expect(source).not.toContain('dark:border-white/10');
     expect(source).not.toContain('dark:data-[highlighted]:bg-white/[0.08]');
-    expect(source).toContain('bg-card/90');
+    expect(source).toContain('bg-[hsl(var(--surface-panel)/1)]');
     expect(source).toContain('border-border/70');
     expect(source).toContain('bg-muted/40');
   });

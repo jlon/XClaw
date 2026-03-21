@@ -28,9 +28,9 @@ const USAGE_FETCH_RETRY_DELAY_MS = 1500;
 const toggleGroupClass = 'flex rounded-xl border border-border/70 app-field-surface p-1';
 const toggleActiveClass = 'rounded-lg bg-[hsl(var(--accent)/0.16)] text-foreground';
 const toggleIdleClass = 'rounded-lg text-muted-foreground hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground';
-const listCardClass = 'rounded-2xl border border-border/70 app-panel-surface p-5 transition-colors hover:border-primary/20';
-const emptyStateClass = 'flex items-center justify-center rounded-[28px] border border-dashed border-border/60 bg-[hsl(var(--surface-base)/0.86)] py-12 text-muted-foreground';
-const usageSurfaceClass = 'rounded-[28px] border border-border/70 bg-[hsl(var(--surface-panel)/0.9)] p-5 shadow-[0_14px_36px_rgba(43,28,20,0.08)]';
+const listCardClass = 'rounded-[18px] border border-border/70 app-panel-surface px-5 py-4 transition-colors hover:bg-[hsl(var(--surface-hover)/0.76)]';
+const emptyStateClass = 'app-empty-surface flex items-center justify-center rounded-[20px] py-12 text-muted-foreground';
+const usageSurfaceClass = 'rounded-[20px] app-insight-surface p-5';
 const usageChipClass = 'rounded-md bg-[hsl(var(--surface-hover)/0.8)] px-2 py-0.5 text-foreground/80';
 
 export function Models() {
@@ -505,7 +505,7 @@ function UsageContentPopup({
   unknownModelLabel: string;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 px-4 backdrop-blur-sm" role="dialog" aria-modal="true">
+    <div className="app-modal-overlay fixed inset-0 z-50 flex items-center justify-center px-4" role="dialog" aria-modal="true">
       <div className="app-panel-surface-elevated w-full max-w-3xl rounded-2xl">
         <div className="flex items-start justify-between gap-3 border-b border-border/70 px-5 py-4">
           <div className="min-w-0">

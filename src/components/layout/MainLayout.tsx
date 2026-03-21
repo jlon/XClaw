@@ -11,12 +11,21 @@ export function MainLayout() {
     <div className="desktop-app-shell flex h-screen flex-col overflow-hidden bg-background text-foreground">
       <TitleBar />
       <div className="desktop-app-shell-body flex flex-1 min-h-0 overflow-hidden">
-        <Sidebar
-          key={isChatRoute ? 'chat-sidebar' : 'app-sidebar'}
-          railOnly={isChatRoute}
-          className={isChatRoute ? 'desktop-app-shell-sidebar desktop-app-shell-sidebar--rail' : 'desktop-app-shell-sidebar'}
-        />
-        {isChatRoute && <ChatSessionsPane />}
+        {isChatRoute ? (
+          <div className="desktop-app-chat-nav-shell flex min-h-0 shrink-0">
+            <Sidebar
+              key="chat-sidebar"
+              railOnly
+              className="desktop-app-shell-sidebar desktop-app-shell-sidebar--rail !border-r-0 !shadow-none"
+            />
+            <ChatSessionsPane />
+          </div>
+        ) : (
+          <Sidebar
+            key="app-sidebar"
+            className="desktop-app-shell-sidebar"
+          />
+        )}
         <main className={isChatRoute ? 'desktop-app-workspace flex-1 min-w-0 overflow-hidden px-0 py-0' : 'desktop-app-workspace flex-1 min-w-0 overflow-hidden px-3 py-4 xl:px-4'}>
           <Outlet />
         </main>

@@ -11,7 +11,13 @@ import { initializeDefaultTransports } from './lib/api-client';
 
 initializeDefaultTransports();
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+const appContainer = document.getElementById('app');
+
+if (!appContainer) {
+  throw new Error('App mount container "#app" was not found.');
+}
+
+ReactDOM.createRoot(appContainer).render(
   <React.StrictMode>
     <HashRouter>
       <App />

@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -52,13 +53,14 @@ import { useSettingsStore } from '@/stores/settings';
 import { hostApiFetch } from '@/lib/host-api';
 import { subscribeHostEvent } from '@/lib/host-events';
 
-const inputClasses = 'h-[44px] rounded-xl font-mono text-[13px] app-field-surface text-foreground placeholder:text-muted-foreground';
-const labelClasses = 'text-[14px] font-semibold text-foreground/85';
-const modalSurfaceClasses = 'w-full rounded-3xl border border-border/70 bg-background/90 shadow-[0_24px_80px_rgba(0,0,0,0.26)] backdrop-blur-xl';
-const primaryButtonClass = 'rounded-full h-10 px-5 bg-primary text-primary-foreground shadow-sm hover:bg-primary/90';
-const segmentedTrackClass = 'flex rounded-xl border border-border/70 bg-[hsl(var(--surface-base)/0.9)] p-1 gap-1 shadow-sm';
-const segmentedActiveClass = 'bg-[hsl(var(--accent)/0.16)] text-foreground shadow-sm';
-const segmentedIdleClass = 'text-muted-foreground hover:bg-[hsl(var(--surface-hover)/0.9)]';
+const inputClasses = 'h-9 rounded-[10px] border border-border/70 bg-[hsl(var(--surface-panel)/0.9)] text-[13px] text-foreground placeholder:text-muted-foreground/55 shadow-none transition-colors focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20';
+const tokenInputClasses = `${inputClasses} font-mono tracking-[0.01em]`;
+const labelClasses = 'text-[13px] font-semibold text-foreground/80';
+const modalSurfaceClasses = 'app-modal-surface w-full rounded-[12px]';
+const primaryButtonClass = 'rounded-[10px] h-8 px-4 bg-primary text-primary-foreground shadow-none hover:bg-primary/90';
+const segmentedTrackClass = 'flex rounded-[9px] border border-border/55 bg-[hsl(var(--surface-base)/0.96)] p-0.5 gap-0.5';
+const segmentedActiveClass = 'bg-[hsl(var(--surface-elevated)/0.98)] text-foreground shadow-none ring-1 ring-border/50';
+const segmentedIdleClass = 'text-muted-foreground/82 hover:bg-[hsl(var(--foreground)/0.035)]';
 
 function normalizeFallbackProviderIds(ids?: string[]): string[] {
   return Array.from(new Set((ids ?? []).filter(Boolean)));
@@ -193,26 +195,26 @@ export function ProvidersSettings() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex items-end justify-between gap-4">
-        <h2 className="text-[28px] md:text-[30px] font-semibold tracking-tight text-foreground">
+        <h2 className="text-[22px] font-semibold tracking-tight text-foreground md:text-[24px]">
           {t('aiProviders.title', 'AI Providers')}
         </h2>
-        <Button onClick={() => setShowAddDialog(true)} className="h-9 px-5 rounded-full font-medium text-[13px] bg-primary text-primary-foreground shadow-sm hover:bg-primary/90">
+        <Button onClick={() => setShowAddDialog(true)} className="h-8 rounded-[10px] px-4 font-medium text-[12px] bg-primary text-primary-foreground shadow-none hover:bg-primary/92">
           <Plus className="h-4 w-4 mr-2" />
           {t('aiProviders.add')}
         </Button>
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center rounded-[28px] border border-dashed border-border/60 bg-[hsl(var(--surface-base)/0.86)] py-12 text-muted-foreground">
+        <div className="app-empty-surface flex items-center justify-center rounded-[14px] py-12 text-muted-foreground">
           <Loader2 className="h-6 w-6 animate-spin" />
         </div>
       ) : displayProviders.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-[28px] border border-dashed border-border/60 bg-[hsl(var(--surface-base)/0.86)] py-20 text-muted-foreground">
-          <Key className="h-12 w-12 mb-4 opacity-50" />
-          <h3 className="text-[15px] font-medium mb-1 text-foreground">{t('aiProviders.empty.title')}</h3>
-          <p className="text-[13px] text-center mb-6 max-w-sm">
+        <div className="app-empty-surface flex flex-col items-center justify-center rounded-[14px] py-18 text-muted-foreground">
+          <Key className="mb-4 h-10 w-10 opacity-45" />
+          <h3 className="mb-1 text-[14px] font-medium text-foreground">{t('aiProviders.empty.title')}</h3>
+          <p className="mb-6 max-w-sm text-center text-[12.5px]">
             {t('aiProviders.empty.desc')}
           </p>
           <Button onClick={() => setShowAddDialog(true)} className={primaryButtonClass}>
@@ -221,7 +223,7 @@ export function ProvidersSettings() {
           </Button>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {displayProviders.map((item) => (
             <ProviderCard
               key={item.account.id}
@@ -416,9 +418,24 @@ function ProviderCard({
     }
   };
 
-  const currentInputClasses = isDefault
-    ? "h-[40px] rounded-xl font-mono text-[13px] app-field-surface focus-visible:ring-2 focus-visible:ring-ring/30 shadow-sm"
-    : inputClasses;
+  const summaryPrimary = [
+    vendor?.name || account.vendorId,
+    getAuthModeLabel(account.authMode, t),
+    account.model || null,
+  ].filter(Boolean);
+  const summarySecondary = [
+    hasConfiguredCredentials(account, status) ? t('aiProviders.card.configured') : t('aiProviders.dialog.apiKeyMissing'),
+    ((account.fallbackModels?.length ?? 0) > 0 || (account.fallbackAccountIds?.length ?? 0) > 0)
+      ? `${t('aiProviders.sections.fallback')}: ${[
+          ...normalizeFallbackModels(account.fallbackModels),
+          ...normalizeFallbackProviderIds(account.fallbackAccountIds)
+            .map((fallbackId) => allProviders.find((candidate) => candidate.account.id === fallbackId)?.account.label)
+            .filter(Boolean),
+        ].join(', ')}`
+      : null,
+  ].filter(Boolean);
+
+  const currentInputClasses = inputClasses;
 
   const currentLabelClasses = isDefault ? "text-[13px] text-muted-foreground" : labelClasses;
   const currentSectionLabelClasses = isDefault ? "text-[14px] font-semibold text-foreground/85" : labelClasses;
@@ -426,73 +443,47 @@ function ProviderCard({
   return (
     <div
       className={cn(
-        "group flex flex-col rounded-[24px] p-4 transition-all relative overflow-hidden border border-border/60 hover:bg-[hsl(var(--surface-hover)/0.7)]",
-        isDefault
-          ? "bg-[hsl(var(--surface-base)/0.78)] shadow-sm"
-          : "bg-transparent"
+        'group app-pane-surface relative flex flex-col overflow-hidden rounded-[12px] border border-transparent p-3 transition-colors hover:border-border/45 hover:bg-[hsl(var(--surface-hover)/0.42)]',
+        isDefault && 'bg-[hsl(var(--surface-base)/0.995)] border-[hsl(var(--border-strong)/0.65)]',
       )}
     >
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="h-[42px] w-[42px] shrink-0 flex items-center justify-center text-foreground border border-border/60 rounded-full bg-[hsl(var(--surface-base)/0.92)] shadow-sm group-hover:scale-105 transition-transform">
+        <div className="flex min-w-0 items-start gap-3.5">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] border border-border/60 bg-[hsl(var(--surface-panel)/0.92)] text-foreground">
             {getProviderIconUrl(account.vendorId) ? (
-              <img src={getProviderIconUrl(account.vendorId)} alt={typeInfo?.name || account.vendorId} className={cn('h-5 w-5', shouldInvertInDark(account.vendorId) && 'dark:invert')} />
+              <img src={getProviderIconUrl(account.vendorId)} alt={typeInfo?.name || account.vendorId} className={cn('h-[17px] w-[17px]', shouldInvertInDark(account.vendorId) && 'dark:invert')} />
             ) : (
-              <span className="text-xl">{vendor?.icon || typeInfo?.icon || '⚙️'}</span>
+              <span className="text-[15px]">{vendor?.icon || typeInfo?.icon || '⚙️'}</span>
             )}
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-[15px]">{account.label}</span>
+              <span className="truncate font-semibold text-[14px] text-foreground">{account.label}</span>
               {isDefault && (
-                <span className="flex items-center gap-1 font-mono text-[10px] font-medium px-2 py-0.5 rounded-full bg-[hsl(var(--surface-hover)/0.7)] text-foreground/70">
+                <span className="flex items-center gap-1 rounded-full bg-[hsl(var(--foreground)/0.05)] px-2 py-0.5 text-[9.5px] font-medium text-foreground/72">
                   <Check className="h-3 w-3" />
                   {t('aiProviders.card.default')}
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-2 mt-0.5 text-[13px] text-muted-foreground">
-              <span className="capitalize">{vendor?.name || account.vendorId}</span>
-              <span className="w-1 h-1 rounded-full bg-foreground/20" />
-              <span>{getAuthModeLabel(account.authMode, t)}</span>
-              {account.model && (
-                <>
-                  <span className="w-1 h-1 rounded-full bg-foreground/20" />
-                  <span className="truncate max-w-[200px]">{account.model}</span>
-                </>
-              )}
-              <span className="w-1 h-1 rounded-full bg-foreground/20" />
-              <span className="flex items-center gap-1">
-                {hasConfiguredCredentials(account, status) ? (
-                  <><div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> {t('aiProviders.card.configured')}</>
-                ) : (
-                  <><div className="w-1.5 h-1.5 rounded-full bg-red-500" /> {t('aiProviders.dialog.apiKeyMissing')}</>
-                )}
-              </span>
-              {((account.fallbackModels?.length ?? 0) > 0 || (account.fallbackAccountIds?.length ?? 0) > 0) && (
-                <>
-                  <span className="w-1 h-1 rounded-full bg-foreground/20" />
-                  <span className="truncate max-w-[150px]" title={t('aiProviders.sections.fallback')}>
-                    {t('aiProviders.sections.fallback')}: {[
-                      ...normalizeFallbackModels(account.fallbackModels),
-                      ...normalizeFallbackProviderIds(account.fallbackAccountIds)
-                        .map((fallbackId) => allProviders.find((candidate) => candidate.account.id === fallbackId)?.account.label)
-                        .filter(Boolean),
-                    ].join(', ')}
-                  </span>
-                </>
-              )}
-            </div>
+            {summaryPrimary.length > 0 && (
+              <p className="mt-0.5 truncate text-[11.5px] text-muted-foreground/74">{summaryPrimary.join(' · ')}</p>
+            )}
+            {summarySecondary.map((summary, index) => (
+              <p key={`${account.id}-summary-${index}`} className="mt-0.5 truncate text-[11.5px] text-muted-foreground/70">
+                {summary}
+              </p>
+            ))}
           </div>
         </div>
 
         {!isEditing && (
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex shrink-0 items-center gap-1 opacity-60 transition-opacity group-hover:opacity-100">
             {!isDefault && (
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 rounded-full text-muted-foreground hover:text-primary hover:bg-[hsl(var(--surface-hover)/0.9)] shadow-sm"
+                className="h-7 w-7 rounded-[9px] text-muted-foreground hover:text-foreground hover:bg-[hsl(var(--foreground)/0.05)] shadow-none"
                 onClick={onSetDefault}
                 title={t('aiProviders.card.setDefault')}
               >
@@ -502,7 +493,7 @@ function ProviderCard({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-[hsl(var(--surface-hover)/0.9)] shadow-sm"
+              className="h-7 w-7 rounded-[9px] text-muted-foreground hover:text-foreground hover:bg-[hsl(var(--foreground)/0.05)] shadow-none"
               onClick={onEdit}
               title={t('aiProviders.card.editKey')}
             >
@@ -511,7 +502,7 @@ function ProviderCard({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 rounded-full text-muted-foreground hover:text-destructive hover:bg-[hsl(var(--surface-hover)/0.9)] shadow-sm"
+              className="h-7 w-7 rounded-[9px] text-muted-foreground hover:text-destructive hover:bg-[hsl(var(--foreground)/0.05)] shadow-none"
               onClick={onDelete}
               title={t('aiProviders.card.delete')}
             >
@@ -522,30 +513,30 @@ function ProviderCard({
       </div>
 
       {isEditing && (
-        <div className="mt-4 space-y-6 border-t border-border/60 pt-4">
+        <div className="mt-3.5 space-y-4.5 border-t border-border/55 pt-3.5">
           {providerDocsUrl && (
-            <div className="flex justify-end -mt-2 mb-2">
+            <div className="mb-2 flex justify-end -mt-2">
               <a
                 href={providerDocsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[12px] text-primary hover:text-primary/80 font-medium inline-flex items-center gap-1"
+                className="inline-flex items-center gap-1 text-[11.5px] font-medium text-primary hover:text-primary/80"
               >
                 {t('aiProviders.dialog.customDoc')}
                 <ExternalLink className="h-3 w-3" />
               </a>
             </div>
           )}
-          <div className="space-y-1.5">
-            <Label className={currentLabelClasses}>{t('aiProviders.dialog.displayName')}</Label>
-            <Input
+            <div className="space-y-1.5">
+              <Label className={currentLabelClasses}>{t('aiProviders.dialog.displayName')}</Label>
+              <Input
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               placeholder={typeInfo?.id === 'custom' ? t('aiProviders.custom') : typeInfo?.name}
               className={currentInputClasses}
             />
           </div>
-          {canEditModelConfig && (
+            {canEditModelConfig && (
             <div className="space-y-3">
               <p className={currentSectionLabelClasses}>{t('aiProviders.sections.model')}</p>
               {typeInfo?.showBaseUrl && (
@@ -573,25 +564,25 @@ function ProviderCard({
               {account.vendorId === 'custom' && (
                 <div className="space-y-1.5 pt-2">
                   <Label className={currentLabelClasses}>{t('aiProviders.dialog.protocol', 'Protocol')}</Label>
-                  <div className={segmentedTrackClass + ' text-[13px]'}>
+                  <div className={segmentedTrackClass + ' text-[12px]'}>
                     <button
                       type="button"
                       onClick={() => setApiProtocol('openai-completions')}
-                      className={cn('flex-1 py-1.5 px-3 rounded-lg border transition-colors', apiProtocol === 'openai-completions' ? segmentedActiveClass : segmentedIdleClass)}
+                      className={cn('flex-1 rounded-[8px] px-3 py-1.5 transition-colors', apiProtocol === 'openai-completions' ? segmentedActiveClass : segmentedIdleClass)}
                     >
                       {t('aiProviders.protocols.openaiCompletions', 'OpenAI Completions')}
                     </button>
                     <button
                       type="button"
                       onClick={() => setApiProtocol('openai-responses')}
-                      className={cn('flex-1 py-1.5 px-3 rounded-lg border transition-colors', apiProtocol === 'openai-responses' ? segmentedActiveClass : segmentedIdleClass)}
+                      className={cn('flex-1 rounded-[8px] px-3 py-1.5 transition-colors', apiProtocol === 'openai-responses' ? segmentedActiveClass : segmentedIdleClass)}
                     >
                       {t('aiProviders.protocols.openaiResponses', 'OpenAI Responses')}
                     </button>
                     <button
                       type="button"
                       onClick={() => setApiProtocol('anthropic-messages')}
-                      className={cn('flex-1 py-1.5 px-3 rounded-lg border transition-colors', apiProtocol === 'anthropic-messages' ? segmentedActiveClass : segmentedIdleClass)}
+                      className={cn('flex-1 rounded-[8px] px-3 py-1.5 transition-colors', apiProtocol === 'anthropic-messages' ? segmentedActiveClass : segmentedIdleClass)}
                     >
                       {t('aiProviders.protocols.anthropic', 'Anthropic')}
                     </button>
@@ -612,13 +603,13 @@ function ProviderCard({
               <div className="space-y-3 pt-2">
                 <div className="space-y-1.5">
                   <Label className={currentLabelClasses}>{t('aiProviders.dialog.fallbackModelIds')}</Label>
-                  <textarea
+                  <Textarea
                     value={fallbackModelsText}
                     onChange={(e) => setFallbackModelsText(e.target.value)}
                     placeholder={t('aiProviders.dialog.fallbackModelIdsPlaceholder')}
                     className={isDefault
-                      ? "min-h-24 w-full rounded-xl border border-border/60 app-field-surface px-3 py-2 text-[13px] font-mono outline-none focus-visible:ring-2 focus-visible:ring-ring/30 shadow-sm text-foreground"
-                      : "min-h-24 w-full rounded-xl border border-border/60 app-field-surface px-3 py-2 text-[13px] font-mono outline-none focus-visible:ring-2 focus-visible:ring-ring/30 shadow-sm transition-all text-foreground placeholder:text-muted-foreground"}
+                      ? "min-h-24 rounded-[12px] border-border/70 app-field-surface text-[13px] font-mono shadow-none"
+                      : "min-h-24 rounded-[12px] border-border/70 app-field-surface text-[13px] font-mono shadow-none"}
                   />
                   <p className="text-[12px] text-muted-foreground">
                     {t('aiProviders.dialog.fallbackModelIdsHelp')}
@@ -629,20 +620,32 @@ function ProviderCard({
                   {fallbackOptions.length === 0 ? (
                     <p className="text-[13px] text-muted-foreground">{t('aiProviders.dialog.noFallbackOptions')}</p>
                   ) : (
-                    <div className={cn("space-y-2 rounded-xl border border-border/60 p-3 shadow-sm", isDefault ? "bg-[hsl(var(--surface-base)/0.9)]" : "bg-[hsl(var(--surface-hover)/0.7)]")}>
+                    <div className="app-pane-surface space-y-1.5 rounded-[10px] border border-border/60 p-2">
                       {fallbackOptions.map((candidate) => (
-                        <label key={candidate.account.id} className="flex items-center gap-3 text-[13px] cursor-pointer group/label">
-                          <input
-                            type="checkbox"
-                            checked={fallbackProviderIds.includes(candidate.account.id)}
-                            onChange={() => toggleFallbackProvider(candidate.account.id)}
-                            className="rounded border-border/60 text-primary focus:ring-ring/30"
-                          />
-                          <span className="font-medium group-hover/label:text-primary transition-colors">{candidate.account.label}</span>
-                          <span className="text-[12px] text-muted-foreground">
+                        <button
+                          key={candidate.account.id}
+                          type="button"
+                          onClick={() => toggleFallbackProvider(candidate.account.id)}
+                          className={cn(
+                            'flex w-full items-center gap-3 rounded-[9px] px-2.5 py-2 text-left text-[12px] transition-colors',
+                            fallbackProviderIds.includes(candidate.account.id)
+                              ? 'bg-[hsl(var(--foreground)/0.055)] text-foreground'
+                              : 'hover:bg-[hsl(var(--foreground)/0.035)] text-foreground/88',
+                          )}
+                        >
+                          <span className={cn(
+                            'flex h-4 w-4 shrink-0 items-center justify-center rounded-[5px] border text-transparent transition-colors',
+                            fallbackProviderIds.includes(candidate.account.id)
+                              ? 'border-foreground/20 bg-[hsl(var(--foreground)/0.08)] text-foreground'
+                              : 'border-border/70 bg-transparent',
+                          )}>
+                            <Check className="h-3 w-3" />
+                          </span>
+                          <span className="min-w-0 flex-1 truncate font-medium">{candidate.account.label}</span>
+                          <span className="truncate text-[12px] text-muted-foreground">
                             {candidate.account.model || candidate.vendor?.name || candidate.account.vendorId}
                           </span>
-                        </label>
+                        </button>
                       ))}
                     </div>
                   )}
@@ -689,7 +692,7 @@ function ProviderCard({
                     placeholder={typeInfo?.requiresApiKey ? typeInfo?.placeholder : (typeInfo?.id === 'ollama' ? t('aiProviders.notRequired') : t('aiProviders.card.editKey'))}
                     value={newKey}
                     onChange={(e) => setNewKey(e.target.value)}
-                    className={cn(currentInputClasses, 'pr-10')}
+                    className={cn(tokenInputClasses, 'pr-10')}
                   />
                   <button
                     type="button"
@@ -703,10 +706,10 @@ function ProviderCard({
                   variant="outline"
                   onClick={handleSaveEdits}
                   className={cn(
-                    "rounded-xl px-4 border-border/60",
+                    "rounded-[10px] px-4 border-border/70 shadow-none",
                     isDefault
-                      ? "h-[40px] bg-[hsl(var(--surface-base)/0.9)] hover:bg-[hsl(var(--surface-hover)/0.9)]"
-                      : "h-[44px] app-field-surface hover:bg-[hsl(var(--surface-hover)/0.9)] shadow-sm"
+                      ? "h-[40px] bg-[hsl(var(--surface-base)/0.96)] hover:bg-[hsl(var(--surface-hover)/0.9)]"
+                      : "h-[40px] app-field-surface hover:bg-[hsl(var(--surface-hover)/0.9)]"
                   )}
                   disabled={
                     validating
@@ -732,10 +735,10 @@ function ProviderCard({
                   variant="ghost"
                   onClick={onCancelEdit}
                   className={cn(
-                    "p-0 rounded-xl",
+                    "rounded-[10px] p-0 shadow-none",
                     isDefault
                       ? "h-[40px] w-[40px] hover:bg-[hsl(var(--surface-hover)/0.9)]"
-                      : "h-[44px] w-[44px] app-field-surface border border-border/60 hover:bg-[hsl(var(--surface-hover)/0.9)] shadow-sm text-muted-foreground hover:text-foreground"
+                      : "h-[40px] w-[40px] app-field-surface border border-border/70 hover:bg-[hsl(var(--surface-hover)/0.9)] text-muted-foreground hover:text-foreground"
                   )}
                 >
                   <X className="h-4 w-4" />
@@ -1038,25 +1041,25 @@ function AddProviderDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 p-4 backdrop-blur-sm">
-      <Card className={cn(modalSurfaceClasses, 'max-h-[90vh] max-w-2xl flex flex-col overflow-hidden')}>
+    <div className="app-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
+      <Card className={cn(modalSurfaceClasses, 'max-h-[90vh] max-w-lg flex flex-col overflow-hidden')}>
         <CardHeader className="relative pb-2 shrink-0">
-          <CardTitle className="text-2xl font-serif font-normal">{t('aiProviders.dialog.title')}</CardTitle>
-          <CardDescription className="text-[15px] mt-1 text-foreground/70">
+          <CardTitle className="text-[17px] font-semibold tracking-tight">{t('aiProviders.dialog.title')}</CardTitle>
+          <CardDescription className="mt-1 text-[11.5px] text-foreground/66">
             {t('aiProviders.dialog.desc')}
           </CardDescription>
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-4 top-4 h-8 w-8 rounded-full -mr-2 -mt-2 text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+            className="absolute right-4 top-4 h-7 w-7 rounded-[10px] text-muted-foreground hover:bg-[hsl(var(--foreground)/0.05)] hover:text-foreground"
             onClick={onClose}
           >
             <X className="h-4 w-4" />
           </Button>
         </CardHeader>
-        <CardContent className="overflow-y-auto flex-1 p-6">
+        <CardContent className="overflow-y-auto flex-1 p-5">
           {!selectedType ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="space-y-1.5">
               {availableTypes.map((type) => (
                 <button
                   key={type.id}
@@ -1066,31 +1069,34 @@ function AddProviderDialog({
                     setBaseUrl(type.defaultBaseUrl || '');
                     setModelId(type.defaultModelId || '');
                   }}
-                  className="rounded-2xl border border-border/70 bg-[hsl(var(--surface-base)/0.86)] p-4 text-center transition-colors group hover:bg-[hsl(var(--surface-hover)/0.88)]"
+                  className="flex w-full items-center gap-3 rounded-[10px] border border-transparent bg-transparent px-3 py-2.5 text-left transition-colors hover:bg-[hsl(var(--foreground)/0.04)]"
                 >
-                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl border border-border/70 bg-[hsl(var(--surface-base)/0.96)] shadow-sm transition-transform group-hover:scale-105">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] border border-border/60 bg-[hsl(var(--surface-base)/0.96)]">
                     {getProviderIconUrl(type.id) ? (
-                      <img src={getProviderIconUrl(type.id)} alt={type.name} className={cn('h-6 w-6', shouldInvertInDark(type.id) && 'dark:invert')} />
+                      <img src={getProviderIconUrl(type.id)} alt={type.name} className={cn('h-[18px] w-[18px]', shouldInvertInDark(type.id) && 'dark:invert')} />
                     ) : (
-                      <span className="text-2xl">{type.icon}</span>
+                      <span className="text-lg">{type.icon}</span>
                     )}
                   </div>
-                  <p className="font-medium text-[13px]">{type.id === 'custom' ? t('aiProviders.custom') : type.name}</p>
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-[13px] text-foreground">{type.id === 'custom' ? t('aiProviders.custom') : type.name}</p>
+                    <p className="mt-0.5 truncate text-[11px] text-muted-foreground/72">{type.id}</p>
+                  </div>
                 </button>
               ))}
             </div>
           ) : (
-            <div className="space-y-6">
-              <div className="flex items-center gap-3 rounded-2xl border border-border/70 bg-[hsl(var(--surface-base)/0.92)] p-4 shadow-sm">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-[hsl(var(--surface-base)/0.98)]">
+            <div className="space-y-5">
+              <div className="app-pane-surface flex items-center gap-2.5 rounded-[11px] p-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] border border-border/55 bg-[hsl(var(--surface-base)/0.96)]">
                   {getProviderIconUrl(selectedType!) ? (
-                    <img src={getProviderIconUrl(selectedType!)} alt={typeInfo?.name} className={cn('h-6 w-6', shouldInvertInDark(selectedType!) && 'dark:invert')} />
+                    <img src={getProviderIconUrl(selectedType!)} alt={typeInfo?.name} className={cn('h-[18px] w-[18px]', shouldInvertInDark(selectedType!) && 'dark:invert')} />
                   ) : (
-                    <span className="text-xl">{typeInfo?.icon}</span>
+                    <span className="text-lg">{typeInfo?.icon}</span>
                   )}
                 </div>
-                <div>
-                  <p className="font-semibold text-[15px]">{typeInfo?.id === 'custom' ? t('aiProviders.custom') : typeInfo?.name}</p>
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-[14px]">{typeInfo?.id === 'custom' ? t('aiProviders.custom') : typeInfo?.name}</p>
                   <button
                     onClick={() => {
                       setSelectedType(null);
@@ -1098,7 +1104,7 @@ function AddProviderDialog({
                       setBaseUrl('');
                       setModelId('');
                     }}
-                    className="text-[13px] font-medium text-primary hover:text-primary/80"
+                    className="text-[12px] font-medium text-primary hover:text-primary/80"
                   >
                     {t('aiProviders.dialog.change')}
                   </button>
@@ -1109,7 +1115,7 @@ function AddProviderDialog({
                         href={providerDocsUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-[13px] font-medium text-primary hover:text-primary/80"
+                        className="inline-flex items-center gap-1 text-[12px] font-medium text-primary hover:text-primary/80"
                       >
                         {t('aiProviders.dialog.customDoc')}
                         <ExternalLink className="h-3 w-3" />
@@ -1119,7 +1125,7 @@ function AddProviderDialog({
                 </div>
               </div>
 
-              <div className="space-y-6 bg-transparent p-0">
+              <div className="space-y-5 bg-transparent p-0">
                 <div className="space-y-2.5">
                   <Label htmlFor="name" className={labelClasses}>{t('aiProviders.dialog.displayName')}</Label>
                   <Input
@@ -1133,11 +1139,11 @@ function AddProviderDialog({
 
                 {/* Auth mode toggle for providers supporting both */}
                 {isOAuth && supportsApiKey && (
-                  <div className={cn(segmentedTrackClass, 'overflow-hidden text-[13px] font-medium')}>
+                  <div className={cn(segmentedTrackClass, 'overflow-hidden text-[12px] font-medium')}>
                     <button
                       onClick={() => setAuthMode('oauth')}
                       className={cn(
-                        'flex-1 py-2 px-3 rounded-lg transition-colors',
+                        'flex-1 rounded-[8px] px-3 py-2 transition-colors',
                         authMode === 'oauth' ? segmentedActiveClass : segmentedIdleClass
                       )}
                     >
@@ -1146,7 +1152,7 @@ function AddProviderDialog({
                     <button
                       onClick={() => setAuthMode('apikey')}
                       className={cn(
-                        'flex-1 py-2 px-3 rounded-lg transition-colors',
+                        'flex-1 rounded-[8px] px-3 py-2 transition-colors',
                         authMode === 'apikey' ? segmentedActiveClass : segmentedIdleClass
                       )}
                     >
@@ -1182,7 +1188,7 @@ function AddProviderDialog({
                           setApiKey(e.target.value);
                           setValidationError(null);
                         }}
-                        className={inputClasses}
+                        className={tokenInputClasses}
                       />
                       <button
                         type="button"
@@ -1232,25 +1238,25 @@ function AddProviderDialog({
                 {selectedType === 'custom' && (
                 <div className="space-y-2.5">
                   <Label className={labelClasses}>{t('aiProviders.dialog.protocol', 'Protocol')}</Label>
-                  <div className={cn(segmentedTrackClass, 'gap-2 text-[13px]')}>
+                  <div className={cn(segmentedTrackClass, 'gap-1 text-[12px]')}>
                     <button
                       type="button"
                         onClick={() => setApiProtocol('openai-completions')}
-                        className={cn('flex-1 py-1.5 px-3 rounded-lg border transition-colors', apiProtocol === 'openai-completions' ? segmentedActiveClass : segmentedIdleClass)}
+                        className={cn('flex-1 rounded-[8px] px-3 py-1.5 transition-colors', apiProtocol === 'openai-completions' ? segmentedActiveClass : segmentedIdleClass)}
                     >
                       {t('aiProviders.protocols.openaiCompletions', 'OpenAI Completions')}
                     </button>
                     <button
                       type="button"
                       onClick={() => setApiProtocol('openai-responses')}
-                      className={cn('flex-1 py-1.5 px-3 rounded-lg border transition-colors', apiProtocol === 'openai-responses' ? segmentedActiveClass : segmentedIdleClass)}
+                      className={cn('flex-1 rounded-[8px] px-3 py-1.5 transition-colors', apiProtocol === 'openai-responses' ? segmentedActiveClass : segmentedIdleClass)}
                     >
                       {t('aiProviders.protocols.openaiResponses', 'OpenAI Responses')}
                     </button>
                     <button
                       type="button"
                       onClick={() => setApiProtocol('anthropic-messages')}
-                      className={cn('flex-1 py-1.5 px-3 rounded-lg border transition-colors', apiProtocol === 'anthropic-messages' ? segmentedActiveClass : segmentedIdleClass)}
+                      className={cn('flex-1 rounded-[8px] px-3 py-1.5 transition-colors', apiProtocol === 'anthropic-messages' ? segmentedActiveClass : segmentedIdleClass)}
                       >
                         {t('aiProviders.protocols.anthropic', 'Anthropic')}
                       </button>
@@ -1259,15 +1265,15 @@ function AddProviderDialog({
                 )}
                 {/* Device OAuth Trigger — only shown when in OAuth mode */}
                 {useOAuthFlow && (
-                  <div className="space-y-4 pt-2">
-                    <div className="rounded-xl border border-primary/20 bg-primary/10 p-5 text-center">
-                      <p className="mb-4 block text-[13px] font-medium text-primary">
+                  <div className="space-y-4 pt-1.5">
+                    <div className="app-pane-surface rounded-[12px] border border-border/55 p-4 text-left">
+                      <p className="mb-3 block text-[12px] font-medium text-foreground/70">
                         {t('aiProviders.oauth.loginPrompt')}
                       </p>
                       <Button
                         onClick={handleStartOAuth}
                         disabled={oauthFlowing}
-                        className="h-[42px] w-full rounded-full font-semibold"
+                        className="h-9 w-full rounded-[10px] font-semibold"
                       >
                         {oauthFlowing ? (
                           <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t('aiProviders.oauth.waiting')}</>
@@ -1279,37 +1285,34 @@ function AddProviderDialog({
 
                     {/* OAuth Active State Modal / Inline View */}
                     {oauthFlowing && (
-                      <div className="relative mt-4 overflow-hidden rounded-2xl border border-border/70 bg-[hsl(var(--surface-base)/0.94)] p-5 shadow-sm">
-                        {/* Background pulse effect */}
-                        <div className="absolute inset-0 bg-primary/5 animate-pulse" />
-
-                        <div className="relative z-10 flex flex-col items-center justify-center text-center space-y-5">
+                      <div className="relative mt-3.5 overflow-hidden rounded-[12px] border border-border/55 app-pane-surface p-4">
+                        <div className="relative z-10 flex flex-col items-center justify-center space-y-5 text-center">
                           {oauthError ? (
                             <div className="text-red-500 space-y-3">
                               <XCircle className="h-10 w-10 mx-auto" />
-                              <p className="font-semibold text-[15px]">{t('aiProviders.oauth.authFailed')}</p>
-                              <p className="text-[13px] opacity-80">{oauthError}</p>
-                              <Button variant="outline" size="sm" onClick={handleCancelOAuth} className="mt-2 rounded-full px-6 h-9">
+                              <p className="font-semibold text-[14px]">{t('aiProviders.oauth.authFailed')}</p>
+                              <p className="text-[12.5px] opacity-80">{oauthError}</p>
+                              <Button variant="outline" size="sm" onClick={handleCancelOAuth} className="mt-2 h-8 rounded-[10px] px-5">
                                 Try Again
                               </Button>
                             </div>
                           ) : !oauthData ? (
                             <div className="space-y-4 py-6">
                               <Loader2 className="mx-auto h-10 w-10 animate-spin text-primary" />
-                              <p className="text-[13px] font-medium text-muted-foreground animate-pulse">{t('aiProviders.oauth.requestingCode')}</p>
+                              <p className="text-[12.5px] font-medium text-muted-foreground animate-pulse">{t('aiProviders.oauth.requestingCode')}</p>
                             </div>
                           ) : oauthData.mode === 'manual' ? (
                             <div className="space-y-4 w-full">
                               <div className="space-y-2">
-                                <h3 className="font-semibold text-[16px] text-foreground">Complete OpenAI Login</h3>
-                                <p className="rounded-xl bg-[hsl(var(--surface-hover)/0.9)] p-4 text-left text-[13px] text-muted-foreground">
+                                <h3 className="font-semibold text-[14px] text-foreground">Complete OpenAI Login</h3>
+                                <p className="rounded-[11px] bg-[hsl(var(--foreground)/0.03)] p-3 text-left text-[12px] text-muted-foreground/84">
                                   {oauthData.message || 'Open the authorization page, complete login, then paste the callback URL or code below.'}
                                 </p>
                               </div>
 
                               <Button
                                 variant="secondary"
-                                className="w-full rounded-full h-[42px] font-semibold"
+                                className="h-9 w-full rounded-[10px] font-semibold"
                                 onClick={() => invokeIpc('shell:openExternal', oauthData.authorizationUrl)}
                               >
                                 <ExternalLink className="h-4 w-4 mr-2" />
@@ -1320,64 +1323,64 @@ function AddProviderDialog({
                                 placeholder="Paste callback URL or code"
                                 value={manualCodeInput}
                                 onChange={(e) => setManualCodeInput(e.target.value)}
-                                className={inputClasses}
+                                className={tokenInputClasses}
                               />
 
                               <Button
-                                className="h-[42px] w-full rounded-full font-semibold"
+                                className="h-9 w-full rounded-[10px] font-semibold"
                                 onClick={handleSubmitManualOAuthCode}
                                 disabled={!manualCodeInput.trim()}
                               >
                                 Submit Code
                               </Button>
 
-                              <Button variant="ghost" className="w-full rounded-full h-[42px] font-semibold text-muted-foreground" onClick={handleCancelOAuth}>
+                              <Button variant="ghost" className="h-9 w-full rounded-[10px] font-semibold text-muted-foreground" onClick={handleCancelOAuth}>
                                 Cancel
                               </Button>
                             </div>
                           ) : (
-                            <div className="space-y-5 w-full">
+                            <div className="space-y-4.5 w-full">
                               <div className="space-y-2">
-                                <h3 className="font-semibold text-[16px] text-foreground">{t('aiProviders.oauth.approveLogin')}</h3>
-                                <div className="mt-2 space-y-1.5 rounded-xl bg-[hsl(var(--surface-hover)/0.9)] p-4 text-left text-[13px] text-muted-foreground">
+                                <h3 className="font-semibold text-[14px] text-foreground">{t('aiProviders.oauth.approveLogin')}</h3>
+                                <div className="mt-2 space-y-1.5 rounded-[11px] bg-[hsl(var(--foreground)/0.03)] p-3 text-left text-[12px] text-muted-foreground/84">
                                   <p>1. {t('aiProviders.oauth.step1')}</p>
                                   <p>2. {t('aiProviders.oauth.step2')}</p>
                                   <p>3. {t('aiProviders.oauth.step3')}</p>
                                 </div>
                               </div>
 
-                              <div className="flex items-center justify-center gap-3 rounded-xl border border-border/70 app-field-surface p-4 shadow-inner">
-                                <code className="text-3xl font-mono tracking-[0.2em] font-bold text-foreground">
+                              <div className="flex items-center justify-center gap-3 rounded-[11px] border border-border/55 app-pane-surface px-3.5 py-3">
+                                <code className="text-[26px] font-mono tracking-[0.16em] font-bold text-foreground">
                                   {oauthData.userCode}
                                 </code>
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-10 w-10 rounded-full hover:bg-accent/60"
+                                  className="h-8 w-8 rounded-full hover:bg-accent/50"
                                   onClick={() => {
                                     navigator.clipboard.writeText(oauthData.userCode);
                                     toast.success(t('aiProviders.oauth.codeCopied'));
                                   }}
                                 >
-                                  <Copy className="h-5 w-5" />
+                                  <Copy className="h-4 w-4" />
                                 </Button>
                               </div>
 
                               <Button
                                 variant="secondary"
-                                className="w-full rounded-full h-[42px] font-semibold"
+                                className="h-9 w-full rounded-[10px] font-semibold"
                                 onClick={() => invokeIpc('shell:openExternal', oauthData.verificationUri)}
                               >
                                 <ExternalLink className="h-4 w-4 mr-2" />
                                 {t('aiProviders.oauth.openLoginPage')}
                               </Button>
 
-                              <div className="flex items-center justify-center gap-2 text-[13px] font-medium text-muted-foreground pt-2">
+                              <div className="flex items-center justify-center gap-2 pt-2 text-[12.5px] font-medium text-muted-foreground">
                                 <Loader2 className="h-4 w-4 animate-spin text-primary" />
                                 <span>{t('aiProviders.oauth.waitingApproval')}</span>
                               </div>
 
-                              <Button variant="ghost" className="w-full rounded-full h-[42px] font-semibold text-muted-foreground" onClick={handleCancelOAuth}>
+                              <Button variant="ghost" className="h-9 w-full rounded-[10px] font-semibold text-muted-foreground" onClick={handleCancelOAuth}>
                                 Cancel
                               </Button>
                             </div>
@@ -1389,12 +1392,12 @@ function AddProviderDialog({
                 )}
               </div>
 
-              <Separator className="bg-border/70" />
+              <Separator className="bg-border/60" />
 
               <div className="flex justify-end gap-3">
                 <Button
                   onClick={handleAdd}
-                  className={cn(primaryButtonClass, 'h-[42px] px-8 text-[13px] font-semibold', useOAuthFlow && 'hidden')}
+                  className={cn(primaryButtonClass, 'h-9 px-6 text-[12.5px] font-semibold', useOAuthFlow && 'hidden')}
                   disabled={!selectedType || saving || (showModelIdField && modelId.trim().length === 0)}
                 >
                   {saving ? (

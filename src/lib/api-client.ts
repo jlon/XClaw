@@ -317,12 +317,22 @@ function toUnifiedRequest(channel: string, args: unknown[]): UnifiedRequest {
   };
 }
 
+function getIpcRenderer() {
+  const ipc = window.electron?.ipcRenderer;
+  if (!ipc) {
+    throw new AppError('CHANNEL_UNAVAILABLE', 'Electron IPC renderer is unavailable');
+  }
+  return ipc;
+}
+
 async function invokeViaIpc<T>(channel: string, args: unknown[]): Promise<T> {
+  const ipc = getIpcRenderer();
+
   if (channel !== 'app:request' && UNIFIED_CHANNELS.has(channel)) {
     const request = toUnifiedRequest(channel, args);
 
     try {
-      const response = await window.electron.ipcRenderer.invoke('app:request', request) as UnifiedResponse;
+      const response = await ipc.invoke('app:request', request) as UnifiedResponse;
       if (!response?.ok) {
         const message = response?.error?.message || 'Unified IPC request failed';
         if (message.includes('APP_REQUEST_UNSUPPORTED:')) {
@@ -342,7 +352,7 @@ async function invokeViaIpc<T>(channel: string, args: unknown[]): Promise<T> {
   }
 
   try {
-    return await window.electron.ipcRenderer.invoke(channel, ...args) as T;
+    return await ipc.invoke(channel, ...args) as T;
   } catch (err) {
     throw normalizeAppError(err, { transport: 'ipc', channel, source: 'legacy-ipc' });
   }

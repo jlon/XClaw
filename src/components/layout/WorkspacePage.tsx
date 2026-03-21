@@ -14,7 +14,7 @@ export function WorkspacePageFrame({
   ...props
 }: PropsWithChildren<HTMLAttributes<HTMLDivElement>>) {
   return (
-    <div className={cn('workspace-page-frame desktop-workspace-frame flex h-[calc(100vh-2.5rem)] w-full flex-col overflow-hidden bg-background/30', className)} {...props}>
+    <div className={cn('workspace-page-frame desktop-workspace-frame flex h-[calc(100vh-2.5rem)] w-full flex-col overflow-hidden bg-background', className)} {...props}>
       {children}
     </div>
   );
@@ -26,7 +26,7 @@ export function WorkspacePageShell({
   ...props
 }: PropsWithChildren<HTMLAttributes<HTMLDivElement>>) {
   return (
-    <div className={cn('workspace-page-shell desktop-workspace-shell mx-auto flex h-full w-full max-w-[1560px] flex-col rounded-[28px] border border-border/70 bg-card/60 px-3 py-8 shadow-[0_18px_48px_rgba(15,23,42,0.06)] md:px-4 xl:px-6', className)} {...props}>
+    <div className={cn('workspace-page-shell desktop-workspace-shell mx-auto flex h-full w-full max-w-[1560px] flex-col rounded-none border-0 bg-transparent px-3 py-4 shadow-none md:px-4 xl:px-5', className)} {...props}>
       {children}
     </div>
   );

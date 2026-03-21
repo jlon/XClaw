@@ -21,7 +21,9 @@ describe('second-wave desktop theme rollout', () => {
     expect(source).toContain('surface-panel');
     expect(source).toContain('surface-base');
     expect(source).toContain('app-field-surface');
+    expect(source).toContain('tokenInputClasses');
     expect(source).toContain('border-border/70');
+    expect(source).not.toContain('opacity-0 group-hover:opacity-100');
   });
 
   it('keeps agents, skills, and cron aligned with the shared desktop shell language', () => {
@@ -37,14 +39,22 @@ describe('second-wave desktop theme rollout', () => {
     expect(source).not.toContain('border-black/10');
     expect(source).not.toContain('dark:border-white/10');
     expect(source).not.toContain('hover:bg-black/5');
-    expect(source).toContain('app-panel-surface');
+    expect(source).toContain('app-insight-surface');
     expect(source).toContain('app-field-surface');
     expect(source).toContain('border-border/70');
     expect(source).toContain('hover:bg-accent/60');
   });
 
   it('keeps setup on the same desktop surface system instead of a standalone warm web wizard skin', () => {
-    const source = readFileSync(resolve(process.cwd(), 'src/pages/Setup/index.tsx'), 'utf8');
+    const files = [
+      'src/pages/Setup/index.tsx',
+      'src/components/setup/SetupStartStage.tsx',
+      'src/components/setup/SetupPreparationStage.tsx',
+      'src/components/setup/SetupProviderStage.tsx',
+      'src/components/setup/SetupCompleteStage.tsx',
+    ];
+
+    const source = files.map((relativePath) => readFileSync(resolve(process.cwd(), relativePath), 'utf8')).join('\n');
 
     expect(source).not.toContain('bg-[#f3f1e9]');
     expect(source).not.toContain('bg-[#eeece3]');
@@ -52,7 +62,7 @@ describe('second-wave desktop theme rollout', () => {
     expect(source).not.toContain('dark:border-white/10');
     expect(source).not.toContain('bg-blue-600');
     expect(source).not.toContain('text-blue-500');
-    expect(source).toContain('app-panel-surface');
+    expect(source).toContain('app-insight-surface');
     expect(source).toContain('app-panel-surface-elevated');
     expect(source).toContain('app-field-surface');
     expect(source).toContain('border-border/70');

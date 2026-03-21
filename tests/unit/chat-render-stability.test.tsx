@@ -95,22 +95,36 @@ vi.mock('react-i18next', () => ({
           return 'This request timed out';
         case 'common:actions.dismiss':
           return 'Dismiss';
+        case 'welcome.title':
+          return 'XClaw';
         case 'welcome.subtitle':
-          return 'What can I do for you?';
+          return 'Your sidekick is ready. You ask, I start.';
         case 'welcome.description':
-          return 'Welcome';
-        case 'welcome.askQuestions':
-          return 'Handle tasks';
-        case 'welcome.askQuestionsDesc':
-          return 'Handle tasks desc';
-        case 'welcome.creativeTasks':
-          return 'Continuous execution';
-        case 'welcome.creativeTasksDesc':
-          return 'Continuous execution desc';
-        case 'welcome.brainstorming':
-          return 'Parallel agents';
-        case 'welcome.brainstormingDesc':
-          return 'Parallel agents desc';
+          return '';
+        case 'welcome.executionKicker':
+          return 'Current desk';
+        case 'welcome.execution':
+          return 'Start the work';
+        case 'welcome.executionDesc':
+          return 'Drop in the goal, files, and constraints. I will take it from this desk and start moving.';
+        case 'welcome.continuationKicker':
+          return 'Same thread';
+        case 'welcome.continuation':
+          return 'Keep it going';
+        case 'welcome.continuationDesc':
+          return 'Pick up right where we left off, with the same context, model, and trail intact.';
+        case 'welcome.orchestrationKicker':
+          return 'Agent relay';
+        case 'welcome.orchestration':
+          return 'Split the job';
+        case 'welcome.orchestrationDesc':
+          return 'When the task gets bigger, break it across agents so each part can keep moving.';
+        case 'welcome.integrationKicker':
+          return 'Skills & access';
+        case 'welcome.integration':
+          return 'Plug in more';
+        case 'welcome.integrationDesc':
+          return 'Wire in skills, tools, and external access so this desk can take on more than one kind of job.';
         case 'message.toolProcessing':
           return 'Processing tools';
         default:
@@ -166,5 +180,20 @@ describe('chat render stability', () => {
     rerender(<Chat />);
 
     expect(chatMessageRenderSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the welcome shell without the legacy main agent heading when the chat is empty', () => {
+    chatState.messages = [];
+
+    const { queryByText, getByText } = render(<Chat />);
+
+    expect(queryByText('Main Agent')).not.toBeInTheDocument();
+    expect(getByText('XClaw')).toBeInTheDocument();
+    expect(getByText('Your sidekick is ready. You ask, I start.')).toBeInTheDocument();
+    expect(queryByText('Tasks, files, to-dos, and stray ideas can all land here. I do more than answer questions. I take the work, break it down, and keep it moving.')).not.toBeInTheDocument();
+    expect(getByText('Start the work')).toBeInTheDocument();
+    expect(getByText('Keep it going')).toBeInTheDocument();
+    expect(getByText('Split the job')).toBeInTheDocument();
+    expect(getByText('Plug in more')).toBeInTheDocument();
   });
 });

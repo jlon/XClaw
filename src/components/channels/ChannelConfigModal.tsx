@@ -60,9 +60,9 @@ const inputClasses = 'h-[44px] rounded-xl border-border/70 app-field-surface fon
 const labelClasses = 'text-[14px] font-semibold text-foreground/80';
 const outlineButtonClasses = 'h-9 rounded-full border-border/70 bg-transparent px-4 text-[13px] font-medium text-foreground/80 shadow-none hover:bg-accent/60 hover:text-foreground';
 const primaryButtonClasses = 'h-9 text-[13px] font-medium rounded-full px-4 shadow-none';
-const modalCardClasses = 'app-panel-surface-elevated flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl backdrop-blur';
-const modalSurfaceClasses = 'rounded-2xl border border-border/70 bg-[hsl(var(--surface-base)/0.92)]';
-const modalSubtleSurfaceClasses = 'border border-border/70 bg-[hsl(var(--surface-base)/0.84)]';
+const modalCardClasses = 'app-modal-surface flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-[20px]';
+const modalSurfaceClasses = 'rounded-[18px] border border-border/70 bg-[hsl(var(--surface-panel)/0.98)]';
+const modalSubtleSurfaceClasses = 'border border-border/70 bg-[hsl(var(--surface-base)/0.98)]';
 
 export function ChannelConfigModal({
   initialSelectedType = null,
@@ -430,7 +430,7 @@ export function ChannelConfigModal({
   return (
     <div
       data-testid="channel-config-modal"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 p-4 backdrop-blur-sm"
+      className="app-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
           onClose();
@@ -445,7 +445,7 @@ export function ChannelConfigModal({
       >
         <CardHeader className="flex flex-row items-start justify-between pb-2 shrink-0">
           <div>
-            <CardTitle className="text-2xl font-serif font-normal tracking-tight">
+            <CardTitle className="text-2xl font-semibold tracking-tight">
               {selectedType
                 ? isExistingConfig
                   ? t('dialog.updateTitle', { name: CHANNEL_NAMES[selectedType] })
@@ -517,7 +517,7 @@ export function ChannelConfigModal({
             </div>
           ) : qrCode ? (
             <div className="text-center space-y-6">
-              <div className={cn('p-4 rounded-3xl inline-block shadow-sm', modalSurfaceClasses)}>
+              <div className={cn('inline-block rounded-[20px] p-4', modalSurfaceClasses)}>
                 {qrCode.startsWith('data:image') ? (
                   <img src={qrCode} alt="Scan QR Code" className="w-64 h-64 object-contain rounded-2xl" />
                 ) : (

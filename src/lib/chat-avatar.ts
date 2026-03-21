@@ -1,10 +1,10 @@
 const AVATAR_STYLES = [
-  'from-sky-500 to-indigo-500',
-  'from-rose-500 to-orange-500',
-  'from-emerald-500 to-lime-500',
-  'from-fuchsia-500 to-pink-500',
-  'from-amber-500 to-red-500',
-  'from-cyan-500 to-blue-500',
+  'chat-avatar-tone-1',
+  'chat-avatar-tone-2',
+  'chat-avatar-tone-3',
+  'chat-avatar-tone-4',
+  'chat-avatar-tone-5',
+  'chat-avatar-tone-6',
 ];
 
 const getAvatarIndex = (value: string) =>

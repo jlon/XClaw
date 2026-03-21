@@ -385,15 +385,15 @@ describe('Channels page status refresh', () => {
     render(<Channels />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('bg-primary/10');
+      expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('bg-[hsl(var(--foreground)/0.055)]');
     });
 
     expect(screen.getByTestId('channel-rail-item-feishu').className).not.toContain('#f7f2e9');
-    expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('bg-primary/10');
-    expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('border-primary/25');
+    expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('bg-[hsl(var(--foreground)/0.055)]');
+    expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('border-transparent');
 
     expect(screen.getByPlaceholderText('searchPlaceholder').className).not.toContain('#f5f1e8');
-    expect(screen.getByPlaceholderText('searchPlaceholder').className).toContain('app-field-surface');
+    expect(screen.getByPlaceholderText('searchPlaceholder').className).toContain('bg-[hsl(var(--foreground)/0.04)]');
   });
 
   it('uses a staged responsive workbench so default windows prefer two columns before expanding to three', async () => {

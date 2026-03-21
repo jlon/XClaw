@@ -127,7 +127,7 @@ function App() {
       }
     };
 
-    const unsubscribe = window.electron.ipcRenderer.on('navigate', handleNavigate);
+    const unsubscribe = window.electron?.ipcRenderer?.on('navigate', handleNavigate);
 
     return () => {
       if (typeof unsubscribe === 'function') {

@@ -22,6 +22,9 @@
 - [x] 补充开发闭环准则：唯一工作树、四层一致性核对、禁止用 UI 修补掩盖 runtime 身份错误
 - [x] 将 `custom provider / runtimeKey / model ref` 问题纳入额外闭环要求：必须同时核对 `provider store`、`~/.openclaw/openclaw.json`、`openclaw models list` 与聊天模型选择器，且测试口径必须与 UI 展示口径一致
 - [x] 修复 `takeover reconciler` 会用 runtime 降维视图覆盖 custom provider richer account 的问题，启动后不再把 `998 + runtimeKey=998 + model=gpt-5.4` 回写坏
+- [x] 确认浅色主题实现已偏离原设计目标，并开始将全局 `token / chrome / surface` 从暖米色网页感收回到冷中性桌面基座
+- [x] 重写主题主线：从“品牌配色方案”切换为 `QClaw substrate, XClaw accent`
+- [x] 将“全局只保留一套冷中性 desktop substrate”写成最高准则，明确它不是模仿外观，而是吸收 `QClaw` 已验证的桌面基底规律
 
 ## 当前落地结果
 
@@ -31,6 +34,9 @@
 - 已明确科技感来自材质、光感、层级，不来自 AI 风色彩
 - 已明确 mac / Windows 只做轻度平台 overlay
 - 已明确品牌色使用预算、动效红线与共享控件首批纳入范围
+- 已确认 `QClaw` 解包里的浅色壳层真实落点更接近 `#fafafa / #f5f5f5 / #f0f0f0 / #e5e5e7` 这一档，并将其作为浅色桌面壳层的事实参考
+- 已明确新的主题判断标准不是“更像 XClaw 品牌页”，而是“先像桌面应用，再保留 XClaw 品牌点缀”
+- 已明确“冷中性 desktop substrate”是所有页面的共同基底，任何局部页面都不能再单独发明第二套壳层
 - 已落地全局主题入口、桌面应用外壳与共享 primitive 的第一波改造
 - 已将 `Chat / Channels` 推进到新主题表层，不再完全依赖旧暖色 hardcode
 - 已将 `Chat` 从“仅欢迎态接近新主题”推进到“欢迎态 + 消息平面 + 输入坞站”统一桌面工作台层级，消息区不再直接依赖旧网页式气泡语义
@@ -65,6 +71,30 @@
 - 已确认目标页面里不再残留固定暖色 hex、黑白透明边框和默认蓝按钮样式
 - 已通过源码级主题回归测试锁住第二波页面，避免回退到旧暖色和网页式控件表现
 - `Setup` 已完成从“大卡片设置页”到标准桌面引导页的代码级重构，独立特性文档 `docs/setup-wizard-refresh/` 也已同步收口
+- 已开始重置浅色全局 `token / body / app-shell / panel / titlebar / chat-nav-shell`，移除整页暖色 glow 与强渐变，恢复更接近桌面应用的冷中性基座
+- 已将全局正文与聊天区局部字体统一回系统无衬线栈，并移除 `Channels / Agents / Skills / Cron / Providers / Channel Modal` 等页面的 serif 标题覆盖
+- 已把 `QClaw.app` 真包完整解到本地参考目录 `.reference/qclaw-unpacked-20260321/`，后续字体与欢迎页判断都直接对照源码而不是继续靠截图推测
+- 已确认此前“`SF Pro Text / SF Pro Display` 双栈更接近 QClaw”的判断不成立，并已回收为和 `QClaw` 全局 `body` 一致的单一系统 sans 栈
+- 已将聊天导航继续从“网页式列表栏”推进到更接近 `QClaw` 的 source list：本地 pane 标题退出、列表默认单行、聊天列表默认不再显示身份章、只在同名会话时以内联后缀补最小 Agent 区分
+- 已将 `body / titlebar / sidebar / workspace / setup shell` 的浅色基底继续压平到单一冷中性 substrate，弱化整页渐变、blur 和浮层感
+- 已将浅色 substrate 从偏蓝冷灰进一步拉回更接近 `QClaw` 的中性灰阶，`background / chrome / surface / border` 已开始使用更接近 `#fafafa / #f5f5f5 / #f0f0f0 / #e5e5e7` 的事实落点
+- 已将聊天左侧 rail 与会话列表重新拉回同一套桌面导航壳层：rail 更窄、更平，聊天搜索更像轻筛选器，会话行更接近 source list row 而不是网页卡片
+- 已将 `WorkspacePageShell` 从“页中大卡片”进一步压回贴窗体的 pane 容器：外层大圆角、整块边框和半透明背景继续退出，工作区默认回到更像 desktop pane 的中性基底
+- 已将聊天列表的搜索入口从“常驻网页表单”推进到 `trigger-first` 语法：默认先呈现轻筛选 trigger，进入搜索时才展开输入态，进一步减少 sidebar 的网页表单感
+- 已将 `TitleBar` 和聊天顶栏工具按钮继续压薄：标题栏高度和窗口控件宽度都下调了一档，工具按钮退出渐变底，进一步靠近桌面 utility header
+- 已将欢迎区从高装饰 landing 语法继续往桌面启动工作区收，缩小 logo 壳层、压低卡片热度，并把颜色从品牌主导改回中性 substrate 上的轻 accent
+- 已将 `Input / Textarea / Select / Button / Card / ConfirmDialog / WorkspacePageShell` 一并切回更平的桌面控件语法，减少共享 primitive 自带的网页表单感和厚阴影
+- 已新增共享 `app-modal-overlay / app-modal-surface / app-empty-surface / app-insight-surface` substrate 语法，并开始让高频页面退出各自为战的 modal / empty / stat panel 视觉方言
+- 已将 `Agents / Skills / Cron / Models / Settings / Providers / ChannelConfigModal / Setup` 的大圆角、厚 blur、暖色 panel 和高阴影压回同一套冷中性桌面面板语法
+- 已将 `WorkspacePageShell` 从“浏览器里的一张大卡片”继续压回贴窗体的 desktop pane，外层圆角和阴影都进一步减弱
+- 已将 `Chat` 输入坞站继续从网页式大圆角浮条收回更紧的 desktop tray，模型 picker 和搜索输入也一起退出厚 pill 语法
+- 已将 `Channels` 三栏工作台继续从 dashboard 卡片语法收向 split-pane workbench：主 section、rail item、空状态和搜索框都进一步减轻网页感
+- 已将 `Providers` 继续从“网页设置中心”收回桌面语法：provider 卡片改成稳定实体 surface，摘要改成两层信息，非密钥字段退出 `font-mono`，fallback 配置也退出原生 checkbox/textarea 语法
+- 已将 `Channels` 继续从 dashboard pane 收向真正的 split-pane：页头 hero 收成轻 toolbar，三栏 section 改用统一 pane surface，选中态与 hover 降回 source-list 语义，右栏编辑区不再是卡片套卡片
+- 已将 `ChatInput / ChatToolbar` 的次级控件继续退出网页表单语法：agent/model picker 改用专属 chat picker surface，模型搜索框改成 wrapper + transparent input，工具 rail 与运行态 token 也进一步桌面化
+- 已将 `Agents / Skills / Cron` 的头部、列表、统计卡和部分 modal/inspector 继续推回 desktop pane / source-list 语法，减少网页设置中心和 dashboard 感
+- 已将 `Agents / Skills / Cron` 的详情侧栏、安装/编辑弹窗与任务对话框继续压平到同一套冷中性 substrate，减少大头像、大徽章和 hover-only controls 的网页语法
+- 已直接对照 `.reference/qclaw-unpacked-20260321/` 修正 `index.html` 被打包产物污染的问题，恢复 `XClaw` 自己的 Vite 入口，避免构建链被错误的 `QClaw` 资源脚本卡死
 
 ## 完成判断
 
@@ -78,9 +108,11 @@
 - 做一次 mac / Windows 手工 smoke，确认真实桌面观感
 - 评估 `Chat` 欢迎态和首页资产是否需要跟随新主题继续重绘
 - 继续审查剩余零散旧样式、状态/图表色预算和首页资产热度
+- 继续审查尚未完全 source-list 化或 trigger 化的搜索/列表/弹层，尤其是 `Providers / Channels / Chat` 里的次级面板
 - 继续观察 `Chat` 消息区在真实桌面窗口中的密度与节奏，确认是否还需要收口消息正文排版与资产热度
 - 继续观察 `Chat` 空态建议卡片的文字密度，确认是否还需要进一步压缩成更接近桌面应用的文本清单
 - 继续观察 `Chat` 代码块、图片预览和 hover 元信息在真实桌面窗口中的存在感，确认是否还需要进一步收平为更接近原生文档工作区的表达
+- 继续收 `Providers / Channels / Chat` 里仍偏网页化的 modal / picker / inspector 次级面板
 
 ## 暂不纳入
 

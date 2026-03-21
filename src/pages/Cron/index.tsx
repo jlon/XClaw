@@ -18,10 +18,8 @@ import {
   Loader2,
   Timer,
   History,
-  Pause,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -50,19 +48,19 @@ const schedulePresets: { key: string; value: string; type: ScheduleType }[] = [
 ];
 
 const headerButtonClasses =
-  'h-9 rounded-full px-4 text-[13px] font-medium shadow-none border-border/70 bg-transparent text-foreground/80 transition-colors hover:bg-accent/60 hover:text-foreground';
+  'h-8 rounded-full px-3.5 text-[12.5px] font-medium shadow-none border-border/70 bg-transparent text-foreground/78 transition-colors hover:bg-accent/60 hover:text-foreground';
 const iconButtonClasses =
   'h-8 w-8 rounded-full border border-border/70 bg-transparent shadow-none text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground';
 const inputClasses =
+  'h-[44px] rounded-xl text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30';
+const tokenInputClasses =
   'h-[44px] rounded-xl font-mono text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30';
 const textareaClasses =
-  'rounded-xl font-mono text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30 resize-none';
+  'rounded-xl text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30 resize-none';
 const modalSurfaceClasses =
-  'w-full rounded-3xl border border-border/70 bg-background/90 shadow-[0_24px_80px_rgba(0,0,0,0.26)] backdrop-blur-xl';
+  'app-modal-surface w-full rounded-[20px]';
 const cardSurfaceClasses =
-  'group flex flex-col rounded-3xl app-panel-surface p-5 transition-all relative overflow-hidden cursor-pointer hover:border-primary/20 hover:shadow-[0_10px_24px_rgba(15,23,42,0.06)]';
-const statCardClasses =
-  'rounded-[24px] app-panel-surface p-5 transition-colors hover:border-primary/20 hover:shadow-[0_10px_24px_rgba(15,23,42,0.06)]';
+  'group relative flex flex-col overflow-hidden rounded-[13px] border border-transparent px-3.5 py-3 transition-colors cursor-pointer hover:border-border/55 hover:bg-[hsl(var(--surface-hover)/0.46)]';
 const scheduleButtonBaseClasses =
   'justify-start h-10 rounded-xl font-medium text-[13px] transition-all';
 
@@ -250,46 +248,50 @@ function TaskDialog({ job, onClose, onSave }: TaskDialogProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 p-4 backdrop-blur-sm" onClick={onClose}>
-      <Card className={cn(modalSurfaceClasses, 'max-h-[90vh] max-w-lg flex flex-col overflow-hidden')} onClick={(e) => e.stopPropagation()}>
-        <CardHeader className="flex flex-row items-start justify-between pb-2 shrink-0">
+    <div className="app-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div
+        className={cn(modalSurfaceClasses, 'max-h-[90vh] max-w-lg flex flex-col overflow-hidden')}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex shrink-0 items-start justify-between border-b border-border/70 px-6 py-5">
           <div>
-            <CardTitle className="text-2xl font-serif font-normal">{job ? t('dialog.editTitle') : t('dialog.createTitle')}</CardTitle>
-            <CardDescription className="text-[15px] mt-1 text-foreground/70">{t('dialog.description')}</CardDescription>
+            <h2 className="text-[19px] font-semibold tracking-tight text-foreground">
+              {job ? t('dialog.editTitle') : t('dialog.createTitle')}
+            </h2>
+            <p className="mt-1 text-[13px] font-medium text-foreground/62">
+              {t('dialog.description')}
+            </p>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose} className={iconButtonClasses}>
             <X className="h-4 w-4" />
           </Button>
-        </CardHeader>
-        <CardContent className="space-y-6 pt-4 overflow-y-auto flex-1 p-6">
-          {/* Name */}
-          <div className="space-y-2.5">
-            <Label htmlFor="name" className="text-[14px] text-foreground/80 font-bold">{t('dialog.taskName')}</Label>
+        </div>
+        <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5">
+          <div className="space-y-2">
+            <Label htmlFor="name" className="text-[13px] font-semibold text-foreground/78">{t('dialog.taskName')}</Label>
             <Input
               id="name"
               placeholder={t('dialog.taskNamePlaceholder')}
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className={inputClasses}
+              className={cn(inputClasses, 'h-[42px]')}
             />
           </div>
 
-          {/* Message */}
-          <div className="space-y-2.5">
-            <Label htmlFor="message" className="text-[14px] text-foreground/80 font-bold">{t('dialog.message')}</Label>
+          <div className="space-y-2">
+            <Label htmlFor="message" className="text-[13px] font-semibold text-foreground/78">{t('dialog.message')}</Label>
             <Textarea
               id="message"
               placeholder={t('dialog.messagePlaceholder')}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               rows={3}
-              className={textareaClasses}
+              className={cn(textareaClasses, 'min-h-[92px]')}
             />
           </div>
 
-          {/* Schedule */}
-          <div className="space-y-2.5">
-            <Label className="text-[14px] text-foreground/80 font-bold">{t('dialog.schedule')}</Label>
+          <div className="space-y-2">
+            <Label className="text-[13px] font-semibold text-foreground/78">{t('dialog.schedule')}</Label>
             {!useCustom ? (
               <div className="grid grid-cols-2 gap-2">
                 {schedulePresets.map((preset) => (
@@ -302,7 +304,7 @@ function TaskDialog({ job, onClose, onSave }: TaskDialogProps) {
                     className={cn(
                       scheduleButtonBaseClasses,
                       schedule === preset.value
-                        ? 'border-transparent bg-primary text-primary-foreground shadow-sm hover:bg-primary/90'
+                        ? 'border-transparent bg-primary text-primary-foreground shadow-none hover:bg-primary/90'
                         : 'border-border/70 bg-transparent text-foreground/80 hover:bg-accent/60 hover:text-foreground'
                     )}
                   >
@@ -316,11 +318,11 @@ function TaskDialog({ job, onClose, onSave }: TaskDialogProps) {
                 placeholder={t('dialog.cronPlaceholder')}
                 value={customSchedule}
                 onChange={(e) => setCustomSchedule(e.target.value)}
-                className={inputClasses}
+                className={tokenInputClasses}
               />
             )}
-            <div className="flex items-center justify-between mt-2">
-              <p className="text-[12px] text-muted-foreground/80 font-medium">
+            <div className="flex items-center justify-between gap-3 pt-1">
+              <p className="text-[12px] font-medium text-muted-foreground/80">
                 {schedulePreview ? `${t('card.next')}: ${schedulePreview}` : t('dialog.cronPlaceholder')}
               </p>
               <Button
@@ -328,30 +330,29 @@ function TaskDialog({ job, onClose, onSave }: TaskDialogProps) {
                 variant="ghost"
                 size="sm"
                 onClick={() => setUseCustom(!useCustom)}
-                className="h-7 rounded-lg px-2 text-[12px] text-foreground/60 hover:bg-accent/60 hover:text-foreground"
+                className="h-7 rounded-full px-2.5 text-[12px] text-foreground/60 hover:bg-accent/60 hover:text-foreground"
               >
                 {useCustom ? t('dialog.usePresets') : t('dialog.useCustomCron')}
               </Button>
             </div>
           </div>
 
-          {/* Enabled */}
-          <div className="flex items-center justify-between rounded-2xl border border-border/70 app-field-surface p-4 shadow-sm">
+          <div className="flex items-center justify-between rounded-[14px] border border-border/70 app-pane-surface p-3.5 shadow-none">
             <div>
-              <Label className="text-[14px] text-foreground/80 font-bold">{t('dialog.enableImmediately')}</Label>
-              <p className="text-[13px] text-muted-foreground mt-0.5">
+              <Label className="text-[13px] font-semibold text-foreground/78">{t('dialog.enableImmediately')}</Label>
+              <p className="text-[12.5px] text-muted-foreground mt-0.5">
                 {t('dialog.enableImmediatelyDesc')}
               </p>
             </div>
             <Switch checked={enabled} onCheckedChange={setEnabled} />
           </div>
-
-          {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4">
-            <Button variant="outline" onClick={onClose} className="h-[42px] rounded-full border-border/70 bg-transparent px-6 text-[13px] font-semibold text-foreground/80 shadow-sm hover:bg-accent/60 hover:text-foreground">
+        </div>
+        <div className="shrink-0 border-t border-border/70 px-6 py-4">
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={onClose} className="h-[40px] rounded-full border-border/70 bg-transparent px-5 text-[13px] font-semibold text-foreground/80 shadow-none hover:bg-accent/60 hover:text-foreground">
               {t('common:actions.cancel', 'Cancel')}
             </Button>
-            <Button onClick={handleSubmit} disabled={saving} className="h-[42px] rounded-full border border-transparent px-6 text-[13px] font-semibold shadow-sm transition-all">
+            <Button onClick={handleSubmit} disabled={saving} className="h-[40px] rounded-full border border-transparent px-5 text-[13px] font-semibold shadow-none transition-all">
               {saving ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -365,8 +366,8 @@ function TaskDialog({ job, onClose, onSave }: TaskDialogProps) {
               )}
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
@@ -408,30 +409,30 @@ function CronJobCard({ job, onToggle, onEdit, onDelete, onTrigger }: CronJobCard
       className={cardSurfaceClasses}
       onClick={onEdit}
     >
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-4">
-          <div className="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-full border border-border/70 app-field-surface text-foreground shadow-sm transition-transform group-hover:scale-105">
-            <Clock className={cn("h-5 w-5", job.enabled ? "text-foreground" : "text-muted-foreground")} />
+      <div className="mb-2.5 flex items-start justify-between gap-4">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border border-border/70 bg-[hsl(var(--surface-panel)/0.92)] text-foreground/70">
+            <Clock className={cn('h-3.5 w-3.5', job.enabled ? 'text-foreground/78' : 'text-muted-foreground')} />
           </div>
-          <div className="flex flex-col min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="text-[16px] font-semibold text-foreground truncate">{job.name}</h3>
+          <div className="flex min-w-0 flex-col">
+            <div className="mb-0.5 flex items-center gap-2">
+              <h3 className="truncate text-[14px] font-semibold text-foreground">{job.name}</h3>
               <div
                 className={cn(
-                  "w-2 h-2 rounded-full shrink-0",
-                  job.enabled ? "bg-green-500" : "bg-muted-foreground"
+                  'h-2 w-2 rounded-full shrink-0',
+                  job.enabled ? 'bg-green-500' : 'bg-muted-foreground'
                 )}
                 title={job.enabled ? t('stats.active') : t('stats.paused')}
               />
             </div>
-            <p className="text-[13px] text-muted-foreground flex items-center gap-1.5">
-              <Timer className="h-3.5 w-3.5" />
+            <p className="flex items-center gap-1.5 text-[12px] text-muted-foreground">
+              <Timer className="h-3 w-3" />
               {parseCronSchedule(job.schedule, t)}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
           <Switch
             checked={job.enabled}
             onCheckedChange={onToggle}
@@ -439,16 +440,15 @@ function CronJobCard({ job, onToggle, onEdit, onDelete, onTrigger }: CronJobCard
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col justify-end mt-2 pl-[62px]">
-        <div className="flex items-start gap-2 mb-3">
-          <MessageSquare className="h-3.5 w-3.5 mt-0.5 text-muted-foreground shrink-0" />
-          <p className="text-[13.5px] text-muted-foreground line-clamp-2 leading-[1.5]">
+      <div className="flex flex-1 flex-col gap-2 pl-11">
+        <div className="flex items-start gap-2">
+          <MessageSquare className="mt-0.5 h-3 w-3 shrink-0 text-muted-foreground" />
+          <p className="line-clamp-2 text-[12.5px] leading-[1.45] text-muted-foreground">
             {job.message}
           </p>
         </div>
 
-        {/* Metadata */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[12px] text-muted-foreground/80 font-medium mb-3">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11.25px] font-medium text-muted-foreground/78">
           {job.target && (
             <span className="flex items-center gap-1.5">
               {CHANNEL_ICONS[job.target.channelType as ChannelType]}
@@ -478,36 +478,35 @@ function CronJobCard({ job, onToggle, onEdit, onDelete, onTrigger }: CronJobCard
 
         {/* Last Run Error */}
         {job.lastRun && !job.lastRun.success && job.lastRun.error && (
-          <div className="flex items-start gap-2 p-2.5 mb-3 rounded-xl bg-destructive/10 border border-destructive/20 text-[13px] text-destructive">
-            <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+          <div className="flex items-start gap-2 rounded-[12px] border border-destructive/18 bg-[hsl(var(--danger))/0.07] px-3 py-2 text-[12.25px] text-destructive">
+            <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             <span className="line-clamp-2">{job.lastRun.error}</span>
           </div>
         )}
 
-        {/* Actions */}
-        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity mt-auto">
+        <div className="mt-1 flex justify-end gap-1">
           <Button
             variant="ghost"
             size="sm"
             onClick={handleTrigger}
             disabled={triggering}
-            className="h-8 rounded-lg px-3 text-[13px] font-medium text-foreground/70 transition-colors hover:bg-accent/60 hover:text-foreground"
+            className="h-7 w-7 rounded-full p-0 text-foreground/66 transition-colors hover:bg-accent/60 hover:text-foreground"
+            title={t('card.runNow')}
           >
             {triggering ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
-              <Play className="h-3.5 w-3.5 mr-1.5" />
+              <Play className="h-3.5 w-3.5" />
             )}
-            {t('card.runNow')}
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={handleDelete}
-            className="h-8 rounded-lg px-3 text-[13px] font-medium text-destructive/70 transition-colors hover:bg-destructive/10 hover:text-destructive"
+            className="h-7 w-7 rounded-full p-0 text-destructive/66 transition-colors hover:bg-destructive/10 hover:text-destructive"
+            title={t('common:actions.delete', 'Delete')}
           >
-            <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-            {t('common:actions.delete', 'Delete')}
+            <Trash2 className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>
@@ -565,16 +564,16 @@ export function Cron() {
     <WorkspacePageFrame>
       <WorkspacePageShell>
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-start justify-between mb-12 shrink-0 gap-4">
-          <div>
-            <h1 className="text-5xl md:text-6xl font-serif text-foreground mb-3 font-normal tracking-tight">
+        <div className="mb-5 flex shrink-0 flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-1.5">
+            <h1 className="text-[28px] md:text-[31px] text-foreground font-semibold tracking-tight">
               {t('title')}
             </h1>
-            <p className="text-[17px] text-foreground/70 font-medium">
+            <p className="max-w-2xl text-[13px] md:text-[14px] leading-[1.55] text-foreground/62 font-medium">
               {t('subtitle')}
             </p>
           </div>
-          <div className="flex items-center gap-3 md:mt-2">
+          <div className="flex items-center gap-2.5">
             <Button
               variant="outline"
               onClick={fetchJobs}
@@ -590,7 +589,7 @@ export function Cron() {
                 setShowDialog(true);
               }}
               disabled={!isGatewayRunning}
-              className="h-9 text-[13px] font-medium rounded-full px-4 shadow-none"
+              className="h-9 rounded-full px-4 text-[13px] font-medium shadow-none"
             >
               <Plus className="h-3.5 w-3.5 mr-2" />
               {t('newTask')}
@@ -602,7 +601,7 @@ export function Cron() {
         <WorkspacePageScrollArea>
           {/* Gateway Warning */}
           {!isGatewayRunning && (
-            <div className="mb-8 flex items-center gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4 app-panel-surface">
+            <div className="mb-5 flex items-center gap-2.5 rounded-[14px] border border-amber-500/15 bg-amber-500/6 px-3.5 py-2.5 app-insight-surface">
               <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               <span className="text-sm font-medium text-amber-900 dark:text-amber-100">
                 {t('gatewayWarning')}
@@ -612,7 +611,7 @@ export function Cron() {
 
           {/* Error Display */}
           {error && (
-            <div className="mb-8 flex items-center gap-3 rounded-2xl border border-destructive/20 bg-destructive/10 p-4 app-panel-surface">
+            <div className="mb-5 flex items-center gap-2.5 rounded-[14px] border border-destructive/16 bg-[hsl(var(--danger))/0.06] px-3.5 py-2.5 app-insight-surface">
               <AlertCircle className="h-5 w-5 text-destructive" />
               <span className="text-sm font-medium text-destructive">
                 {error}
@@ -621,62 +620,19 @@ export function Cron() {
           )}
 
           {/* Statistics */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div className={statCardClasses}>
-              <div className="flex items-center justify-between">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
-                  <Clock className="h-5 w-5 text-primary" />
-                </div>
-              </div>
-              <div className="mt-4 flex items-baseline gap-3">
-                <p className="text-[40px] leading-none font-serif text-foreground">{safeJobs.length}</p>
-                <p className="text-[14px] font-medium text-muted-foreground">{t('stats.total')}</p>
-              </div>
-            </div>
-
-            <div className={statCardClasses}>
-              <div className="flex items-center justify-between">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-500/10">
-                  <Play className="h-5 w-5 text-green-600 dark:text-green-500 ml-0.5" />
-                </div>
-              </div>
-              <div className="mt-4 flex items-baseline gap-3">
-                <p className="text-[40px] leading-none font-serif text-foreground">{activeJobs.length}</p>
-                <p className="text-[14px] font-medium text-muted-foreground">{t('stats.active')}</p>
-              </div>
-            </div>
-
-            <div className={statCardClasses}>
-              <div className="flex items-center justify-between">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full border border-amber-500/20 bg-amber-500/10">
-                  <Pause className="h-5 w-5 text-amber-600 dark:text-amber-500" />
-                </div>
-              </div>
-              <div className="mt-4 flex items-baseline gap-3">
-                <p className="text-[40px] leading-none font-serif text-foreground">{pausedJobs.length}</p>
-                <p className="text-[14px] font-medium text-muted-foreground">{t('stats.paused')}</p>
-              </div>
-            </div>
-
-            <div className={statCardClasses}>
-              <div className="flex items-center justify-between">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full border border-destructive/20 bg-destructive/10">
-                  <XCircle className="h-5 w-5 text-destructive" />
-                </div>
-              </div>
-              <div className="mt-4 flex items-baseline gap-3">
-                <p className="text-[40px] leading-none font-serif text-foreground">{failedJobs.length}</p>
-                <p className="text-[14px] font-medium text-muted-foreground">{t('stats.failed')}</p>
-              </div>
-            </div>
+          <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-[13px] app-insight-surface px-3.5 py-2 text-[11.5px] font-medium text-foreground/62">
+            <span>{t('stats.total')}: {safeJobs.length}</span>
+            <span>{t('stats.active')}: {activeJobs.length}</span>
+            <span>{t('stats.paused')}: {pausedJobs.length}</span>
+            <span>{t('stats.failed')}: {failedJobs.length}</span>
           </div>
 
           {/* Jobs List */}
           {safeJobs.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border/70 py-20 text-muted-foreground app-panel-surface">
-              <Clock className="h-10 w-10 mb-4 opacity-50" />
-              <h3 className="text-lg font-medium mb-2 text-foreground">{t('empty.title')}</h3>
-              <p className="text-[14px] text-center mb-6 max-w-md">
+            <div className="flex flex-col items-center justify-center rounded-[14px] border border-dashed border-border/60 py-18 text-muted-foreground app-empty-surface">
+              <Clock className="mb-4 h-9 w-9 opacity-45" />
+              <h3 className="mb-2 text-[18px] font-medium text-foreground">{t('empty.title')}</h3>
+              <p className="mb-6 max-w-md text-center text-[13px]">
                 {t('empty.description')}
               </p>
               <Button
@@ -685,14 +641,14 @@ export function Cron() {
                   setShowDialog(true);
                 }}
                 disabled={!isGatewayRunning}
-                className="h-10 rounded-full px-6"
+                className="h-9 rounded-full px-5"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 {t('empty.create')}
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            <div className="space-y-3">
               {safeJobs.map((job) => (
                 <CronJobCard
                   key={job.id}

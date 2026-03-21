@@ -35,6 +35,13 @@ const messageVisualRole = (message: RawMessage, showThinking: boolean): 'assista
 const stackSpacingClass = (isClusteredWithPrevious: boolean, isFirst: boolean) =>
   isFirst ? 'mt-0' : isClusteredWithPrevious ? 'mt-2' : 'mt-4';
 
+const welcomeCardClassNames = {
+  execution: 'app-chat-welcome-card--execution',
+  continuation: 'app-chat-welcome-card--continuation',
+  orchestration: 'app-chat-welcome-card--orchestration',
+  integration: 'app-chat-welcome-card--integration',
+} as const;
+
 export function Chat() {
   const { t } = useTranslation('chat');
   const gatewayStatus = useGatewayStore((s) => s.status);
@@ -197,7 +204,6 @@ export function Chat() {
         {isEmpty ? (
           <div ref={contentRef} className="app-chat-workbench space-y-5">
             <WelcomeScreen
-              currentAgentName={currentAgentName}
               gatewayState={gatewayStatus.state}
               onQuickAction={(nextDraft) => {
                 setDraftSeed(nextDraft);
@@ -314,70 +320,245 @@ export function Chat() {
 // ── Welcome Screen ──────────────────────────────────────────────
 
 function WelcomeScreen({
-  currentAgentName,
   gatewayState,
   onQuickAction,
 }: {
-  currentAgentName: string;
   gatewayState: string;
   onQuickAction: (draft: string) => void;
 }) {
   const { t } = useTranslation('chat');
-  const quickActions = [
+  const welcomeDescription = t('welcome.description');
+  const quickActions: Array<{
+    key: keyof typeof welcomeCardClassNames;
+    kicker: string;
+    label: string;
+    description: string;
+    prompt: string;
+    className: (typeof welcomeCardClassNames)[keyof typeof welcomeCardClassNames];
+  }> = [
     {
-      key: 'askQuestions',
-      label: t('welcome.askQuestions'),
-      description: t('welcome.askQuestionsDesc'),
-      prompt: t('welcome.askQuestionsPrompt'),
+      key: 'execution',
+      kicker: t('welcome.executionKicker'),
+      label: t('welcome.execution'),
+      description: t('welcome.executionDesc'),
+      prompt: t('welcome.executionPrompt'),
+      className: welcomeCardClassNames.execution,
     },
     {
-      key: 'creativeTasks',
-      label: t('welcome.creativeTasks'),
-      description: t('welcome.creativeTasksDesc'),
-      prompt: t('welcome.creativeTasksPrompt'),
+      key: 'continuation',
+      kicker: t('welcome.continuationKicker'),
+      label: t('welcome.continuation'),
+      description: t('welcome.continuationDesc'),
+      prompt: t('welcome.continuationPrompt'),
+      className: welcomeCardClassNames.continuation,
     },
     {
-      key: 'brainstorming',
-      label: t('welcome.brainstorming'),
-      description: t('welcome.brainstormingDesc'),
-      prompt: t('welcome.brainstormingPrompt'),
+      key: 'orchestration',
+      kicker: t('welcome.orchestrationKicker'),
+      label: t('welcome.orchestration'),
+      description: t('welcome.orchestrationDesc'),
+      prompt: t('welcome.orchestrationPrompt'),
+      className: welcomeCardClassNames.orchestration,
+    },
+    {
+      key: 'integration',
+      kicker: t('welcome.integrationKicker'),
+      label: t('welcome.integration'),
+      description: t('welcome.integrationDesc'),
+      prompt: t('welcome.integrationPrompt'),
+      className: welcomeCardClassNames.integration,
     },
   ];
   const runtimeIssue = gatewayState !== 'running' ? t('header.runtimeIssue', { state: gatewayState }) : null;
 
   return (
     <div data-testid="chat-welcome-hero" className="app-chat-welcome-hero mx-auto flex min-h-full w-full max-w-[1000px] flex-col px-1 pb-4 pt-1">
-      <div className="mx-auto flex w-full max-w-[46rem] flex-1 flex-col justify-center gap-6">
-        <div className="max-w-[38rem]">
-          <p className="app-chat-header-meta text-[12px]">{currentAgentName}</p>
-          <h1 className="mt-2.5 text-[2rem] font-semibold tracking-[-0.055em] text-foreground md:text-[2.6rem]">
-            {t('welcome.subtitle')}
-          </h1>
-          <p className="mt-2.5 max-w-[34rem] text-[14px] leading-6 text-muted-foreground md:text-[15px]">
-            {t('welcome.description')}
-          </p>
+      <div className="app-chat-welcome-stage">
+        <div className="app-chat-welcome-brand">
+          <div className="app-chat-welcome-logo-shell" aria-hidden="true">
+            <span className="app-chat-openclaw-stars" />
+            <span className="app-chat-openclaw-nebula" />
+            <OpenClawLobsterMark />
+          </div>
+          <div className="app-chat-welcome-copy">
+            <div className="app-chat-welcome-title" data-testid="chat-welcome-wordmark" aria-hidden="true">
+              <XClawWelcomeWordmark />
+            </div>
+            <h1 className="sr-only">{t('welcome.title')}</h1>
+            <p className="app-chat-welcome-tagline">{t('welcome.subtitle')}</p>
+            {welcomeDescription.trim() ? (
+              <p className="app-chat-welcome-description">{welcomeDescription}</p>
+            ) : null}
+          </div>
           {runtimeIssue && (
-            <p className="app-chat-header-meta mt-3 text-sm">
-              {runtimeIssue}
-            </p>
+            <div className="app-chat-header-meta app-chat-welcome-status" role="status" aria-live="polite">
+              <span className="app-chat-welcome-status-dot" aria-hidden="true" />
+              <span>{runtimeIssue}</span>
+            </div>
           )}
         </div>
 
-        <div className="space-y-1">
-          {quickActions.map(({ key, label, description, prompt }) => (
+        <div className="app-chat-welcome-actions">
+          {quickActions.map(({ key, kicker, label, description, prompt, className }) => (
             <button
               key={key}
-              className="app-chat-quick-action group px-1 py-2 text-left"
+              className={cn('app-chat-welcome-card group text-left', className)}
               onClick={() => onQuickAction(prompt)}
             >
-              <div className="app-chat-quick-action-copy min-w-0">
-                <div className="app-chat-quick-action-label">{label}</div>
-                <p className="app-chat-quick-action-desc">{description}</p>
+              <div className="app-chat-welcome-card-copy min-w-0">
+                <div className="app-chat-welcome-card-kicker">{kicker}</div>
+                <div className="app-chat-welcome-card-label">{label}</div>
+                <p className="app-chat-welcome-card-desc">{description}</p>
               </div>
+              <WelcomeCardIllustration mode={key} />
             </button>
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+function XClawWelcomeWordmark() {
+  return (
+    <svg
+      viewBox="0 0 222 62"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="app-chat-welcome-wordmark-svg"
+    >
+      <g
+        className="app-chat-welcome-wordmark-stroke"
+        stroke="currentColor"
+        strokeWidth="8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M18 12L42 50" />
+        <path d="M42 12L18 50" />
+        <path d="M94 20C88 13.5 79.5 10 69 10C50 10 38 18.5 38 31C38 43.5 50 52 69 52C79.5 52 88 48.5 94 42" />
+        <path d="M110 12V50" />
+        <path d="M147 35C147 45 139.25 52 128.5 52C117.75 52 110 45 110 35C110 25 117.75 18 128.5 18C139.25 18 147 25 147 35V50" />
+        <path d="M164 20L173 50L184 30L195 50L204 20" />
+      </g>
+    </svg>
+  );
+}
+
+function OpenClawLobsterMark() {
+  return (
+    <div className="app-chat-openclaw-atmosphere">
+      <div className="app-chat-openclaw-lobster-icon">
+        <svg
+          viewBox="0 0 120 120"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="app-chat-openclaw-lobster-svg"
+        >
+          <path
+            d="M60 10 C30 10 15 35 15 55 C15 75 30 95 45 100 L45 110 L55 110 L55 100 C55 100 60 102 65 100 L65 110 L75 110 L75 100 C90 95 105 75 105 55 C105 35 90 10 60 10Z"
+            fill="url(#app-chat-openclaw-lobster-gradient)"
+            className="app-chat-openclaw-claw-body"
+          />
+          <path
+            d="M20 45 C5 40 0 50 5 60 C10 70 20 65 25 55 C28 48 25 45 20 45Z"
+            fill="url(#app-chat-openclaw-lobster-gradient)"
+            className="app-chat-openclaw-claw-left"
+          />
+          <path
+            d="M100 45 C115 40 120 50 115 60 C110 70 100 65 95 55 C92 48 95 45 100 45Z"
+            fill="url(#app-chat-openclaw-lobster-gradient)"
+            className="app-chat-openclaw-claw-right"
+          />
+          <path
+            d="M45 15 Q35 5 30 8"
+            stroke="#ff4d4d"
+            strokeWidth="2"
+            strokeLinecap="round"
+            className="app-chat-openclaw-antenna"
+          />
+          <path
+            d="M75 15 Q85 5 90 8"
+            stroke="#ff4d4d"
+            strokeWidth="2"
+            strokeLinecap="round"
+            className="app-chat-openclaw-antenna"
+          />
+          <circle cx="45" cy="35" r="6" fill="#050810" className="app-chat-openclaw-eye" />
+          <circle cx="75" cy="35" r="6" fill="#050810" className="app-chat-openclaw-eye" />
+          <circle cx="46" cy="34" r="2" fill="#00e5cc" className="app-chat-openclaw-eye-glow" />
+          <circle cx="76" cy="34" r="2" fill="#00e5cc" className="app-chat-openclaw-eye-glow" />
+          <defs>
+            <linearGradient id="app-chat-openclaw-lobster-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#ff4d4d" />
+              <stop offset="100%" stopColor="#991b1b" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function WelcomeCardIllustration({
+  mode,
+}: {
+  mode: 'execution' | 'continuation' | 'orchestration' | 'integration';
+}) {
+  if (mode === 'execution') {
+    return (
+      <div className="app-chat-welcome-card-art app-chat-welcome-card-art--execution" aria-hidden="true">
+        <span className="app-chat-welcome-execution-tray" />
+        <span className="app-chat-welcome-execution-sheet app-chat-welcome-execution-sheet--left" />
+        <span className="app-chat-welcome-execution-sheet app-chat-welcome-execution-sheet--center" />
+        <span className="app-chat-welcome-execution-sheet app-chat-welcome-execution-sheet--right" />
+        <span className="app-chat-welcome-execution-pill app-chat-welcome-execution-pill--file" />
+        <span className="app-chat-welcome-execution-pill app-chat-welcome-execution-pill--tool" />
+      </div>
+    );
+  }
+
+  if (mode === 'continuation') {
+    return (
+      <div className="app-chat-welcome-card-art app-chat-welcome-card-art--continuation" aria-hidden="true">
+        <span className="app-chat-welcome-continuation-rail" />
+        <span className="app-chat-welcome-continuation-panel app-chat-welcome-continuation-panel--back" />
+        <span className="app-chat-welcome-continuation-panel app-chat-welcome-continuation-panel--front" />
+        <span className="app-chat-welcome-continuation-dot app-chat-welcome-continuation-dot--one" />
+        <span className="app-chat-welcome-continuation-dot app-chat-welcome-continuation-dot--two" />
+        <span className="app-chat-welcome-continuation-dot app-chat-welcome-continuation-dot--three" />
+      </div>
+    );
+  }
+
+  if (mode === 'integration') {
+    return (
+      <div className="app-chat-welcome-card-art app-chat-welcome-card-art--integration" aria-hidden="true">
+        <span className="app-chat-welcome-integration-hub" />
+        <span className="app-chat-welcome-integration-port app-chat-welcome-integration-port--top" />
+        <span className="app-chat-welcome-integration-port app-chat-welcome-integration-port--left" />
+        <span className="app-chat-welcome-integration-port app-chat-welcome-integration-port--right" />
+        <span className="app-chat-welcome-integration-link app-chat-welcome-integration-link--left" />
+        <span className="app-chat-welcome-integration-link app-chat-welcome-integration-link--right" />
+        <span className="app-chat-welcome-integration-link app-chat-welcome-integration-link--top" />
+        <span className="app-chat-welcome-integration-module app-chat-welcome-integration-module--left" />
+        <span className="app-chat-welcome-integration-module app-chat-welcome-integration-module--center" />
+        <span className="app-chat-welcome-integration-module app-chat-welcome-integration-module--right" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="app-chat-welcome-card-art app-chat-welcome-card-art--orchestration" aria-hidden="true">
+      <span className="app-chat-welcome-orchestration-link app-chat-welcome-orchestration-link--left" />
+      <span className="app-chat-welcome-orchestration-link app-chat-welcome-orchestration-link--right" />
+      <span className="app-chat-welcome-orchestration-link app-chat-welcome-orchestration-link--down" />
+      <span className="app-chat-welcome-orchestration-node app-chat-welcome-orchestration-node--hub" />
+      <span className="app-chat-welcome-orchestration-node app-chat-welcome-orchestration-node--left" />
+      <span className="app-chat-welcome-orchestration-node app-chat-welcome-orchestration-node--right" />
+      <span className="app-chat-welcome-orchestration-node app-chat-welcome-orchestration-node--down" />
+      <span className="app-chat-welcome-orchestration-chip app-chat-welcome-orchestration-chip--channel" />
+      <span className="app-chat-welcome-orchestration-chip app-chat-welcome-orchestration-chip--schedule" />
     </div>
   );
 }

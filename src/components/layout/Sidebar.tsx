@@ -2,7 +2,6 @@
  * Sidebar Component
  * Primary application navigation.
  */
-import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   Bot,
@@ -19,7 +18,6 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSettingsStore } from '@/stores/settings';
-import { Button } from '@/components/ui/button';
 import { hostApiFetch } from '@/lib/host-api';
 import { useTranslation } from 'react-i18next';
 import logoSvg from '@/assets/logo.svg';
@@ -57,7 +55,7 @@ function RailTooltip({
         aria-hidden="true"
         className="pointer-events-none absolute left-full top-1/2 z-20 ml-2 -translate-y-1/2 translate-x-1 opacity-0 transition-[opacity,transform] duration-150 group-hover/sidebar-item:translate-x-0 group-hover/sidebar-item:opacity-100 group-focus-within/sidebar-item:translate-x-0 group-focus-within/sidebar-item:opacity-100"
       >
-        <span className="block max-w-[160px] overflow-hidden text-ellipsis whitespace-nowrap rounded-xl border border-border/70 bg-popover/95 px-3 py-1.5 text-[12px] font-medium text-popover-foreground shadow-[0_10px_30px_rgba(15,23,42,0.10)]">
+        <span className="block max-w-[160px] overflow-hidden text-ellipsis whitespace-nowrap rounded-[10px] border border-border/80 bg-[hsl(var(--surface-elevated)/0.995)] px-2.5 py-1.5 text-[12px] font-medium text-popover-foreground shadow-[0_6px_18px_rgba(15,23,42,0.06)]">
           {label}
         </span>
       </div>
@@ -73,13 +71,13 @@ function NavItem({ to, icon, label, collapsed }: NavItemProps) {
         aria-label={collapsed ? label : undefined}
         className={({ isActive }) =>
           cn(
-            'flex w-full items-center rounded-lg px-2.5 py-2 text-[14px] font-medium transition-[background-color,color,padding,gap,border-color,box-shadow] duration-300 ease-out',
-            'text-foreground/80',
+            'flex w-full items-center rounded-[12px] px-2.5 py-2 text-[13px] font-medium transition-[background-color,color,padding,gap] duration-200 ease-out',
+            'text-foreground/74',
             collapsed
-              ? 'mx-auto h-10 w-10 justify-center gap-0 rounded-2xl border border-transparent px-0 hover:bg-accent hover:text-foreground hover:shadow-sm'
-              : 'gap-2.5 hover:bg-accent/80',
+              ? 'mx-auto h-[34px] w-[34px] justify-center gap-0 px-0 hover:bg-[hsl(var(--foreground)/0.045)] hover:text-foreground'
+              : 'gap-2 hover:bg-[hsl(var(--foreground)/0.035)]',
             isActive
-              ? 'bg-accent text-accent-foreground shadow-sm ring-1 ring-border/70'
+              ? 'bg-[hsl(var(--foreground)/0.055)] text-foreground'
               : '',
           )
         }
@@ -108,9 +106,7 @@ export function Sidebar({ railOnly = false, className }: SidebarProps) {
   const sidebarCollapsed = useSettingsStore((state) => state.sidebarCollapsed);
   const setSidebarCollapsed = useSettingsStore((state) => state.setSidebarCollapsed);
   const { t } = useTranslation('common');
-  const [railExpanded, setRailExpanded] = useState(false);
-
-  const collapsed = railOnly ? !railExpanded : sidebarCollapsed;
+  const collapsed = railOnly || sidebarCollapsed;
 
   const openDevConsole = async () => {
     try {
@@ -141,15 +137,15 @@ export function Sidebar({ railOnly = false, className }: SidebarProps) {
   return (
     <aside
       className={cn(
-        'desktop-app-sidebar desktop-app-sidebar-surface flex shrink-0 flex-col overflow-hidden border-r border-border/70 bg-background/85 shadow-[inset_-1px_0_0_hsl(var(--border)/0.35)] transition-[width,background-color,border-color] duration-300 ease-out',
+        'desktop-app-sidebar desktop-app-sidebar-surface flex shrink-0 flex-col overflow-hidden border-r border-border/70 transition-[width,background-color,border-color] duration-300 ease-out',
         railOnly ? 'desktop-app-sidebar-rail' : 'desktop-app-sidebar-panel',
-        collapsed ? 'w-16' : 'w-64',
+        collapsed ? 'w-12' : 'w-56',
         className,
       )}
     >
-      <div className="px-2 pb-2 pt-3">
+      <div className={cn('px-2 pb-2', collapsed ? 'pt-2.5' : 'pt-3')}>
         <div className={cn('flex items-center overflow-hidden transition-[padding,gap,justify-content] duration-300 ease-out', collapsed ? 'justify-center px-0' : 'gap-2 px-2')}>
-          <img src={logoSvg} alt="XClaw" className="sidebar-brand-mark h-5 w-auto shrink-0" />
+          <img src={logoSvg} alt="XClaw" className={cn('sidebar-brand-mark w-auto shrink-0', collapsed ? 'h-[16px]' : 'h-[18px]')} />
           <span
             data-testid="sidebar-brand-wordmark"
             aria-hidden={collapsed}
@@ -162,30 +158,27 @@ export function Sidebar({ railOnly = false, className }: SidebarProps) {
             <span className="sidebar-brand-wordmark-rest">Claw</span>
           </span>
         </div>
-        <div className={cn('mt-2 flex', collapsed ? 'justify-center' : 'justify-end px-1')}>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 shrink-0 text-muted-foreground hover:bg-accent"
-            onClick={() => {
-              if (railOnly) {
-                setRailExpanded((value) => !value);
-                return;
-              }
-              setSidebarCollapsed(!sidebarCollapsed);
-            }}
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {collapsed ? (
-              <PanelLeft className="h-[18px] w-[18px]" />
-            ) : (
-              <PanelLeftClose className="h-[18px] w-[18px]" />
-            )}
-          </Button>
-        </div>
+        {!railOnly ? (
+          <div className={cn('mt-2 flex', collapsed ? 'justify-center' : 'justify-end px-1')}>
+            <button
+              type="button"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] text-muted-foreground transition-colors hover:bg-[hsl(var(--foreground)/0.05)] hover:text-foreground"
+              onClick={() => {
+                setSidebarCollapsed(!sidebarCollapsed);
+              }}
+              title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {collapsed ? (
+                <PanelLeft className="h-[18px] w-[18px]" />
+              ) : (
+                <PanelLeftClose className="h-[18px] w-[18px]" />
+              )}
+            </button>
+          </div>
+        ) : null}
       </div>
 
-      <nav className="flex flex-col gap-0.5 px-2">
+      <nav className="flex flex-col gap-1 px-2">
         {navItems.map((item) => (
           <NavItem key={item.to} {...item} collapsed={collapsed} />
         ))}
@@ -200,15 +193,15 @@ export function Sidebar({ railOnly = false, className }: SidebarProps) {
         />
 
         <RailTooltip collapsed={collapsed} label={t('sidebar.openClawPage')}>
-          <Button
-            variant="ghost"
+          <button
+            type="button"
             aria-label={collapsed ? t('sidebar.openClawPage') : undefined}
             className={cn(
-              'flex items-center rounded-lg px-2.5 py-2 h-auto text-[14px] font-medium transition-[background-color,color,padding,gap,border-color,box-shadow] duration-300 ease-out w-full mt-1',
-              'text-foreground/80',
+              'mt-1 flex h-auto w-full items-center rounded-[10px] px-2.5 py-2 text-[13px] font-medium transition-[background-color,color,padding,gap] duration-200 ease-out',
+              'text-foreground/74',
               collapsed
-                ? 'mx-auto h-10 w-10 justify-center gap-0 rounded-2xl border border-transparent px-0 hover:bg-accent hover:text-foreground hover:shadow-sm'
-                : 'justify-start gap-2.5 hover:bg-accent/80',
+                ? 'mx-auto h-9 w-9 justify-center gap-0 px-0 hover:bg-[hsl(var(--foreground)/0.05)] hover:text-foreground'
+                : 'justify-start gap-2 hover:bg-[hsl(var(--foreground)/0.04)]',
             )}
             onClick={openDevConsole}
           >
@@ -225,11 +218,11 @@ export function Sidebar({ railOnly = false, className }: SidebarProps) {
             </span>
             <ExternalLink
               className={cn(
-                'h-3 w-3 shrink-0 ml-auto text-muted-foreground transition-[opacity,transform,max-width] duration-300 ease-out',
+                'ml-auto h-3 w-3 shrink-0 text-muted-foreground transition-[opacity,transform,max-width] duration-300 ease-out',
                 collapsed ? 'max-w-0 translate-x-1 opacity-0 pointer-events-none' : 'max-w-4 opacity-50',
               )}
             />
-          </Button>
+          </button>
         </RailTooltip>
       </div>
     </aside>

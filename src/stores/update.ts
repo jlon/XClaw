@@ -91,7 +91,7 @@ export const useUpdateStore = create<UpdateState>((set, get) => ({
     // Listen for update events
     // Single source of truth: listen only to update:status-changed
     // (sent by AppUpdater.updateStatus() in the main process)
-    window.electron.ipcRenderer.on('update:status-changed', (data) => {
+    window.electron?.ipcRenderer?.on('update:status-changed', (data) => {
       const status = data as {
         status: UpdateStatus;
         info?: UpdateInfo;
@@ -106,7 +106,7 @@ export const useUpdateStore = create<UpdateState>((set, get) => ({
       });
     });
 
-    window.electron.ipcRenderer.on('update:auto-install-countdown', (data) => {
+    window.electron?.ipcRenderer?.on('update:auto-install-countdown', (data) => {
       const { seconds, cancelled } = data as { seconds: number; cancelled?: boolean };
       set({ autoInstallCountdown: cancelled ? null : seconds });
     });

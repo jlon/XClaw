@@ -126,10 +126,14 @@ function shouldFallbackToBrowser(message: string): boolean {
     || normalized.includes("no handler registered for 'hostapi:fetch'")
     || normalized.includes('no handler registered for "hostapi:fetch"')
     || normalized.includes('no handler registered for hostapi:fetch')
+    || normalized.includes('electron ipc renderer is unavailable')
     || normalized.includes('window is not defined');
 }
 
 function allowLocalhostFallback(): boolean {
+  if (!window.electron?.ipcRenderer && import.meta.env.DEV) {
+    return true;
+  }
   try {
     return window.localStorage.getItem('XClaw:allow-localhost-fallback') === '1';
   } catch {

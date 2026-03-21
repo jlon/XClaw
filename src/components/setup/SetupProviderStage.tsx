@@ -220,19 +220,19 @@ export function SetupProviderStage({
       ) : null}
 
       {statusPanel ? (
-        <div className="rounded-2xl border border-primary/20 app-panel-surface p-4 text-sm leading-6 text-muted-foreground">
+        <div className="rounded-[18px] border border-primary/18 app-insight-surface p-4 text-sm leading-6 text-muted-foreground">
           {statusPanel}
         </div>
       ) : null}
 
       {validationMessage ? (
-        <div className="rounded-2xl border border-border/70 app-panel-surface p-4 text-sm leading-6 text-muted-foreground">
+        <div className="rounded-[18px] app-insight-surface p-4 text-sm leading-6 text-muted-foreground">
           {validationMessage}
         </div>
       ) : null}
 
       {footerNote ? (
-        <div className="rounded-2xl border border-border/70 app-panel-surface p-4 text-sm leading-6 text-muted-foreground">
+        <div className="rounded-[18px] app-insight-surface p-4 text-sm leading-6 text-muted-foreground">
           {footerNote}
         </div>
       ) : null}

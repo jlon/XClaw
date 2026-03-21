@@ -28,7 +28,7 @@ export function ChatToolbar({ compact = false }: { compact?: boolean }) {
           <Button
             variant="ghost"
             size="icon"
-            className={cn('app-chat-toolbar-button rounded-full', compact ? 'h-7.5 w-7.5' : 'h-8 w-8')}
+            className={cn('app-chat-toolbar-button rounded-[10px]', compact ? 'h-7 w-7' : 'h-8 w-8')}
             onClick={() => refresh()}
             disabled={loading}
           >
@@ -46,9 +46,9 @@ export function ChatToolbar({ compact = false }: { compact?: boolean }) {
             variant="ghost"
             size="icon"
             className={cn(
-              'app-chat-toolbar-button rounded-full',
-              compact ? 'h-7.5 w-7.5' : 'h-8 w-8',
-              showThinking && 'bg-primary/10 text-primary shadow-sm',
+              'app-chat-toolbar-button rounded-[10px]',
+              compact ? 'h-7 w-7' : 'h-8 w-8',
+              showThinking && 'bg-[hsl(var(--foreground)/0.075)] text-foreground',
             )}
             onClick={toggleThinking}
           >
@@ -65,14 +65,17 @@ export function ChatToolbar({ compact = false }: { compact?: boolean }) {
           <div
             aria-label={t(gatewayUi.labelKey)}
             className={cn(
-              'app-chat-connection-indicator flex items-center justify-center rounded-full',
-              compact ? 'h-5 w-5' : 'h-5.5 w-5.5',
+              'app-chat-runtime-pill app-chat-connection-indicator flex items-center justify-center gap-1 rounded-full',
+              compact ? 'h-6 min-w-[1.5rem] px-1.5' : 'h-7 px-2.5',
             )}
           >
             {gatewayUi.spinning ? (
               <Loader2 className={cn(compact ? 'h-3 w-3' : 'h-3.5 w-3.5', 'animate-spin text-[hsl(var(--warning))]')} />
             ) : (
               <span className={cn('status-indicator h-2 w-2 rounded-full status-indicator-glow', gatewayUi.toneClass)} />
+            )}
+            {!compact && (
+              <span className="text-[11px] font-medium text-muted-foreground">{t(gatewayUi.labelKey)}</span>
             )}
           </div>
         </TooltipTrigger>

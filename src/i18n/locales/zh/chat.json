@@ -2,18 +2,25 @@
     "gatewayNotRunning": "网关未运行",
     "gatewayRequired": "OpenClaw 网关需要运行才能使用聊天。它将自动启动，或者您可以从设置中启动。",
     "welcome": {
-        "title": "XClaw 聊天",
-        "subtitle": "我能为你做些什么？",
-        "description": "把对话、执行和多 Agent 协作收在同一个桌面工作区里，保持清晰、稳定、可持续推进。",
-        "askQuestions": "处理任务",
-        "askQuestionsDesc": "处理面向任务的请求",
-        "askQuestionsPrompt": "帮我处理一个明确任务：",
-        "creativeTasks": "持续执行",
-        "creativeTasksDesc": "持续推进多步骤工作",
-        "creativeTasksPrompt": "帮我持续推进这项多步骤工作：",
-        "brainstorming": "多智能体并行",
-        "brainstormingDesc": "把复杂任务拆开，并行推进不同角色的工作",
-        "brainstormingPrompt": "帮我拆解这个复杂任务，并安排多 Agent 并行推进："
+        "title": "XClaw",
+        "subtitle": "小助手已就位，你开口，我开工",
+        "description": "",
+        "executionKicker": "当前桌面",
+        "execution": "直接开工",
+        "executionDesc": "目标、文件和限制放上来，我先接住，再从这张桌面开始动手。",
+        "executionPrompt": "请在当前工作区开始处理这件事。我会提供目标、文件和限制：",
+        "continuationKicker": "同一线程",
+        "continuation": "接着往下",
+        "continuationDesc": "上次做到哪，这次就从哪继续。上下文、模型和线索都留在这条线程里。",
+        "continuationPrompt": "请基于当前会话、模型和已有上下文，接着推进这件事：",
+        "orchestrationKicker": "Agent 接力",
+        "orchestration": "拆开推进",
+        "orchestrationDesc": "事情一复杂，就交给不同 Agent 分段接力，让每一部分都继续往前走。",
+        "orchestrationPrompt": "请帮我把这项工作拆开，安排合适的 Agent 接力推进：",
+        "integrationKicker": "技能与接入",
+        "integration": "接上能力",
+        "integrationDesc": "把 Skill、工具和外部接入挂进来，这张桌面就能替你多做几类事。",
+        "integrationPrompt": "请帮我识别并接上处理这件事需要的 Skill、工具或外部接入："
     },
     "noLogs": "（暂无日志）",
     "toolbar": {
@@ -68,14 +75,16 @@
     "historyBuckets": {
         "today": "今天",
         "yesterday": "昨天",
-        "withinWeek": "一周内",
+        "withinWeek": "本周",
         "withinTwoWeeks": "两周内",
-        "withinMonth": "一个月内",
-        "older": "一个月之前"
+        "withinMonth": "本月",
+        "older": "更早"
     },
     "sessionPane": {
         "searchLabel": "搜索聊天",
-        "searchPlaceholder": "搜索聊天、Agent 或标题",
-        "emptySearch": "没有匹配的聊天"
+        "searchPlaceholder": "搜索",
+        "emptySearch": "没有匹配的聊天",
+        "empty": "还没有聊天",
+        "emptyHint": "新建一个对话后，会话列表会出现在这里。"
     }
 }

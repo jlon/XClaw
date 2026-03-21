@@ -116,4 +116,51 @@ describe('host-api', () => {
     await expect(hostApiFetch('/api/test')).rejects.toThrow('Invalid IPC channel: hostapi:fetch');
     expect(fetchMock).not.toHaveBeenCalled();
   });
+
+  it('falls back to browser fetch when Electron IPC renderer is unavailable', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ fallback: true }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    window.localStorage.setItem('XClaw:allow-localhost-fallback', '1');
+
+    invokeIpcMock.mockRejectedValueOnce(new Error('Electron IPC renderer is unavailable'));
+
+    const { hostApiFetch } = await import('@/lib/host-api');
+    const result = await hostApiFetch<{ fallback: boolean }>('/api/test');
+
+    expect(result.fallback).toBe(true);
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://127.0.0.1:3210/api/test',
+      expect.objectContaining({ headers: expect.any(Object) }),
+    );
+  });
+
+  it('allows localhost fallback in browser-only dev even without the policy flag', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ fallback: true }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const previousElectron = window.electron;
+    // @ts-expect-error test explicitly simulates browser-only runtime
+    window.electron = undefined;
+    invokeIpcMock.mockRejectedValueOnce(new Error('Electron IPC renderer is unavailable'));
+
+    try {
+      const { hostApiFetch } = await import('@/lib/host-api');
+      const result = await hostApiFetch<{ fallback: boolean }>('/api/test');
+
+      expect(result.fallback).toBe(true);
+      expect(fetchMock).toHaveBeenCalledWith(
+        'http://127.0.0.1:3210/api/test',
+        expect.objectContaining({ headers: expect.any(Object) }),
+      );
+    } finally {
+      window.electron = previousElectron;
+    }
+  });
 });

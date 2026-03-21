@@ -9,7 +9,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { SendHorizontal, Square, X, Paperclip, FileText, Film, Music, FileArchive, File, Loader2, AtSign, Box, Check, Search, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { hostApiFetch } from '@/lib/host-api';
 import { invokeIpc } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
@@ -288,7 +287,7 @@ export function ChatInput({
   const currentModelLabel = selectedModel
     ? getModelLabel(selectedModel)
     : (currentAgent?.modelDisplay || currentModelId || t('composer.modelPickerDefault'));
-  const composerTextareaMinHeight = isEmpty ? 88 : 72;
+  const composerTextareaMinHeight = isEmpty ? 82 : 68;
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -691,7 +690,7 @@ export function ChatInput({
         )}
 
         {/* Input Row */}
-        <div className={cn('app-panel-surface-elevated app-chat-composer-dock relative rounded-[30px] px-4 py-3 transition-all', dragOver ? 'border-primary/40 ring-2 ring-primary/15' : '')}>
+        <div className={cn('app-chat-composer-dock relative rounded-[16px] px-3 py-2.5 transition-all', dragOver ? 'border-primary/30 ring-2 ring-primary/12' : '')}>
           <div className="app-chat-composer-editor">
             <textarea
               ref={textareaRef}
@@ -709,14 +708,14 @@ export function ChatInput({
               disabled={disabled}
               className={cn(
                 'w-full max-h-[180px] resize-none border-0 bg-transparent px-0 py-0 text-[15px] leading-[1.6] text-foreground outline-none placeholder:text-muted-foreground/60',
-                isEmpty ? 'min-h-[88px]' : 'min-h-[72px]',
+                isEmpty ? 'min-h-[82px]' : 'min-h-[68px]',
               )}
               style={!input ? { height: `${composerTextareaMinHeight}px` } : undefined}
               rows={1}
             />
           </div>
 
-          <div className="app-chat-composer-footer absolute inset-x-4 bottom-4 pointer-events-none">
+          <div className="app-chat-composer-footer absolute inset-x-3.5 bottom-3 pointer-events-none">
             <div className="app-chat-composer-tools pointer-events-auto">
               <Button
                 variant="ghost"
@@ -748,7 +747,7 @@ export function ChatInput({
                     <AtSign className="h-[17px] w-[17px]" />
                   </Button>
                   {pickerOpen && (
-                    <div className="app-panel-surface-elevated absolute left-0 bottom-full z-20 mb-2 w-72 overflow-hidden rounded-2xl p-1.5">
+                    <div className="app-chat-picker-surface absolute left-0 bottom-full z-20 mb-2 w-72 overflow-hidden rounded-[14px] p-1.5">
                       <div className="px-3 py-2 text-[11px] font-medium text-muted-foreground/80">
                         {t('composer.agentPickerTitle', { currentAgent: currentAgentName })}
                       </div>
@@ -775,7 +774,7 @@ export function ChatInput({
                 <button
                   type="button"
                   onClick={() => setTargetAgentId(null)}
-                  className="app-field-surface inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium text-foreground transition-colors hover:bg-accent/70"
+                  className="app-chat-runtime-pill inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[11.5px] font-medium text-foreground transition-colors hover:bg-[hsl(var(--foreground)/0.05)]"
                   title={t('composer.clearTarget')}
                 >
                   <span className="max-w-[180px] truncate">{t('composer.targetChip', { agent: selectedTarget.name })}</span>
@@ -807,19 +806,19 @@ export function ChatInput({
                   )}
                 </Button>
                 {modelPickerOpen && (
-                  <div className="app-panel-surface-elevated absolute left-0 bottom-full z-20 mb-2 w-64 overflow-hidden rounded-[22px] p-1.5">
+                  <div className="app-chat-picker-surface absolute left-0 bottom-full z-20 mb-2 w-64 overflow-hidden rounded-[14px] p-1.5">
                     <div className="px-3 py-2 text-[11px] font-medium text-muted-foreground/80">
                       {t('composer.modelPickerTitle')}
                     </div>
                     <div className="px-2 pb-2">
-                      <div className="relative">
+                      <div className="app-chat-picker-search relative">
                         <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/55" />
-                        <Input
+                        <input
                           aria-label={t('composer.modelPickerSearchLabel')}
                           value={modelSearchQuery}
                           placeholder={t('composer.modelPickerSearchPlaceholder')}
                           onChange={(event) => setModelSearchQuery(event.target.value)}
-                          className="h-8 rounded-full pl-9 pr-3 text-[12px] shadow-none placeholder:text-muted-foreground/55 focus-visible:ring-ring/20 focus-visible:ring-offset-0"
+                          className="app-chat-picker-search-input h-8 pl-8.5 pr-3 text-[12px]"
                         />
                       </div>
                     </div>
@@ -843,10 +842,10 @@ export function ChatInput({
                         onClick={() => {
                           void handleModelSelect(null);
                         }}
-                        className="flex w-full flex-col items-start rounded-2xl px-3 py-2.5 text-left transition-[background-color,color,box-shadow] hover:bg-accent/70"
+                        className="flex w-full flex-col items-start rounded-[10px] px-3 py-2 text-left transition-[background-color,color] hover:bg-[hsl(var(--foreground)/0.04)]"
                       >
-                        <span className="text-[14px] font-medium text-foreground">{t('composer.modelPickerDefault')}</span>
-                        <span className="text-[11px] text-muted-foreground">{t('composer.modelPickerDefaultHint')}</span>
+                        <span className="text-[13px] font-medium text-foreground">{t('composer.modelPickerDefault')}</span>
+                        <span className="text-[10.5px] text-muted-foreground/78">{t('composer.modelPickerDefaultHint')}</span>
                       </button>
                       {modelsLoading && (
                         <div className="px-3 py-6 text-center text-[12px] text-muted-foreground">
@@ -890,11 +889,11 @@ export function ChatInput({
               onClick={sending ? handleStop : handleSend}
               disabled={sending ? !canStop : !canSend}
               size="icon"
-              className={`pointer-events-auto h-9 w-9 shrink-0 rounded-full transition-[background-color,color,box-shadow] ${
+              className={`pointer-events-auto h-8 w-8 shrink-0 rounded-[12px] transition-[background-color,color,box-shadow] ${
                 sending
-                  ? 'app-field-surface text-foreground hover:bg-accent'
+                  ? 'app-chat-runtime-pill text-foreground hover:bg-[hsl(var(--foreground)/0.06)]'
                   : canSend
-                    ? 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md'
+                    ? 'bg-primary text-primary-foreground shadow-none hover:bg-primary/90'
                     : 'bg-transparent text-muted-foreground/45 hover:bg-transparent'
               }`}
               variant="ghost"
@@ -953,7 +952,7 @@ function AttachmentPreview({
         </div>
       ) : (
         // Generic file card
-        <div className="app-field-surface flex max-w-[200px] items-center gap-2 px-3 py-2">
+        <div className="app-pane-surface flex max-w-[200px] items-center gap-2 rounded-[10px] px-3 py-2">
           <FileIcon mimeType={attachment.mimeType} className="h-5 w-5 shrink-0 text-muted-foreground" />
           <div className="min-w-0 overflow-hidden">
             <p className="text-xs font-medium truncate">{attachment.fileName}</p>
@@ -966,8 +965,8 @@ function AttachmentPreview({
 
       {/* Staging overlay */}
       {attachment.status === 'staging' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-[hsl(var(--chrome))/0.64] backdrop-blur-sm">
-          <Loader2 className="h-4 w-4 text-white animate-spin" />
+        <div className="absolute inset-0 flex items-center justify-center bg-[hsl(var(--surface-base))/0.88]">
+          <Loader2 className="h-4 w-4 animate-spin text-foreground/72" />
         </div>
       )}
 
@@ -981,7 +980,7 @@ function AttachmentPreview({
       {/* Remove button */}
       <button
         onClick={onRemove}
-        className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute -right-1 -top-1 rounded-full bg-destructive p-0.5 text-destructive-foreground opacity-0 transition-opacity group-hover:opacity-100"
       >
         <X className="h-3 w-3" />
       </button>
@@ -1003,12 +1002,12 @@ function AgentPickerItem({
       type="button"
       onClick={onSelect}
       className={cn(
-        'flex w-full flex-col items-start rounded-xl px-3 py-2 text-left transition-colors',
-        selected ? 'bg-primary/10 text-foreground' : 'hover:bg-accent/70'
+        'flex w-full flex-col items-start rounded-[10px] px-3 py-2 text-left transition-colors',
+        selected ? 'bg-[hsl(var(--foreground)/0.055)] text-foreground' : 'hover:bg-[hsl(var(--foreground)/0.04)]'
       )}
     >
-      <span className="text-[14px] font-medium text-foreground">{agent.name}</span>
-      <span className="text-[11px] text-muted-foreground">
+      <span className="text-[13px] font-medium text-foreground">{agent.name}</span>
+      <span className="text-[10.5px] text-muted-foreground/78">
         {agent.modelDisplay}
       </span>
     </button>
@@ -1031,16 +1030,16 @@ function ModelPickerItem({
       type="button"
       onClick={onSelect}
       className={cn(
-        'flex w-full items-start justify-between gap-3 rounded-2xl px-3 py-2.5 text-left transition-[background-color,color,box-shadow]',
+        'flex w-full items-start justify-between gap-3 rounded-[10px] px-3 py-2 text-left transition-[background-color,color]',
         selected
-          ? 'bg-primary/10 text-foreground shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.16)]'
-          : 'hover:bg-accent/70'
+          ? 'bg-[hsl(var(--foreground)/0.055)] text-foreground'
+          : 'hover:bg-[hsl(var(--foreground)/0.04)]'
       )}
     >
       <span className="min-w-0">
-        <span className="block truncate text-[14px] font-medium text-foreground">{getModelLabel(model)}</span>
+        <span className="block truncate text-[13px] font-medium text-foreground">{getModelLabel(model)}</span>
         {hint && (
-          <span className="block truncate text-[11px] text-muted-foreground">
+          <span className="block truncate text-[10.5px] text-muted-foreground/78">
             {hint}
           </span>
         )}

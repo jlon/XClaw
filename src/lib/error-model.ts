@@ -46,6 +46,7 @@ function classifyMessage(message: string): AppErrorCode {
     lower.includes('invalid ipc channel')
     || lower.includes('no handler registered')
     || lower.includes('window is not defined')
+    || lower.includes('electron ipc renderer is unavailable')
     || lower.includes('unsupported')
   ) {
     return 'CHANNEL_UNAVAILABLE';
@@ -99,4 +100,3 @@ export function normalizeAppError(err: unknown, details?: Record<string, unknown
   const message = err instanceof Error ? err.message : String(err);
   return new AppError(classifyMessage(message), message, err, details);
 }
-

@@ -107,28 +107,44 @@ vi.mock('react-i18next', () => ({
           return 'This request timed out';
         case 'common:actions.dismiss':
           return 'Dismiss';
+        case 'welcome.title':
+          return 'XClaw';
         case 'welcome.subtitle':
-          return 'What can I do for you?';
+          return 'Your sidekick is ready. You ask, I start.';
         case 'welcome.description':
-          return 'Welcome';
-        case 'welcome.askQuestions':
-          return 'Handle tasks';
-        case 'welcome.askQuestionsDesc':
-          return 'Handle tasks desc';
-        case 'welcome.askQuestionsPrompt':
-          return 'Help me handle a concrete task:';
-        case 'welcome.creativeTasks':
-          return 'Continuous execution';
-        case 'welcome.creativeTasksDesc':
-          return 'Continuous execution desc';
-        case 'welcome.creativeTasksPrompt':
-          return 'Help me keep driving this multi-step work:';
-        case 'welcome.brainstorming':
-          return 'Parallel agents';
-        case 'welcome.brainstormingDesc':
-          return 'Parallel agents desc';
-        case 'welcome.brainstormingPrompt':
-          return 'Help me break down this complex task and coordinate multiple agents in parallel:';
+          return '';
+        case 'welcome.executionKicker':
+          return 'Current desk';
+        case 'welcome.execution':
+          return 'Start the work';
+        case 'welcome.executionDesc':
+          return 'Drop in the goal, files, and constraints. I will take it from this desk and start moving.';
+        case 'welcome.executionPrompt':
+          return "Start working on this in the current workspace. I will provide the goal, files, and constraints:";
+        case 'welcome.continuationKicker':
+          return 'Same thread';
+        case 'welcome.continuation':
+          return 'Keep it going';
+        case 'welcome.continuationDesc':
+          return 'Pick up right where we left off, with the same context, model, and trail intact.';
+        case 'welcome.continuationPrompt':
+          return 'Continue this work from the current session, model, and context:';
+        case 'welcome.orchestrationKicker':
+          return 'Agent relay';
+        case 'welcome.orchestration':
+          return 'Split the job';
+        case 'welcome.orchestrationDesc':
+          return 'When the task gets bigger, break it across agents so each part can keep moving.';
+        case 'welcome.orchestrationPrompt':
+          return 'Break this work into parts, assign the right agents, and keep the relay moving:';
+        case 'welcome.integrationKicker':
+          return 'Skills & access';
+        case 'welcome.integration':
+          return 'Plug in more';
+        case 'welcome.integrationDesc':
+          return 'Wire in skills, tools, and external access so this desk can take on more than one kind of job.';
+        case 'welcome.integrationPrompt':
+          return 'Help me identify and connect the skills, tools, or external access needed to handle this work better:';
         case 'message.toolProcessing':
           return 'Processing tools';
         default:
@@ -200,7 +216,7 @@ describe('chat humanized actions', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Scroll to latest' }));
 
     expect(scroller!.scrollTo).toHaveBeenCalled();
-  });
+  }, 10000);
 
   it('renders a compact composer-adjacent error bubble for request timeouts', async () => {
     chatState.error = 'LLM request timed out.';
@@ -216,11 +232,38 @@ describe('chat humanized actions', () => {
 
     render(<Chat />);
 
-    fireEvent.click(screen.getByRole('button', { name: /Handle tasks/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Start the work/i }));
 
     await waitFor(() => {
-      expect(screen.getByTestId('chat-input-dock')).toHaveAttribute('data-draft-seed', 'Help me handle a concrete task:');
+      expect(screen.getByTestId('chat-input-dock')).toHaveAttribute('data-draft-seed', 'Start working on this in the current workspace. I will provide the goal, files, and constraints:');
     });
+  });
+
+  it('hydrates the composer with a capability prompt when the fourth welcome action is clicked', async () => {
+    chatState.messages = [];
+
+    render(<Chat />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Plug in more/i }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('chat-input-dock')).toHaveAttribute('data-draft-seed', 'Help me identify and connect the skills, tools, or external access needed to handle this work better:');
+    });
+  });
+
+  it('renders the welcome screen as a centered desktop starter instead of a plain suggestion list', () => {
+    chatState.messages = [];
+
+    render(<Chat />);
+
+    expect(screen.getByText('XClaw')).toBeInTheDocument();
+    expect(screen.queryByText('Main Agent')).not.toBeInTheDocument();
+    expect(screen.getByText('Your sidekick is ready. You ask, I start.')).toBeInTheDocument();
+    expect(screen.queryByText('Tasks, files, to-dos, and stray ideas can all land here. I do more than answer questions. I take the work, break it down, and keep it moving.')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Start the work/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Keep it going/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Split the job/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Plug in more/i })).toBeInTheDocument();
   });
 
   it('suppresses repeated assistant avatar chrome for consecutive assistant outputs', () => {

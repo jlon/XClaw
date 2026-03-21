@@ -40,7 +40,13 @@ describe('theme application', () => {
     expect(source).not.toContain('--primary: 217.2 91.2% 59.8%;');
     expect(source).toContain('color-scheme: light;');
     expect(source).toContain('color-scheme: dark;');
-    expect(source).toContain('radial-gradient(circle at 84% 16%');
+    expect(source).toContain('--background: 0 0% 99.1%;');
+    expect(source).toContain('--surface-base: 0 0% 99.65%;');
+    expect(source).not.toContain('--background: 30 20% 94.8%;');
+    expect(source).not.toContain('radial-gradient(circle at 84% 16%');
+    expect(source).toContain('background-image: none;');
+    expect(source).toContain('.desktop-app-chat-nav-shell');
+    expect(source).toContain('.desktop-app-titlebar--mac');
     expect(source).toContain('.app-setup-shell');
     expect(source).toContain('.app-setup-hero');
   });
@@ -51,5 +57,25 @@ describe('theme application', () => {
 
     expect(rendererSource).toContain("theme: 'light' as Theme");
     expect(mainSource).toContain("theme: 'light',");
+  });
+
+  it('uses the shared system font stack and keeps serif display overrides out of desktop pages', () => {
+    const themeSource = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
+    const pageSources = [
+      'src/pages/Channels/index.tsx',
+      'src/pages/Agents/index.tsx',
+      'src/pages/Skills/index.tsx',
+      'src/pages/Cron/index.tsx',
+      'src/components/channels/ChannelConfigModal.tsx',
+      'src/components/settings/ProvidersSettings.tsx',
+    ].map((relativePath) => readFileSync(resolve(process.cwd(), relativePath), 'utf8')).join('\n');
+
+    expect(themeSource).toContain('--font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;');
+    expect(themeSource).toContain('--font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;');
+    expect(themeSource).toContain('font-family: var(--font-ui);');
+    expect(themeSource).not.toContain('SF Pro Text');
+    expect(themeSource).not.toContain('SF Pro Display');
+    expect(pageSources).not.toContain('font-serif');
+    expect(pageSources).not.toContain('fontFamily:');
   });
 });

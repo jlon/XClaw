@@ -111,7 +111,7 @@ function TakeoverPreparationContent({
       </div>
 
       {blockingIssues.length ? (
-        <div className="rounded-2xl border border-red-500/20 bg-[hsl(var(--danger)/0.08)] p-4">
+        <div className="rounded-[18px] border border-red-500/20 bg-[hsl(var(--danger)/0.08)] p-4">
           <div className="font-medium text-destructive">{t('takeover.blockingTitle')}</div>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-destructive">
             {blockingIssues.map((issue) => (
@@ -122,7 +122,7 @@ function TakeoverPreparationContent({
       ) : null}
 
       {warnings.length ? (
-        <div className="rounded-2xl border border-amber-500/20 bg-[hsl(var(--warning)/0.08)] p-4">
+        <div className="rounded-[18px] border border-amber-500/20 bg-[hsl(var(--warning)/0.08)] p-4">
           <div className="font-medium text-amber-700 dark:text-amber-100">{t('takeover.warningsTitle')}</div>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-amber-800 dark:text-amber-50">
             {warnings.map((warning) => (
@@ -133,13 +133,13 @@ function TakeoverPreparationContent({
       ) : null}
 
       {status?.error ? (
-        <div className="rounded-2xl border border-red-500/20 bg-[hsl(var(--danger)/0.08)] p-4 text-sm leading-6 text-destructive">
+        <div className="rounded-[18px] border border-red-500/20 bg-[hsl(var(--danger)/0.08)] p-4 text-sm leading-6 text-destructive">
           {status.error}
         </div>
       ) : null}
 
       {submitting ? (
-        <div className="rounded-2xl border border-primary/20 app-panel-surface p-4">
+        <div className="rounded-[18px] border border-primary/18 app-insight-surface p-4">
           <div className="flex items-center gap-2 text-sm font-medium text-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
             {t('takeover.running')}
@@ -158,7 +158,7 @@ function TakeoverPreparationContent({
           ) : null}
         </div>
       ) : (
-        <div className="rounded-2xl border border-border/70 app-panel-surface p-4 text-sm leading-6 text-muted-foreground">
+        <div className="rounded-[18px] app-insight-surface p-4 text-sm leading-6 text-muted-foreground">
           {t('takeover.preparation.pendingHint')}
         </div>
       )}
@@ -460,7 +460,7 @@ function RuntimePreparationContent({
   return (
     <div className="space-y-6">
       {setupMode === 'fresh' ? (
-        <div className="space-y-4 rounded-3xl border border-border/70 app-panel-surface p-5">
+        <div className="space-y-4 rounded-[20px] app-insight-surface p-5">
           <div className="space-y-1">
             <h3 className="font-medium">{t('runtime.setup.title')}</h3>
             <p className="text-sm text-muted-foreground">{t('runtime.setup.description')}</p>
@@ -499,7 +499,7 @@ function RuntimePreparationContent({
           ) : null}
 
           {plan?.blockingIssues.length ? (
-            <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
+            <div className="rounded-[18px] border border-red-500/20 bg-[hsl(var(--danger))/0.08] p-4">
               <div className="font-medium text-red-700 dark:text-red-200">{t('runtime.setup.blockingTitle')}</div>
               <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-red-800 dark:text-red-100">
                 {plan.blockingIssues.map((issue) => (
@@ -510,7 +510,7 @@ function RuntimePreparationContent({
           ) : null}
 
           {plan?.warnings.length ? (
-            <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4">
+            <div className="rounded-[18px] border border-amber-500/20 bg-[hsl(var(--warning))/0.08] p-4">
               <div className="font-medium text-amber-800 dark:text-amber-100">{t('runtime.setup.warningsTitle')}</div>
               <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-amber-900 dark:text-amber-50">
                 {plan.warnings.map((warning) => (
@@ -548,7 +548,7 @@ function RuntimePreparationContent({
       </div>
 
       {checks.nodejs.status === 'error' || checks.openclaw.status === 'error' ? (
-        <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
+        <div className="mt-4 rounded-[18px] border border-red-500/20 bg-[hsl(var(--danger))/0.08] p-4">
           <div className="flex items-start gap-2">
             <AlertCircle className="mt-0.5 h-5 w-5 text-red-400" />
             <div>
@@ -561,7 +561,7 @@ function RuntimePreparationContent({
         </div>
       ) : null}
 
-      <div className="rounded-2xl border border-border/70 app-panel-surface p-4">
+      <div className="rounded-[18px] app-insight-surface p-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1">
             <div className="text-sm font-medium text-foreground">{t('runtime.advanced.title')}</div>

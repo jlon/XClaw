@@ -2,18 +2,25 @@
     "gatewayNotRunning": "Gateway Not Running",
     "gatewayRequired": "The OpenClaw Gateway needs to be running to use chat. It will start automatically, or you can start it from Settings.",
     "welcome": {
-        "title": "XClaw Chat",
-        "subtitle": "What can I do for you?",
-        "description": "Keep conversation, execution, and multi-agent collaboration inside one stable desktop workspace.",
-        "askQuestions": "Handle Tasks",
-        "askQuestionsDesc": "Work on task-oriented requests",
-        "askQuestionsPrompt": "Help me handle a concrete task:",
-        "creativeTasks": "Continuous Execution",
-        "creativeTasksDesc": "Keep running through multi-step work",
-        "creativeTasksPrompt": "Help me keep driving this multi-step work:",
-        "brainstorming": "Multi-Agent Parallel",
-        "brainstormingDesc": "Split complex work and push multiple roles in parallel",
-        "brainstormingPrompt": "Help me break down this complex task and coordinate multiple agents in parallel:"
+        "title": "XClaw",
+        "subtitle": "Your sidekick is ready. You ask, I start.",
+        "description": "",
+        "executionKicker": "Current desk",
+        "execution": "Start the work",
+        "executionDesc": "Drop in the goal, files, and constraints. I will take it from this desk and start moving.",
+        "executionPrompt": "Start working on this in the current workspace. I will provide the goal, files, and constraints:",
+        "continuationKicker": "Same thread",
+        "continuation": "Keep it going",
+        "continuationDesc": "Pick up right where we left off, with the same context, model, and trail intact.",
+        "continuationPrompt": "Continue this work from the current session, model, and context:",
+        "orchestrationKicker": "Agent relay",
+        "orchestration": "Split the job",
+        "orchestrationDesc": "When the task gets bigger, break it across agents so each part can keep moving.",
+        "orchestrationPrompt": "Break this work into parts, assign the right agents, and keep the relay moving:",
+        "integrationKicker": "Skills & access",
+        "integration": "Plug in more",
+        "integrationDesc": "Wire in skills, tools, and external access so this desk can take on more than one kind of job.",
+        "integrationPrompt": "Help me identify and connect the skills, tools, or external access needed to handle this work better:"
     },
     "noLogs": "(No logs available yet)",
     "toolbar": {
@@ -68,14 +75,16 @@
     "historyBuckets": {
         "today": "Today",
         "yesterday": "Yesterday",
-        "withinWeek": "Within 1 Week",
+        "withinWeek": "This Week",
         "withinTwoWeeks": "Within 2 Weeks",
-        "withinMonth": "Within 1 Month",
-        "older": "Older than 1 Month"
+        "withinMonth": "This Month",
+        "older": "Earlier"
     },
     "sessionPane": {
         "searchLabel": "Search chats",
-        "searchPlaceholder": "Search chats, agents, or titles",
-        "emptySearch": "No matching chats"
+        "searchPlaceholder": "Search",
+        "emptySearch": "No matching chats",
+        "empty": "No chats yet",
+        "emptyHint": "Start a new conversation and it will show up here."
     }
 }

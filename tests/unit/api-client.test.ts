@@ -175,6 +175,21 @@ describe('api-client', () => {
     expect(config.rules[0]).toEqual({ matcher: /^gateway:rpc$/, order: ['ipc'] });
   });
 
+  it('normalizes missing Electron IPC bridge as channel unavailable', async () => {
+    const previousElectron = window.electron;
+    // @ts-expect-error test explicitly simulates browser-only runtime
+    window.electron = undefined;
+
+    try {
+      await expect(invokeIpc('settings:getAll')).rejects.toMatchObject({
+        code: 'CHANNEL_UNAVAILABLE',
+        message: 'Electron IPC renderer is unavailable',
+      });
+    } finally {
+      window.electron = previousElectron;
+    }
+  });
+
   it('enables ws->http->ipc order when ws diagnostic is on', () => {
     setGatewayWsDiagnosticEnabled(true);
     expect(getGatewayWsDiagnosticEnabled()).toBe(true);

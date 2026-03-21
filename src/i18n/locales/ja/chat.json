@@ -2,18 +2,25 @@
     "gatewayNotRunning": "ゲートウェイが停止中",
     "gatewayRequired": "チャットを利用するには OpenClaw ゲートウェイが実行されている必要があります。自動的に起動するか、設定から起動できます。",
     "welcome": {
-        "title": "XClaw チャット",
-        "subtitle": "お手伝いできることはありますか？",
-        "description": "対話、実行、マルチ Agent 協調をひとつの安定したデスクトップ作業面にまとめます。",
-        "askQuestions": "タスク対応",
-        "askQuestionsDesc": "タスク指向の依頼に対応します",
-        "askQuestionsPrompt": "明確なタスクの対応を手伝ってください：",
-        "creativeTasks": "連続実行",
-        "creativeTasksDesc": "複数ステップの作業を継続して進めます",
-        "creativeTasksPrompt": "この複数ステップ作業を継続的に進めるのを手伝ってください：",
-        "brainstorming": "マルチエージェント並列実行",
-        "brainstormingDesc": "複雑な作業を分割し、複数の役割を並行して進めます",
-        "brainstormingPrompt": "この複雑な作業を分解し、複数 Agent の並列進行を組み立てるのを手伝ってください："
+        "title": "XClaw",
+        "subtitle": "小さな相棒は待機中。声をかければ、すぐ動きます。",
+        "description": "",
+        "executionKicker": "このデスク",
+        "execution": "すぐ着手",
+        "executionDesc": "ゴール、ファイル、条件を置けば、このデスクからそのまま動き始めます。",
+        "executionPrompt": "このワークスペースでこの作業を始めてください。ゴール、ファイル、条件を渡します：",
+        "continuationKicker": "同じスレッド",
+        "continuation": "続きから進める",
+        "continuationDesc": "前回止まったところから、そのまま再開します。文脈もモデルも流れもこのスレッドに残ります。",
+        "continuationPrompt": "現在のセッション、モデル、文脈を引き継いで、この作業を続けてください：",
+        "orchestrationKicker": "Agent リレー",
+        "orchestration": "分けて進める",
+        "orchestrationDesc": "仕事が大きくなったら、複数 Agent に分けて、それぞれを前へ進めます。",
+        "orchestrationPrompt": "この作業を分解し、適切な Agent に割り振って進めてください：",
+        "integrationKicker": "スキルと接続",
+        "integration": "能力をつなぐ",
+        "integrationDesc": "Skill、ツール、外部接続を足せば、このデスクで扱える仕事がもっと広がります。",
+        "integrationPrompt": "この作業に必要な Skill、ツール、外部接続を見極めて、つなげてください："
     },
     "noLogs": "（ログはまだありません）",
     "toolbar": {
@@ -68,14 +75,16 @@
     "historyBuckets": {
         "today": "今日",
         "yesterday": "昨日",
-        "withinWeek": "1週間以内",
+        "withinWeek": "今週",
         "withinTwoWeeks": "2週間以内",
-        "withinMonth": "1か月以内",
-        "older": "1か月より前"
+        "withinMonth": "今月",
+        "older": "以前"
     },
     "sessionPane": {
         "searchLabel": "チャットを検索",
-        "searchPlaceholder": "チャット、Agent、タイトルを検索",
-        "emptySearch": "一致するチャットはありません"
+        "searchPlaceholder": "検索",
+        "emptySearch": "一致するチャットはありません",
+        "empty": "まだチャットがありません",
+        "emptyHint": "新しい会話を始めると、ここに表示されます。"
     }
 }

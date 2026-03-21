@@ -21,9 +21,14 @@ export function TitleBar() {
   const location = useLocation();
   const platform = resolvePlatform();
   const isChatRoute = location.pathname === '/';
+  const hasDesktopBridge = !!window.electron?.ipcRenderer;
+
+  if (!hasDesktopBridge) {
+    return <div className="desktop-app-titlebar desktop-app-titlebar--browser h-9 shrink-0 border-b border-border/70" />;
+  }
 
   if (platform === 'darwin') {
-    return isChatRoute ? <MacChatTitleBar /> : <div className="drag-region desktop-app-titlebar desktop-app-titlebar--mac h-10 shrink-0 border-b border-border/70 bg-background/90" />;
+    return isChatRoute ? <MacChatTitleBar /> : <div className="drag-region desktop-app-titlebar desktop-app-titlebar--mac h-9 shrink-0 border-b border-border/70" />;
   }
 
   return <WindowsTitleBar isChatRoute={isChatRoute} />;
@@ -31,7 +36,7 @@ export function TitleBar() {
 
 function MacChatTitleBar() {
   return (
-    <div className="drag-region desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--mac flex h-10 shrink-0 items-center justify-end border-b border-border/30 bg-background/70 pl-20 pr-3">
+    <div className="drag-region desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--mac flex h-9 shrink-0 items-center justify-end border-b border-border/70 pl-20 pr-2.5">
       <div className="no-drag shrink-0">
         <ChatToolbar compact />
       </div>
@@ -65,7 +70,7 @@ function WindowsTitleBar({ isChatRoute }: { isChatRoute: boolean }) {
   };
 
   return (
-    <div className="drag-region desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--win flex h-10 shrink-0 items-center justify-between border-b border-border/40 bg-background/84 pl-3">
+    <div className="drag-region desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--win flex h-9 shrink-0 items-center justify-between border-b border-border/70 pl-2">
       <div className="min-w-0 flex-1" />
       <div className="no-drag flex h-full items-center">
         {isChatRoute ? (
@@ -76,21 +81,21 @@ function WindowsTitleBar({ isChatRoute }: { isChatRoute: boolean }) {
         <div className="flex h-full desktop-app-titlebar-controls">
         <button
           onClick={handleMinimize}
-          className="flex h-full w-11 items-center justify-center text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          className="flex h-full w-10 items-center justify-center text-muted-foreground transition-colors hover:bg-[hsl(var(--foreground)/0.05)] hover:text-foreground"
           title="Minimize"
         >
           <Minus className="h-4 w-4" />
         </button>
         <button
           onClick={handleMaximize}
-          className="flex h-full w-11 items-center justify-center text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          className="flex h-full w-10 items-center justify-center text-muted-foreground transition-colors hover:bg-[hsl(var(--foreground)/0.05)] hover:text-foreground"
           title={maximized ? 'Restore' : 'Maximize'}
         >
           {maximized ? <Copy className="h-3.5 w-3.5" /> : <Square className="h-3.5 w-3.5" />}
         </button>
         <button
           onClick={handleClose}
-          className="flex h-full w-11 items-center justify-center text-muted-foreground transition-colors hover:bg-destructive hover:text-destructive-foreground"
+          className="flex h-full w-10 items-center justify-center text-muted-foreground transition-colors hover:bg-destructive hover:text-destructive-foreground"
           title="Close"
         >
           <X className="h-4 w-4" />

@@ -84,8 +84,19 @@ type RegistryChannelType = keyof typeof CHANNEL_FIELD_REGISTRY;
 type EditorValue = string | boolean | number | string[];
 const FALLBACK_ACCOUNT_ID = 'default';
 
+const paneSurfaceClass = 'app-pane-surface min-w-0 rounded-[12px] border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] shadow-none';
 const selectedWorkbenchItemClass =
-  'border-primary/25 bg-primary/10 shadow-sm';
+  'border-transparent bg-[hsl(var(--foreground)/0.055)] text-foreground';
+const sectionCardClass = 'rounded-[11px] border border-[hsl(var(--border-subtle)/0.58)] bg-transparent shadow-none';
+const fieldCardClass = 'rounded-[10px] border border-[hsl(var(--border-subtle)/0.58)] bg-[hsl(var(--foreground)/0.018)] shadow-none';
+const searchFieldClass = 'h-9 rounded-full border border-transparent bg-[hsl(var(--foreground)/0.04)] pl-10 text-[13px] shadow-none placeholder:text-muted-foreground/52 hover:bg-[hsl(var(--foreground)/0.048)] focus-visible:border-[hsl(var(--border-strong)/0.46)] focus-visible:bg-[hsl(var(--surface-elevated)/0.98)] focus-visible:ring-0';
+const railRowClass = 'w-full rounded-[10px] border border-transparent px-2.5 py-2 text-left transition-colors';
+const railIconClass = 'flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-full border border-[hsl(var(--border-subtle)/0.8)] bg-[hsl(var(--foreground)/0.03)]';
+const sectionLabelClass = 'px-1 text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground/56';
+const headerTitleClass = 'text-[22px] font-semibold tracking-tight text-foreground md:text-[24px]';
+const headerSubtitleClass = 'mt-1 text-[12px] leading-5 text-foreground/58';
+const inspectorTitleClass = 'text-[15px] font-semibold text-foreground md:text-[16px]';
+const inspectorSubtitleClass = 'mt-1 text-[11px] leading-5 text-muted-foreground/76';
 
 function isRegistryChannelType(channelType: string): channelType is RegistryChannelType {
   return channelType in CHANNEL_FIELD_REGISTRY;
@@ -874,22 +885,22 @@ export function Channels() {
         data-testid="channels-shell"
         className="max-w-[1680px]"
       >
-        <div className="mb-8 flex shrink-0 flex-col justify-between gap-4 xl:mb-10 md:flex-row md:items-start">
+        <div className="mb-5 flex shrink-0 flex-col justify-between gap-3 md:flex-row md:items-center">
           <div>
-            <h1 className="mb-3 font-serif text-4xl font-normal tracking-tight text-foreground md:text-5xl xl:text-6xl" style={{ fontFamily: 'Georgia, Cambria, "Times New Roman", Times, serif' }}>
+            <h1 className={headerTitleClass}>
               {t('title')}
             </h1>
-            <p className="text-[17px] text-foreground/70 font-medium">
+            <p className={headerSubtitleClass}>
               {t('subtitle')}
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center justify-end gap-3 md:mt-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <Button
               variant="outline"
               onClick={handleRefresh}
               disabled={gatewayStatus.state !== 'running' || refreshing}
-              className="h-9 rounded-full px-4 text-[13px] font-medium text-foreground/80 shadow-none transition-colors hover:text-foreground"
+              className="h-8 rounded-[10px] px-3 text-[12px] font-medium text-foreground/80 shadow-none transition-colors hover:text-foreground"
             >
               <RefreshCw className={cn('mr-2 h-3.5 w-3.5', refreshing && 'animate-spin')} />
               {t('refresh')}
@@ -899,7 +910,7 @@ export function Channels() {
 
         <WorkspacePageScrollArea data-testid="channels-scroll-area">
           {gatewayStatus.state !== 'running' && (
-            <div className="mb-8 flex items-center gap-3 rounded-xl border border-[hsl(var(--warning))/0.28] bg-[hsl(var(--warning))/0.1] p-4 text-[hsl(var(--warning))]">
+            <div className="app-insight-surface mb-6 flex items-center gap-3 rounded-[11px] border border-[hsl(var(--warning))/0.14] px-3.5 py-2.5 text-[hsl(var(--warning))]">
               <AlertCircle className="h-5 w-5" />
               <span className="text-sm font-medium">
                 {t('gatewayWarning')}
@@ -908,7 +919,7 @@ export function Channels() {
           )}
 
           {error && (
-            <div className="mb-8 p-4 rounded-xl border border-destructive/50 bg-destructive/10 flex items-center gap-3">
+            <div className="app-insight-surface mb-6 flex items-center gap-3 rounded-[11px] border border-destructive/16 px-3.5 py-2.5">
               <AlertCircle className="h-5 w-5 text-destructive" />
               <span className="text-destructive text-sm font-medium">
                 {error}
@@ -917,7 +928,7 @@ export function Channels() {
           )}
 
           {!error && !runtimeAvailable && (
-            <div className="mb-8 rounded-xl border border-[hsl(var(--warning))/0.22] bg-[hsl(var(--warning))/0.08] p-4 text-sm text-[hsl(var(--warning))]">
+            <div className="app-insight-surface mb-6 rounded-[11px] border border-[hsl(var(--warning))/0.14] px-3.5 py-2.5 text-sm text-[hsl(var(--warning))]">
               {t('gatewayRuntimeUnavailable', { state: runtimeGatewayState })}
             </div>
           )}
@@ -927,16 +938,16 @@ export function Channels() {
             className="grid min-w-0 gap-5 xl:grid-cols-[minmax(320px,0.94fr)_minmax(540px,1.28fr)] min-[1440px]:grid-cols-[minmax(250px,0.9fr)_minmax(360px,1.08fr)_minmax(460px,1.32fr)]"
           >
             <div data-testid="channels-navigation-stack" className="grid min-w-0 gap-5 min-[1440px]:contents">
-              <section className="app-panel-surface min-w-0 rounded-[28px] p-3.5 xl:p-4">
+              <section className={cn(paneSurfaceClass, 'p-3')}>
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h2 className="text-sm font-semibold text-foreground">{t('supportedChannels')}</h2>
-                    <p className="mt-0.5 text-xs leading-5 text-muted-foreground">{t('availableDesc')}</p>
+                    <p className="mt-0.5 text-[11px] leading-5 text-muted-foreground/82">{t('availableDesc')}</p>
                   </div>
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-9 rounded-full px-3 text-xs text-foreground/80 shadow-none hover:text-foreground"
+                    className="h-8 rounded-[10px] px-3 text-[12px] text-foreground/78 shadow-none hover:text-foreground"
                     onClick={() => {
                       const nextChannel = unsupportedGroups[0] || allChannelTypes[0];
                       if (nextChannel) {
@@ -949,20 +960,20 @@ export function Channels() {
                   </Button>
                 </div>
 
-                <div className="relative mt-3">
+                <div className="relative mt-2">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/70" />
                   <Input
                     value={channelQuery}
                     onChange={(event) => setChannelQuery(event.target.value)}
                     placeholder={t('searchPlaceholder')}
-                    className="app-field-surface h-9 rounded-2xl pl-9 text-sm shadow-none"
+                    className={searchFieldClass}
                   />
                 </div>
 
                 <div className="mt-3 space-y-3">
                   {configuredFilteredChannelTypes.length > 0 && (
                     <div className="space-y-1.5">
-                      <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/80">
+                      <p className={sectionLabelClass}>
                         {t('configuredSection')}
                       </p>
                       {configuredFilteredChannelTypes.map((channelType) => {
@@ -976,20 +987,20 @@ export function Channels() {
                             data-testid={`channel-rail-item-${channelType}`}
                             aria-pressed={isSelected}
                             onClick={() => requestSelectionChange(channelType)}
-                            className={cn(
-                              'w-full rounded-2xl border px-3 py-2.5 text-left transition-all',
+                          className={cn(
+                              railRowClass,
                               isSelected
                                 ? selectedWorkbenchItemClass
-                                : 'border-transparent hover:border-border/70 hover:bg-accent/50',
+                                : 'hover:bg-[hsl(var(--foreground)/0.04)]',
                             )}
                           >
                             <div className="flex items-center gap-3">
-                              <div className="app-field-surface flex h-9 w-9 shrink-0 items-center justify-center rounded-full">
+                              <div className={railIconClass}>
                                 <ChannelLogo type={channelType} />
                               </div>
                               <div className="min-w-0 flex-1">
-                                <p className="truncate text-sm font-medium text-foreground">{meta.name}</p>
-                                <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                                <p className="truncate text-[13px] font-medium text-foreground">{meta.name}</p>
+                                <p className="mt-0.5 truncate text-[11px] text-muted-foreground/82">
                                   {`${group.accounts.length} · ${getRuntimeAwareStatusLabel(group.status, runtimeAvailable, t)} · ${group.enabled ? t('enabledLabel') : t('disabledLabel')}`}
                                 </p>
                               </div>
@@ -1006,7 +1017,7 @@ export function Channels() {
 
                   {unconfiguredFilteredChannelTypes.length > 0 && (
                     <div className="space-y-1.5">
-                      <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/80">
+                      <p className={sectionLabelClass}>
                         {t('availableSection')}
                       </p>
                       {unconfiguredFilteredChannelTypes.map((channelType) => {
@@ -1019,20 +1030,20 @@ export function Channels() {
                             data-testid={`channel-rail-item-${channelType}`}
                             aria-pressed={isSelected}
                             onClick={() => requestSelectionChange(channelType)}
-                            className={cn(
-                              'w-full rounded-2xl border px-3 py-2.5 text-left transition-all',
+                          className={cn(
+                              railRowClass,
                               isSelected
                                 ? selectedWorkbenchItemClass
-                                : 'border-transparent hover:border-border/70 hover:bg-accent/50',
+                                : 'hover:bg-[hsl(var(--foreground)/0.04)]',
                             )}
                           >
                             <div className="flex items-center gap-3">
-                              <div className="app-field-surface flex h-9 w-9 shrink-0 items-center justify-center rounded-full">
+                              <div className={railIconClass}>
                                 <ChannelLogo type={channelType} />
                               </div>
                               <div className="min-w-0 flex-1">
-                                <p className="truncate text-sm font-medium text-foreground">{meta.name}</p>
-                                <p className="mt-0.5 truncate text-xs text-muted-foreground">{t('available')}</p>
+                                <p className="truncate text-[13px] font-medium text-foreground">{meta.name}</p>
+                                <p className="mt-0.5 truncate text-[11px] text-muted-foreground/82">{t('available')}</p>
                               </div>
                               <div className="status-indicator status-indicator-idle h-2.5 w-2.5 shrink-0 rounded-full" />
                             </div>
@@ -1043,20 +1054,20 @@ export function Channels() {
                   )}
 
                   {filteredChannelTypes.length === 0 && (
-                    <div className="rounded-2xl border border-dashed border-border/70 px-3 py-4 text-xs text-muted-foreground">
+                    <div className="app-empty-surface rounded-[14px] px-3 py-4 text-xs text-muted-foreground">
                       {t('emptySearch')}
                     </div>
                   )}
                 </div>
               </section>
 
-              <section className="app-panel-surface min-w-0 rounded-[28px] p-4">
+              <section className={cn(paneSurfaceClass, 'p-3')}>
                 {selectedMeta && (
                   <>
                     <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                       <div className="min-w-0">
-                        <h2 className="text-sm font-semibold text-foreground">{selectedMeta.name}</h2>
-                        <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                        <h2 className="text-[14px] font-semibold text-foreground">{selectedMeta.name}</h2>
+                        <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82">
                           {selectedGroup
                             ? t('accountListSummary', { count: selectedGroup.accounts.length, default: selectedGroup.defaultAccountId })
                             : t('availableDesc')}
@@ -1070,7 +1081,7 @@ export function Channels() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="h-8 rounded-full px-3 text-xs text-foreground/80 shadow-none hover:text-foreground"
+                            className="h-7 rounded-[10px] px-3 text-[12px] text-foreground/80 shadow-none hover:text-foreground"
                             onClick={() => {
                               const nextAccountId = createNewAccountId(
                                 selectedGroup.channelType,
@@ -1092,7 +1103,7 @@ export function Channels() {
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="h-8 w-8 rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                            className="h-7 w-7 rounded-[10px] text-muted-foreground hover:bg-[hsl(var(--foreground)/0.05)] hover:text-destructive"
                             onClick={() => setDeleteTarget({ channelType: selectedGroup.channelType })}
                             title={t('account.deleteChannel')}
                           >
@@ -1124,10 +1135,10 @@ export function Channels() {
                                 }
                               }}
                               className={cn(
-                                'w-full rounded-2xl border px-4 py-4 text-left transition-all',
+                                'group w-full rounded-[10px] border px-3 py-2.5 text-left transition-colors',
                                 isSelected
                                   ? selectedWorkbenchItemClass
-                                  : 'app-field-surface hover:bg-accent/45',
+                                  : 'app-pane-surface hover:bg-[hsl(var(--foreground)/0.038)]',
                               )}
                             >
                               <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
@@ -1145,11 +1156,11 @@ export function Channels() {
                                       </Badge>
                                     )}
                                   </div>
-                                  <p className="mt-1 text-xs leading-5 text-muted-foreground">{t('account.idLabel', { id: account.accountId })}</p>
-                                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                                  <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82">{t('account.idLabel', { id: account.accountId })}</p>
+                                  <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82">
                                     {account.agentId ? t('account.boundTo', { agent: account.agentId }) : t('account.unassigned')}
                                   </p>
-                                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                                  <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82">
                                     {t('account.connectionStatusLabel', {
                                       status: getRuntimeAwareStatusLabel(account.status, runtimeAvailable, t),
                                     })}
@@ -1159,14 +1170,14 @@ export function Channels() {
                                   )}
                                 </div>
 
-                                <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+                                <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5 opacity-70 transition-opacity group-hover:opacity-100">
                                   <div className={cn('h-2.5 w-2.5 rounded-full', getRuntimeAwareStatusTone(account.status, runtimeAvailable))} />
                                   {!account.isDefault && (
                                     <Button
                                       type="button"
                                       size="sm"
                                       variant="outline"
-                                      className="h-8 rounded-full px-3 text-xs"
+                                      className="h-7 rounded-[10px] px-2.5 text-[11px]"
                                       onClick={(event) => {
                                         event.stopPropagation();
                                         void handleSetDefaultAccount(selectedGroup.channelType, account.accountId);
@@ -1179,7 +1190,7 @@ export function Channels() {
                                     type="button"
                                     size="icon"
                                     variant="ghost"
-                                    className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                    className="h-7 w-7 rounded-[9px] text-muted-foreground hover:text-destructive hover:bg-[hsl(var(--foreground)/0.05)]"
                                     onClick={(event) => {
                                       event.stopPropagation();
                                       setDeleteTarget({ channelType: selectedGroup.channelType, accountId: account.accountId });
@@ -1195,13 +1206,13 @@ export function Channels() {
                         })}
                       </div>
                     ) : (
-                      <div className="app-field-surface rounded-2xl border-dashed px-4 py-6">
+                      <div className="app-empty-surface rounded-[14px] px-4 py-5">
                         <p className="mb-1 text-sm font-medium text-foreground">{selectedMeta.name}</p>
-                        <p className="text-xs leading-5 text-muted-foreground">{t(selectedMeta.description.replace('channels:', ''))}</p>
+                        <p className="text-[11px] leading-5 text-muted-foreground/82">{t(selectedMeta.description.replace('channels:', ''))}</p>
                         <Button
                           size="sm"
                           variant="outline"
-                          className="mt-4 h-8 rounded-full px-3 text-xs text-foreground/80 shadow-none hover:text-foreground"
+                          className="mt-4 h-7 rounded-[10px] px-3 text-[12px] text-foreground/80 shadow-none hover:text-foreground"
                           onClick={() => {
                             if (!selectedChannelType) return;
                             void openConfigModal(selectedChannelType, {
@@ -1219,9 +1230,9 @@ export function Channels() {
               </section>
             </div>
 
-            <section className="app-panel-surface min-w-0 rounded-[28px] p-4">
+            <section className={cn(paneSurfaceClass, 'p-3')}>
               {!selectedMeta && (
-                <div className="rounded-2xl border border-dashed border-border/70 p-6 text-sm text-muted-foreground">
+                <div className="app-empty-surface rounded-[14px] p-5 text-sm text-muted-foreground">
                   {t('availableDesc')}
                 </div>
               )}
@@ -1230,13 +1241,13 @@ export function Channels() {
                 <div className="space-y-4">
                   <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                     <div>
-                      <h3 className="text-lg font-semibold text-foreground">{selectedMeta.name}</h3>
-                      <p className="mt-1 text-sm leading-6 text-muted-foreground">{t(selectedMeta.description.replace('channels:', ''))}</p>
+                      <h3 className={inspectorTitleClass}>{selectedMeta.name}</h3>
+                      <p className={inspectorSubtitleClass}>{t(selectedMeta.description.replace('channels:', ''))}</p>
                     </div>
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-8 rounded-full px-3 text-xs"
+                      className="h-8 rounded-[10px] px-3 text-[12px]"
                       onClick={() => openChannelDocs('whatsapp')}
                     >
                       <BookOpen className="mr-1 h-3.5 w-3.5" />
@@ -1251,7 +1262,7 @@ export function Channels() {
                         allowExistingConfig: true,
                       });
                     }}
-                    className="rounded-full"
+                    className="rounded-[10px]"
                   >
                     {t('dialog.generateQRCode')}
                   </Button>
@@ -1262,13 +1273,13 @@ export function Channels() {
                 <div className="space-y-4">
                   <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                     <div>
-                      <h3 className="text-lg font-semibold text-foreground">{selectedMeta.name}</h3>
-                      <p className="mt-1 text-sm leading-6 text-muted-foreground">{t(selectedMeta.description.replace('channels:', ''))}</p>
+                      <h3 className={inspectorTitleClass}>{selectedMeta.name}</h3>
+                      <p className={inspectorSubtitleClass}>{t(selectedMeta.description.replace('channels:', ''))}</p>
                     </div>
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-8 rounded-full px-3 text-xs"
+                      className="h-8 rounded-[10px] px-3 text-[12px]"
                       onClick={() => selectedChannelType && openChannelDocs(selectedChannelType)}
                     >
                       <BookOpen className="mr-1 h-3.5 w-3.5" />
@@ -1284,7 +1295,7 @@ export function Channels() {
                         allowExistingConfig: true,
                       });
                     }}
-                    className="rounded-full"
+                    className="rounded-[10px]"
                   >
                     {selectedGroup ? t('account.edit') : t('dialog.saveAndConnect')}
                   </Button>
@@ -1295,8 +1306,8 @@ export function Channels() {
                 <div className="flex min-h-[560px] flex-col">
                   <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                     <div>
-                      <h3 className="text-lg font-semibold text-foreground">{selectedMeta.name}</h3>
-                      <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                      <h3 className={inspectorTitleClass}>{selectedMeta.name}</h3>
+                      <p className={inspectorSubtitleClass}>
                         {selectedAccount
                           ? t('account.idLabel', { id: selectedAccount.accountId })
                           : t(selectedMeta.description.replace('channels:', ''))}
@@ -1306,7 +1317,7 @@ export function Channels() {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-8 rounded-full px-3 text-xs"
+                        className="h-8 rounded-[10px] px-3 text-[12px]"
                         onClick={() => {
                           if (!selectedChannelType) return;
                           void openConfigModal(selectedChannelType, {
@@ -1320,7 +1331,7 @@ export function Channels() {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-8 rounded-full px-3 text-xs"
+                        className="h-8 rounded-[10px] px-3 text-[12px]"
                         onClick={() => selectedChannelType && openChannelDocs(selectedChannelType)}
                       >
                         <BookOpen className="mr-1 h-3.5 w-3.5" />
@@ -1334,15 +1345,15 @@ export function Channels() {
                     data-testid="channels-editor-scroll"
                     className={cn('mt-5 flex-1 space-y-4 overflow-y-auto pr-2', editorScrollbarClass)}
                   >
-                    <div className="app-panel-surface-elevated rounded-2xl p-5">
+                    <div className={sectionCardClass}>
                       <div className="mb-4">
-                        <p className="text-sm font-semibold text-foreground">{t('editor.basicTitle')}</p>
-                        <p className="mt-1 text-xs leading-5 text-muted-foreground">{t('editor.basicDesc')}</p>
+                        <p className="text-[13px] font-semibold text-foreground">{t('editor.basicTitle')}</p>
+                        <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82">{t('editor.basicDesc')}</p>
                       </div>
                       <div data-testid="channel-basic-fields-grid" className="grid gap-3 xl:grid-cols-2">
                         <div
                           data-testid="channel-account-id-card"
-                          className="app-field-surface rounded-2xl px-4 py-3 xl:col-span-2"
+                          className={cn(fieldCardClass, 'px-4 py-3 xl:col-span-2')}
                         >
                           <div className="flex flex-wrap items-center gap-2">
                             <Label htmlFor="channel-account-id" className="text-xs font-medium text-foreground/80">
@@ -1354,7 +1365,7 @@ export function Channels() {
                               </Badge>
                             )}
                           </div>
-                          <p className="mt-1 text-xs leading-5 text-muted-foreground line-clamp-2" title={t('account.renameHint')}>
+                          <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82 line-clamp-2" title={t('account.renameHint')}>
                             {t('account.renameHint')}
                           </p>
                           <Input
@@ -1363,7 +1374,7 @@ export function Channels() {
                             disabled={editorLoading || editorSaving}
                             onChange={(event) => setAccountIdDraft(event.target.value)}
                             placeholder={t('account.customIdPlaceholder')}
-                            className="app-field-surface mt-3 h-9 rounded-2xl text-[13px] shadow-none"
+                            className="app-field-surface mt-3 h-9 rounded-[10px] border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] text-[13px] shadow-none"
                           />
                         </div>
                         {selectedRegistry.basicFields.map((field) => (
@@ -1379,16 +1390,16 @@ export function Channels() {
                       </div>
                     </div>
 
-                    <div className="app-panel-surface-elevated rounded-2xl p-5">
+                    <div className={sectionCardClass}>
                       <div className="mb-4">
-                        <p className="text-sm font-semibold text-foreground">{t('editor.behaviorTitle')}</p>
-                        <p className="mt-1 text-xs leading-5 text-muted-foreground">{t('editor.behaviorDesc')}</p>
+                        <p className="text-[13px] font-semibold text-foreground">{t('editor.behaviorTitle')}</p>
+                        <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82">{t('editor.behaviorDesc')}</p>
                       </div>
                       <div className="space-y-4">
-                        <div className="app-field-surface grid gap-3 rounded-2xl px-4 py-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
+                        <div className={cn(fieldCardClass, 'grid gap-3 px-3.5 py-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start')}>
                           <div className="min-w-0">
-                            <Label className="text-sm font-medium text-foreground">{t('dialog.enableChannel')}</Label>
-                            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                            <Label className="text-[12px] font-medium text-foreground">{t('dialog.enableChannel')}</Label>
+                            <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82">
                               {selectedGroup?.enabled ? t('enabledLabel') : t('disabledLabel')}
                             </p>
                           </div>
@@ -1403,12 +1414,12 @@ export function Channels() {
                           />
                         </div>
 
-                        <div className="app-field-surface grid gap-3 rounded-2xl px-4 py-3 md:grid-cols-[minmax(0,1fr)_minmax(220px,240px)] md:items-start">
+                        <div className={cn(fieldCardClass, 'grid gap-3 px-3.5 py-3 md:grid-cols-[minmax(0,1fr)_minmax(220px,240px)] md:items-start')}>
                           <div className="min-w-0">
-                            <Label htmlFor="channel-account-agent" className="text-sm font-medium text-foreground">
+                            <Label htmlFor="channel-account-agent" className="text-[12px] font-medium text-foreground">
                               {t('account.bindAgentLabel')}
                             </Label>
-                            <p className="mt-1 text-xs leading-5 text-muted-foreground line-clamp-2">
+                            <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82 line-clamp-2">
                               {selectedAccount?.agentId || t('account.unassigned')}
                             </p>
                           </div>
@@ -1427,7 +1438,7 @@ export function Channels() {
                                 label: agent.name,
                               })),
                             ]}
-                            className="app-field-surface h-9 w-full max-w-full rounded-2xl text-[13px] shadow-none"
+                            className="app-field-surface h-9 w-full max-w-full rounded-[10px] text-[13px] shadow-none"
                           />
                         </div>
                       </div>
@@ -1475,7 +1486,7 @@ export function Channels() {
 
                     {editorValidation && (
                       <div className={cn(
-                        'rounded-2xl border px-4 py-3 text-sm',
+                        'rounded-[12px] border px-4 py-3 text-sm',
                         editorValidation.valid
                           ? 'border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300'
                           : 'border-destructive/30 bg-destructive/10 text-destructive',
@@ -1502,7 +1513,7 @@ export function Channels() {
                     <Button
                       type="button"
                       variant="outline"
-                      className="h-9 rounded-full px-4 text-xs"
+                      className="h-8 rounded-[10px] px-3 text-[12px]"
                       disabled={editorLoading || editorValidating || editorSaving}
                       onClick={() => {
                         void handleValidateConfig();
@@ -1512,7 +1523,7 @@ export function Channels() {
                     </Button>
                     <Button
                       type="button"
-                      className="h-9 rounded-full px-4 text-xs"
+                      className="h-8 rounded-[10px] px-3 text-[12px]"
                       disabled={editorLoading || editorSaving}
                       onClick={() => {
                         void handleSaveInlineConfig();
@@ -1597,20 +1608,20 @@ function ChannelEditorSection({
     <details
       open={open}
       onToggle={(event) => setOpen(event.currentTarget.open)}
-      className="app-panel-surface-elevated rounded-2xl px-4 py-3"
+      className="rounded-[11px] border border-[hsl(var(--border-subtle)/0.58)] bg-transparent px-3.25 py-3 shadow-none"
     >
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-foreground">{title}</p>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground line-clamp-2" title={subtitle}>{subtitle}</p>
+          <p className="text-[13px] font-semibold text-foreground">{title}</p>
+          <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82 line-clamp-2" title={subtitle}>{subtitle}</p>
         </div>
         {badge && (
-          <Badge variant="secondary" className="h-6 rounded-full px-2 text-[10px] shadow-none">
+          <Badge variant="secondary" className="h-5 rounded-full px-1.5 text-[10px] shadow-none">
             {badge}
           </Badge>
         )}
       </summary>
-      <div className="mt-4 grid gap-4">{children}</div>
+      <div className="mt-3.5 grid gap-3.5">{children}</div>
     </details>
   );
 }
@@ -1645,11 +1656,11 @@ function ChannelFieldEditor({
 
   if (field.type === 'boolean') {
     return (
-      <div className="app-field-surface rounded-2xl px-4 py-3">
+      <div className="rounded-[10px] border border-[hsl(var(--border-subtle)/0.58)] bg-[hsl(var(--foreground)/0.018)] px-3.25 py-3 shadow-none">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1 space-y-1">
-            <Label className="text-xs font-medium text-foreground/80">{label}</Label>
-            {description && <p className="text-xs leading-5 text-muted-foreground line-clamp-2" title={description}>{description}</p>}
+            <Label className="text-[11px] font-medium text-foreground/78">{label}</Label>
+            {description && <p className="text-[11px] leading-5 text-muted-foreground/82 line-clamp-2" title={description}>{description}</p>}
           </div>
           {defaultBadgeLabel && (
             <span
@@ -1670,10 +1681,10 @@ function ChannelFieldEditor({
   }
 
   return (
-    <div className="app-field-surface space-y-1.5 rounded-2xl px-4 py-3">
+    <div className="space-y-1.5 rounded-[10px] border border-[hsl(var(--border-subtle)/0.58)] bg-[hsl(var(--foreground)/0.018)] px-3.25 py-3 shadow-none">
       <div data-testid={`channel-field-header-${field.key}`}>
         <div className="flex items-start justify-between gap-3">
-          <Label htmlFor={inputId} className="min-w-0 flex-1 text-xs font-medium text-foreground/80">{label}</Label>
+          <Label htmlFor={inputId} className="min-w-0 flex-1 text-[11px] font-medium text-foreground/78">{label}</Label>
           {defaultBadgeLabel && (
             <span
               className="max-w-[11rem] truncate rounded-full bg-secondary/80 px-2 py-1 text-[10px] font-medium text-muted-foreground"
@@ -1683,7 +1694,7 @@ function ChannelFieldEditor({
             </span>
           )}
         </div>
-        {description && <p className="text-xs leading-5 text-muted-foreground line-clamp-2" title={description}>{description}</p>}
+        {description && <p className="text-[11px] leading-5 text-muted-foreground/82 line-clamp-2" title={description}>{description}</p>}
       </div>
 
       {field.type === 'select' ? (
@@ -1698,7 +1709,7 @@ function ChannelFieldEditor({
             value: option.value,
             label: resolveTranslationText(t, option.label),
           }))}
-          className="app-field-surface h-9 rounded-2xl text-[13px] shadow-none"
+          className="app-field-surface h-9 rounded-[10px] border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] text-[13px] shadow-none"
         />
       ) : field.type === 'array' ? (
         <Input
@@ -1715,7 +1726,7 @@ function ChannelFieldEditor({
             )
           }
           placeholder={placeholder}
-          className="app-field-surface h-9 rounded-2xl text-[13px] shadow-none"
+          className="app-field-surface h-9 rounded-[10px] border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] text-[13px] shadow-none"
         />
       ) : field.type === 'number' ? (
         <Input
@@ -1725,7 +1736,7 @@ function ChannelFieldEditor({
           disabled={disabled}
           onChange={(event) => onChange(event.target.value === '' ? '' : Number(event.target.value))}
           placeholder={placeholder}
-          className="app-field-surface h-9 rounded-2xl text-[13px] shadow-none"
+          className="app-field-surface h-9 rounded-[10px] border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] text-[13px] shadow-none"
         />
       ) : (
         <Input
@@ -1735,7 +1746,7 @@ function ChannelFieldEditor({
           disabled={disabled}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
-          className="app-field-surface h-9 rounded-2xl text-[13px] shadow-none"
+          className="app-field-surface h-9 rounded-[10px] border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] text-[13px] shadow-none"
         />
       )}
     </div>

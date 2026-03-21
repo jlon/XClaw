@@ -111,7 +111,7 @@ function TakeoverStartContent({
         </div>
       </div>
 
-      <div className="rounded-3xl border border-border/70 app-panel-surface p-5">
+      <div className="rounded-[20px] app-insight-surface p-5">
         <div className="space-y-1">
           <h3 className="text-lg font-semibold">
             {mode === 'takeover' ? t('takeover.mode.takeoverTitle') : t('takeover.mode.freshTitle')}
@@ -169,7 +169,7 @@ function TakeoverStartContent({
       </div>
 
       {activePlan?.blockingIssues?.length ? (
-        <div className="rounded-2xl border border-red-500/20 bg-[hsl(var(--danger)/0.08)] p-4">
+        <div className="rounded-[18px] border border-red-500/20 bg-[hsl(var(--danger)/0.08)] p-4">
           <div className="font-medium text-destructive">
             {mode === 'takeover' ? t('takeover.blockingTitle') : t('takeover.mode.freshBlockingTitle')}
           </div>
@@ -182,7 +182,7 @@ function TakeoverStartContent({
       ) : null}
 
       {warnings.length ? (
-        <div className="rounded-2xl border border-amber-500/20 bg-[hsl(var(--warning)/0.08)] p-4">
+        <div className="rounded-[18px] border border-amber-500/20 bg-[hsl(var(--warning)/0.08)] p-4">
           <div className="font-medium text-amber-700 dark:text-amber-100">
             {mode === 'takeover' ? t('takeover.warningsTitle') : t('takeover.mode.freshWarningsTitle')}
           </div>
@@ -195,13 +195,13 @@ function TakeoverStartContent({
       ) : null}
 
       {status?.error ? (
-        <div className="rounded-2xl border border-red-500/20 bg-[hsl(var(--danger)/0.08)] p-4 text-sm leading-6 text-destructive">
+        <div className="rounded-[18px] border border-red-500/20 bg-[hsl(var(--danger)/0.08)] p-4 text-sm leading-6 text-destructive">
           {status.error}
         </div>
       ) : null}
 
       {submitting ? (
-        <div className="rounded-2xl border border-primary/20 app-panel-surface p-4">
+        <div className="rounded-[18px] border border-primary/18 app-insight-surface p-4">
           <div className="flex items-center gap-2 text-sm font-medium text-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
             {t('takeover.running')}

@@ -48,20 +48,20 @@ type ControlUiInfo = {
 };
 
 const settingsSectionClass =
-  'space-y-6 rounded-[28px] border border-border/70 bg-[hsl(var(--surface-panel)/0.9)] p-5 md:p-6 shadow-[0_14px_36px_rgba(43,28,20,0.08)]';
+  'space-y-6 rounded-[20px] app-insight-surface p-5 md:p-6';
 const settingsSubPanelClass =
-  'rounded-2xl border border-border/70 bg-[hsl(var(--surface-base)/0.92)] p-4 shadow-sm';
+  'rounded-[16px] border border-border/70 bg-[hsl(var(--surface-base)/0.98)] p-4';
 const settingsHeadingClass = 'text-[28px] md:text-[30px] font-semibold tracking-tight text-foreground';
 const settingsLabelClass = 'text-[15px] font-medium text-foreground/85';
 const settingsHintClass = 'text-[13px] text-muted-foreground';
 const settingsPillClass =
-  'rounded-full px-5 h-10 border border-border/70 bg-[hsl(var(--surface-base)/0.95)] shadow-sm';
+  'rounded-full px-5 h-10 border border-border/70 bg-[hsl(var(--surface-base)/0.98)] shadow-none';
 const settingsPillActiveClass =
   'bg-[hsl(var(--accent)/0.16)] text-foreground border-[hsl(var(--accent)/0.22)]';
 const settingsPillIdleClass =
   'bg-transparent text-muted-foreground hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground';
 const settingsInputClass =
-  'h-10 rounded-xl border-border/70 bg-[hsl(var(--surface-base)/0.96)] font-mono text-[13px] text-foreground shadow-sm placeholder:text-muted-foreground';
+  'h-10 rounded-[11px] border-border/70 bg-[hsl(var(--surface-panel)/0.98)] font-mono text-[13px] text-foreground shadow-none placeholder:text-muted-foreground';
 const settingsGhostButtonClass =
   'rounded-full border-border/70 bg-transparent hover:bg-[hsl(var(--surface-hover)/0.9)]';
 
@@ -289,7 +289,7 @@ export function Settings() {
   };
 
   useEffect(() => {
-    const unsubscribe = window.electron.ipcRenderer.on(
+    const unsubscribe = window.electron?.ipcRenderer?.on(
       'openclaw:cli-installed',
       (...args: unknown[]) => {
         const installedPath = typeof args[0] === 'string' ? args[0] : '';
