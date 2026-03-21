@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { ChatInput } from '@/pages/Chat/ChatInput';
 
-const { agentsState, chatState, gatewayState, gatewayRpcMock } = vi.hoisted(() => ({
+const { agentsState, chatState, gatewayState, gatewayRpcMock, hostApiFetchMock } = vi.hoisted(() => ({
   agentsState: {
     agents: [] as Array<Record<string, unknown>>,
   },
@@ -17,6 +17,7 @@ const { agentsState, chatState, gatewayState, gatewayRpcMock } = vi.hoisted(() =
     rpc: vi.fn(),
   },
   gatewayRpcMock: vi.fn(),
+  hostApiFetchMock: vi.fn(),
 }));
 
 vi.mock('@/stores/agents', () => ({
@@ -32,7 +33,7 @@ vi.mock('@/stores/gateway', () => ({
 }));
 
 vi.mock('@/lib/host-api', () => ({
-  hostApiFetch: vi.fn(),
+  hostApiFetch: hostApiFetchMock,
 }));
 
 vi.mock('@/lib/api-client', () => ({
@@ -100,6 +101,8 @@ describe('ChatInput agent targeting', () => {
     gatewayState.status = { state: 'running', port: 18789 };
     gatewayState.rpc = gatewayRpcMock;
     gatewayRpcMock.mockReset();
+    hostApiFetchMock.mockReset();
+    hostApiFetchMock.mockResolvedValue([]);
   });
 
   it('hides the @agent picker when only one agent is configured', () => {
@@ -250,5 +253,91 @@ describe('ChatInput agent targeting', () => {
     });
 
     expect(chatState.setSessionModel).toHaveBeenCalledWith('openai/gpt-5.4');
+  });
+
+  it('keeps the custom provider model searchable, pinned, and human-readable in the picker', async () => {
+    gatewayRpcMock.mockResolvedValue({
+      models: [
+        { id: '998/gpt-4.1' },
+        { id: '998/gpt-5.4' },
+      ],
+    });
+    hostApiFetchMock.mockImplementation(async (path: string) => {
+      if (path === '/api/provider-accounts') {
+        return [
+          {
+            id: 'custom-custom01',
+            vendorId: 'custom',
+            label: '998',
+            runtimeKey: '998',
+            authMode: 'api_key',
+            baseUrl: 'https://9985678.xyz/v1',
+            apiProtocol: 'openai-completions',
+            model: 'gpt-5.4',
+            enabled: true,
+            isDefault: false,
+            createdAt: '2026-03-21T04:34:34.053Z',
+            updatedAt: '2026-03-21T04:34:34.053Z',
+          },
+        ];
+      }
+      return [];
+    });
+    agentsState.agents = [
+      {
+        id: 'main',
+        name: 'Main',
+        isDefault: true,
+        modelDisplay: 'GPT-5.4',
+        inheritedModel: true,
+        workspace: '~/.openclaw/workspace',
+        agentDir: '~/.openclaw/agents/main/agent',
+        mainSessionKey: 'agent:main:main',
+        channelTypes: [],
+      },
+    ];
+
+    render(<ChatInput onSend={vi.fn()} />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('chat-model-trigger'));
+    });
+
+    const search = await screen.findByRole('textbox', { name: 'composer.modelPickerSearchLabel' });
+    await waitFor(() => {
+      expect(screen.getByText('gpt-5.4')).toBeInTheDocument();
+      expect(screen.getByText('998 · gpt-5.4')).toBeInTheDocument();
+    });
+
+    const beforeSearchItems = screen
+      .getAllByRole('button')
+      .map((button) => button.textContent?.replace(/\s+/g, ' ').trim() ?? '')
+      .filter((text) => text.includes('gpt-'));
+
+    expect(beforeSearchItems[0]).toContain('gpt-5.4');
+    expect(beforeSearchItems[0]).toContain('998 · gpt-5.4');
+    expect(beforeSearchItems[0]).not.toContain('998 · 998/gpt-5.4');
+    expect(beforeSearchItems[0]).not.toContain('custom-custom01');
+    expect(beforeSearchItems[1]).toContain('gpt-4.1');
+    expect(beforeSearchItems[1]).toContain('998 · gpt-4.1');
+    expect(beforeSearchItems[1]).not.toContain('custom-custom01');
+
+    fireEvent.change(search, { target: { value: '998' } });
+
+    const afterSearchItems = screen
+      .getAllByRole('button')
+      .map((button) => button.textContent?.replace(/\s+/g, ' ').trim() ?? '')
+      .filter((text) => text.includes('gpt-'));
+
+    expect(afterSearchItems[0]).toContain('gpt-5.4');
+    expect(afterSearchItems[0]).toContain('998 · gpt-5.4');
+    expect(afterSearchItems[0]).not.toContain('998 · 998/gpt-5.4');
+    expect(afterSearchItems[0]).not.toContain('custom-custom01');
+    expect(afterSearchItems[1]).toContain('gpt-4.1');
+    expect(afterSearchItems[1]).toContain('998 · gpt-4.1');
+    expect(afterSearchItems[1]).not.toContain('custom-custom01');
+    expect(screen.queryByText('998 · 998/gpt-5.4')).not.toBeInTheDocument();
+    expect(screen.queryByText(/custom-custom01/i)).not.toBeInTheDocument();
+    expect(screen.queryByText('No matching models')).not.toBeInTheDocument();
   });
 });

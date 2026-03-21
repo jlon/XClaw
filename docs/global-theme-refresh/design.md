@@ -278,14 +278,28 @@
 - 任何新的品牌 glow、透明度和阴影都必须先经过深浅双端校验，再进入共享样式
 - 首页插画和功能卡片如果明显拖后腿，允许在试点阶段替换，但不能让插画资产反向绑架主题系统
 
-### 7. 快速示意说明
+### 7. 开发闭环准则
+
+这次暴露出来的问题说明，主题文档不仅要约束视觉，也要约束开发流程本身。后续所有相关工作必须遵守以下硬规则：
+
+- 只能把 `/Users/jianglong/workspace/XClaw` 作为唯一工作树，不能把旁路备份目录、临时目录或其他仓库视作有效修改对象
+- 每次声称“闭环”“完成”“已修复”之前，必须同时核对 `provider store`、`~/.openclaw/openclaw.json`、`CLI/runtime`、`UI` 四层是否一致
+- 只能修搜索或 UI 作为表层现象，不允许用局部界面改动掩盖 `runtime` 身份错误、配置漂移或 provider 同步失败
+- 只有当工作树与运行树一致时，才允许宣称完成；如果两者不一致，任何验收结论都不成立
+- 若四层核对里有任一层不一致，必须先修正身份与配置链路，再讨论 UI 呈现或搜索结果
+- 这类问题的判断标准必须以真实运行证据为准，不允许凭页面视觉“看起来正常”就下结论
+- 任何涉及 `provider`、`runtimeKey`、`model ref` 的修改，都必须额外核对这四件事是否同一套事实：`provider store`、`~/.openclaw/openclaw.json`、`openclaw models list`、聊天模型选择器
+- 这类问题的测试口径必须与真实 UI 口径一致：展示层看 `label/hint`，运行层看 `qualified ref`，禁止再用旧的全量 ref 文本去断言新的 UI 展示
+- `takeover reconciler` 这类启动同步链只能按 `runtime provider key` 合并已有 richer account，不能再用 runtime 的降维视图直接整库覆盖 `provider store`
+
+### 8. 快速示意说明
 
 - 文件：`preview-red-copper.html`
 - 文件：`preview-red-copper-light.html`
 - 作用：独立预览首页式工作区、侧栏、卡片、命令输入区和状态点
 - 目标：让“统一品牌主题 + 科技感 + 桌面感”先在深色与浅色两端都有直观看板
 
-### 8. 发布说明
+### 9. 发布说明
 
 本设计稿确认后，下一步不直接全局硬改，而是：
 

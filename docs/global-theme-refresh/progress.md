@@ -19,6 +19,9 @@
 - [x] 完成 `Setup` 结构级 review，并输出标准桌面引导页重构设计
 - [x] 将 `Setup` 推进到四阶段桌面向导骨架，并完成 `start / preparation` 阶段抽离
 - [x] 完成 `Setup` 结构级重构、主 CTA 契约收口、国际化补齐和自动化回归
+- [x] 补充开发闭环准则：唯一工作树、四层一致性核对、禁止用 UI 修补掩盖 runtime 身份错误
+- [x] 将 `custom provider / runtimeKey / model ref` 问题纳入额外闭环要求：必须同时核对 `provider store`、`~/.openclaw/openclaw.json`、`openclaw models list` 与聊天模型选择器，且测试口径必须与 UI 展示口径一致
+- [x] 修复 `takeover reconciler` 会用 runtime 降维视图覆盖 custom provider richer account 的问题，启动后不再把 `998 + runtimeKey=998 + model=gpt-5.4` 回写坏
 
 ## 当前落地结果
 
@@ -68,6 +71,7 @@
 - 代码改造已覆盖全局主题入口、应用外壳、共享控件、`Chat / Channels / Settings / Models / Agents / Skills / Cron / Setup`
 - 自动化验证已覆盖主题、布局、`Setup` 向导和构建链，当前可以认为“代码与自动化回归已闭环”
 - 本特性暂时不宣称“最终验收完成”，因为 `mac / Windows` 真机手工 smoke 还没完成，首页/欢迎态资产也仍在观察范围
+- 任何后续“已完成”表述，都必须先确认工作树与运行树一致，并核对 `provider store`、`~/.openclaw/openclaw.json`、`CLI/runtime`、`UI` 四层状态一致；否则只能算未闭环
 
 ## 下一步
 

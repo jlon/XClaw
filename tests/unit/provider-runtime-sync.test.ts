@@ -63,6 +63,7 @@ vi.mock('@electron/utils/logger', () => ({
 import {
   syncDefaultProviderToRuntime,
   syncDeletedProviderToRuntime,
+  syncAllProviderAuthToRuntime,
   syncSavedProviderToRuntime,
 } from '@electron/services/providers/provider-runtime-sync';
 
@@ -131,5 +132,49 @@ describe('provider-runtime-sync refresh strategy', () => {
 
   it('does nothing when no runtime controller is available', async () => {
     await syncDefaultProviderToRuntime('moonshot', undefined);
+  });
+
+  it('replays saved provider configs during startup auth sync so model allowlists self-heal', async () => {
+    mocks.listProviderAccounts.mockResolvedValue([
+      {
+        id: 'custom-014df125-c7e1-49f3-a97d-6a9ee685fbcc',
+        label: '998',
+        runtimeKey: '998',
+        vendorId: 'custom',
+        authMode: 'api_key',
+        baseUrl: 'https://9985678.xyz/v1',
+        apiProtocol: 'openai-completions',
+        model: 'gpt-5.4',
+        enabled: true,
+        createdAt: '2026-03-21T04:34:34.053Z',
+        updatedAt: '2026-03-21T04:34:34.053Z',
+      },
+    ]);
+    mocks.getProviderSecret.mockResolvedValue({
+      type: 'api_key',
+      apiKey: 'sk-998',
+    });
+    mocks.getProviderConfig.mockReturnValue({
+      api: 'openai-completions',
+      baseUrl: undefined,
+    });
+
+    await syncAllProviderAuthToRuntime();
+
+    expect(mocks.saveProviderKeyToOpenClaw).toHaveBeenCalledWith('998', 'sk-998');
+    expect(mocks.syncProviderConfigToOpenClaw).toHaveBeenCalledWith(
+      '998',
+      'gpt-5.4',
+      expect.objectContaining({
+        baseUrl: 'https://9985678.xyz/v1',
+        api: 'openai-completions',
+      }),
+    );
+    expect(mocks.updateAgentModelProvider).toHaveBeenCalledWith(
+      '998',
+      expect.objectContaining({
+        models: [{ id: 'gpt-5.4', name: 'gpt-5.4' }],
+      }),
+    );
   });
 });

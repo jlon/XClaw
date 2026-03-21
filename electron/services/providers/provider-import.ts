@@ -6,8 +6,9 @@ import type {
   ProviderSecret,
   ProviderType,
 } from '../../shared/providers/types';
-import { replaceImportedProviderAccounts } from './provider-store';
+import { listProviderAccounts, replaceImportedProviderAccounts } from './provider-store';
 import { replaceImportedProviderSecrets } from '../secrets/secret-store';
+import { getOpenClawProviderKeyForType } from '../../utils/provider-keys';
 
 type AuthProfileEntryApiKey = {
   type: 'api_key';
@@ -315,11 +316,13 @@ const buildAccount = (options: {
   const definition = getProviderDefinition(options.vendorId);
   const protocol = options.runtimeConfig?.api ?? options.runtimeConfig?.apiProtocol ?? definition?.providerConfig?.api;
   const baseUrl = options.runtimeConfig?.baseUrl ?? definition?.providerConfig?.baseUrl ?? definition?.defaultBaseUrl;
+  const isCustomProjection = options.vendorId === 'custom';
 
   return {
     id: options.runtimeProviderKey,
     vendorId: options.vendorId,
-    label: definition?.name ?? options.runtimeProviderKey,
+    label: isCustomProjection ? options.runtimeProviderKey : (definition?.name ?? options.runtimeProviderKey),
+    runtimeKey: isCustomProjection ? options.runtimeProviderKey : undefined,
     authMode: options.authMode,
     baseUrl,
     apiProtocol: protocol,
@@ -336,6 +339,59 @@ const buildAccount = (options: {
     updatedAt: options.now,
   };
 };
+
+function mergeImportedAccounts(
+  importedAccounts: ProviderAccount[],
+  existingAccounts: ProviderAccount[],
+  defaultAccountId: string | null,
+): {
+  accounts: ProviderAccount[];
+  defaultAccountId: string | null;
+  accountIdMap: Map<string, string>;
+} {
+  const existingByRuntimeKey = new Map(
+    existingAccounts.map((account) => [
+      getOpenClawProviderKeyForType(account.vendorId, account.id, account.runtimeKey),
+      account,
+    ]),
+  );
+  const accountIdMap = new Map<string, string>();
+
+  const accounts = importedAccounts.map((account) => {
+    const runtimeProviderKey = getOpenClawProviderKeyForType(account.vendorId, account.id, account.runtimeKey);
+    const existing = existingByRuntimeKey.get(runtimeProviderKey);
+    if (!existing) {
+      accountIdMap.set(account.id, account.id);
+      return account;
+    }
+
+    accountIdMap.set(account.id, existing.id);
+    return {
+      ...account,
+      id: existing.id,
+      label: existing.label || account.label,
+      runtimeKey: existing.runtimeKey ?? account.runtimeKey,
+      model: existing.model ?? account.model,
+      fallbackModels: existing.fallbackModels ?? account.fallbackModels,
+      fallbackAccountIds: existing.fallbackAccountIds ?? account.fallbackAccountIds,
+      createdAt: existing.createdAt || account.createdAt,
+      metadata: existing.metadata ?? account.metadata,
+    };
+  });
+
+  const resolvedDefaultAccountId = defaultAccountId
+    ? (accountIdMap.get(defaultAccountId) ?? defaultAccountId)
+    : null;
+
+  return {
+    accounts: accounts.map((account) => ({
+      ...account,
+      isDefault: account.id === resolvedDefaultAccountId,
+    })),
+    defaultAccountId: resolvedDefaultAccountId,
+    accountIdMap,
+  };
+}
 
 export const buildImportedProviderState = (
   options: BuildImportedProviderStateOptions,
@@ -429,6 +485,13 @@ export const buildImportedProviderState = (
 export const applyImportedProviderState = async (
   imported: ImportedProviderState,
 ): Promise<void> => {
-  await replaceImportedProviderAccounts(imported.accounts, imported.defaultAccountId);
-  await replaceImportedProviderSecrets(imported.secrets);
+  const existingAccounts = await listProviderAccounts();
+  const merged = mergeImportedAccounts(imported.accounts, existingAccounts, imported.defaultAccountId);
+  await replaceImportedProviderAccounts(merged.accounts, merged.defaultAccountId);
+  await replaceImportedProviderSecrets(
+    imported.secrets.map((secret) => ({
+      ...secret,
+      accountId: merged.accountIdMap.get(secret.accountId) ?? secret.accountId,
+    })),
+  );
 };

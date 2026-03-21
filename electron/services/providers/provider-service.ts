@@ -29,7 +29,11 @@ import {
   storeApiKey,
 } from '../../utils/secure-storage';
 import { getActiveOpenClawProviders } from '../../utils/openclaw-auth';
-import { getOpenClawProviderKeyForType } from '../../utils/provider-keys';
+import {
+  getLegacyDerivedProviderKey,
+  getOpenClawProviderKeyForType,
+  normalizeProviderRuntimeKey,
+} from '../../utils/provider-keys';
 import type { ProviderWithKeyInfo } from '../../shared/providers/types';
 import { logger } from '../../utils/logger';
 
@@ -53,6 +57,38 @@ function logLegacyProviderApiUsage(method: string, replacement: string): void {
   );
 }
 
+function resolvePreferredRuntimeKey(
+  account: ProviderAccount,
+  existingAccounts: ProviderAccount[],
+  currentAccountId?: string,
+): string | undefined {
+  if (account.vendorId !== 'custom' && account.vendorId !== 'ollama') {
+    return undefined;
+  }
+
+  const usedRuntimeKeys = new Set(
+    existingAccounts
+      .filter((candidate) => candidate.id !== currentAccountId)
+      .map((candidate) => getOpenClawProviderKeyForType(candidate.vendorId, candidate.id, candidate.runtimeKey)),
+  );
+  const explicitRuntimeKey = normalizeProviderRuntimeKey(account.vendorId, account.runtimeKey);
+  if (explicitRuntimeKey && !usedRuntimeKeys.has(explicitRuntimeKey)) {
+    return explicitRuntimeKey;
+  }
+
+  const labelDerivedRuntimeKey = normalizeProviderRuntimeKey(account.vendorId, account.label);
+  if (labelDerivedRuntimeKey && !usedRuntimeKeys.has(labelDerivedRuntimeKey)) {
+    return labelDerivedRuntimeKey;
+  }
+
+  const legacyRuntimeKey = getLegacyDerivedProviderKey(account.vendorId, account.id);
+  if (account.runtimeKey && account.runtimeKey === legacyRuntimeKey) {
+    return undefined;
+  }
+
+  return account.runtimeKey;
+}
+
 export class ProviderService {
   async listVendors(): Promise<ProviderDefinition[]> {
     return PROVIDER_DEFINITIONS;
@@ -71,7 +107,7 @@ export class ProviderService {
 
       for (const account of accounts) {
         const isBuiltin = (BUILTIN_PROVIDER_TYPES as readonly string[]).includes(account.vendorId);
-        const openClawKey = getOpenClawProviderKeyForType(account.vendorId, account.id);
+        const openClawKey = getOpenClawProviderKeyForType(account.vendorId, account.id, account.runtimeKey);
         const isActive =
           activeProviders.has(account.vendorId) ||
           activeProviders.has(account.id) ||
@@ -108,12 +144,16 @@ export class ProviderService {
 
   async createAccount(account: ProviderAccount, apiKey?: string): Promise<ProviderAccount> {
     await ensureProviderStoreMigrated();
-    await saveProvider(providerAccountToConfig(account));
-    await saveProviderAccount(account);
+    const nextAccount = {
+      ...account,
+      runtimeKey: resolvePreferredRuntimeKey(account, await listProviderAccounts()),
+    };
+    await saveProvider(providerAccountToConfig(nextAccount));
+    await saveProviderAccount(nextAccount);
     if (apiKey !== undefined && apiKey.trim()) {
       await storeApiKey(account.id, apiKey.trim());
     }
-    return (await getProviderAccount(account.id)) ?? account;
+    return (await getProviderAccount(account.id)) ?? nextAccount;
   }
 
   async updateAccount(
@@ -127,11 +167,15 @@ export class ProviderService {
       throw new Error('Provider account not found');
     }
 
-    const nextAccount: ProviderAccount = {
+    const mergedAccount: ProviderAccount = {
       ...existing,
       ...patch,
       id: accountId,
       updatedAt: patch.updatedAt ?? new Date().toISOString(),
+    };
+    const nextAccount: ProviderAccount = {
+      ...mergedAccount,
+      runtimeKey: resolvePreferredRuntimeKey(mergedAccount, await listProviderAccounts(), accountId),
     };
 
     await saveProvider(providerAccountToConfig(nextAccount));

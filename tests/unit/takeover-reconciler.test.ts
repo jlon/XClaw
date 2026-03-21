@@ -156,6 +156,78 @@ describe('runTakeoverReconciler', () => {
     });
   });
 
+  it('builds the custom 998 projection during startup takeover reconcile and leaves merging to provider import', async () => {
+    const previousFingerprint = buildTakeoverFingerprint({
+      imported: buildImportedState('sk-old'),
+      defaultWorkspacePath: '/Users/test/.openclaw/workspace',
+      configuredWorkspacePaths: ['/Users/test/.openclaw/workspace'],
+      skillEntries: ['alpha'],
+      extensionEntries: ['ext-a'],
+    });
+    const applyImportedProviderStateMock = vi.fn().mockResolvedValue(undefined);
+    const persistFingerprintMock = vi.fn().mockResolvedValue(undefined);
+
+    const result = await runTakeoverReconciler({
+      now: () => '2026-03-19T03:30:00.000Z',
+      getSettings: async () => ({
+        setupComplete: true,
+        takeoverFingerprint: previousFingerprint,
+      }),
+      inspectSetup: async () => buildInspection(),
+      loadRuntimeState: async () => ({
+        config: {
+          models: {
+            providers: {
+              '998': {
+                baseUrl: 'https://9985678.xyz/v1',
+                api: 'openai-completions',
+              },
+            },
+            default: '998/gpt-5.4',
+          },
+          agents: {
+            defaults: {
+              model: {
+                primary: '998/gpt-5.4',
+              },
+            },
+          },
+        },
+        authProfilesByAgent: {
+          main: {
+            profiles: {
+              '998:default': {
+                type: 'api_key',
+                provider: '998',
+                key: 'sk-998',
+              },
+            },
+          },
+        },
+      }),
+      readDirectoryEntries: async (path) => path.endsWith('/skills') ? ['alpha'] : ['ext-a'],
+      applyImportedProviderState: applyImportedProviderStateMock,
+      persistFingerprint: persistFingerprintMock,
+    });
+
+    expect(applyImportedProviderStateMock).toHaveBeenCalledWith(expect.objectContaining({
+      defaultAccountId: '998',
+      accounts: [
+        expect.objectContaining({
+          id: '998',
+          vendorId: 'custom',
+          label: '998',
+          model: 'gpt-5.4',
+        }),
+      ],
+    }));
+    expect(result).toEqual(expect.objectContaining({
+      status: 'updated',
+      reason: 'provider-drift',
+      providerProjectionUpdated: true,
+    }));
+  });
+
   it('only persists the next fingerprint when non-provider drift is detected', async () => {
     const imported = buildImportedState('sk-stable');
     const previousFingerprint = buildTakeoverFingerprint({

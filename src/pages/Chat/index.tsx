@@ -236,12 +236,12 @@ export function Chat() {
       )}
 
       {showScrollToLatest && (
-        <div className="pointer-events-none absolute inset-x-0 bottom-24 z-20 md:bottom-28">
-          <div className="app-chat-workbench flex justify-end px-4">
+        <div className="app-chat-workbench flex justify-end px-4 pb-2">
+          <div className="flex justify-end">
             <button
               type="button"
               onClick={scrollToLatest}
-              className="app-chat-scroll-to-latest pointer-events-auto"
+              className="app-chat-scroll-to-latest"
               aria-label={t('toolbar.scrollToLatest')}
               title={t('toolbar.scrollToLatest')}
             >

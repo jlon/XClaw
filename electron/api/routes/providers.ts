@@ -10,6 +10,13 @@ import { browserOAuthManager, type BrowserOAuthProviderType } from '../../utils/
 import type { HostApiContext } from '../context';
 import { parseJsonBody, sendJson } from '../route-utils';
 import {
+  migrateProviderModelRefsInOpenClaw,
+  removeProviderFromOpenClaw,
+} from '../../utils/openclaw-auth';
+import {
+  getOpenClawProviderKeyForType,
+} from '../../utils/provider-keys';
+import {
   syncDefaultProviderToRuntime,
   syncDeletedProviderApiKeyToRuntime,
   syncDeletedProviderToRuntime,
@@ -115,7 +122,21 @@ export async function handleProviderRoutes(
         return true;
       }
       const nextAccount = await providerService.updateAccount(accountId, body.updates, body.apiKey);
+      const oldRuntimeProviderKey = getOpenClawProviderKeyForType(
+        existing.vendorId,
+        existing.id,
+        existing.runtimeKey,
+      );
+      const nextRuntimeProviderKey = getOpenClawProviderKeyForType(
+        nextAccount.vendorId,
+        nextAccount.id,
+        nextAccount.runtimeKey,
+      );
       await syncUpdatedProviderToRuntime(providerAccountToConfig(nextAccount), body.apiKey, ctx.gatewayRuntimeController);
+      if (oldRuntimeProviderKey !== nextRuntimeProviderKey) {
+        await migrateProviderModelRefsInOpenClaw(oldRuntimeProviderKey, nextRuntimeProviderKey);
+        await removeProviderFromOpenClaw(oldRuntimeProviderKey);
+      }
       sendJson(res, 200, { success: true, account: nextAccount });
     } catch (error) {
       sendJson(res, 500, { success: false, error: String(error) });

@@ -74,6 +74,49 @@
 
 - 将动效红线和高对比要求升级为正式约束
 
+### 9. 运行树和工作树如果不是同一套来源，UI 修复会掩盖真实身份错误
+
+这次暴露的问题不是单纯的视觉偏差，而是开发者在错误的工作树里观察、在正确的运行树里验证，最后又试图只通过搜索页或 UI 表层去解释差异。这样会把 `runtime` 身份错误、provider 同步漂移和配置未收敛都伪装成“页面看起来不对”。
+
+本轮处理：
+
+- 明确唯一有效工作树是 `/Users/jianglong/workspace/XClaw`
+- 声称闭环前必须同时核对 `provider store`、`~/.openclaw/openclaw.json`、`CLI/runtime`、`UI` 四层一致
+- 禁止只修搜索或 UI 来掩盖 `runtime` 身份错误
+- 只有工作树与运行树一致，才允许宣称完成
+- 若四层任何一层不一致，必须先处理真实身份与配置问题，再谈界面表现
+
+### 10. `provider label`、`runtimeKey`、`model ref` 三层语义如果混用，聊天模型选择器就会持续反复出 bug
+
+这次连续回归说明，问题不在某一层单独失效，而是在不同层各自说不同语言：
+
+- runtime 与 `openclaw.json` 使用的是 `qualified ref`，例如 `998/gpt-5.4`
+- provider 配置层维护的是账号 `id`、`runtimeKey` 与用户可见 `label`
+- 聊天模型选择器展示给用户的应当是“模型名 + provider label”，不能继续暴露历史 provider id
+- 如果测试仍用旧的完整 ref 去断言新的 UI 文案，就会形成“功能已部分修正，但测试和实际体验仍不连贯”的假象
+
+本轮处理：
+
+- 要求这类问题必须同时核对 `provider store`、`~/.openclaw/openclaw.json`、`openclaw models list`、聊天模型选择器
+- 要求测试把“运行层 ref”与“展示层 label/hint”分开断言
+- 明确禁止再用 `custom-custom01` 这类历史 provider id 进入用户可见的模型选择界面
+
+### 11. `takeover reconciler` 使用 runtime 降维视图整库回写 provider store，会把已修正的 custom provider 身份再次压坏
+
+这次继续深挖后确认，连续回归不只是 UI 搜索或排序问题。真正更危险的根因是启动阶段的 `takeover reconciler` 会根据 runtime 里的 provider 投影重建整个 provider store，而 runtime 只知道 `provider key/baseUrl/api/auth`，并不知道 XClaw 层保留的 richer metadata，例如：
+
+- 自定义 provider 的用户可见 `label`
+- 与 runtime key 解耦后的 `runtimeKey`
+- 已在 XClaw 中明确保存的 `model`
+
+结果就是：刚修好的 `label=998 / runtimeKey=998 / model=gpt-5.4`，下一次启动又可能被回写成 `label=Custom / model=null` 的降维版本。
+
+本轮处理：
+
+- `provider-import` 的应用阶段改成“按 runtime key 合并已有 account”
+- 若已存在 richer account，则保留其 `id / label / runtimeKey / model / fallback*`
+- secret 与默认账号也会一起 remap 到保留下来的 account id，避免启动后再被覆盖回旧形态
+
 ## 未闭环项
 
 ### 1. TitleBar 是否需要更明显的平台差异

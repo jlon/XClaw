@@ -26,7 +26,6 @@ import { Separator } from '@/components/ui/separator';
 import {
   useProviderStore,
   type ProviderAccount,
-  type ProviderConfig,
   type ProviderVendorInfo,
 } from '@/stores/providers';
 import {
@@ -235,19 +234,9 @@ export function ProvidersSettings() {
               onDelete={() => handleDeleteProvider(item.account.id)}
               onSetDefault={() => handleSetDefault(item.account.id)}
               onSaveEdits={async (payload) => {
-                const updates: Partial<ProviderAccount> = {};
-                if (payload.updates) {
-                  if (payload.updates.baseUrl !== undefined) updates.baseUrl = payload.updates.baseUrl;
-                  if (payload.updates.apiProtocol !== undefined) updates.apiProtocol = payload.updates.apiProtocol;
-                  if (payload.updates.model !== undefined) updates.model = payload.updates.model;
-                  if (payload.updates.fallbackModels !== undefined) updates.fallbackModels = payload.updates.fallbackModels;
-                  if (payload.updates.fallbackProviderIds !== undefined) {
-                    updates.fallbackAccountIds = payload.updates.fallbackProviderIds;
-                  }
-                }
                 await updateAccount(
                   item.account.id,
-                  updates,
+                  payload.updates ?? {},
                   payload.newApiKey
                 );
                 setEditingProvider(null);
@@ -283,7 +272,7 @@ interface ProviderCardProps {
   onCancelEdit: () => void;
   onDelete: () => void;
   onSetDefault: () => void;
-  onSaveEdits: (payload: { newApiKey?: string; updates?: Partial<ProviderConfig> }) => Promise<void>;
+  onSaveEdits: (payload: { newApiKey?: string; updates?: Partial<ProviderAccount> }) => Promise<void>;
   onValidateKey: (
     key: string,
     options?: { baseUrl?: string; apiProtocol?: ProviderAccount['apiProtocol'] }
@@ -308,6 +297,7 @@ function ProviderCard({
 }: ProviderCardProps) {
   const { t, i18n } = useTranslation('settings');
   const { account, vendor, status } = item;
+  const [label, setLabel] = useState(account.label);
   const [newKey, setNewKey] = useState('');
   const [baseUrl, setBaseUrl] = useState(account.baseUrl || '');
   const [apiProtocol, setApiProtocol] = useState<ProviderAccount['apiProtocol']>(account.apiProtocol || 'openai-completions');
@@ -330,6 +320,7 @@ function ProviderCard({
 
   useEffect(() => {
     if (isEditing) {
+      setLabel(account.label);
       setNewKey('');
       setShowKey(false);
       setBaseUrl(account.baseUrl || '');
@@ -338,7 +329,7 @@ function ProviderCard({
       setFallbackModelsText(normalizeFallbackModels(account.fallbackModels).join('\n'));
       setFallbackProviderIds(normalizeFallbackProviderIds(account.fallbackAccountIds));
     }
-  }, [isEditing, account.baseUrl, account.fallbackModels, account.fallbackAccountIds, account.model, account.apiProtocol]);
+  }, [isEditing, account.label, account.baseUrl, account.fallbackModels, account.fallbackAccountIds, account.model, account.apiProtocol]);
 
   const fallbackOptions = allProviders.filter((candidate) => candidate.account.id !== account.id);
 
@@ -353,7 +344,7 @@ function ProviderCard({
   const handleSaveEdits = async () => {
     setSaving(true);
     try {
-      const payload: { newApiKey?: string; updates?: Partial<ProviderConfig> } = {};
+      const payload: { newApiKey?: string; updates?: Partial<ProviderAccount> } = {};
       const normalizedFallbackModels = normalizeFallbackModels(fallbackModelsText.split('\n'));
 
       if (newKey.trim()) {
@@ -378,7 +369,10 @@ function ProviderCard({
           return;
         }
 
-        const updates: Partial<ProviderConfig> = {};
+        const updates: Partial<ProviderAccount> = {};
+        if ((label.trim() || account.label) !== account.label) {
+          updates.label = label.trim() || account.label;
+        }
         if (typeInfo?.showBaseUrl && (baseUrl.trim() || undefined) !== (account.baseUrl || undefined)) {
           updates.baseUrl = baseUrl.trim() || undefined;
         }
@@ -392,7 +386,7 @@ function ProviderCard({
           updates.fallbackModels = normalizedFallbackModels;
         }
         if (!fallbackProviderIdsEqual(fallbackProviderIds, account.fallbackAccountIds)) {
-          updates.fallbackProviderIds = normalizeFallbackProviderIds(fallbackProviderIds);
+          updates.fallbackAccountIds = normalizeFallbackProviderIds(fallbackProviderIds);
         }
         if (Object.keys(updates).length > 0) {
           payload.updates = updates;
@@ -542,6 +536,15 @@ function ProviderCard({
               </a>
             </div>
           )}
+          <div className="space-y-1.5">
+            <Label className={currentLabelClasses}>{t('aiProviders.dialog.displayName')}</Label>
+            <Input
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+              placeholder={typeInfo?.id === 'custom' ? t('aiProviders.custom') : typeInfo?.name}
+              className={currentInputClasses}
+            />
+          </div>
           {canEditModelConfig && (
             <div className="space-y-3">
               <p className={currentSectionLabelClasses}>{t('aiProviders.sections.model')}</p>
@@ -710,6 +713,7 @@ function ProviderCard({
                     || saving
                     || (
                       !newKey.trim()
+                      && (label.trim() || account.label) === account.label
                       && (baseUrl.trim() || undefined) === (account.baseUrl || undefined)
                       && (modelId.trim() || undefined) === (account.model || undefined)
                       && fallbackModelsEqual(normalizeFallbackModels(fallbackModelsText.split('\n')), account.fallbackModels)

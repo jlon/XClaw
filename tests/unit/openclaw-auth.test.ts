@@ -222,6 +222,121 @@ describe('sanitizeOpenClawConfig', () => {
   });
 });
 
+describe('syncProviderConfigToOpenClaw', () => {
+  beforeEach(async () => {
+    vi.resetModules();
+    vi.restoreAllMocks();
+    await rm(testHome, { recursive: true, force: true });
+    await rm(testUserData, { recursive: true, force: true });
+  });
+
+  it('adds saved provider models to the allowlist without changing the current default model', async () => {
+    await writeOpenClawJson({
+      agents: {
+        defaults: {
+          model: {
+            primary: 'bailian/qwen3.5-plus',
+          },
+          models: {
+            'bailian/qwen3.5-plus': {
+              alias: 'bailian-chat',
+            },
+          },
+        },
+      },
+    });
+
+    const { syncProviderConfigToOpenClaw } = await import('@electron/utils/openclaw-auth');
+
+    await syncProviderConfigToOpenClaw('custom-custom01', 'gpt-5.4', {
+      baseUrl: 'https://9985678.xyz/v1',
+      api: 'openai-completions',
+    });
+
+    const result = await readOpenClawJson();
+    const defaults = ((result.agents as Record<string, unknown>).defaults ?? {}) as Record<string, unknown>;
+    const currentModel = (defaults.model ?? {}) as Record<string, unknown>;
+    const allowedModels = (defaults.models ?? {}) as Record<string, unknown>;
+
+    expect(currentModel.primary).toBe('bailian/qwen3.5-plus');
+    expect(allowedModels).toHaveProperty('bailian/qwen3.5-plus');
+    expect(allowedModels).toHaveProperty('custom-custom01/gpt-5.4');
+  });
+});
+
+describe('migrateProviderModelRefsInOpenClaw', () => {
+  beforeEach(async () => {
+    vi.resetModules();
+    vi.restoreAllMocks();
+    await rm(testHome, { recursive: true, force: true });
+    await rm(testUserData, { recursive: true, force: true });
+  });
+
+  it('moves custom provider model refs and provider entries from custom-custom01 to 998', async () => {
+    await writeOpenClawJson({
+      agents: {
+        defaults: {
+          model: {
+            primary: 'custom-custom01/gpt-5.4',
+            fallbacks: ['custom-custom01/gpt-5.3', 'moonshot/kimi-k2.5'],
+          },
+          models: {
+            'custom-custom01/gpt-5.4': { alias: 'main' },
+            'custom-custom01/gpt-5.3': { alias: 'fallback' },
+            'moonshot/kimi-k2.5': { alias: 'shared' },
+            'bailian/qwen3.5-plus': { alias: 'untouched' },
+          },
+        },
+      },
+      models: {
+        providers: {
+          'custom-custom01': {
+            api: 'openai-completions',
+            baseUrl: 'https://9985678.xyz/v1',
+            models: [{ id: 'gpt-5.4', name: 'gpt-5.4' }],
+          },
+          moonshot: {
+            api: 'openai-completions',
+            baseUrl: 'https://api.moonshot.cn/v1',
+            models: [{ id: 'kimi-k2.5', name: 'kimi-k2.5' }],
+          },
+        },
+      },
+    });
+
+    const { migrateProviderModelRefsInOpenClaw } = await import('@electron/utils/openclaw-auth');
+
+    await migrateProviderModelRefsInOpenClaw('custom-custom01', '998');
+
+    const result = await readOpenClawJson();
+    const defaults = ((result.agents as Record<string, unknown>).defaults ?? {}) as Record<string, unknown>;
+    const defaultModel = (defaults.model ?? {}) as Record<string, unknown>;
+    const allowedModels = (defaults.models ?? {}) as Record<string, unknown>;
+    const providers = ((result.models as Record<string, unknown>).providers ?? {}) as Record<string, unknown>;
+
+    expect(defaultModel.primary).toBe('998/gpt-5.4');
+    expect(defaultModel.fallbacks).toEqual(['998/gpt-5.3', 'moonshot/kimi-k2.5']);
+    expect(allowedModels).toHaveProperty('998/gpt-5.4');
+    expect(allowedModels).toHaveProperty('998/gpt-5.3');
+    expect(allowedModels).toHaveProperty('bailian/qwen3.5-plus');
+    expect(allowedModels).not.toHaveProperty('custom-custom01/gpt-5.4');
+    expect(allowedModels).not.toHaveProperty('custom-custom01/gpt-5.3');
+    expect(providers).toHaveProperty('998');
+    expect(providers).not.toHaveProperty('custom-custom01');
+    expect(providers).toHaveProperty('moonshot');
+    expect(providers['998']).toEqual(expect.objectContaining({
+      api: 'openai-completions',
+      baseUrl: 'https://9985678.xyz/v1',
+      models: [{ id: 'gpt-5.4', name: 'gpt-5.4' }],
+    }));
+    expect(providers['moonshot']).toEqual(expect.objectContaining({
+      api: 'openai-completions',
+      baseUrl: 'https://api.moonshot.cn/v1',
+      models: [{ id: 'kimi-k2.5', name: 'kimi-k2.5' }],
+    }));
+  });
+});
+
 describe('removeProviderFromOpenClaw', () => {
   beforeEach(async () => {
     vi.resetModules();

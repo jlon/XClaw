@@ -528,6 +528,7 @@ export async function setOpenClawDefaultModel(
     };
     agents.defaults = defaults;
     config.agents = agents;
+    ensureOpenClawModelAllowlist(config, [model, ...fallbackModels]);
 
     // Configure models.providers for providers that need explicit registration.
     const providerCfg = getProviderConfig(provider);
@@ -614,6 +615,138 @@ function mergeProviderModels(
     }
   }
   return merged;
+}
+
+function ensureOpenClawModelAllowlist(
+  config: Record<string, unknown>,
+  modelRefs: Array<string | undefined>,
+): void {
+  const nextRefs = modelRefs
+    .map((modelRef) => modelRef?.trim())
+    .filter((modelRef): modelRef is string => Boolean(modelRef));
+  if (nextRefs.length === 0) {
+    return;
+  }
+
+  const agents = (config.agents || {}) as Record<string, unknown>;
+  const defaults = (agents.defaults || {}) as Record<string, unknown>;
+  const existingModels = (
+    defaults.models && typeof defaults.models === 'object' && !Array.isArray(defaults.models)
+      ? defaults.models
+      : {}
+  ) as Record<string, unknown>;
+  const allowedModels = { ...existingModels };
+
+  for (const modelRef of nextRefs) {
+    const currentEntry = allowedModels[modelRef];
+    allowedModels[modelRef] =
+      currentEntry && typeof currentEntry === 'object' && !Array.isArray(currentEntry)
+        ? currentEntry
+        : {};
+  }
+
+  defaults.models = allowedModels;
+  agents.defaults = defaults;
+  config.agents = agents;
+}
+
+function replaceProviderModelRef(
+  modelRef: string,
+  oldProvider: string,
+  newProvider: string,
+): string {
+  if (!modelRef.startsWith(`${oldProvider}/`)) {
+    return modelRef;
+  }
+  return `${newProvider}/${modelRef.slice(oldProvider.length + 1)}`;
+}
+
+export async function migrateProviderModelRefsInOpenClaw(
+  oldProvider: string,
+  newProvider: string,
+): Promise<void> {
+  if (!oldProvider || !newProvider || oldProvider === newProvider) {
+    return;
+  }
+
+  return withConfigLock(async () => {
+    const config = await readOpenClawJson();
+    let modified = false;
+
+    const agents = (config.agents || {}) as Record<string, unknown>;
+    const defaults = (agents.defaults || {}) as Record<string, unknown>;
+    const defaultModel = (
+      defaults.model && typeof defaults.model === 'object' && !Array.isArray(defaults.model)
+        ? { ...(defaults.model as Record<string, unknown>) }
+        : {}
+    ) as Record<string, unknown>;
+
+    if (typeof defaultModel.primary === 'string') {
+      const nextPrimary = replaceProviderModelRef(defaultModel.primary, oldProvider, newProvider);
+      if (nextPrimary !== defaultModel.primary) {
+        defaultModel.primary = nextPrimary;
+        modified = true;
+      }
+    }
+
+    if (Array.isArray(defaultModel.fallbacks)) {
+      const nextFallbacks = defaultModel.fallbacks.map((fallback) => (
+        typeof fallback === 'string'
+          ? replaceProviderModelRef(fallback, oldProvider, newProvider)
+          : fallback
+      ));
+      if (JSON.stringify(nextFallbacks) !== JSON.stringify(defaultModel.fallbacks)) {
+        defaultModel.fallbacks = nextFallbacks;
+        modified = true;
+      }
+    }
+
+    if (Object.keys(defaultModel).length > 0) {
+      defaults.model = defaultModel;
+    }
+
+    const allowedModels = (
+      defaults.models && typeof defaults.models === 'object' && !Array.isArray(defaults.models)
+        ? { ...(defaults.models as Record<string, unknown>) }
+        : {}
+    ) as Record<string, unknown>;
+
+    for (const [modelRef, value] of Object.entries(allowedModels)) {
+      const nextRef = replaceProviderModelRef(modelRef, oldProvider, newProvider);
+      if (nextRef === modelRef) {
+        continue;
+      }
+      if (!(nextRef in allowedModels)) {
+        allowedModels[nextRef] = value;
+      }
+      delete allowedModels[modelRef];
+      modified = true;
+    }
+
+    defaults.models = allowedModels;
+    agents.defaults = defaults;
+    config.agents = agents;
+
+    const models = (config.models || {}) as Record<string, unknown>;
+    const providers = (
+      models.providers && typeof models.providers === 'object' && !Array.isArray(models.providers)
+        ? { ...(models.providers as Record<string, unknown>) }
+        : {}
+    ) as Record<string, unknown>;
+    if (providers[oldProvider]) {
+      if (!providers[newProvider]) {
+        providers[newProvider] = providers[oldProvider];
+      }
+      delete providers[oldProvider];
+      models.providers = providers;
+      config.models = models;
+      modified = true;
+    }
+
+    if (modified) {
+      await writeOpenClawJson(config);
+    }
+  });
 }
 
 function upsertOpenClawProviderEntry(
@@ -703,6 +836,7 @@ export async function syncProviderConfigToOpenClaw(
   return withConfigLock(async () => {
     const config = await readOpenClawJson();
     ensureMoonshotKimiWebSearchCnBaseUrl(config, provider);
+    const modelRef = normalizeModelRef(provider, modelId);
 
     if (override.baseUrl && override.api) {
       upsertOpenClawProviderEntry(config, provider, {
@@ -713,6 +847,7 @@ export async function syncProviderConfigToOpenClaw(
         modelIds: modelId ? [modelId] : [],
       });
     }
+    ensureOpenClawModelAllowlist(config, [modelRef]);
 
     // Ensure extension is enabled for oauth providers to prevent gateway wiping config
     if (isOpenClawOAuthPluginProviderKey(provider)) {
@@ -763,6 +898,7 @@ export async function setOpenClawDefaultModelWithOverride(
     };
     agents.defaults = defaults;
     config.agents = agents;
+    ensureOpenClawModelAllowlist(config, [model, ...fallbackModels]);
 
     if (override.baseUrl && override.api) {
       upsertOpenClawProviderEntry(config, provider, {

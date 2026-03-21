@@ -16,9 +16,11 @@ import { cn } from '@/lib/utils';
 import { useGatewayStore } from '@/stores/gateway';
 import { useAgentsStore } from '@/stores/agents';
 import { useChatStore } from '@/stores/chat';
+import { getProviderAccountRuntimeKey } from '@/lib/provider-accounts';
 import type { AgentSummary } from '@/types/agent';
 import { useTranslation } from 'react-i18next';
 import { resolveGatewayUi } from './gateway-ui';
+import type { ProviderAccount } from '@/lib/providers';
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -46,6 +48,7 @@ interface ChatModelOption {
   modelId?: string;
   name?: string;
   vendorId?: string;
+  providerLabel?: string;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────
@@ -66,7 +69,10 @@ function FileIcon({ mimeType, className }: { mimeType: string; className?: strin
   return <File className={className} />;
 }
 
-function normalizeChatModelOption(raw: unknown): ChatModelOption | null {
+function normalizeChatModelOption(
+  raw: unknown,
+  providerLabelMap: Map<string, string>,
+): ChatModelOption | null {
   if (!raw || typeof raw !== 'object') {
     return null;
   }
@@ -74,7 +80,7 @@ function normalizeChatModelOption(raw: unknown): ChatModelOption | null {
   const vendorId = typeof model.vendorId === 'string'
     ? model.vendorId
     : (typeof model.provider === 'string' ? model.provider : undefined);
-  const modelId = typeof model.id === 'string'
+  const rawModelId = typeof model.id === 'string'
     ? model.id
     : (typeof model.model === 'string' ? model.model : '');
   const ref = (() => {
@@ -87,7 +93,7 @@ function normalizeChatModelOption(raw: unknown): ChatModelOption | null {
     if (typeof model.modelRef === 'string' && model.modelRef.trim()) {
       return model.modelRef.trim();
     }
-    const trimmedModelId = modelId.trim();
+    const trimmedModelId = rawModelId.trim();
     if (!trimmedModelId) {
       return '';
     }
@@ -103,11 +109,21 @@ function normalizeChatModelOption(raw: unknown): ChatModelOption | null {
   const name = typeof model.name === 'string'
     ? model.name
     : (typeof model.label === 'string' ? model.label : undefined);
+  const trimmedModelId = rawModelId.trim();
+  const refProvider = ref.includes('/') ? ref.split('/')[0]?.trim() : undefined;
+  const refModelId = ref.includes('/') ? ref.slice(ref.indexOf('/') + 1).trim() : undefined;
+  const normalizedVendorId = vendorId?.trim() || refProvider || undefined;
+  const normalizedModelId = (
+    trimmedModelId.includes('/')
+      ? trimmedModelId.slice(trimmedModelId.indexOf('/') + 1).trim()
+      : trimmedModelId
+  ) || refModelId || undefined;
   return {
     ref,
-    modelId: modelId.trim() || undefined,
+    modelId: normalizedModelId,
     name: name?.trim() || undefined,
-    vendorId: vendorId?.trim() || undefined,
+    vendorId: normalizedVendorId,
+    providerLabel: providerLabelMap.get(normalizedVendorId || '')?.trim() || undefined,
   };
 }
 
@@ -115,7 +131,31 @@ function getModelLabel(model: ChatModelOption): string {
   return model.name || model.modelId || model.ref;
 }
 
+function getModelHintBase(model: ChatModelOption): string {
+  if (model.modelId && model.modelId !== model.ref) {
+    return model.modelId;
+  }
+  if (model.name && model.name !== model.ref) {
+    return model.name;
+  }
+  return model.ref;
+}
+
 function getModelHint(model: ChatModelOption): string | null {
+  if (model.providerLabel) {
+    const hintBase = getModelHintBase(model);
+    if (!hintBase) {
+      return model.providerLabel;
+    }
+    const providerPrefix = `${model.providerLabel}/`;
+    if (hintBase.startsWith(providerPrefix)) {
+      return model.providerLabel;
+    }
+    if (hintBase === model.providerLabel) {
+      return null;
+    }
+    return `${model.providerLabel} · ${hintBase}`;
+  }
   if (model.name && model.name !== model.ref) {
     return model.ref;
   }
@@ -286,9 +326,40 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
     setModelsLoading(true);
     setModelsLoadError(null);
     try {
-      const response = await gatewayRpc<{ models?: unknown[] }>('models.list', {});
+      const [response, providerAccounts] = await Promise.all([
+        gatewayRpc<{ models?: unknown[] }>('models.list', {}),
+        hostApiFetch<ProviderAccount[]>('/api/provider-accounts').catch(() => []),
+      ]);
+      const preferredModelRefs = new Set(
+        (providerAccounts ?? [])
+          .map((account) => {
+            const modelId = account.model?.trim();
+            if (!modelId) {
+              return null;
+            }
+            return `${getProviderAccountRuntimeKey(account)}/${modelId}`.toLowerCase();
+          })
+          .filter((ref): ref is string => Boolean(ref)),
+      );
+      const providerLabelMap = new Map(
+        (providerAccounts ?? []).map((account) => [getProviderAccountRuntimeKey(account), account.label]),
+      );
       const nextModels = Array.isArray(response?.models)
-        ? response.models.map(normalizeChatModelOption).filter((model): model is ChatModelOption => Boolean(model))
+        ? response.models
+          .map((model, index) => ({
+            model: normalizeChatModelOption(model, providerLabelMap),
+            index,
+          }))
+          .filter((entry): entry is { model: ChatModelOption; index: number } => Boolean(entry.model))
+          .sort((left, right) => {
+            const leftPreferred = preferredModelRefs.has(left.model.ref.toLowerCase());
+            const rightPreferred = preferredModelRefs.has(right.model.ref.toLowerCase());
+            if (leftPreferred !== rightPreferred) {
+              return leftPreferred ? -1 : 1;
+            }
+            return left.index - right.index;
+          })
+          .map((entry) => entry.model)
         : [];
       setModels(nextModels);
     } catch (error) {

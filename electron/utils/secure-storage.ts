@@ -32,6 +32,7 @@ export interface ProviderConfig {
   id: string;
   name: string;
   type: ProviderType;
+  runtimeKey?: string;
   baseUrl?: string;
   apiProtocol?: 'openai-completions' | 'openai-responses' | 'anthropic-messages';
   model?: string;
@@ -281,7 +282,7 @@ export async function getAllProvidersWithKeyInfo(): Promise<
     // e.g. provider.id "custom-a1b2c3d4-..." → strip hyphens → "customa1b2c3d4..." → slice(0,8) → "customa1"
     // → openClawKey = "custom-customa1"
     // This must match getOpenClawProviderKey() in ipc-handlers.ts exactly.
-    const openClawKey = getOpenClawProviderKeyForType(provider.type, provider.id);
+    const openClawKey = getOpenClawProviderKeyForType(provider.type, provider.id, provider.runtimeKey);
     const isActive = activeOpenClawProviders.has(provider.type) || activeOpenClawProviders.has(provider.id) || activeOpenClawProviders.has(openClawKey);
     if (configMissing || (!isBuiltin && !isActive)) {
       console.log(`[Sync] Provider ${provider.id} (${provider.type}) missing from OpenClaw, dropping from XClaw UI`);

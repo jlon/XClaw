@@ -25,6 +25,7 @@ export function providerConfigToAccount(
     id: config.id,
     vendorId: config.type,
     label: config.name,
+    runtimeKey: config.runtimeKey,
     authMode: inferAuthMode(config.type),
     baseUrl: config.baseUrl,
     apiProtocol: config.apiProtocol || (config.type === 'custom' || config.type === 'ollama'
@@ -45,6 +46,7 @@ export function providerAccountToConfig(account: ProviderAccount): ProviderConfi
     id: account.id,
     name: account.label,
     type: account.vendorId,
+    runtimeKey: account.runtimeKey,
     baseUrl: account.baseUrl,
     apiProtocol: account.apiProtocol,
     model: account.model,

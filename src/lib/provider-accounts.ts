@@ -74,6 +74,31 @@ export function buildProviderAccountId(
   return vendor?.supportsMultipleAccounts ? `${vendorId}-${crypto.randomUUID()}` : vendorId;
 }
 
+export function getProviderAccountRuntimeKey(
+  account: Pick<ProviderAccount, 'vendorId' | 'id' | 'runtimeKey'>,
+): string {
+  if ((account.vendorId === 'custom' || account.vendorId === 'ollama') && account.runtimeKey?.trim()) {
+    return account.runtimeKey.trim().toLowerCase();
+  }
+  if (account.vendorId === 'custom' || account.vendorId === 'ollama') {
+    const legacyPrefix = `${account.vendorId}-`;
+    const legacySuffix = account.id.startsWith(legacyPrefix)
+      ? account.id.slice(legacyPrefix.length)
+      : '';
+    if (
+      legacySuffix
+      && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(legacySuffix)
+    ) {
+      return account.id;
+    }
+    return `${account.vendorId}-${account.id.replace(/-/g, '').slice(0, 8)}`;
+  }
+  if (account.vendorId === 'minimax-portal-cn') {
+    return 'minimax-portal';
+  }
+  return account.vendorId;
+}
+
 export function legacyProviderToAccount(provider: ProviderWithKeyInfo): ProviderAccount {
   return {
     id: provider.id,

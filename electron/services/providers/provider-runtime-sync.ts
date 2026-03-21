@@ -13,6 +13,7 @@ import {
   syncProviderConfigToOpenClaw,
   updateAgentModelProvider,
 } from '../../utils/openclaw-auth';
+import { getOpenClawProviderKeyForType } from '../../utils/provider-keys';
 import { logger } from '../../utils/logger';
 
 const GOOGLE_OAUTH_RUNTIME_PROVIDER = 'google-gemini-cli';
@@ -61,15 +62,8 @@ function shouldUseExplicitDefaultOverride(config: ProviderConfig, runtimeProvide
   return Boolean(config.baseUrl || config.apiProtocol || runtimeProviderKey !== config.type);
 }
 
-export function getOpenClawProviderKey(type: string, providerId: string): string {
-  if (type === 'custom' || type === 'ollama') {
-    const suffix = providerId.replace(/-/g, '').slice(0, 8);
-    return `${type}-${suffix}`;
-  }
-  if (type === 'minimax-portal-cn') {
-    return 'minimax-portal';
-  }
-  return type;
+export function getOpenClawProviderKey(type: string, providerId: string, runtimeKey?: string): string {
+  return getOpenClawProviderKeyForType(type, providerId, runtimeKey);
 }
 
 async function resolveRuntimeProviderKey(config: ProviderConfig): Promise<string> {
@@ -82,7 +76,7 @@ async function resolveRuntimeProviderKey(config: ProviderConfig): Promise<string
       return OPENAI_OAUTH_RUNTIME_PROVIDER;
     }
   }
-  return getOpenClawProviderKey(config.type, config.id);
+  return getOpenClawProviderKey(config.type, config.id, account?.runtimeKey ?? config.runtimeKey);
 }
 
 async function getBrowserOAuthRuntimeProvider(config: ProviderConfig): Promise<string | null> {
@@ -106,7 +100,7 @@ async function getBrowserOAuthRuntimeProvider(config: ProviderConfig): Promise<s
 }
 
 export function getProviderModelRef(config: ProviderConfig): string | undefined {
-  const providerKey = getOpenClawProviderKey(config.type, config.id);
+  const providerKey = getOpenClawProviderKey(config.type, config.id, config.runtimeKey);
 
   if (config.model) {
     return config.model.startsWith(`${providerKey}/`)
@@ -129,7 +123,7 @@ export async function getProviderFallbackModelRefs(config: ProviderConfig): Prom
   const providerMap = new Map(allProviders.map((provider) => [provider.id, provider]));
   const seen = new Set<string>();
   const results: string[] = [];
-  const providerKey = getOpenClawProviderKey(config.type, config.id);
+  const providerKey = getOpenClawProviderKey(config.type, config.id, config.runtimeKey);
 
   for (const fallbackModel of config.fallbackModels ?? []) {
     const normalizedModel = fallbackModel.trim();
@@ -192,10 +186,11 @@ export async function syncAllProviderAuthToRuntime(): Promise<void> {
   const accounts = await listProviderAccounts();
 
   for (const account of accounts) {
-    const runtimeProviderKey = await resolveRuntimeProviderKey({
+    await syncProviderToRuntime({
       id: account.id,
       name: account.label,
       type: account.vendorId,
+      runtimeKey: account.runtimeKey,
       baseUrl: account.baseUrl,
       model: account.model,
       fallbackModels: account.fallbackModels,
@@ -203,32 +198,7 @@ export async function syncAllProviderAuthToRuntime(): Promise<void> {
       enabled: account.enabled,
       createdAt: account.createdAt,
       updatedAt: account.updatedAt,
-    });
-
-    const secret = await getProviderSecret(account.id);
-    if (!secret) {
-      continue;
-    }
-
-    if (secret.type === 'api_key') {
-      await saveProviderKeyToOpenClaw(runtimeProviderKey, secret.apiKey);
-      continue;
-    }
-
-    if (secret.type === 'local' && secret.apiKey) {
-      await saveProviderKeyToOpenClaw(runtimeProviderKey, secret.apiKey);
-      continue;
-    }
-
-    if (secret.type === 'oauth') {
-      await saveOAuthTokenToOpenClaw(runtimeProviderKey, {
-        access: secret.accessToken,
-        refresh: secret.refreshToken,
-        expires: secret.expiresAt,
-        email: secret.email,
-        projectId: secret.subject,
-      });
-    }
+    }, undefined);
   }
 }
 

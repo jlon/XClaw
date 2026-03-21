@@ -2,9 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const replaceImportedProviderAccountsMock = vi.fn();
 const replaceImportedProviderSecretsMock = vi.fn();
+const listProviderAccountsMock = vi.fn();
 
 vi.mock('@electron/services/providers/provider-store', () => ({
   replaceImportedProviderAccounts: (...args: unknown[]) => replaceImportedProviderAccountsMock(...args),
+  listProviderAccounts: (...args: unknown[]) => listProviderAccountsMock(...args),
 }));
 
 vi.mock('@electron/services/secrets/secret-store', () => ({
@@ -190,6 +192,8 @@ describe('buildImportedProviderState', () => {
       expect.objectContaining({
         id: 'external-compatible',
         vendorId: 'custom',
+        label: 'external-compatible',
+        runtimeKey: 'external-compatible',
         authMode: 'api_key',
         baseUrl: 'https://example.com/v1',
         apiProtocol: 'openai-completions',
@@ -241,6 +245,7 @@ describe('buildImportedProviderState', () => {
 describe('applyImportedProviderState', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    listProviderAccountsMock.mockResolvedValue([]);
   });
 
   it('writes imported accounts, default account and secrets into XClaw stores', async () => {
@@ -276,5 +281,75 @@ describe('applyImportedProviderState', () => {
       imported.defaultAccountId,
     );
     expect(replaceImportedProviderSecretsMock).toHaveBeenCalledWith(imported.secrets);
+  });
+
+  it('keeps an existing richer custom provider account instead of downgrading it during import merge', async () => {
+    listProviderAccountsMock.mockResolvedValue([
+      {
+        id: 'custom-custom01',
+        vendorId: 'custom',
+        label: '998',
+        runtimeKey: '998',
+        authMode: 'api_key',
+        baseUrl: 'https://9985678.xyz/v1',
+        apiProtocol: 'openai-completions',
+        model: 'gpt-5.4',
+        enabled: true,
+        isDefault: true,
+        createdAt: '2026-03-21T05:34:20.141Z',
+        updatedAt: '2026-03-21T05:34:20.141Z',
+      },
+    ]);
+    const imported = buildImportedProviderState({
+      now: () => '2026-03-21T06:17:37.707Z',
+      config: {
+        models: {
+          providers: {
+            '998': {
+              baseUrl: 'https://9985678.xyz/v1',
+              api: 'openai-completions',
+            },
+          },
+        },
+        agents: {
+          defaults: {
+            model: {
+              primary: '998/gpt-5.4',
+            },
+          },
+        },
+      },
+      authProfilesByAgent: {
+        main: {
+          profiles: {
+            '998:default': {
+              type: 'api_key',
+              provider: '998',
+              key: 'sk-998',
+            },
+          },
+        },
+      },
+    });
+
+    await applyImportedProviderState(imported);
+
+    expect(replaceImportedProviderAccountsMock).toHaveBeenCalledWith([
+      expect.objectContaining({
+        id: 'custom-custom01',
+        vendorId: 'custom',
+        label: '998',
+        runtimeKey: '998',
+        model: 'gpt-5.4',
+        isDefault: true,
+      }),
+    ], 'custom-custom01');
+    expect(replaceImportedProviderSecretsMock).toHaveBeenCalledWith([
+      expect.objectContaining({
+        type: 'api_key',
+        accountId: 'custom-custom01',
+        apiKey: 'sk-998',
+      }),
+    ]);
   });
 });

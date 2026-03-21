@@ -42,6 +42,7 @@ export interface ProviderConfig {
   id: string;
   name: string;
   type: ProviderType;
+  runtimeKey?: string;
   baseUrl?: string;
   apiProtocol?: 'openai-completions' | 'openai-responses' | 'anthropic-messages';
   model?: string;
@@ -101,6 +102,7 @@ export interface ProviderAccount {
   id: string;
   vendorId: ProviderType;
   label: string;
+  runtimeKey?: string;
   authMode: ProviderAuthMode;
   baseUrl?: string;
   apiProtocol?: 'openai-completions' | 'openai-responses' | 'anthropic-messages';
