@@ -291,6 +291,7 @@
 - 任何涉及 `provider`、`runtimeKey`、`model ref` 的修改，都必须额外核对这四件事是否同一套事实：`provider store`、`~/.openclaw/openclaw.json`、`openclaw models list`、聊天模型选择器
 - 这类问题的测试口径必须与真实 UI 口径一致：展示层看 `label/hint`，运行层看 `qualified ref`，禁止再用旧的全量 ref 文本去断言新的 UI 展示
 - `takeover reconciler` 这类启动同步链只能按 `runtime provider key` 合并已有 richer account，不能再用 runtime 的降维视图直接整库覆盖 `provider store`
+- 小的、低风险、局部 UI 微交互允许敏捷直改，不强制每次都走红绿测试；但这条例外只适用于不触碰协议、状态链、滚动契约和跨组件数据流的改动，仍需做最小静态校验或直接目视验证
 
 ### 8. 快速示意说明
 

@@ -7,7 +7,7 @@
  * are sent with the message (no base64 over WebSocket).
  */
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { SendHorizontal, Square, X, Paperclip, FileText, Film, Music, FileArchive, File, Loader2, AtSign, Box, Check, Search } from 'lucide-react';
+import { SendHorizontal, Square, X, Paperclip, FileText, Film, Music, FileArchive, File, Loader2, AtSign, Box, Check, Search, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { hostApiFetch } from '@/lib/host-api';
@@ -41,6 +41,9 @@ interface ChatInputProps {
   disabled?: boolean;
   sending?: boolean;
   isEmpty?: boolean;
+  showScrollToLatest?: boolean;
+  hasPendingLatest?: boolean;
+  onScrollToLatest?: () => void;
 }
 
 interface ChatModelOption {
@@ -191,7 +194,16 @@ function readFileAsBase64(file: globalThis.File): Promise<string> {
 
 // ── Component ────────────────────────────────────────────────────
 
-export function ChatInput({ onSend, onStop, disabled = false, sending = false, isEmpty = false }: ChatInputProps) {
+export function ChatInput({
+  onSend,
+  onStop,
+  disabled = false,
+  sending = false,
+  isEmpty = false,
+  showScrollToLatest = false,
+  hasPendingLatest = false,
+  onScrollToLatest,
+}: ChatInputProps) {
   const { t } = useTranslation('chat');
   const isWindows = window.electron?.platform === 'win32';
   const [input, setInput] = useState('');
@@ -625,13 +637,30 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
   return (
     <div
       className={cn(
-        'chat-im-font app-chat-workbench px-4 pb-6 transition-all duration-300',
+        'chat-im-font app-chat-workbench relative px-4 pb-6 transition-all duration-300',
         isEmpty ? 'pt-5' : 'pt-4',
       )}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
+      {showScrollToLatest && onScrollToLatest && (
+        <div className="pointer-events-none absolute bottom-full right-4 z-10 mb-2">
+          <button
+            type="button"
+            onClick={onScrollToLatest}
+            className="app-chat-scroll-to-latest pointer-events-auto"
+            aria-label={t('toolbar.scrollToLatest')}
+            title={t('toolbar.scrollToLatest')}
+          >
+            <ChevronDown className="h-4 w-4" />
+            {hasPendingLatest && (
+              <span className="status-indicator status-indicator-glow absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-[hsl(var(--primary))]" />
+            )}
+          </button>
+        </div>
+      )}
+
       <div className="w-full">
         {/* Attachment Previews */}
         {attachments.length > 0 && (

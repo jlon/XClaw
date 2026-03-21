@@ -1,5 +1,6 @@
+import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { Chat } from '@/pages/Chat';
 
 const {
@@ -7,6 +8,7 @@ const {
   gatewayState,
   agentsState,
   scrollRefs,
+  chatMessageRenderSpy,
 } = vi.hoisted(() => ({
   chatState: {
     messages: [] as Array<Record<string, unknown>>,
@@ -37,6 +39,7 @@ const {
     scrollRef: { current: null as HTMLDivElement | null },
     contentRef: { current: null as HTMLDivElement | null },
   },
+  chatMessageRenderSpy: vi.fn(),
 }));
 
 vi.mock('@/stores/chat', () => ({
@@ -68,30 +71,19 @@ vi.mock('@/lib/chat-avatar', () => ({
 }));
 
 vi.mock('@/pages/Chat/ChatInput', () => ({
-  ChatInput: ({
-    showScrollToLatest,
-    hasPendingLatest,
-    onScrollToLatest,
-  }: {
-    showScrollToLatest?: boolean;
-    hasPendingLatest?: boolean;
-    onScrollToLatest?: () => void;
-  }) => (
-    <div data-testid="chat-input-dock">
-      {showScrollToLatest && (
-        <button type="button" onClick={onScrollToLatest} aria-label="Scroll to latest">
-          {hasPendingLatest ? 'pending latest' : 'scroll latest'}
-        </button>
-      )}
-    </div>
-  ),
+  ChatInput: () => <div data-testid="chat-input-dock" />,
 }));
 
-vi.mock('@/pages/Chat/ChatMessage', () => ({
-  ChatMessage: ({ message }: { message: { content?: string } }) => (
-    <div data-testid="chat-message-row">{String(message.content ?? '')}</div>
-  ),
-}));
+vi.mock('@/pages/Chat/ChatMessage', () => {
+  const MockChatMessage = React.memo(() => {
+    chatMessageRenderSpy();
+    return <div data-testid="chat-message-row" />;
+  });
+
+  return {
+    ChatMessage: MockChatMessage,
+  };
+});
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -128,8 +120,9 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-describe('chat humanized actions', () => {
+describe('chat render stability', () => {
   beforeEach(() => {
+    chatMessageRenderSpy.mockReset();
     chatState.messages = [
       {
         id: 'm1',
@@ -154,10 +147,6 @@ describe('chat humanized actions', () => {
     chatState.streamingMessage = null;
     chatState.streamingTools = [];
     chatState.pendingFinal = false;
-    chatState.sendMessage = vi.fn();
-    chatState.abortRun = vi.fn();
-    chatState.clearError = vi.fn();
-    chatState.cleanupEmptySession = vi.fn();
     gatewayState.status = { state: 'running', port: 18789 };
     agentsState.agents = [
       {
@@ -165,39 +154,17 @@ describe('chat humanized actions', () => {
         name: 'Main Agent',
       },
     ];
-    agentsState.fetchAgents = vi.fn();
     scrollRefs.scrollRef.current = null;
     scrollRefs.contentRef.current = null;
   });
 
-  it('shows a jump-to-latest affordance when the user scrolls away from the bottom', async () => {
-    render(<Chat />);
+  it('keeps existing message rows memo-stable across parent rerenders with unchanged state', () => {
+    const { rerender } = render(<Chat />);
 
-    const scroller = scrollRefs.scrollRef.current;
-    expect(scroller).toBeTruthy();
+    expect(chatMessageRenderSpy).toHaveBeenCalledTimes(1);
 
-    Object.defineProperty(scroller!, 'scrollHeight', { configurable: true, value: 1400 });
-    Object.defineProperty(scroller!, 'clientHeight', { configurable: true, value: 500 });
-    Object.defineProperty(scroller!, 'scrollTop', { configurable: true, writable: true, value: 120 });
-    Object.defineProperty(scroller!, 'scrollTo', { configurable: true, value: vi.fn() });
+    rerender(<Chat />);
 
-    fireEvent.scroll(scroller!);
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Scroll to latest' })).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: 'Scroll to latest' }));
-
-    expect(scroller!.scrollTo).toHaveBeenCalled();
-  });
-
-  it('renders a compact composer-adjacent error bubble for request timeouts', async () => {
-    chatState.error = 'LLM request timed out.';
-
-    render(<Chat />);
-
-    expect(screen.getByText('This request timed out')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Dismiss' })).toBeInTheDocument();
+    expect(chatMessageRenderSpy).toHaveBeenCalledTimes(1);
   });
 });

@@ -70,11 +70,12 @@ export const ChatMessage = memo(function ChatMessage({
 
   const hasStreamingToolStatus = isStreaming && streamingTools.length > 0;
   if (!hasText && !visibleThinking && images.length === 0 && visibleTools.length === 0 && attachedFiles.length === 0 && !hasStreamingToolStatus) return null;
+  const hasSecondaryContent = hasText || hasStreamingToolStatus || !!visibleThinking || visibleTools.length > 0 || images.length > 0 || attachedFiles.length > 0;
 
   return (
     <div
       className={cn(
-        'chat-im-font group flex gap-3',
+        'app-chat-message-row chat-im-font group flex w-full min-w-0 gap-3',
         isUser ? 'flex-row-reverse' : 'flex-row',
       )}
     >
@@ -89,77 +90,10 @@ export const ChatMessage = memo(function ChatMessage({
 
       <div
         className={cn(
-          'flex min-w-0 flex-col space-y-1.5',
-          isUser ? 'w-full max-w-[70%] md:max-w-[62%]' : 'w-full max-w-[min(76%,40rem)]',
-          isUser ? 'items-end' : 'items-start',
+          'app-chat-message-column',
+          isUser ? 'app-chat-message-column--user' : 'app-chat-message-column--assistant',
         )}
       >
-        {isStreaming && !isUser && streamingTools.length > 0 && (
-          <ToolStatusBar tools={streamingTools} />
-        )}
-
-        {visibleThinking && (
-          <ThinkingBlock content={visibleThinking} />
-        )}
-
-        {visibleTools.length > 0 && (
-          <div className="space-y-1">
-            {visibleTools.map((tool, i) => (
-              <ToolCard key={tool.id || i} name={tool.name} input={tool.input} />
-            ))}
-          </div>
-        )}
-
-        {isUser && images.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {images.map((img, i) => {
-              const src = imageSrc(img);
-              if (!src) return null;
-              return (
-                <ImageThumbnail
-                  key={`content-${i}`}
-                  src={src}
-                  fileName={t('message.image')}
-                  base64={img.data}
-                  mimeType={img.mimeType}
-                  onPreview={() => setLightboxImg({ src, fileName: t('message.image'), base64: img.data, mimeType: img.mimeType })}
-                />
-              );
-            })}
-          </div>
-        )}
-
-        {isUser && attachedFiles.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {attachedFiles.map((file, i) => {
-              const isImage = file.mimeType.startsWith('image/');
-              // Skip image attachments if we already have images from content blocks
-              if (isImage && images.length > 0) return null;
-              if (isImage) {
-                return file.preview ? (
-                  <ImageThumbnail
-                    key={`local-${i}`}
-                    src={file.preview}
-                    fileName={file.fileName}
-                    filePath={file.filePath}
-                    mimeType={file.mimeType}
-                    onPreview={() => setLightboxImg({ src: file.preview!, fileName: file.fileName, filePath: file.filePath, mimeType: file.mimeType })}
-                  />
-                ) : (
-                  <div
-                    key={`local-${i}`}
-                    className="app-field-surface flex h-36 w-36 items-center justify-center rounded-xl text-muted-foreground"
-                  >
-                    <File className="h-8 w-8" />
-                  </div>
-                );
-              }
-              // Non-image files → file card
-              return <FileCard key={`local-${i}`} file={file} />;
-            })}
-          </div>
-        )}
-
         {hasText && (
           <MessageBubble
             text={text}
@@ -168,60 +102,133 @@ export const ChatMessage = memo(function ChatMessage({
           />
         )}
 
-        {!isUser && images.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {images.map((img, i) => {
-              const src = imageSrc(img);
-              if (!src) return null;
-              return (
-                <ImagePreviewCard
-                  key={`content-${i}`}
-                  src={src}
-                  fileName={t('message.image')}
-                  base64={img.data}
-                  mimeType={img.mimeType}
-                  onPreview={() => setLightboxImg({ src, fileName: t('message.image'), base64: img.data, mimeType: img.mimeType })}
-                />
-              );
-            })}
-          </div>
-        )}
+        {hasSecondaryContent && (
+          <div
+            className={cn(
+              'app-chat-message-secondary',
+              isUser ? 'app-chat-message-secondary--user' : 'app-chat-message-secondary--assistant',
+            )}
+          >
+            {hasText && (
+              <MessageMetaBar
+                text={text}
+                timestamp={message.timestamp}
+                align={isUser ? 'end' : 'start'}
+              />
+            )}
 
-        {!isUser && attachedFiles.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {attachedFiles.map((file, i) => {
-              const isImage = file.mimeType.startsWith('image/');
-              if (isImage && images.length > 0) return null;
-              if (isImage && file.preview) {
-                return (
-                  <ImagePreviewCard
-                    key={`local-${i}`}
-                    src={file.preview}
-                    fileName={file.fileName}
-                    filePath={file.filePath}
-                    mimeType={file.mimeType}
-                    onPreview={() => setLightboxImg({ src: file.preview!, fileName: file.fileName, filePath: file.filePath, mimeType: file.mimeType })}
-                  />
-                );
-              }
-              if (isImage && !file.preview) {
-                return (
-                  <div key={`local-${i}`} className="app-field-surface flex h-36 w-36 items-center justify-center rounded-xl text-muted-foreground">
-                    <File className="h-8 w-8" />
-                  </div>
-                );
-              }
-              return <FileCard key={`local-${i}`} file={file} />;
-            })}
-          </div>
-        )}
+            {isStreaming && !isUser && streamingTools.length > 0 && (
+              <ToolStatusBar tools={streamingTools} />
+            )}
 
-        {hasText && (
-          <MessageMetaBar
-            text={text}
-            timestamp={message.timestamp}
-            align={isUser ? 'end' : 'start'}
-          />
+            {visibleThinking && (
+              <ThinkingBlock content={visibleThinking} />
+            )}
+
+            {visibleTools.length > 0 && (
+              <div className="space-y-1">
+                {visibleTools.map((tool, i) => (
+                  <ToolCard key={tool.id || i} name={tool.name} input={tool.input} />
+                ))}
+              </div>
+            )}
+
+            {isUser && images.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {images.map((img, i) => {
+                  const src = imageSrc(img);
+                  if (!src) return null;
+                  return (
+                    <ImageThumbnail
+                      key={`content-${i}`}
+                      src={src}
+                      fileName={t('message.image')}
+                      base64={img.data}
+                      mimeType={img.mimeType}
+                      onPreview={() => setLightboxImg({ src, fileName: t('message.image'), base64: img.data, mimeType: img.mimeType })}
+                    />
+                  );
+                })}
+              </div>
+            )}
+
+            {isUser && attachedFiles.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {attachedFiles.map((file, i) => {
+                  const isImage = file.mimeType.startsWith('image/');
+                  if (isImage && images.length > 0) return null;
+                  if (isImage) {
+                    return file.preview ? (
+                      <ImageThumbnail
+                        key={`local-${i}`}
+                        src={file.preview}
+                        fileName={file.fileName}
+                        filePath={file.filePath}
+                        mimeType={file.mimeType}
+                        onPreview={() => setLightboxImg({ src: file.preview!, fileName: file.fileName, filePath: file.filePath, mimeType: file.mimeType })}
+                      />
+                    ) : (
+                      <div
+                        key={`local-${i}`}
+                        className="app-field-surface flex h-36 w-36 items-center justify-center rounded-xl text-muted-foreground"
+                      >
+                        <File className="h-8 w-8" />
+                      </div>
+                    );
+                  }
+                  return <FileCard key={`local-${i}`} file={file} />;
+                })}
+              </div>
+            )}
+
+            {!isUser && images.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {images.map((img, i) => {
+                  const src = imageSrc(img);
+                  if (!src) return null;
+                  return (
+                    <ImagePreviewCard
+                      key={`content-${i}`}
+                      src={src}
+                      fileName={t('message.image')}
+                      base64={img.data}
+                      mimeType={img.mimeType}
+                      onPreview={() => setLightboxImg({ src, fileName: t('message.image'), base64: img.data, mimeType: img.mimeType })}
+                    />
+                  );
+                })}
+              </div>
+            )}
+
+            {!isUser && attachedFiles.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {attachedFiles.map((file, i) => {
+                  const isImage = file.mimeType.startsWith('image/');
+                  if (isImage && images.length > 0) return null;
+                  if (isImage && file.preview) {
+                    return (
+                      <ImagePreviewCard
+                        key={`local-${i}`}
+                        src={file.preview}
+                        fileName={file.fileName}
+                        filePath={file.filePath}
+                        mimeType={file.mimeType}
+                        onPreview={() => setLightboxImg({ src: file.preview!, fileName: file.fileName, filePath: file.filePath, mimeType: file.mimeType })}
+                      />
+                    );
+                  }
+                  if (isImage && !file.preview) {
+                    return (
+                      <div key={`local-${i}`} className="app-field-surface flex h-36 w-36 items-center justify-center rounded-xl text-muted-foreground">
+                        <File className="h-8 w-8" />
+                      </div>
+                    );
+                  }
+                  return <FileCard key={`local-${i}`} file={file} />;
+                })}
+              </div>
+            )}
+          </div>
         )}
       </div>
 
@@ -349,7 +356,10 @@ function MessageBubble({
       {isUser ? (
         <p className="whitespace-pre-wrap break-words text-[15px] leading-[1.62]">{text}</p>
       ) : (
-        <div className="prose prose-sm dark:prose-invert max-w-none break-words text-[15px] leading-[1.62] prose-p:my-2 prose-ul:my-2.5 prose-ol:my-2.5 prose-li:my-1 prose-pre:my-2.5 prose-headings:mb-2 prose-headings:mt-4">
+        <div className={cn(
+          'prose prose-sm dark:prose-invert max-w-none break-words text-[15px] leading-[1.62] prose-p:my-2 prose-ul:my-2.5 prose-ol:my-2.5 prose-li:my-1 prose-pre:my-2.5 prose-headings:mb-2 prose-headings:mt-4',
+          isStreaming && 'app-chat-streaming-content',
+        )}>
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
@@ -383,7 +393,11 @@ function MessageBubble({
             {text}
           </ReactMarkdown>
           {isStreaming && (
-            <span className="inline-block w-2 h-4 bg-foreground/50 animate-pulse ml-0.5" />
+            <span data-testid="chat-streaming-indicator" className="app-chat-streaming-indicator" aria-hidden="true">
+              <span className="app-chat-streaming-dot" style={{ animationDelay: '0ms' }} />
+              <span className="app-chat-streaming-dot" style={{ animationDelay: '140ms' }} />
+              <span className="app-chat-streaming-dot" style={{ animationDelay: '280ms' }} />
+            </span>
           )}
         </div>
       )}
@@ -487,7 +501,13 @@ function ImageThumbnail({
       className="group/img app-chat-media-card relative h-32 w-32 cursor-zoom-in overflow-hidden rounded-[12px]"
       onClick={onPreview}
     >
-      <img src={src} alt={fileName} className="h-full w-full object-cover transition-transform duration-200 group-hover/img:scale-[1.01]" />
+      <img
+        src={src}
+        alt={fileName}
+        loading="lazy"
+        decoding="async"
+        className="h-full w-full object-cover transition-transform duration-200 group-hover/img:scale-[1.01]"
+      />
     </div>
   );
 }
@@ -515,7 +535,7 @@ function ImagePreviewCard({
       className="group/img app-chat-media-card relative max-w-[220px] cursor-zoom-in overflow-hidden rounded-[12px]"
       onClick={onPreview}
     >
-      <img src={src} alt={fileName} className="block w-full" />
+      <img src={src} alt={fileName} loading="lazy" decoding="async" className="block w-full" />
     </div>
   );
 }

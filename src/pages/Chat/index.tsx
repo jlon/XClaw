@@ -4,8 +4,8 @@
  * via gateway:rpc IPC. Session selector, thinking toggle, and refresh
  * are in the toolbar; messages render with markdown + streaming.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { ChevronDown, Loader2, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Loader2, X } from 'lucide-react';
 import { AgentAvatar } from '@/components/chat/AgentAvatar';
 import { useChatStore, type RawMessage } from '@/stores/chat';
 import { useGatewayStore } from '@/stores/gateway';
@@ -98,11 +98,11 @@ export function Chat() {
   const activeSession = sessions.find((session) => session.key === currentSessionKey);
   const currentAgentName = agents.find((agent) => agent.id === currentAgentId)?.name || currentAgentId;
   const currentSessionLabel = sessionLabels[currentSessionKey] ?? activeSession?.label ?? activeSession?.displayName ?? currentAgentName;
-  const assistantAvatar = getSessionAvatar({
+  const assistantAvatar = useMemo(() => getSessionAvatar({
     sessionKey: currentSessionKey || currentSessionLabel,
     agentId: currentAgentId,
     agentName: currentAgentName,
-  });
+  }), [currentAgentId, currentAgentName, currentSessionKey, currentSessionLabel]);
   const composerErrorCopy = error
     ? (/timed out/i.test(error) ? t('errors.requestTimeout') : error)
     : null;
@@ -235,25 +235,6 @@ export function Chat() {
         </div>
       )}
 
-      {showScrollToLatest && (
-        <div className="app-chat-workbench flex justify-end px-4 pb-2">
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={scrollToLatest}
-              className="app-chat-scroll-to-latest"
-              aria-label={t('toolbar.scrollToLatest')}
-              title={t('toolbar.scrollToLatest')}
-            >
-              <ChevronDown className="h-4 w-4" />
-              {hasPendingLatest && (
-                <span className="status-indicator status-indicator-glow absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-[hsl(var(--primary))]" />
-              )}
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Input Area */}
       <ChatInput
         onSend={sendMessage}
@@ -261,6 +242,9 @@ export function Chat() {
         disabled={!isGatewayRunning}
         sending={sending}
         isEmpty={isEmpty}
+        showScrollToLatest={showScrollToLatest}
+        hasPendingLatest={hasPendingLatest}
+        onScrollToLatest={scrollToLatest}
       />
 
       {/* Transparent loading overlay */}

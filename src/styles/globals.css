@@ -409,6 +409,43 @@
   max-width: 1000px;
 }
 
+.app-chat-message-column {
+  display: flex;
+  min-width: 0;
+  width: 100%;
+  max-width: 42rem;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.app-chat-message-column--assistant {
+  align-items: flex-start;
+}
+
+.app-chat-message-column--user {
+  align-items: flex-end;
+  margin-inline-start: auto;
+  max-width: min(84%, 34rem);
+}
+
+.app-chat-message-secondary {
+  display: flex;
+  min-width: 0;
+  width: 100%;
+  flex-direction: column;
+  gap: 0.5rem;
+  content-visibility: auto;
+  contain-intrinsic-size: 0 120px;
+}
+
+.app-chat-message-secondary--assistant {
+  align-items: flex-start;
+}
+
+.app-chat-message-secondary--user {
+  align-items: flex-end;
+}
+
 .app-chat-connection-indicator {
   background: transparent;
   color: hsl(var(--muted-foreground) / 0.78);
@@ -540,12 +577,16 @@
   background: hsl(var(--surface-elevated) / 0.8);
   border: 1px solid hsl(var(--border-subtle) / 0.72);
   box-shadow: none;
+  content-visibility: auto;
+  contain-intrinsic-size: 0 56px;
 }
 
 .app-chat-media-card {
   background: hsl(var(--surface-elevated) / 0.48);
   border: 1px solid hsl(var(--border-subtle) / 0.54);
   box-shadow: none;
+  content-visibility: auto;
+  contain-intrinsic-size: 0 144px;
   transition:
     border-color 180ms ease,
     background-color 180ms ease,
@@ -571,6 +612,8 @@
 
 .app-chat-secondary-block {
   width: 100%;
+  content-visibility: auto;
+  contain-intrinsic-size: 0 120px;
 }
 
 .app-chat-secondary-toggle {
@@ -630,6 +673,29 @@
   border-left: 2px solid hsl(var(--primary) / 0.22);
   background: hsl(var(--surface-elevated) / 0.9);
   box-shadow: none;
+  content-visibility: auto;
+  contain-intrinsic-size: 0 140px;
+}
+
+.app-chat-streaming-content > p:last-of-type {
+  display: inline;
+  margin-right: 0.42rem;
+}
+
+.app-chat-streaming-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  vertical-align: baseline;
+}
+
+.app-chat-streaming-dot {
+  height: 0.34rem;
+  width: 0.34rem;
+  border-radius: 9999px;
+  background: hsl(var(--muted-foreground) / 0.72);
+  animation: status-indicator-breathe 1.45s ease-in-out infinite;
+  transform-origin: center;
 }
 
 .app-chat-hoverbar {

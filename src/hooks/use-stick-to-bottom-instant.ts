@@ -14,7 +14,7 @@ export function useStickToBottomInstant(resetKey?: string) {
 
   const result = useStickToBottom({
     initial: "instant",
-    resize: "smooth",
+    resize: "instant",
   });
 
   const { scrollRef } = result;
@@ -34,24 +34,12 @@ export function useStickToBottomInstant(resetKey?: string) {
     const scrollElement = scrollRef.current;
     if (!scrollElement) return;
 
-    // Hide, scroll, reveal pattern to avoid visible animation
-    scrollElement.style.visibility = "hidden";
-
-    // Use double RAF to ensure content is rendered
-    const frame1 = requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        // Direct scroll to bottom
-        scrollElement.scrollTop = scrollElement.scrollHeight;
-
-        // Small delay to ensure scroll is applied
-        setTimeout(() => {
-          scrollElement.style.visibility = "";
-          hasInitializedRef.current = true;
-        }, 0);
-      });
+    const frame = requestAnimationFrame(() => {
+      scrollElement.scrollTop = scrollElement.scrollHeight;
+      hasInitializedRef.current = true;
     });
 
-    return () => cancelAnimationFrame(frame1);
+    return () => cancelAnimationFrame(frame);
   }, [scrollRef, resetKey]);
 
   return result;

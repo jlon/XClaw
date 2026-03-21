@@ -88,6 +88,42 @@ describe('chat desktop shell theme', () => {
     expect(pageSource).not.toContain('app-chat-tool-status w-fit rounded-[14px] px-3 py-2 text-foreground');
   });
 
+  it('uses a lighter first-paint scroll strategy instead of hiding the chat scroller before reveal', () => {
+    const hookSource = readFileSync(resolve(process.cwd(), 'src/hooks/use-stick-to-bottom-instant.ts'), 'utf8');
+
+    expect(hookSource).toContain('initial: "instant"');
+    expect(hookSource).toContain('resize: "instant"');
+    expect(hookSource).not.toContain('style.visibility = "hidden"');
+    expect(hookSource).not.toContain('requestAnimationFrame(() => {\n      requestAnimationFrame(() => {');
+  });
+
+  it('moves chat rows onto a unified message column and secondary rail instead of hardcoded split widths', () => {
+    const messageSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/ChatMessage.tsx'), 'utf8');
+    const themeSource = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
+
+    expect(messageSource).toContain('app-chat-message-column');
+    expect(messageSource).toContain('app-chat-message-secondary');
+    expect(messageSource).not.toContain("max-w-[70%] md:max-w-[62%]");
+    expect(messageSource).not.toContain("max-w-[min(76%,40rem)]");
+    expect(themeSource).toContain('.app-chat-message-column');
+    expect(themeSource).toContain('.app-chat-message-secondary');
+  });
+
+  it('isolates heavy chat secondary blocks and code blocks with content visibility hints', () => {
+    const themeSource = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
+
+    expect(themeSource).toContain('.app-chat-message-secondary');
+    expect(themeSource).toContain('.app-chat-secondary-block');
+    expect(themeSource).toContain('.app-chat-media-card');
+    expect(themeSource).toContain('.app-chat-file-card');
+    expect(themeSource).toContain('.app-chat-code-block');
+    expect(themeSource).toContain('content-visibility: auto;');
+    expect(themeSource).toContain('contain-intrinsic-size: 0 120px;');
+    expect(themeSource).toContain('contain-intrinsic-size: 0 144px;');
+    expect(themeSource).toContain('contain-intrinsic-size: 0 56px;');
+    expect(themeSource).toContain('contain-intrinsic-size: 0 140px;');
+  });
+
   it('anchors chat errors near the composer instead of using a full-width destructive banner', () => {
     const pageSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/index.tsx'), 'utf8');
     const themeSource = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');

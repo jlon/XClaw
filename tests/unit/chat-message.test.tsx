@@ -71,4 +71,43 @@ describe('ChatMessage', () => {
 
     expect(screen.getAllByTitle('Copy')).toHaveLength(2);
   });
+
+  it('marks chat images as lazy async media so long sessions scroll with less pressure', () => {
+    const assistantImageMessage: RawMessage = {
+      role: 'assistant',
+      timestamp: 1710000100,
+      _attachedFiles: [
+        {
+          fileName: 'preview.png',
+          mimeType: 'image/png',
+          preview: 'data:image/png;base64,ZmFrZQ==',
+          filePath: '/tmp/preview.png',
+          fileSize: 12,
+        },
+      ],
+    };
+
+    render(
+      <ChatMessage message={assistantImageMessage} showThinking={false} />,
+    );
+
+    const image = screen.getByAltText('preview.png');
+    expect(image).toHaveAttribute('loading', 'lazy');
+    expect(image).toHaveAttribute('decoding', 'async');
+  });
+
+  it('renders a three-dot streaming indicator for assistant messages instead of a single pulse bar', () => {
+    const message: RawMessage = {
+      role: 'assistant',
+      content: 'Still streaming',
+      timestamp: 1710000200,
+    };
+
+    render(
+      <ChatMessage message={message} showThinking={false} isStreaming />,
+    );
+
+    const indicator = screen.getByTestId('chat-streaming-indicator');
+    expect(indicator.children).toHaveLength(3);
+  });
 });
