@@ -65,8 +65,8 @@ export function ChatToolbar({ compact = false }: { compact?: boolean }) {
           <div
             aria-label={t(gatewayUi.labelKey)}
             className={cn(
-              'app-chat-runtime-pill app-chat-connection-indicator flex items-center justify-center gap-1 rounded-full',
-              compact ? 'h-6 min-w-[1.5rem] px-1.5' : 'h-7 px-2.5',
+              'app-chat-runtime-pill app-chat-connection-indicator flex items-center justify-center gap-1 rounded-[9px]',
+              compact ? 'h-6 min-w-[1.5rem] px-1.5' : 'h-7 px-2',
             )}
           >
             {gatewayUi.spinning ? (

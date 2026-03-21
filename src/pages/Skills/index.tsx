@@ -66,11 +66,11 @@ function resolveSkillSourceLabel(skill: Skill, t: TFunction<'skills'>): string {
 }
 
 const headerButtonClasses =
-  'h-8 rounded-full px-3.5 text-[12.5px] font-medium shadow-none border-border/70 bg-transparent text-foreground/78 transition-colors hover:bg-accent/60 hover:text-foreground';
+  'h-8 rounded-[12px] px-3.5 text-[12.5px] font-medium shadow-none border-border/70 bg-transparent text-foreground/78 transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
 const compactOutlineButtonClasses =
-  'h-8 rounded-full border border-border/70 bg-transparent px-3 text-[12px] font-medium text-foreground/78 shadow-none transition-colors hover:bg-accent/60 hover:text-foreground';
+  'h-8 rounded-[12px] border border-border/70 bg-transparent px-3 text-[12px] font-medium text-foreground/78 shadow-none transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
 const iconButtonClasses =
-  'h-8 w-8 rounded-full border border-border/70 bg-transparent shadow-none text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground';
+  'h-8 w-8 rounded-[12px] border border-border/70 bg-transparent shadow-none text-muted-foreground transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
 const tokenInputClasses =
   'h-[44px] rounded-xl font-mono text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30';
 const compactInputClasses =
@@ -78,14 +78,14 @@ const compactInputClasses =
 const sheetSurfaceClasses =
   'flex w-full flex-col border-l border-border/70 bg-[hsl(var(--surface-elevated)/0.995)] p-0 shadow-none';
 const badgeClasses =
-  'rounded-full border border-border/70 bg-background/65 px-2.5 py-0.5 text-[10.5px] font-medium text-foreground/65 shadow-none transition-colors';
+  'rounded-[10px] border border-border/70 bg-background/65 px-2.5 py-0.5 text-[10.5px] font-medium text-foreground/65 shadow-none transition-colors';
 const listRowClasses =
   'group flex cursor-pointer flex-row items-center justify-between rounded-[12px] border border-transparent px-2.5 py-2 transition-colors hover:border-border/50 hover:bg-[hsl(var(--surface-hover)/0.42)]';
 const listIconClasses =
   'flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-[7px] border border-border/55 bg-[hsl(var(--surface-panel)/0.84)] text-[11px] text-foreground/58';
 const searchFieldClasses =
-  'relative flex items-center rounded-full border border-transparent bg-[hsl(var(--surface-panel)/0.82)] px-3 py-1.5 transition-colors hover:bg-[hsl(var(--surface-hover)/0.52)] focus-within:border-border/55 focus-within:bg-[hsl(var(--surface-panel)/0.96)]';
-const filterButtonBaseClasses = 'flex items-center gap-1.5 font-medium transition-colors';
+  'relative flex items-center rounded-[14px] border border-border/60 bg-[hsl(var(--surface-panel)/0.84)] px-3 py-2 transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] focus-within:border-border/55 focus-within:bg-[hsl(var(--surface-panel)/0.96)]';
+const filterButtonBaseClasses = 'flex items-center gap-1.5 rounded-[11px] px-2.5 py-1 text-[12px] font-medium transition-colors';
 
 function SkillDetailDialog({ skill, isOpen, onClose, onToggle, onUninstall, onOpenFolder }: SkillDetailDialogProps) {
   const { t } = useTranslation('skills');
@@ -320,7 +320,7 @@ function SkillDetailDialog({ skill, isOpen, onClose, onToggle, onUninstall, onOp
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-7 gap-1.5 rounded-full px-2.5 text-[12px] font-semibold text-foreground/78 hover:bg-accent/60 hover:text-foreground"
+                      className="h-7 gap-1.5 rounded-[12px] px-2.5 text-[12px] font-semibold text-foreground/78 hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground"
                       onClick={handleAddEnv}
                     >
                       <Plus className="h-3 w-3" strokeWidth={3} />
@@ -384,7 +384,7 @@ function SkillDetailDialog({ skill, isOpen, onClose, onToggle, onUninstall, onOp
                 <Button
                   onClick={handleSaveConfig}
                   className={cn(
-                    'h-[40px] rounded-full border border-transparent px-5 text-[13px] font-semibold shadow-none transition-all',
+                    'h-[40px] rounded-[12px] border border-transparent px-5 text-[13px] font-semibold shadow-none transition-all',
                     'bg-primary text-primary-foreground hover:bg-primary/90'
                   )}
                   disabled={isSaving}
@@ -394,11 +394,11 @@ function SkillDetailDialog({ skill, isOpen, onClose, onToggle, onUninstall, onOp
               )}
 
               {!skill.isCore && (
-                <Button
-                  variant="outline"
-                  className="h-[40px] rounded-full border-border/70 bg-transparent px-5 text-[13px] font-semibold text-foreground/80 shadow-none transition-colors hover:bg-accent/60 hover:text-foreground"
-                  onClick={() => {
-                    if (!skill.isBundled && onUninstall && skill.slug) {
+              <Button
+                variant="outline"
+                className="h-[40px] rounded-[12px] border-border/70 bg-transparent px-5 text-[13px] font-semibold text-foreground/80 shadow-none transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground"
+                onClick={() => {
+                  if (!skill.isBundled && onUninstall && skill.slug) {
                       onUninstall(skill.slug);
                       onClose();
                     } else {
@@ -696,19 +696,19 @@ export function Skills() {
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => setSelectedSource('all')}
-                  className={cn('rounded-full px-2.5 py-1 text-[12px]', filterButtonBaseClasses, selectedSource === 'all' ? 'bg-[hsl(var(--surface-panel)/0.92)] text-foreground' : 'text-muted-foreground hover:bg-[hsl(var(--surface-hover)/0.48)] hover:text-foreground')}
+                  className={cn(filterButtonBaseClasses, selectedSource === 'all' ? 'bg-[hsl(var(--surface-panel)/0.92)] text-foreground' : 'text-muted-foreground hover:bg-[hsl(var(--surface-hover)/0.48)] hover:text-foreground')}
                 >
                   {t('filter.all', { count: sourceStats.all })}
                 </button>
                 <button
                   onClick={() => setSelectedSource('built-in')}
-                  className={cn('rounded-full px-2.5 py-1 text-[12px]', filterButtonBaseClasses, selectedSource === 'built-in' ? 'bg-[hsl(var(--surface-panel)/0.92)] text-foreground' : 'text-muted-foreground hover:bg-[hsl(var(--surface-hover)/0.48)] hover:text-foreground')}
+                  className={cn(filterButtonBaseClasses, selectedSource === 'built-in' ? 'bg-[hsl(var(--surface-panel)/0.92)] text-foreground' : 'text-muted-foreground hover:bg-[hsl(var(--surface-hover)/0.48)] hover:text-foreground')}
                 >
                   {t('filter.builtIn', { count: sourceStats.builtIn })}
                 </button>
                 <button
                   onClick={() => setSelectedSource('marketplace')}
-                  className={cn('rounded-full px-2.5 py-1 text-[12px]', filterButtonBaseClasses, selectedSource === 'marketplace' ? 'bg-[hsl(var(--surface-panel)/0.92)] text-foreground' : 'text-muted-foreground hover:bg-[hsl(var(--surface-hover)/0.48)] hover:text-foreground')}
+                  className={cn(filterButtonBaseClasses, selectedSource === 'marketplace' ? 'bg-[hsl(var(--surface-panel)/0.92)] text-foreground' : 'text-muted-foreground hover:bg-[hsl(var(--surface-hover)/0.48)] hover:text-foreground')}
                 >
                   {t('filter.marketplace', { count: sourceStats.marketplace })}
                 </button>
@@ -835,7 +835,7 @@ export function Skills() {
             <h2 className="text-[20px] text-foreground font-semibold tracking-tight">{t('marketplace.installDialogTitle')}</h2>
             <p className="mt-1 text-[13px] text-foreground/70">{t('marketplace.installDialogSubtitle')}</p>
             <div className="mt-4 flex flex-col md:flex-row gap-2">
-                <div className="relative flex flex-1 items-center rounded-full border border-transparent bg-[hsl(var(--surface-panel)/0.82)] px-3 py-1.5 transition-colors hover:bg-[hsl(var(--surface-hover)/0.48)] focus-within:border-border/55 focus-within:bg-[hsl(var(--surface-panel)/0.96)]">
+                <div className={searchFieldClasses}>
                 <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
                 <input
                   placeholder={t('searchMarketplace')}
@@ -847,7 +847,7 @@ export function Skills() {
                   <button
                     type="button"
                     onClick={() => setInstallQuery('')}
-                    className="text-foreground/50 hover:text-foreground shrink-0 ml-1"
+                    className="shrink-0 ml-1 rounded-[8px] px-1.5 py-1 text-foreground/50 transition-colors hover:bg-[hsl(var(--surface-hover)/0.48)] hover:text-foreground"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -856,7 +856,7 @@ export function Skills() {
               <Button
                 variant="outline"
                 disabled
-                  className="h-9 rounded-full border-border/70 bg-transparent px-3.5 text-[12px] text-muted-foreground"
+                  className="h-9 rounded-[12px] border-border/70 bg-transparent px-3.5 text-[12px] text-muted-foreground"
               >
                 {t('marketplace.sourceLabel')}: {t('marketplace.sourceClawHub')}
               </Button>
@@ -922,7 +922,7 @@ export function Skills() {
                             size="sm"
                             onClick={() => handleUninstall(skill.slug)}
                             disabled={isInstallLoading}
-                            className="h-8 shadow-none"
+                            className="h-8 rounded-[12px] shadow-none"
                           >
                             {isInstallLoading ? <LoadingSpinner size="sm" /> : <Trash2 className="h-3.5 w-3.5" />}
                           </Button>
@@ -932,7 +932,7 @@ export function Skills() {
                             size="sm"
                             onClick={() => handleInstall(skill.slug)}
                             disabled={isInstallLoading}
-                            className="h-8 rounded-full px-4 text-xs font-medium shadow-none"
+                            className="h-8 rounded-[12px] px-4 text-xs font-medium shadow-none"
                           >
                             {isInstallLoading ? <LoadingSpinner size="sm" /> : t('marketplace.install', 'Install')}
                           </Button>

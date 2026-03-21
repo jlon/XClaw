@@ -90,11 +90,17 @@
 - 已将 `Chat` 输入坞站继续从网页式大圆角浮条收回更紧的 desktop tray，模型 picker 和搜索输入也一起退出厚 pill 语法
 - 已将 `Channels` 三栏工作台继续从 dashboard 卡片语法收向 split-pane workbench：主 section、rail item、空状态和搜索框都进一步减轻网页感
 - 已将 `Providers` 继续从“网页设置中心”收回桌面语法：provider 卡片改成稳定实体 surface，摘要改成两层信息，非密钥字段退出 `font-mono`，fallback 配置也退出原生 checkbox/textarea 语法
+- 已继续收口 `Settings / Providers` 的二级语法：标题、section、subpanel、pill、输入框和 OAuth/fallback 区域都进一步压平，避免再次长成网页式 settings center
 - 已将 `Channels` 继续从 dashboard pane 收向真正的 split-pane：页头 hero 收成轻 toolbar，三栏 section 改用统一 pane surface，选中态与 hover 降回 source-list 语义，右栏编辑区不再是卡片套卡片
 - 已将 `ChatInput / ChatToolbar` 的次级控件继续退出网页表单语法：agent/model picker 改用专属 chat picker surface，模型搜索框改成 wrapper + transparent input，工具 rail 与运行态 token 也进一步桌面化
 - 已将 `Agents / Skills / Cron` 的头部、列表、统计卡和部分 modal/inspector 继续推回 desktop pane / source-list 语法，减少网页设置中心和 dashboard 感
 - 已将 `Agents / Skills / Cron` 的详情侧栏、安装/编辑弹窗与任务对话框继续压平到同一套冷中性 substrate，减少大头像、大徽章和 hover-only controls 的网页语法
+- 已继续清理 `Agents / Skills / Cron` 残留的网页式 utility button / pill 语法，把常用触发器和次级动作收回更平的 desktop utility 形态
 - 已直接对照 `.reference/qclaw-unpacked-20260321/` 修正 `index.html` 被打包产物污染的问题，恢复 `XClaw` 自己的 Vite 入口，避免构建链被错误的 `QClaw` 资源脚本卡死
+- 已继续收口 `ChannelConfigModal` 的网页弹窗语法：标题区、选择卡、说明块、验证态和底部动作区统一回到更平的 desktop pane / modal surface，避免频道配置弹窗再次长成网页设置对话框
+- 已继续把 `ChannelConfigModal` 的 modal 阴影、圆角、头部、频道选择区、帮助说明块、验证结果块和 footer 动作收成更像桌面 utility dialog 的语法
+- 已继续清理 `Setup / Chat` 里残留的网页式 utility 语法：provider 选择器和 OAuth 审批面板退出 `2xl` 大圆角与 glow，聊天 loading shell、附件移除按钮和文件 hover 退出网页 accent/浮层语法
+- 已对 `Settings / Providers / Channels / ChannelConfigModal / Chat / Setup / Agents / Skills / Cron` 这轮残留热点做了一次聚合核验，确认没有因为继续去网页感而打破主流程
 
 ## 完成判断
 
@@ -113,6 +119,8 @@
 - 继续观察 `Chat` 空态建议卡片的文字密度，确认是否还需要进一步压缩成更接近桌面应用的文本清单
 - 继续观察 `Chat` 代码块、图片预览和 hover 元信息在真实桌面窗口中的存在感，确认是否还需要进一步收平为更接近原生文档工作区的表达
 - 继续收 `Providers / Channels / Chat` 里仍偏网页化的 modal / picker / inspector 次级面板
+- 继续观察 `ChannelConfigModal` 在真实桌面窗口中的标题、字段和底部动作密度，确认是否还需要继续压平
+- 继续做 mac / Windows 真机手工 smoke，确认代码级闭环和真实桌面观感一致
 
 ## 暂不纳入
 

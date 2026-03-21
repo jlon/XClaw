@@ -56,13 +56,13 @@ interface ChannelConfigModalProps {
   onChannelSaved?: (channelType: ChannelType, accountId?: string) => void | Promise<void>;
 }
 
-const inputClasses = 'h-[44px] rounded-xl border-border/70 app-field-surface font-mono text-[13px] text-foreground shadow-sm transition-all placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30';
-const labelClasses = 'text-[14px] font-semibold text-foreground/80';
-const outlineButtonClasses = 'h-9 rounded-full border-border/70 bg-transparent px-4 text-[13px] font-medium text-foreground/80 shadow-none hover:bg-accent/60 hover:text-foreground';
-const primaryButtonClasses = 'h-9 text-[13px] font-medium rounded-full px-4 shadow-none';
-const modalCardClasses = 'app-modal-surface flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-[20px]';
-const modalSurfaceClasses = 'rounded-[18px] border border-border/70 bg-[hsl(var(--surface-panel)/0.98)]';
-const modalSubtleSurfaceClasses = 'border border-border/70 bg-[hsl(var(--surface-base)/0.98)]';
+const inputClasses = 'h-11 rounded-[10px] border border-border/60 app-field-surface font-mono text-[13px] text-foreground shadow-none transition-colors placeholder:text-muted-foreground/55 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/18 focus-visible:ring-offset-0';
+const labelClasses = 'text-[12.5px] font-semibold tracking-[0.01em] text-foreground/78';
+const outlineButtonClasses = 'h-9 rounded-[10px] border border-border/60 bg-[hsl(var(--surface-elevated)/0.96)] px-3 text-[12px] font-medium text-foreground/78 shadow-none hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground';
+const primaryButtonClasses = 'h-9 rounded-[10px] bg-foreground px-4 text-[12px] font-medium text-background shadow-none hover:bg-foreground/90';
+const modalCardClasses = 'app-modal-surface flex max-h-[88vh] w-full max-w-[900px] flex-col overflow-hidden rounded-[16px] border-border/55 shadow-[0_10px_28px_rgba(15,23,42,0.06)]';
+const modalSurfaceClasses = 'app-pane-surface rounded-[12px] border border-border/55';
+const modalSubtleSurfaceClasses = 'app-pane-surface rounded-[12px] border border-border/50';
 
 export function ChannelConfigModal({
   initialSelectedType = null,
@@ -443,16 +443,16 @@ export function ChannelConfigModal({
         onMouseDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
       >
-        <CardHeader className="flex flex-row items-start justify-between pb-2 shrink-0">
-          <div>
-            <CardTitle className="text-2xl font-semibold tracking-tight">
+        <CardHeader className="flex flex-row items-start justify-between gap-4 border-b border-border/45 px-5 pb-4 pt-4 sm:px-6">
+          <div className="min-w-0">
+            <CardTitle className="text-[19px] font-semibold tracking-[-0.03em] text-foreground">
               {selectedType
                 ? isExistingConfig
                   ? t('dialog.updateTitle', { name: CHANNEL_NAMES[selectedType] })
                   : t('dialog.configureTitle', { name: CHANNEL_NAMES[selectedType] })
                 : t('dialog.addTitle')}
             </CardTitle>
-            <CardDescription className="text-[15px] mt-1 text-foreground/70">
+            <CardDescription className="mt-1 max-w-[52ch] text-[12.5px] leading-5 text-foreground/60">
               {selectedType && isExistingConfig
                 ? t('dialog.existingDesc')
                 : meta ? t(meta.description.replace('channels:', '')) : t('dialog.selectDesc')}
@@ -462,14 +462,14 @@ export function ChannelConfigModal({
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="h-8 w-8 rounded-full -mr-2 -mt-2 text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+            className="h-9 w-9 rounded-[10px] border border-border/55 bg-[hsl(var(--foreground)/0.03)] text-foreground/55 shadow-none hover:bg-[hsl(var(--foreground)/0.055)] hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </Button>
         </CardHeader>
-        <CardContent className="space-y-6 pt-4 overflow-y-auto flex-1 p-6">
+        <CardContent className="flex-1 overflow-y-auto px-5 pb-0 pt-4 sm:px-6">
           {!selectedType ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
               {getPrimaryChannels().map((type) => {
                 const channelMeta = CHANNEL_META[type];
                 const isConfigured = configuredTypes.includes(type);
@@ -478,36 +478,36 @@ export function ChannelConfigModal({
                     key={type}
                     onClick={() => setSelectedType(type)}
                     className={cn(
-                      `group flex items-start gap-4 p-4 rounded-2xl transition-all text-left border relative overflow-hidden shadow-sm ${modalSubtleSurfaceClasses}`,
+                      `group relative flex min-h-[92px] items-center gap-3 rounded-[12px] border border-border/55 p-3 text-left shadow-none transition-colors ${modalSubtleSurfaceClasses}`,
                       isConfigured
-                        ? 'border-[hsl(var(--success))/0.3] bg-[hsl(var(--success))/0.1]'
-                        : 'hover:bg-accent/60'
+                        ? 'border-border/65 bg-[hsl(var(--foreground)/0.04)]'
+                        : 'hover:border-border/60 hover:bg-[hsl(var(--foreground)/0.028)]'
                     )}
                   >
-                    <div className="app-field-surface flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-full text-foreground shadow-sm">
+                    <div className="app-pane-surface flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[12px] border border-border/55 text-foreground shadow-none">
                       <ChannelLogo type={type} />
                     </div>
-                    <div className="flex flex-col flex-1 min-w-0 py-0.5 mt-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="text-[16px] font-semibold text-foreground truncate">{channelMeta.name}</p>
+                    <div className="flex min-w-0 flex-1 flex-col">
+                      <div className="mb-1 flex min-w-0 items-center gap-2 pr-10">
+                        <p className="truncate text-[14px] font-semibold text-foreground">{channelMeta.name}</p>
                         {channelMeta.isPlugin && (
                           <Badge
                             variant="secondary"
-                            className="rounded-full bg-secondary/80 px-2 py-0.5 font-mono text-[10px] font-medium text-foreground/70 shadow-none"
+                            className="rounded-[10px] border border-border/55 bg-[hsl(var(--foreground)/0.04)] px-2 py-0.5 font-mono text-[10px] font-medium text-foreground/64 shadow-none"
                           >
                             {t('pluginBadge')}
                           </Badge>
                         )}
                       </div>
-                      <p className="text-[13.5px] text-muted-foreground line-clamp-2 leading-[1.5]">
+                      <p className="line-clamp-2 text-[12.5px] leading-[1.55] text-muted-foreground/76">
                         {t(channelMeta.description.replace('channels:', ''))}
                       </p>
-                      <p className="text-[12px] font-medium text-muted-foreground/80 mt-2">
+                      <p className="mt-2 text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground/68">
                         {channelMeta.connectionType === 'qr' ? t('dialog.qrCode') : t('dialog.token')}
                       </p>
                     </div>
                     {isConfigured && (
-                      <Badge className="absolute right-3 top-3 rounded-full bg-[hsl(var(--success))] text-[10px] font-medium hover:bg-[hsl(var(--success))]">
+                      <Badge className="absolute right-3 top-3 rounded-[10px] border border-border/55 bg-[hsl(var(--foreground)/0.045)] px-2 py-0.5 text-[10px] font-medium text-foreground/72 hover:bg-[hsl(var(--foreground)/0.045)]">
                         {t('configuredBadge')}
                       </Badge>
                     )}
@@ -516,17 +516,17 @@ export function ChannelConfigModal({
               })}
             </div>
           ) : qrCode ? (
-            <div className="text-center space-y-6">
-              <div className={cn('inline-block rounded-[20px] p-4', modalSurfaceClasses)}>
+            <div className="space-y-5 pb-4 text-center">
+              <div className={cn('inline-block p-3', modalSurfaceClasses)}>
                 {qrCode.startsWith('data:image') ? (
-                  <img src={qrCode} alt="Scan QR Code" className="w-64 h-64 object-contain rounded-2xl" />
+                  <img src={qrCode} alt="Scan QR Code" className="h-60 w-60 rounded-[12px] object-contain" />
                 ) : (
-                  <div className="app-field-surface flex h-64 w-64 items-center justify-center rounded-2xl">
+                  <div className="app-pane-surface flex h-60 w-60 items-center justify-center rounded-[12px] border border-border/55">
                     <QrCode className="h-32 w-32 text-gray-400" />
                   </div>
                 )}
               </div>
-              <p className="text-[14px] text-muted-foreground">
+              <p className="text-[13px] leading-5 text-muted-foreground/78">
                 {t('dialog.scanQR', { name: meta?.name })}
               </p>
               <div className="flex justify-center gap-2">
@@ -543,38 +543,38 @@ export function ChannelConfigModal({
               </div>
             </div>
           ) : loadingConfig ? (
-            <div className={cn('flex items-center justify-center py-10 rounded-2xl', modalSurfaceClasses)}>
+            <div className={cn('flex items-center justify-center gap-2 px-4 py-10', modalSurfaceClasses)}>
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-              <span className="ml-2 text-[14px] text-muted-foreground">{t('dialog.loadingConfig')}</span>
+              <span className="text-[13px] text-muted-foreground/78">{t('dialog.loadingConfig')}</span>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-4 pb-4">
               {isExistingConfig && (
-                <div className="flex items-center gap-2 rounded-2xl border border-primary/20 bg-primary/10 p-4 text-[13.5px] text-primary">
+                <div className="flex items-center gap-2 rounded-[12px] border border-border/55 bg-[hsl(var(--foreground)/0.035)] p-3 text-[13px] text-foreground/78">
                   <CheckCircle className="h-4 w-4 shrink-0" />
                   <span>{t('dialog.existingHint')}</span>
                 </div>
               )}
 
-              <div className={cn('p-4 rounded-2xl space-y-4 shadow-sm', modalSurfaceClasses)}>
-                <div className="flex items-center justify-between gap-3">
+              <div className={cn('space-y-4 p-4 shadow-none', modalSurfaceClasses)}>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <p className={labelClasses}>{t('dialog.howToConnect')}</p>
-                    <p className="text-[13px] text-muted-foreground mt-1">
+                    <p className="mt-1 text-[12.5px] leading-5 text-muted-foreground/76">
                       {meta ? t(meta.description.replace('channels:', '')) : ''}
                     </p>
                   </div>
                   <Button
                     variant="outline"
-                    className={cn(outlineButtonClasses, 'h-8 px-3 shrink-0')}
+                    className={cn(outlineButtonClasses, 'shrink-0')}
                     onClick={openDocs}
                   >
-                    <BookOpen className="h-3 w-3 mr-1" />
+                    <BookOpen className="mr-1 h-3 w-3" />
                     {t('dialog.viewDocs')}
-                    <ExternalLink className="h-3 w-3 ml-1" />
+                    <ExternalLink className="ml-1 h-3 w-3" />
                   </Button>
                 </div>
-                <ol className="list-decimal pl-5 text-[13px] text-muted-foreground leading-relaxed space-y-1.5">
+                <ol className="list-decimal space-y-1.5 pl-5 text-[12.5px] leading-relaxed text-muted-foreground/78">
                   {meta?.instructions.map((instruction, index) => (
                     <li key={index}>{t(instruction)}</li>
                   ))}
@@ -582,7 +582,7 @@ export function ChannelConfigModal({
               </div>
 
               {showChannelName && (
-                <div className="space-y-2.5">
+                <div className="space-y-2">
                   <Label htmlFor="name" className={labelClasses}>{t('dialog.channelName')}</Label>
                   <Input
                     ref={firstInputRef}
@@ -605,11 +605,11 @@ export function ChannelConfigModal({
                     placeholder={t('account.customIdPlaceholder')}
                     className={inputClasses}
                   />
-                  <p className="text-[12px] text-muted-foreground">{t('account.customIdHint')}</p>
+                  <p className="text-[11.5px] leading-5 text-muted-foreground/68">{t('account.customIdHint')}</p>
                 </div>
               )}
 
-              <div className="space-y-4">
+              <div className="space-y-3.5">
                 {meta?.configFields.map((field) => (
                   <ConfigField
                     key={field.key}
@@ -625,13 +625,13 @@ export function ChannelConfigModal({
               {validationResult && (
                 <div
                   className={cn(
-                    'p-4 rounded-2xl text-sm border',
+                    'rounded-[12px] border p-3.5 text-sm shadow-none',
                     validationResult.valid
-                      ? 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20'
-                      : 'bg-destructive/10 text-destructive border-destructive/20'
+                      ? 'border-border/55 bg-[hsl(var(--foreground)/0.03)] text-foreground/78'
+                      : 'border-destructive/20 bg-[hsl(var(--destructive)/0.055)] text-destructive'
                   )}
                 >
-                  <div className="flex items-start gap-2">
+                  <div className="flex items-start gap-2.5">
                     {validationResult.valid ? (
                       <CheckCircle className="h-4 w-4 mt-0.5 shrink-0" />
                     ) : (
@@ -649,15 +649,15 @@ export function ChannelConfigModal({
                         </ul>
                       )}
                       {validationResult.valid && validationResult.warnings.length > 0 && (
-                        <div className="mt-1 text-green-600 dark:text-green-400 space-y-0.5">
+                        <div className="mt-1 space-y-0.5 text-foreground/70">
                           {validationResult.warnings.map((info, index) => (
-                            <p key={index} className="text-xs">{info}</p>
+                            <p key={index} className="text-xs leading-5">{info}</p>
                           ))}
                         </div>
                       )}
                       {!validationResult.valid && validationResult.warnings.length > 0 && (
-                        <div className="mt-2 text-yellow-600 dark:text-yellow-500">
-                          <p className="font-medium text-xs uppercase mb-1">{t('dialog.warnings')}</p>
+                        <div className="mt-2 text-foreground/70">
+                          <p className="mb-1 text-xs font-medium uppercase">{t('dialog.warnings')}</p>
                           <ul className="list-disc list-inside space-y-0.5">
                             {validationResult.warnings.map((warn, index) => (
                               <li key={index}>{warn}</li>
@@ -670,10 +670,10 @@ export function ChannelConfigModal({
                 </div>
               )}
 
-              <Separator className="bg-border/70" />
+              <Separator className="bg-border/55" />
 
-              <div className="flex flex-col sm:flex-row sm:justify-end gap-3 pt-2">
-                <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex flex-col gap-3 rounded-[12px] border border-border/55 bg-[hsl(var(--surface-elevated)/0.72)] px-3.5 py-3 sm:flex-row sm:items-center sm:justify-end">
+                <div className="flex flex-col gap-2 sm:flex-row">
                   {meta?.connectionType === 'token' && shouldUseCredentialValidation && (
                     <Button
                       variant="outline"
@@ -759,7 +759,7 @@ function ConfigField({ field, value, onChange, showSecret, onToggleSecret }: Con
   const isPassword = field.type === 'password';
 
   return (
-    <div className="space-y-2.5">
+    <div className="space-y-2">
       <Label htmlFor={field.key} className={labelClasses}>
         {t(field.label)}
         {field.required && <span className="text-destructive ml-1">*</span>}
@@ -779,7 +779,7 @@ function ConfigField({ field, value, onChange, showSecret, onToggleSecret }: Con
             variant="outline"
             size="icon"
             onClick={onToggleSecret}
-            className="h-[44px] w-[44px] shrink-0 rounded-xl border-border/70 app-field-surface text-muted-foreground shadow-sm hover:text-foreground"
+            className="h-11 w-11 shrink-0 rounded-[10px] border border-border/60 app-pane-surface text-muted-foreground/70 shadow-none hover:text-foreground"
           >
             {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </Button>

@@ -475,7 +475,7 @@ function FileCard({ file }: { file: AttachedFileMeta }) {
     <div
       className={cn(
         'app-chat-file-card flex max-w-[220px] items-center gap-2 rounded-[9px] px-2.5 py-1.5',
-        file.filePath && 'cursor-pointer transition-colors hover:bg-accent/60'
+        file.filePath && 'cursor-pointer transition-colors hover:bg-[hsl(var(--foreground)/0.045)]'
       )}
       onClick={handleOpen}
       title={file.filePath ? t('message.openFile') : undefined}
@@ -589,7 +589,7 @@ function ImageLightbox({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/78"
       onClick={onClose}
     >
       <div

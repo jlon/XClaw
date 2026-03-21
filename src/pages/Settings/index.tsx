@@ -47,23 +47,29 @@ type ControlUiInfo = {
   port: number;
 };
 
+const settingsPageHeaderClass =
+  'mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between';
+const settingsPageTitleClass =
+  'text-[24px] leading-tight md:text-[28px] font-semibold tracking-tight text-foreground';
+const settingsPageSubtitleClass =
+  'max-w-[64ch] text-[13px] md:text-[14px] text-muted-foreground';
 const settingsSectionClass =
-  'space-y-6 rounded-[20px] app-insight-surface p-5 md:p-6';
+  'space-y-4 rounded-[18px] border border-border/65 bg-[hsl(var(--surface-elevated)/0.98)] p-4 md:p-5';
 const settingsSubPanelClass =
-  'rounded-[16px] border border-border/70 bg-[hsl(var(--surface-base)/0.98)] p-4';
-const settingsHeadingClass = 'text-[28px] md:text-[30px] font-semibold tracking-tight text-foreground';
-const settingsLabelClass = 'text-[15px] font-medium text-foreground/85';
-const settingsHintClass = 'text-[13px] text-muted-foreground';
+  'rounded-[14px] border border-border/60 bg-[hsl(var(--surface-panel)/0.96)] p-4';
+const settingsHeadingClass = 'text-[12px] font-semibold uppercase tracking-[0.18em] text-foreground/64';
+const settingsLabelClass = 'text-[13px] font-medium text-foreground/84';
+const settingsHintClass = 'text-[12px] text-muted-foreground';
 const settingsPillClass =
-  'rounded-full px-5 h-10 border border-border/70 bg-[hsl(var(--surface-base)/0.98)] shadow-none';
+  'inline-flex h-9 items-center gap-2 rounded-[11px] border border-border/70 bg-[hsl(var(--surface-panel)/0.96)] px-4 text-[12px] font-medium shadow-none';
 const settingsPillActiveClass =
-  'bg-[hsl(var(--accent)/0.16)] text-foreground border-[hsl(var(--accent)/0.22)]';
+  'bg-[hsl(var(--foreground)/0.05)] text-foreground border-border/80';
 const settingsPillIdleClass =
-  'bg-transparent text-muted-foreground hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground';
+  'bg-transparent text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground';
 const settingsInputClass =
-  'h-10 rounded-[11px] border-border/70 bg-[hsl(var(--surface-panel)/0.98)] font-mono text-[13px] text-foreground shadow-none placeholder:text-muted-foreground';
+  'h-9 rounded-[11px] border-border/70 bg-[hsl(var(--surface-panel)/0.98)] font-mono text-[13px] text-foreground shadow-none placeholder:text-muted-foreground';
 const settingsGhostButtonClass =
-  'rounded-full border-border/70 bg-transparent hover:bg-[hsl(var(--surface-hover)/0.9)]';
+  'rounded-[10px] border-border/70 bg-transparent hover:bg-[hsl(var(--foreground)/0.04)]';
 
 export function Settings() {
   const { t } = useTranslation('settings');
@@ -471,12 +477,12 @@ export function Settings() {
       <WorkspacePageShell>
 
         {/* Header */}
-        <div className="mb-10 shrink-0 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div className={settingsPageHeaderClass}>
           <div className="max-w-[820px]">
-            <h1 className="text-[42px] leading-[0.95] md:text-[56px] font-semibold tracking-tight text-foreground">
+            <h1 className={settingsPageTitleClass}>
               {t('title')}
             </h1>
-            <p className="mt-3 max-w-[60ch] text-[16px] md:text-[17px] font-medium text-foreground/68">
+            <p className={settingsPageSubtitleClass}>
               {t('subtitle')}
             </p>
           </div>
@@ -555,7 +561,7 @@ export function Settings() {
               {t('gateway.title')}
             </h2>
             <div className="space-y-5">
-              <div className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-[hsl(var(--surface-base)/0.82)] p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-4 rounded-[14px] border border-border/70 bg-[hsl(var(--surface-base)/0.82)] p-4 shadow-none sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <Label className={settingsLabelClass}>{t('gateway.status')}</Label>
                   <p className="mt-1 text-[13px] text-muted-foreground">
@@ -564,12 +570,12 @@ export function Settings() {
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <div className={cn(
-                    "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium border",
-                    gatewayStatus.state === 'running' ? "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" :
-                      gatewayStatus.state === 'error' ? "bg-red-500/12 text-red-600 dark:text-red-400 border-red-500/20" :
-                        "bg-[hsl(var(--surface-hover)/0.75)] text-muted-foreground border-border/60"
+                    'flex items-center gap-1.5 rounded-[10px] border px-3 py-1.5 text-[13px] font-medium shadow-none',
+                    gatewayStatus.state === 'running' ? 'border-emerald-500/20 bg-emerald-500/12 text-emerald-600 dark:text-emerald-400' :
+                      gatewayStatus.state === 'error' ? 'border-red-500/20 bg-red-500/12 text-red-600 dark:text-red-400' :
+                        'border-border/60 bg-[hsl(var(--surface-hover)/0.62)] text-muted-foreground'
                   )}>
-                    <div className={cn("w-1.5 h-1.5 rounded-full",
+                    <div className={cn("h-1.5 w-1.5 rounded-[4px]",
                       gatewayStatus.state === 'running' ? "bg-emerald-500" :
                         gatewayStatus.state === 'error' ? "bg-red-500" : "bg-muted-foreground"
                     )} />
@@ -591,16 +597,16 @@ export function Settings() {
                   <div className="flex items-center justify-between mb-3">
                     <p className="font-medium text-[14px] text-foreground">{t('gateway.appLogs')}</p>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" className="h-7 px-3 text-[12px] rounded-full hover:bg-[hsl(var(--surface-hover)/0.9)]" onClick={handleOpenLogDir}>
+                    <Button variant="ghost" size="sm" className="h-7 rounded-[10px] px-3 text-[12px] hover:bg-[hsl(var(--surface-hover)/0.78)]" onClick={handleOpenLogDir}>
                         <ExternalLink className="h-3 w-3 mr-1.5" />
                         {t('gateway.openFolder')}
                       </Button>
-                      <Button variant="ghost" size="sm" className="h-7 px-3 text-[12px] rounded-full hover:bg-[hsl(var(--surface-hover)/0.9)]" onClick={() => setShowLogs(false)}>
+                    <Button variant="ghost" size="sm" className="h-7 rounded-[10px] px-3 text-[12px] hover:bg-[hsl(var(--surface-hover)/0.78)]" onClick={() => setShowLogs(false)}>
                         {t('common:actions.close')}
                       </Button>
                     </div>
                   </div>
-                  <pre className="max-h-60 overflow-auto rounded-xl border border-border/60 bg-[hsl(var(--surface-base)/0.9)] p-4 font-mono text-[12px] whitespace-pre-wrap text-muted-foreground shadow-inner">
+                  <pre className="max-h-60 overflow-auto rounded-[10px] border border-border/60 bg-[hsl(var(--surface-base)/0.9)] p-4 font-mono text-[12px] whitespace-pre-wrap text-muted-foreground shadow-none">
                     {logContent || t('chat:noLogs')}
                   </pre>
                 </div>
@@ -864,15 +870,15 @@ export function Settings() {
                     {doctorResult && (
                       <div className={cn(settingsSubPanelClass, 'space-y-3')}>
                         <div className="flex flex-wrap gap-2 text-[12px]">
-                          <Badge variant={doctorResult.success ? 'secondary' : 'destructive'} className="rounded-full px-3 py-1">
+                          <Badge variant={doctorResult.success ? 'secondary' : 'destructive'} className="rounded-[10px] px-3 py-1">
                             {doctorResult.mode === 'fix'
                               ? (doctorResult.success ? t('developer.doctorFixOk') : t('developer.doctorFixIssue'))
                               : (doctorResult.success ? t('developer.doctorOk') : t('developer.doctorIssue'))}
                           </Badge>
-                          <Badge variant="outline" className="rounded-full px-3 py-1">
+                          <Badge variant="outline" className="rounded-[10px] px-3 py-1">
                             {t('developer.doctorExitCode')}: {doctorResult.exitCode ?? 'null'}
                           </Badge>
-                          <Badge variant="outline" className="rounded-full px-3 py-1">
+                          <Badge variant="outline" className="rounded-[10px] px-3 py-1">
                             {t('developer.doctorDuration')}: {Math.round(doctorResult.durationMs)}ms
                           </Badge>
                         </div>
@@ -884,13 +890,13 @@ export function Settings() {
                         <div className="grid gap-3 md:grid-cols-2">
                           <div className="space-y-2">
                             <p className="text-[12px] font-semibold text-foreground/85">{t('developer.doctorStdout')}</p>
-                            <pre className="max-h-72 overflow-auto rounded-xl border border-border/60 bg-[hsl(var(--surface-base)/0.9)] p-3 text-[11px] font-mono whitespace-pre-wrap break-words text-foreground">
+                            <pre className="max-h-72 overflow-auto rounded-[10px] border border-border/60 bg-[hsl(var(--surface-base)/0.9)] p-3 text-[11px] font-mono whitespace-pre-wrap break-words text-foreground">
                               {doctorResult.stdout.trim() || t('developer.doctorOutputEmpty')}
                             </pre>
                           </div>
                           <div className="space-y-2">
                             <p className="text-[12px] font-semibold text-foreground/85">{t('developer.doctorStderr')}</p>
-                            <pre className="max-h-72 overflow-auto rounded-xl border border-border/60 bg-[hsl(var(--surface-base)/0.9)] p-3 text-[11px] font-mono whitespace-pre-wrap break-words text-foreground">
+                            <pre className="max-h-72 overflow-auto rounded-[10px] border border-border/60 bg-[hsl(var(--surface-base)/0.9)] p-3 text-[11px] font-mono whitespace-pre-wrap break-words text-foreground">
                               {doctorResult.stderr.trim() || t('developer.doctorOutputEmpty')}
                             </pre>
                           </div>
@@ -936,11 +942,11 @@ export function Settings() {
                     {showTelemetryViewer && (
                       <div className={cn(settingsSubPanelClass, 'space-y-4')}>
                         <div className="flex flex-wrap items-center gap-2">
-                          <Badge variant="secondary" className="rounded-full px-3 py-1 bg-background/60 border border-border/60">{t('developer.telemetryTotal')}: {telemetryStats.total}</Badge>
-                          <Badge variant={telemetryStats.errorCount > 0 ? 'destructive' : 'secondary'} className={cn("rounded-full px-3 py-1", telemetryStats.errorCount === 0 && "bg-background/60 border border-border/60")}>
+                          <Badge variant="secondary" className="rounded-[10px] px-3 py-1 bg-background/60 border border-border/60">{t('developer.telemetryTotal')}: {telemetryStats.total}</Badge>
+                          <Badge variant={telemetryStats.errorCount > 0 ? 'destructive' : 'secondary'} className={cn('rounded-[10px] px-3 py-1', telemetryStats.errorCount === 0 && 'bg-background/60 border border-border/60')}>
                             {t('developer.telemetryErrors')}: {telemetryStats.errorCount}
                           </Badge>
-                          <Badge variant={telemetryStats.slowCount > 0 ? 'secondary' : 'outline'} className={cn("rounded-full px-3 py-1", telemetryStats.slowCount === 0 && "bg-background/60 border border-border/60")}>
+                          <Badge variant={telemetryStats.slowCount > 0 ? 'secondary' : 'outline'} className={cn('rounded-[10px] px-3 py-1', telemetryStats.slowCount === 0 && 'bg-background/60 border border-border/60')}>
                             {t('developer.telemetrySlow')}: {telemetryStats.slowCount}
                           </Badge>
                           <div className="ml-auto flex gap-2">

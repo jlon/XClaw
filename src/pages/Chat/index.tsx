@@ -307,8 +307,8 @@ export function Chat() {
 
       {/* Transparent loading overlay */}
       {minLoading && !sending && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/20 backdrop-blur-[1px] rounded-xl pointer-events-auto">
-          <div className="rounded-full border border-border/70 bg-card/92 p-2.5 shadow-lg">
+        <div className="absolute inset-0 z-50 flex items-center justify-center rounded-xl bg-background/18 pointer-events-auto">
+          <div className="rounded-[12px] border border-border/65 bg-[hsl(var(--surface-elevated)/0.98)] p-2.5 shadow-none">
             <LoadingSpinner size="md" />
           </div>
         </div>

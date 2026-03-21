@@ -528,7 +528,7 @@ function RuntimePreparationContent({
             <h2 className="text-xl font-semibold">{t('runtime.title')}</h2>
             <p className="text-sm leading-6 text-muted-foreground">{t('runtime.summary.description')}</p>
           </div>
-          <div className="rounded-full border border-border/70 bg-background/70 px-3 py-1 text-xs font-medium text-muted-foreground">
+          <div className="rounded-[12px] border border-border/70 bg-background/70 px-3 py-1 text-xs font-medium text-muted-foreground">
             {checks.nodejs.status === 'success' && checks.openclaw.status === 'success' && (checks.gateway.status === 'success' || gatewayStatus.state === 'running')
               ? t('runtime.summary.ready')
               : t('runtime.summary.attention')}

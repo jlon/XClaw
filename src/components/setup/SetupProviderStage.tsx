@@ -147,7 +147,7 @@ export function SetupProviderStage({
                 'flex-1 px-3 py-2 transition-colors',
                 mode.selected
                   ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground',
+                  : 'text-muted-foreground hover:bg-[hsl(var(--surface-elevated)/0.82)] hover:text-foreground',
                 (mode.disabled || !mode.onSelect) && 'cursor-default opacity-70',
               )}
             >

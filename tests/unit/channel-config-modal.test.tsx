@@ -56,6 +56,9 @@ describe('ChannelConfigModal theme compatibility', () => {
     expect(container.innerHTML).not.toContain('#eeece3');
     expect(container.innerHTML).toContain('app-modal-overlay');
     expect(container.innerHTML).toContain('app-modal-surface');
-    expect(container.innerHTML).toContain('surface-panel');
+    expect(container.innerHTML).toContain('app-pane-surface');
+    expect(container.innerHTML).toContain('border-b border-border/45');
+    expect(container.innerHTML).toContain('rounded-[16px]');
+    expect(container.innerHTML).toContain('rounded-[12px]');
   });
 });

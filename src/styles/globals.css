@@ -155,20 +155,20 @@
 }
 
 .app-field-surface {
-  background: hsl(var(--surface-base) / 1);
-  border: 1px solid hsl(var(--border-subtle) / 0.92);
+  background: hsl(var(--surface-base) / 0.995);
+  border: 1px solid hsl(var(--border-subtle) / 0.86);
   box-shadow: none;
 }
 
 .app-modal-overlay {
-  background: hsl(var(--foreground) / 0.045);
+  background: hsl(var(--foreground) / 0.034);
   backdrop-filter: none;
 }
 
 .app-modal-surface {
   background: hsl(var(--surface-elevated) / 0.995);
-  border: 1px solid hsl(var(--border-subtle) / 0.92);
-  box-shadow: 0 10px 26px hsl(var(--foreground) / 0.045);
+  border: 1px solid hsl(var(--border-subtle) / 0.86);
+  box-shadow: 0 8px 22px hsl(var(--foreground) / 0.04);
 }
 
 .app-empty-surface {
@@ -178,14 +178,14 @@
 }
 
 .app-insight-surface {
-  background: hsl(var(--surface-panel) / 0.98);
-  border: 1px solid hsl(var(--border-subtle) / 0.92);
+  background: hsl(var(--surface-base) / 0.985);
+  border: 1px solid hsl(var(--border-subtle) / 0.86);
   box-shadow: none;
 }
 
 .app-pane-surface {
-  background: hsl(var(--surface-base) / 0.98);
-  border: 1px solid hsl(var(--border-subtle) / 0.88);
+  background: hsl(var(--surface-elevated) / 0.99);
+  border: 1px solid hsl(var(--border-subtle) / 0.82);
   box-shadow: none;
 }
 
@@ -1332,7 +1332,7 @@
   min-width: 0;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.2rem;
   overflow: visible;
   border: 0;
   border-radius: 9999px;
@@ -1440,32 +1440,32 @@
 }
 
 .app-chat-runtime-pill {
-  border: 1px solid hsl(var(--border-subtle) / 0.7);
-  background: hsl(var(--surface-elevated) / 0.94);
+  border: 1px solid hsl(var(--border-subtle) / 0.58);
+  background: hsl(var(--surface-elevated) / 0.965);
   box-shadow: none;
 }
 
 .app-chat-picker-surface {
   background: hsl(var(--surface-elevated) / 0.995);
   border: 1px solid hsl(var(--border-subtle) / 0.86);
-  box-shadow: 0 8px 18px hsl(var(--foreground) / 0.045);
+  box-shadow: 0 6px 14px hsl(var(--foreground) / 0.04);
 }
 
 .app-chat-picker-search {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  border: 1px solid transparent;
-  background: hsl(var(--surface-panel) / 0.94);
+  border: 1px solid hsl(var(--border-subtle) / 0.44);
+  background: hsl(var(--surface-base) / 0.98);
   transition:
     border-color 180ms ease,
     background-color 180ms ease;
-  border-radius: 9999px;
+  border-radius: 10px;
 }
 
 .app-chat-picker-search:focus-within {
   border-color: hsl(var(--border-strong) / 0.42);
-  background: hsl(var(--surface-elevated) / 0.99);
+  background: hsl(var(--surface-elevated) / 0.992);
 }
 
 .app-chat-picker-search-input {
@@ -1548,15 +1548,15 @@
 .app-chat-scroll-to-latest {
   position: relative;
   display: inline-flex;
-  height: 2.1rem;
-  width: 2.1rem;
+  height: 2rem;
+  width: 2rem;
   align-items: center;
   justify-content: center;
-  border-radius: 9999px;
-  border: 1px solid hsl(var(--border-subtle) / 0.62);
-  background: hsl(var(--surface-elevated) / 0.8);
-  color: hsl(var(--muted-foreground) / 0.8);
-  box-shadow: 0 8px 20px hsl(var(--foreground) / 0.05);
+  border-radius: 10px;
+  border: 1px solid hsl(var(--border-subtle) / 0.56);
+  background: hsl(var(--surface-elevated) / 0.94);
+  color: hsl(var(--muted-foreground) / 0.78);
+  box-shadow: 0 6px 14px hsl(var(--foreground) / 0.04);
   transition:
     background-color 180ms ease,
     border-color 180ms ease,
@@ -1565,10 +1565,19 @@
 }
 
 .app-chat-scroll-to-latest:hover {
-  border-color: hsl(var(--border-subtle) / 0.78);
-  background: hsl(var(--surface-hover) / 0.72);
+  border-color: hsl(var(--border-subtle) / 0.7);
+  background: hsl(var(--surface-hover) / 0.82);
   color: hsl(var(--foreground));
   transform: translateY(-1px);
+}
+
+.app-chat-composer-target-chip {
+  border: 1px solid transparent;
+  background: transparent;
+}
+
+.app-chat-composer-target-chip:hover {
+  background: hsl(var(--foreground) / 0.032);
 }
 
 .app-chat-thread-stage {

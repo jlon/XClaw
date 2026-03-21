@@ -89,9 +89,9 @@ const selectedWorkbenchItemClass =
   'border-transparent bg-[hsl(var(--foreground)/0.055)] text-foreground';
 const sectionCardClass = 'rounded-[11px] border border-[hsl(var(--border-subtle)/0.58)] bg-transparent shadow-none';
 const fieldCardClass = 'rounded-[10px] border border-[hsl(var(--border-subtle)/0.58)] bg-[hsl(var(--foreground)/0.018)] shadow-none';
-const searchFieldClass = 'h-9 rounded-full border border-transparent bg-[hsl(var(--foreground)/0.04)] pl-10 text-[13px] shadow-none placeholder:text-muted-foreground/52 hover:bg-[hsl(var(--foreground)/0.048)] focus-visible:border-[hsl(var(--border-strong)/0.46)] focus-visible:bg-[hsl(var(--surface-elevated)/0.98)] focus-visible:ring-0';
+const searchFieldClass = 'h-9 rounded-[10px] border border-transparent bg-[hsl(var(--foreground)/0.04)] pl-10 text-[13px] shadow-none placeholder:text-muted-foreground/52 hover:bg-[hsl(var(--foreground)/0.048)] focus-visible:border-[hsl(var(--border-strong)/0.46)] focus-visible:bg-[hsl(var(--surface-elevated)/0.98)] focus-visible:ring-0';
 const railRowClass = 'w-full rounded-[10px] border border-transparent px-2.5 py-2 text-left transition-colors';
-const railIconClass = 'flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-full border border-[hsl(var(--border-subtle)/0.8)] bg-[hsl(var(--foreground)/0.03)]';
+const railIconClass = 'flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-[10px] border border-[hsl(var(--border-subtle)/0.8)] bg-[hsl(var(--foreground)/0.03)]';
 const sectionLabelClass = 'px-1 text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground/56';
 const headerTitleClass = 'text-[22px] font-semibold tracking-tight text-foreground md:text-[24px]';
 const headerSubtitleClass = 'mt-1 text-[12px] leading-5 text-foreground/58';
@@ -1006,7 +1006,7 @@ export function Channels() {
                               </div>
                               <div
                                 data-testid={`channel-rail-indicator-${channelType}`}
-                                className={cn('h-2.5 w-2.5 shrink-0 rounded-full', getConfiguredChannelRailTone(group.enabled))}
+                                className={cn('h-2.5 w-2.5 shrink-0 rounded-[999px]', getConfiguredChannelRailTone(group.enabled))}
                               />
                             </div>
                           </button>
@@ -1045,7 +1045,7 @@ export function Channels() {
                                 <p className="truncate text-[13px] font-medium text-foreground">{meta.name}</p>
                                 <p className="mt-0.5 truncate text-[11px] text-muted-foreground/82">{t('available')}</p>
                               </div>
-                              <div className="status-indicator status-indicator-idle h-2.5 w-2.5 shrink-0 rounded-full" />
+                              <div className="status-indicator status-indicator-idle h-2.5 w-2.5 shrink-0 rounded-[999px]" />
                             </div>
                           </button>
                         );
@@ -1146,12 +1146,12 @@ export function Channels() {
                                   <div className="flex items-center gap-2">
                                     <p className="truncate text-sm font-medium text-foreground">{displayName}</p>
                                     {account.isDefault && (
-                                      <Badge variant="secondary" className="h-5 rounded-full px-1.5 text-[10px] shadow-none">
+                                      <Badge variant="secondary" className="h-5 rounded-[9px] border border-border/55 bg-[hsl(var(--foreground)/0.04)] px-1.5 text-[10px] font-medium text-foreground/72 shadow-none hover:bg-[hsl(var(--foreground)/0.04)]">
                                         {t('account.default')}
                                       </Badge>
                                     )}
                                     {!account.enabled && (
-                                      <Badge variant="outline" className="h-5 rounded-full px-1.5 text-[10px] shadow-none">
+                                      <Badge variant="outline" className="h-5 rounded-[9px] border border-border/55 px-1.5 text-[10px] text-foreground/68 shadow-none">
                                         {t('disabledLabel')}
                                       </Badge>
                                     )}
@@ -1171,7 +1171,7 @@ export function Channels() {
                                 </div>
 
                                 <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5 opacity-70 transition-opacity group-hover:opacity-100">
-                                  <div className={cn('h-2.5 w-2.5 rounded-full', getRuntimeAwareStatusTone(account.status, runtimeAvailable))} />
+                                  <div className={cn('h-2.5 w-2.5 rounded-[999px]', getRuntimeAwareStatusTone(account.status, runtimeAvailable))} />
                                   {!account.isDefault && (
                                     <Button
                                       type="button"
@@ -1360,7 +1360,7 @@ export function Channels() {
                               {t('account.customIdLabel')}
                             </Label>
                             {selectedAccount?.isDefault && (
-                              <Badge variant="secondary" className="h-5 rounded-full px-1.5 text-[10px] shadow-none">
+                              <Badge variant="secondary" className="h-5 rounded-[9px] border border-border/55 bg-[hsl(var(--foreground)/0.04)] px-1.5 text-[10px] font-medium text-foreground/72 shadow-none hover:bg-[hsl(var(--foreground)/0.04)]">
                                 {t('account.default')}
                               </Badge>
                             )}
@@ -1616,7 +1616,7 @@ function ChannelEditorSection({
           <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82 line-clamp-2" title={subtitle}>{subtitle}</p>
         </div>
         {badge && (
-          <Badge variant="secondary" className="h-5 rounded-full px-1.5 text-[10px] shadow-none">
+              <Badge variant="secondary" className="h-5 rounded-[9px] border border-border/55 bg-[hsl(var(--foreground)/0.04)] px-1.5 text-[10px] font-medium text-foreground/72 shadow-none hover:bg-[hsl(var(--foreground)/0.04)]">
             {badge}
           </Badge>
         )}
@@ -1664,7 +1664,7 @@ function ChannelFieldEditor({
           </div>
           {defaultBadgeLabel && (
             <span
-              className="max-w-[11rem] truncate rounded-full bg-secondary/80 px-2 py-1 text-[10px] font-medium text-muted-foreground"
+              className="max-w-[11rem] truncate rounded-[9px] border border-border/55 bg-[hsl(var(--foreground)/0.035)] px-2 py-1 text-[10px] font-medium text-muted-foreground"
               title={t('editor.defaultValueLabel', { value: defaultValueLabel })}
             >
               {defaultBadgeLabel}
@@ -1687,7 +1687,7 @@ function ChannelFieldEditor({
           <Label htmlFor={inputId} className="min-w-0 flex-1 text-[11px] font-medium text-foreground/78">{label}</Label>
           {defaultBadgeLabel && (
             <span
-              className="max-w-[11rem] truncate rounded-full bg-secondary/80 px-2 py-1 text-[10px] font-medium text-muted-foreground"
+              className="max-w-[11rem] truncate rounded-[9px] border border-border/55 bg-[hsl(var(--foreground)/0.035)] px-2 py-1 text-[10px] font-medium text-muted-foreground"
               title={t('editor.defaultValueLabel', { value: defaultValueLabel })}
             >
               {defaultBadgeLabel}

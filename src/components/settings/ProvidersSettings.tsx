@@ -53,14 +53,17 @@ import { useSettingsStore } from '@/stores/settings';
 import { hostApiFetch } from '@/lib/host-api';
 import { subscribeHostEvent } from '@/lib/host-events';
 
-const inputClasses = 'h-9 rounded-[10px] border border-border/70 bg-[hsl(var(--surface-panel)/0.9)] text-[13px] text-foreground placeholder:text-muted-foreground/55 shadow-none transition-colors focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20';
+const inputClasses = 'h-9 rounded-[10px] border border-border/70 bg-[hsl(var(--surface-panel)/0.96)] text-[13px] text-foreground placeholder:text-muted-foreground/55 shadow-none transition-colors focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20';
 const tokenInputClasses = `${inputClasses} font-mono tracking-[0.01em]`;
 const labelClasses = 'text-[13px] font-semibold text-foreground/80';
-const modalSurfaceClasses = 'app-modal-surface w-full rounded-[12px]';
+const modalSurfaceClasses = 'app-modal-surface w-full rounded-[14px] border border-border/65 bg-[hsl(var(--surface-elevated)/0.99)]';
 const primaryButtonClass = 'rounded-[10px] h-8 px-4 bg-primary text-primary-foreground shadow-none hover:bg-primary/90';
-const segmentedTrackClass = 'flex rounded-[9px] border border-border/55 bg-[hsl(var(--surface-base)/0.96)] p-0.5 gap-0.5';
+const segmentedTrackClass = 'flex rounded-[10px] border border-border/60 bg-[hsl(var(--surface-base)/0.96)] p-0.5 gap-0.5';
 const segmentedActiveClass = 'bg-[hsl(var(--surface-elevated)/0.98)] text-foreground shadow-none ring-1 ring-border/50';
 const segmentedIdleClass = 'text-muted-foreground/82 hover:bg-[hsl(var(--foreground)/0.035)]';
+const listRowClass = 'flex w-full items-center gap-3 rounded-[11px] border border-transparent px-3 py-2 text-left transition-colors hover:border-border/50 hover:bg-[hsl(var(--foreground)/0.035)]';
+const listRowMetaClass = 'mt-0.5 truncate text-[11px] text-muted-foreground/72';
+const panelSurfaceClass = 'app-pane-surface rounded-[12px] border border-border/60 bg-[hsl(var(--surface-panel)/0.95)]';
 
 function normalizeFallbackProviderIds(ids?: string[]): string[] {
   return Array.from(new Set((ids ?? []).filter(Boolean)));
@@ -443,8 +446,8 @@ function ProviderCard({
   return (
     <div
       className={cn(
-        'group app-pane-surface relative flex flex-col overflow-hidden rounded-[12px] border border-transparent p-3 transition-colors hover:border-border/45 hover:bg-[hsl(var(--surface-hover)/0.42)]',
-        isDefault && 'bg-[hsl(var(--surface-base)/0.995)] border-[hsl(var(--border-strong)/0.65)]',
+        'group relative flex flex-col overflow-hidden rounded-[14px] border border-border/55 bg-[hsl(var(--surface-base)/0.98)] p-3 transition-colors hover:border-border/70 hover:bg-[hsl(var(--surface-hover)/0.34)]',
+        isDefault && 'bg-[hsl(var(--surface-elevated)/0.99)] border-[hsl(var(--border-strong)/0.6)]',
       )}
     >
       <div className="flex items-center justify-between">
@@ -460,7 +463,7 @@ function ProviderCard({
             <div className="flex items-center gap-2">
               <span className="truncate font-semibold text-[14px] text-foreground">{account.label}</span>
               {isDefault && (
-                <span className="flex items-center gap-1 rounded-full bg-[hsl(var(--foreground)/0.05)] px-2 py-0.5 text-[9.5px] font-medium text-foreground/72">
+              <span className="flex items-center gap-1 rounded-[9px] bg-[hsl(var(--foreground)/0.05)] px-2 py-0.5 text-[9.5px] font-medium text-foreground/72">
                   <Check className="h-3 w-3" />
                   {t('aiProviders.card.default')}
                 </span>
@@ -513,7 +516,7 @@ function ProviderCard({
       </div>
 
       {isEditing && (
-        <div className="mt-3.5 space-y-4.5 border-t border-border/55 pt-3.5">
+        <div className="mt-3.5 space-y-4 border-t border-border/55 pt-3.5">
           {providerDocsUrl && (
             <div className="mb-2 flex justify-end -mt-2">
               <a
@@ -530,11 +533,11 @@ function ProviderCard({
             <div className="space-y-1.5">
               <Label className={currentLabelClasses}>{t('aiProviders.dialog.displayName')}</Label>
               <Input
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-              placeholder={typeInfo?.id === 'custom' ? t('aiProviders.custom') : typeInfo?.name}
-              className={currentInputClasses}
-            />
+                value={label}
+                onChange={(e) => setLabel(e.target.value)}
+                placeholder={typeInfo?.id === 'custom' ? t('aiProviders.custom') : typeInfo?.name}
+                className={currentInputClasses}
+              />
           </div>
             {canEditModelConfig && (
             <div className="space-y-3">
@@ -594,7 +597,7 @@ function ProviderCard({
           <div className="space-y-3">
             <button
               onClick={() => setShowFallback(!showFallback)}
-              className="flex items-center justify-between w-full text-[14px] font-bold text-foreground/80 hover:text-foreground transition-colors"
+              className="flex items-center justify-between w-full rounded-[10px] border border-border/55 bg-[hsl(var(--surface-panel)/0.72)] px-3 py-2 text-[12px] font-semibold uppercase tracking-[0.14em] text-foreground/72 transition-colors hover:text-foreground"
             >
               <span>{t('aiProviders.sections.fallback')}</span>
               <ChevronDown className={cn("h-4 w-4 transition-transform", showFallback && "rotate-180")} />
@@ -620,7 +623,7 @@ function ProviderCard({
                   {fallbackOptions.length === 0 ? (
                     <p className="text-[13px] text-muted-foreground">{t('aiProviders.dialog.noFallbackOptions')}</p>
                   ) : (
-                    <div className="app-pane-surface space-y-1.5 rounded-[10px] border border-border/60 p-2">
+                    <div className="space-y-1 rounded-[11px] border border-border/60 bg-[hsl(var(--surface-base)/0.96)] p-1.5">
                       {fallbackOptions.map((candidate) => (
                         <button
                           key={candidate.account.id}
@@ -653,19 +656,19 @@ function ProviderCard({
               </div>
             )}
           </div>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between gap-3">
-              <div className="space-y-0.5">
-                <Label className={currentSectionLabelClasses}>{t('aiProviders.dialog.apiKey')}</Label>
-                <p className="text-[12px] text-muted-foreground">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <Label className={currentSectionLabelClasses}>{t('aiProviders.dialog.apiKey')}</Label>
+                  <p className="text-[12px] text-muted-foreground">
                   {hasConfiguredCredentials(account, status)
                     ? t('aiProviders.dialog.apiKeyConfigured')
                     : t('aiProviders.dialog.apiKeyMissing')}
                 </p>
               </div>
               {hasConfiguredCredentials(account, status) ? (
-                <div className="flex items-center gap-1.5 text-[11px] font-medium text-green-600 dark:text-green-500 bg-green-500/10 px-2 py-1 rounded-md">
-                  <div className="w-1.5 h-1.5 rounded-full bg-current" />
+                <div className="flex items-center gap-1.5 rounded-[9px] border border-emerald-500/18 bg-emerald-500/8 px-2 py-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
+                  <div className="h-1.5 w-1.5 rounded-[4px] bg-current" />
                   {t('aiProviders.card.configured')}
                 </div>
               ) : null}
@@ -706,10 +709,10 @@ function ProviderCard({
                   variant="outline"
                   onClick={handleSaveEdits}
                   className={cn(
-                    "rounded-[10px] px-4 border-border/70 shadow-none",
+                    'rounded-[10px] px-4 border-border/70 shadow-none',
                     isDefault
-                      ? "h-[40px] bg-[hsl(var(--surface-base)/0.96)] hover:bg-[hsl(var(--surface-hover)/0.9)]"
-                      : "h-[40px] app-field-surface hover:bg-[hsl(var(--surface-hover)/0.9)]"
+                      ? 'h-[40px] bg-[hsl(var(--surface-base)/0.96)] hover:bg-[hsl(var(--surface-hover)/0.9)]'
+                      : 'h-[40px] app-field-surface hover:bg-[hsl(var(--surface-hover)/0.9)]'
                   )}
                   disabled={
                     validating
@@ -1042,9 +1045,9 @@ function AddProviderDialog({
 
   return (
     <div className="app-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
-      <Card className={cn(modalSurfaceClasses, 'max-h-[90vh] max-w-lg flex flex-col overflow-hidden')}>
-        <CardHeader className="relative pb-2 shrink-0">
-          <CardTitle className="text-[17px] font-semibold tracking-tight">{t('aiProviders.dialog.title')}</CardTitle>
+      <Card className={cn(modalSurfaceClasses, 'max-h-[90vh] max-w-[36rem] flex flex-col overflow-hidden')}>
+        <CardHeader className="relative shrink-0 pb-3">
+          <CardTitle className="text-[15px] font-semibold tracking-tight text-foreground">{t('aiProviders.dialog.title')}</CardTitle>
           <CardDescription className="mt-1 text-[11.5px] text-foreground/66">
             {t('aiProviders.dialog.desc')}
           </CardDescription>
@@ -1057,7 +1060,7 @@ function AddProviderDialog({
             <X className="h-4 w-4" />
           </Button>
         </CardHeader>
-        <CardContent className="overflow-y-auto flex-1 p-5">
+        <CardContent className="flex-1 overflow-y-auto p-4">
           {!selectedType ? (
             <div className="space-y-1.5">
               {availableTypes.map((type) => (
@@ -1069,7 +1072,7 @@ function AddProviderDialog({
                     setBaseUrl(type.defaultBaseUrl || '');
                     setModelId(type.defaultModelId || '');
                   }}
-                  className="flex w-full items-center gap-3 rounded-[10px] border border-transparent bg-transparent px-3 py-2.5 text-left transition-colors hover:bg-[hsl(var(--foreground)/0.04)]"
+                  className={listRowClass}
                 >
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] border border-border/60 bg-[hsl(var(--surface-base)/0.96)]">
                     {getProviderIconUrl(type.id) ? (
@@ -1080,14 +1083,14 @@ function AddProviderDialog({
                   </div>
                   <div className="min-w-0">
                     <p className="truncate font-medium text-[13px] text-foreground">{type.id === 'custom' ? t('aiProviders.custom') : type.name}</p>
-                    <p className="mt-0.5 truncate text-[11px] text-muted-foreground/72">{type.id}</p>
+                    <p className={listRowMetaClass}>{type.id}</p>
                   </div>
                 </button>
               ))}
             </div>
           ) : (
             <div className="space-y-5">
-              <div className="app-pane-surface flex items-center gap-2.5 rounded-[11px] p-3">
+              <div className={panelSurfaceClass + ' flex items-center gap-2.5 p-3'}>
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] border border-border/55 bg-[hsl(var(--surface-base)/0.96)]">
                   {getProviderIconUrl(selectedType!) ? (
                     <img src={getProviderIconUrl(selectedType!)} alt={typeInfo?.name} className={cn('h-[18px] w-[18px]', shouldInvertInDark(selectedType!) && 'dark:invert')} />
@@ -1097,35 +1100,34 @@ function AddProviderDialog({
                 </div>
                 <div className="min-w-0">
                   <p className="truncate font-semibold text-[14px]">{typeInfo?.id === 'custom' ? t('aiProviders.custom') : typeInfo?.name}</p>
-                  <button
-                    onClick={() => {
-                      setSelectedType(null);
-                      setValidationError(null);
-                      setBaseUrl('');
-                      setModelId('');
-                    }}
-                    className="text-[12px] font-medium text-primary hover:text-primary/80"
-                  >
-                    {t('aiProviders.dialog.change')}
-                  </button>
-                  {providerDocsUrl && (
-                    <>
-                      <span className="mx-2 text-foreground/20">|</span>
+                  <div className="mt-1 flex flex-wrap items-center gap-2 text-[12px] font-medium">
+                    <button
+                      onClick={() => {
+                        setSelectedType(null);
+                        setValidationError(null);
+                        setBaseUrl('');
+                        setModelId('');
+                      }}
+                      className="text-primary hover:text-primary/80"
+                    >
+                      {t('aiProviders.dialog.change')}
+                    </button>
+                    {providerDocsUrl && (
                       <a
                         href={providerDocsUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-[12px] font-medium text-primary hover:text-primary/80"
+                        className="inline-flex items-center gap-1 text-primary hover:text-primary/80"
                       >
                         {t('aiProviders.dialog.customDoc')}
                         <ExternalLink className="h-3 w-3" />
                       </a>
-                    </>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-5 bg-transparent p-0">
+              <div className="space-y-4 bg-transparent p-0">
                 <div className="space-y-2.5">
                   <Label htmlFor="name" className={labelClasses}>{t('aiProviders.dialog.displayName')}</Label>
                   <Input
@@ -1163,7 +1165,7 @@ function AddProviderDialog({
 
                 {/* API Key input — shown for non-OAuth providers or when apikey mode is selected */}
                 {(!isOAuth || (supportsApiKey && authMode === 'apikey')) && (
-                  <div className="space-y-2.5">
+                  <div className={panelSurfaceClass + ' space-y-2.5 p-3'}>
                     <div className="flex items-center justify-between">
                       <Label htmlFor="apiKey" className={labelClasses}>{t('aiProviders.dialog.apiKey')}</Label>
                       {typeInfo?.apiKeyUrl && (
@@ -1208,7 +1210,7 @@ function AddProviderDialog({
                 )}
 
                 {typeInfo?.showBaseUrl && (
-                  <div className="space-y-2.5">
+                  <div className={panelSurfaceClass + ' space-y-2.5 p-3'}>
                     <Label htmlFor="baseUrl" className={labelClasses}>{t('aiProviders.dialog.baseUrl')}</Label>
                     <Input
                       id="baseUrl"
@@ -1221,7 +1223,7 @@ function AddProviderDialog({
                 )}
 
                 {showModelIdField && (
-                  <div className="space-y-2.5">
+                  <div className={panelSurfaceClass + ' space-y-2.5 p-3'}>
                     <Label htmlFor="modelId" className={labelClasses}>{t('aiProviders.dialog.modelId')}</Label>
                     <Input
                       id="modelId"
@@ -1236,7 +1238,7 @@ function AddProviderDialog({
                   </div>
                 )}
                 {selectedType === 'custom' && (
-                <div className="space-y-2.5">
+                <div className={panelSurfaceClass + ' space-y-2.5 p-3'}>
                   <Label className={labelClasses}>{t('aiProviders.dialog.protocol', 'Protocol')}</Label>
                   <div className={cn(segmentedTrackClass, 'gap-1 text-[12px]')}>
                     <button
@@ -1266,7 +1268,7 @@ function AddProviderDialog({
                 {/* Device OAuth Trigger — only shown when in OAuth mode */}
                 {useOAuthFlow && (
                   <div className="space-y-4 pt-1.5">
-                    <div className="app-pane-surface rounded-[12px] border border-border/55 p-4 text-left">
+                    <div className={panelSurfaceClass + ' p-4 text-left'}>
                       <p className="mb-3 block text-[12px] font-medium text-foreground/70">
                         {t('aiProviders.oauth.loginPrompt')}
                       </p>
@@ -1285,10 +1287,10 @@ function AddProviderDialog({
 
                     {/* OAuth Active State Modal / Inline View */}
                     {oauthFlowing && (
-                      <div className="relative mt-3.5 overflow-hidden rounded-[12px] border border-border/55 app-pane-surface p-4">
+                      <div className={panelSurfaceClass + ' relative mt-3.5 overflow-hidden p-4'}>
                         <div className="relative z-10 flex flex-col items-center justify-center space-y-5 text-center">
                           {oauthError ? (
-                            <div className="text-red-500 space-y-3">
+                            <div className="space-y-3 text-red-500">
                               <XCircle className="h-10 w-10 mx-auto" />
                               <p className="font-semibold text-[14px]">{t('aiProviders.oauth.authFailed')}</p>
                               <p className="text-[12.5px] opacity-80">{oauthError}</p>
@@ -1302,7 +1304,7 @@ function AddProviderDialog({
                               <p className="text-[12.5px] font-medium text-muted-foreground animate-pulse">{t('aiProviders.oauth.requestingCode')}</p>
                             </div>
                           ) : oauthData.mode === 'manual' ? (
-                            <div className="space-y-4 w-full">
+                            <div className="w-full space-y-4">
                               <div className="space-y-2">
                                 <h3 className="font-semibold text-[14px] text-foreground">Complete OpenAI Login</h3>
                                 <p className="rounded-[11px] bg-[hsl(var(--foreground)/0.03)] p-3 text-left text-[12px] text-muted-foreground/84">
@@ -1339,7 +1341,7 @@ function AddProviderDialog({
                               </Button>
                             </div>
                           ) : (
-                            <div className="space-y-4.5 w-full">
+                            <div className="w-full space-y-4.5">
                               <div className="space-y-2">
                                 <h3 className="font-semibold text-[14px] text-foreground">{t('aiProviders.oauth.approveLogin')}</h3>
                                 <div className="mt-2 space-y-1.5 rounded-[11px] bg-[hsl(var(--foreground)/0.03)] p-3 text-left text-[12px] text-muted-foreground/84">
@@ -1349,14 +1351,14 @@ function AddProviderDialog({
                                 </div>
                               </div>
 
-                              <div className="flex items-center justify-center gap-3 rounded-[11px] border border-border/55 app-pane-surface px-3.5 py-3">
+                              <div className={panelSurfaceClass + ' flex items-center justify-center gap-3 px-3.5 py-3'}>
                                 <code className="text-[26px] font-mono tracking-[0.16em] font-bold text-foreground">
                                   {oauthData.userCode}
                                 </code>
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-8 w-8 rounded-full hover:bg-accent/50"
+                                className="h-8 w-8 rounded-[10px] hover:bg-[hsl(var(--foreground)/0.04)]"
                                   onClick={() => {
                                     navigator.clipboard.writeText(oauthData.userCode);
                                     toast.success(t('aiProviders.oauth.codeCopied'));

@@ -257,10 +257,10 @@ function WelcomeStartContent() {
             type="button"
             onClick={() => setLanguage(lang.code)}
             className={cn(
-              'inline-flex h-8 items-center rounded-full border px-3 text-xs transition-colors',
+              'inline-flex h-8 items-center rounded-[12px] border px-3 text-xs transition-colors',
               language === lang.code
                 ? 'border-primary/25 bg-primary text-primary-foreground shadow-sm'
-                : 'border-border/70 bg-[hsl(var(--surface-elevated)/0.66)] text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                : 'border-border/70 bg-[hsl(var(--surface-elevated)/0.66)] text-muted-foreground hover:bg-[hsl(var(--surface-elevated)/0.82)] hover:text-foreground',
             )}
           >
             {lang.label}

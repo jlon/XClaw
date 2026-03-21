@@ -48,9 +48,9 @@ const schedulePresets: { key: string; value: string; type: ScheduleType }[] = [
 ];
 
 const headerButtonClasses =
-  'h-8 rounded-full px-3.5 text-[12.5px] font-medium shadow-none border-border/70 bg-transparent text-foreground/78 transition-colors hover:bg-accent/60 hover:text-foreground';
+  'h-8 rounded-[12px] px-3.5 text-[12.5px] font-medium shadow-none border-border/70 bg-transparent text-foreground/78 transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
 const iconButtonClasses =
-  'h-8 w-8 rounded-full border border-border/70 bg-transparent shadow-none text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground';
+  'h-8 w-8 rounded-[12px] border border-border/70 bg-transparent shadow-none text-muted-foreground transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
 const inputClasses =
   'h-[44px] rounded-xl text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30';
 const tokenInputClasses =
@@ -60,9 +60,9 @@ const textareaClasses =
 const modalSurfaceClasses =
   'app-modal-surface w-full rounded-[20px]';
 const cardSurfaceClasses =
-  'group relative flex flex-col overflow-hidden rounded-[13px] border border-transparent px-3.5 py-3 transition-colors cursor-pointer hover:border-border/55 hover:bg-[hsl(var(--surface-hover)/0.46)]';
+  'group relative flex flex-col overflow-hidden rounded-[13px] border border-transparent px-3.5 py-3 transition-colors cursor-pointer hover:border-border/55 hover:bg-[hsl(var(--surface-hover)/0.42)]';
 const scheduleButtonBaseClasses =
-  'justify-start h-10 rounded-xl font-medium text-[13px] transition-all';
+  'justify-start h-10 rounded-[12px] font-medium text-[13px] transition-all';
 
 // Parse cron schedule to human-readable format
 // Handles both plain cron strings and Gateway CronSchedule objects:
@@ -305,7 +305,7 @@ function TaskDialog({ job, onClose, onSave }: TaskDialogProps) {
                       scheduleButtonBaseClasses,
                       schedule === preset.value
                         ? 'border-transparent bg-primary text-primary-foreground shadow-none hover:bg-primary/90'
-                        : 'border-border/70 bg-transparent text-foreground/80 hover:bg-accent/60 hover:text-foreground'
+                        : 'border-border/70 bg-transparent text-foreground/80 hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground'
                     )}
                   >
                     <Timer className="h-4 w-4 mr-2 opacity-70" />
@@ -330,7 +330,7 @@ function TaskDialog({ job, onClose, onSave }: TaskDialogProps) {
                 variant="ghost"
                 size="sm"
                 onClick={() => setUseCustom(!useCustom)}
-                className="h-7 rounded-full px-2.5 text-[12px] text-foreground/60 hover:bg-accent/60 hover:text-foreground"
+                className="h-7 rounded-[12px] px-2.5 text-[12px] text-foreground/60 hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground"
               >
                 {useCustom ? t('dialog.usePresets') : t('dialog.useCustomCron')}
               </Button>
@@ -349,10 +349,10 @@ function TaskDialog({ job, onClose, onSave }: TaskDialogProps) {
         </div>
         <div className="shrink-0 border-t border-border/70 px-6 py-4">
           <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={onClose} className="h-[40px] rounded-full border-border/70 bg-transparent px-5 text-[13px] font-semibold text-foreground/80 shadow-none hover:bg-accent/60 hover:text-foreground">
+            <Button variant="outline" onClick={onClose} className="h-[40px] rounded-[12px] border-border/70 bg-transparent px-5 text-[13px] font-semibold text-foreground/80 shadow-none hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground">
               {t('common:actions.cancel', 'Cancel')}
             </Button>
-            <Button onClick={handleSubmit} disabled={saving} className="h-[40px] rounded-full border border-transparent px-5 text-[13px] font-semibold shadow-none transition-all">
+            <Button onClick={handleSubmit} disabled={saving} className="h-[40px] rounded-[12px] border border-transparent px-5 text-[13px] font-semibold shadow-none transition-all">
               {saving ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -419,7 +419,7 @@ function CronJobCard({ job, onToggle, onEdit, onDelete, onTrigger }: CronJobCard
               <h3 className="truncate text-[14px] font-semibold text-foreground">{job.name}</h3>
               <div
                 className={cn(
-                  'h-2 w-2 rounded-full shrink-0',
+                  'h-2 w-2 rounded-[999px] shrink-0',
                   job.enabled ? 'bg-green-500' : 'bg-muted-foreground'
                 )}
                 title={job.enabled ? t('stats.active') : t('stats.paused')}
@@ -490,7 +490,7 @@ function CronJobCard({ job, onToggle, onEdit, onDelete, onTrigger }: CronJobCard
             size="sm"
             onClick={handleTrigger}
             disabled={triggering}
-            className="h-7 w-7 rounded-full p-0 text-foreground/66 transition-colors hover:bg-accent/60 hover:text-foreground"
+            className="h-7 w-7 rounded-[12px] p-0 text-foreground/66 transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground"
             title={t('card.runNow')}
           >
             {triggering ? (
@@ -503,7 +503,7 @@ function CronJobCard({ job, onToggle, onEdit, onDelete, onTrigger }: CronJobCard
             variant="ghost"
             size="sm"
             onClick={handleDelete}
-            className="h-7 w-7 rounded-full p-0 text-destructive/66 transition-colors hover:bg-destructive/10 hover:text-destructive"
+            className="h-7 w-7 rounded-[12px] p-0 text-destructive/66 transition-colors hover:bg-destructive/10 hover:text-destructive"
             title={t('common:actions.delete', 'Delete')}
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -589,7 +589,7 @@ export function Cron() {
                 setShowDialog(true);
               }}
               disabled={!isGatewayRunning}
-              className="h-9 rounded-full px-4 text-[13px] font-medium shadow-none"
+              className="h-9 rounded-[12px] px-4 text-[13px] font-medium shadow-none"
             >
               <Plus className="h-3.5 w-3.5 mr-2" />
               {t('newTask')}
@@ -641,7 +641,7 @@ export function Cron() {
                   setShowDialog(true);
                 }}
                 disabled={!isGatewayRunning}
-                className="h-9 rounded-full px-5"
+                className="h-9 rounded-[12px] px-5"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 {t('empty.create')}

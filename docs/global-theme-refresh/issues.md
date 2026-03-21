@@ -207,9 +207,31 @@
 - `Skills` 的安装 sheet 和技能详情侧栏
 - `Cron` 的任务创建/编辑弹窗和任务详情卡
 
+### 7. `ChannelConfigModal` 仍可能在高 DPI 下回到网页设置弹窗语法
+
+本轮处理：
+
+- 已继续压平频道配置弹窗的标题区、选择卡、说明块、验证态和底部动作区
+- 已同步收紧 modal 阴影、圆角、头部和 footer 动作，让它更接近桌面 utility dialog
+- 仍需要在 mac / Windows 真机下确认高 DPI 与缩放场景不会把 modal 再拉回网页对话框观感
+
 如果这些区域继续使用过厚的 card、sheet 或 stats 语法，页面仍会明显偏网页设置中心，而不是工业级桌面 app。
 
-### 7. 如果参考 `QClaw` 的过程中污染根入口文件，构建链会被假问题卡死
+### 8. 如果参考 `QClaw` 的过程中污染根入口文件，构建链会被假问题卡死
+
+### 9. `Agents / Skills / Cron` 还需要继续压平残留的 utility 语法
+
+本轮确认的残留主要是：
+
+- `rounded-full` 还在按钮、筛选器和搜索触发器里反复出现
+- `hover:bg-accent/60` 仍在把次级操作推回网页 hover 语法
+- 搜索 trigger 依旧偏厚，和 desktop utility / source-list 语义不一致
+
+本轮处理：
+
+- 统一把这些触发器和次级按钮收回 `rounded-[12px] / rounded-[14px]`
+- 默认 hover 改成更克制的 `surface-hover` 语义
+- 用测试锁住残留，避免后续改动重新回到网页 pill 风格
 
 这次已经出现过一次真实问题：仓库根 `index.html` 被误替换成 `QClaw` 打包后的静态资源入口，导致 `build:vite` 直接去解析不存在的 `./assets/e-Kf-uhv6n.js`。
 
@@ -218,13 +240,41 @@
 - 已恢复 `XClaw` 自己的 Vite 入口 `src/main.tsx`
 - 明确以后只能把 `QClaw` 当设计/结构参考，不能把它的构建产物文件带入主仓库
 
-### 4. `QClaw` 的桌面基底已经吸收大半，但仍需继续守“不能为模仿而模仿”
+### 10. `QClaw` 的桌面基底已经吸收大半，但仍需继续守“不能为模仿而模仿”
 
 只有在 `XClaw` 本地确实有同类问题时，才继续对齐 `QClaw`。
 
-### 5. Win/mac 真机桌面观感仍未完全手工验收
+### 11. Win/mac 真机桌面观感仍未完全手工验收
 
 自动化和代码层可以说明“没有明显坏”，但不能替代桌面质感判断。
+
+### 12. `Settings / Providers` 的二级语法仍是最容易回退的热点
+
+这次已经继续压掉主壳层的网页感，但真正容易泄露成 settings center 的还是局部控件语法：
+
+- section 标题太重
+- pill 看起来像网页筛选器
+- 输入框和文本域太像表单
+- fallback 和 OAuth 区域太像嵌套卡片
+
+本轮处理：
+
+- `Settings` 的标题、section 和 subpanel 进一步压成桌面 pane 语法
+- `Providers` 的 provider row、fallback list 和 OAuth inline 区进一步压成 utility 语法
+- 后续如果再回漂，优先查控件层级和密度，不要只调色
+
+### 13. `Setup / Chat` 的次级 utility 语法仍要继续守住
+
+这批局部的共性不是颜色，而是结构和 utility 语法很容易回退：
+
+- `Setup` 的 provider 选择器、OAuth 审批块和日志块容易重新长回“网页向导面板”
+- `Chat` 的附件移除按钮、loading shell、文件 hover 和 picker token 容易重新长回“网页浮层 + accent-hover”
+
+本轮处理：
+
+- `Setup` 已继续退出 `2xl` 大圆角、网页 glow 和厚面板
+- `Chat` 已继续退出网页式 `accent-hover`、圆形 overlay 和红色删除角标
+- 后续如果这两页再出现“看起来像网页小组件”的问题，优先检查 utility 语法，而不是只调 token
 
 ## 开发准则补充
 

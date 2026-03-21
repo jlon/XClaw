@@ -1274,7 +1274,7 @@ function ProviderContent({
             aria-expanded={providerMenuOpen}
             onClick={() => setProviderMenuOpen((open) => !open)}
             className={cn(
-              'w-full rounded-2xl border border-border/70 app-field-surface px-3 py-2 text-sm',
+              'w-full rounded-[12px] border border-border/65 app-field-surface px-3 py-2 text-sm',
               'flex items-center justify-between gap-2',
               'focus:outline-none focus:ring-2 focus:ring-ring/30'
             )}
@@ -1305,7 +1305,7 @@ function ProviderContent({
           {providerMenuOpen && (
             <div
               role="listbox"
-              className="absolute z-20 mt-1 max-h-64 w-full overflow-auto rounded-2xl border border-border/70 app-panel-surface-elevated"
+              className="absolute z-20 mt-1 max-h-64 w-full overflow-auto rounded-[12px] border border-border/65 app-panel-surface-elevated"
             >
               {providers.map((p) => {
                 const iconUrl = getProviderIconUrl(p.id);
@@ -1320,8 +1320,8 @@ function ProviderContent({
                     onClick={() => handleSelectProvider(p.id)}
                     className={cn(
                       'w-full px-3 py-2 text-left text-sm flex items-center justify-between gap-2',
-                      'hover:bg-accent/60 transition-colors',
-                      isSelected && 'bg-accent/40'
+                      'hover:bg-[hsl(var(--foreground)/0.04)] transition-colors',
+                      isSelected && 'bg-[hsl(var(--foreground)/0.06)]'
                     )}
                   >
                     <div className="flex items-center gap-2 min-w-0">
@@ -1405,10 +1405,10 @@ function ProviderContent({
                     onConfiguredChange(false);
                   }}
                   className={cn(
-                    'flex-1 rounded-xl border border-border/70 px-3 py-2 transition-colors',
+                    'flex-1 rounded-[10px] border border-border/65 px-3 py-2 transition-colors',
                     apiProtocol === 'openai-completions'
                       ? 'app-field-surface font-medium'
-                      : 'bg-transparent text-muted-foreground hover:bg-accent/60 hover:text-foreground'
+                      : 'bg-transparent text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground'
                   )}
                 >
                   {t('provider.protocols.openaiCompletions')}
@@ -1420,10 +1420,10 @@ function ProviderContent({
                     onConfiguredChange(false);
                   }}
                   className={cn(
-                    'flex-1 rounded-xl border border-border/70 px-3 py-2 transition-colors',
+                    'flex-1 rounded-[10px] border border-border/65 px-3 py-2 transition-colors',
                     apiProtocol === 'openai-responses'
                       ? 'app-field-surface font-medium'
-                      : 'bg-transparent text-muted-foreground hover:bg-accent/60 hover:text-foreground'
+                      : 'bg-transparent text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground'
                   )}
                 >
                   {t('provider.protocols.openaiResponses')}
@@ -1435,10 +1435,10 @@ function ProviderContent({
                     onConfiguredChange(false);
                   }}
                   className={cn(
-                    'flex-1 rounded-xl border border-border/70 px-3 py-2 transition-colors',
+                    'flex-1 rounded-[10px] border border-border/65 px-3 py-2 transition-colors',
                     apiProtocol === 'anthropic-messages'
                       ? 'app-field-surface font-medium'
-                      : 'bg-transparent text-muted-foreground hover:bg-accent/60 hover:text-foreground'
+                      : 'bg-transparent text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground'
                   )}
                 >
                   {t('provider.protocols.anthropic')}
@@ -1449,12 +1449,12 @@ function ProviderContent({
 
           {/* Auth mode toggle for providers supporting both */}
           {isOAuth && supportsApiKey && (
-            <div className="flex overflow-hidden rounded-xl border border-border/70 text-sm">
+            <div className="flex overflow-hidden rounded-[10px] border border-border/60 text-sm">
               <button
                 onClick={() => setAuthMode('oauth')}
                 className={cn(
                   'flex-1 px-3 py-2 transition-colors',
-                  authMode === 'oauth' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground'
+                  authMode === 'oauth' ? 'bg-[hsl(var(--foreground)/0.07)] text-foreground' : 'text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground'
                 )}
               >
                 {t('settings:aiProviders.oauth.loginMode')}
@@ -1463,7 +1463,7 @@ function ProviderContent({
                 onClick={() => setAuthMode('apikey')}
                 className={cn(
                   'flex-1 px-3 py-2 transition-colors',
-                  authMode === 'apikey' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground'
+                  authMode === 'apikey' ? 'bg-[hsl(var(--foreground)/0.07)] text-foreground' : 'text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground'
                 )}
               >
                 {t('settings:aiProviders.oauth.apikeyMode')}
@@ -1503,7 +1503,7 @@ function ProviderContent({
           {/* Device OAuth Trigger */}
           {useOAuthFlow && (
             <div className="space-y-4 pt-2">
-              <div className="rounded-2xl border border-border/70 app-panel-surface p-4 text-center">
+              <div className="rounded-[14px] border border-border/65 app-pane-surface p-4 text-center">
                 <p className="mb-3 block text-sm text-muted-foreground">
                   This provider requires signing in via your browser.
                 </p>
@@ -1522,8 +1522,7 @@ function ProviderContent({
 
               {/* OAuth Active State Modal / Inline View */}
               {oauthFlowing && (
-                <div className="relative mt-4 overflow-hidden rounded-2xl border border-border/70 app-panel-surface-elevated p-4">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,hsl(var(--primary)/0.08),transparent_55%)]" />
+                <div className="relative mt-4 overflow-hidden rounded-[14px] border border-border/65 app-pane-surface p-4">
 
                   <div className="relative z-10 flex flex-col items-center justify-center text-center space-y-4">
                     {oauthError ? (
@@ -1587,7 +1586,7 @@ function ProviderContent({
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-center gap-2 rounded-xl border border-border/70 app-field-surface p-3">
+                        <div className="flex items-center justify-center gap-2 rounded-[10px] border border-border/65 app-field-surface p-3">
                           <code className="text-2xl font-mono tracking-widest font-bold text-primary">
                             {oauthData.userCode}
                           </code>
@@ -1718,7 +1717,7 @@ function InstallingContent({ skills, onComplete }: InstallingContentProps) {
       warningMessage={errorMessage ? (
         <div className="space-y-2">
           <div>{t('installing.error')}</div>
-          <pre className="overflow-x-auto whitespace-pre-wrap rounded-xl border border-border/70 app-field-surface p-2 font-mono text-xs text-foreground/80">
+          <pre className="overflow-x-auto whitespace-pre-wrap rounded-[10px] border border-border/65 app-field-surface p-2 font-mono text-xs text-foreground/80">
             {errorMessage}
           </pre>
           <Button

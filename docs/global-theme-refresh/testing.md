@@ -22,10 +22,17 @@
 - `pnpm exec vitest run tests/unit/theme-application.test.tsx tests/unit/workspace-page-layout.test.tsx tests/unit/ui-primitives-theme.test.tsx tests/unit/chat-layout.test.tsx tests/unit/theme-second-wave-pages.test.ts tests/unit/channel-config-modal.test.tsx tests/unit/setup-wizard-layout.test.tsx --testTimeout=15000`
 - `pnpm exec vitest run tests/unit/theme-second-wave-pages.test.ts tests/unit/channels-page.test.tsx tests/unit/chat-theme-shell.test.ts --testTimeout=15000`
 - `pnpm exec vitest run tests/unit/theme-second-wave-pages.test.ts tests/unit/channels-page.test.tsx tests/unit/chat-theme-shell.test.ts --testTimeout=15000 --reporter=dot`
+- `pnpm exec vitest run tests/unit/channel-config-modal.test.tsx --testTimeout=15000`
 - `pnpm exec vitest run tests/unit/theme-second-wave-pages.test.ts --testTimeout=15000`
+- `pnpm exec vitest run tests/unit/channel-config-modal.test.tsx --testTimeout=15000 --reporter=dot`
+- `pnpm exec vitest run tests/unit/theme-second-wave-pages.test.ts --testTimeout=15000 --reporter=dot`
+- `pnpm exec vitest run tests/unit/channel-config-modal.test.tsx tests/unit/theme-second-wave-pages.test.ts tests/unit/chat-theme-shell.test.ts tests/unit/chat-input.test.tsx tests/unit/chat-humanized-actions.test.tsx --testTimeout=15000 --reporter=dot`
 - `pnpm exec eslint src/components/layout/MainLayout.tsx src/components/layout/WorkspacePage.tsx src/components/layout/Sidebar.tsx src/components/layout/TitleBar.tsx src/components/layout/ChatSessionsPane.tsx src/components/channels/ChannelConfigModal.tsx src/components/settings/ProvidersSettings.tsx src/components/setup/SetupStartStage.tsx src/components/setup/SetupPreparationStage.tsx src/components/setup/SetupProviderStage.tsx src/components/setup/SetupCompleteStage.tsx src/components/ui/button.tsx src/components/ui/input.tsx src/components/ui/select.tsx src/components/ui/textarea.tsx src/components/ui/card.tsx src/components/ui/confirm-dialog.tsx src/pages/Agents/index.tsx src/pages/Cron/index.tsx src/pages/Skills/index.tsx src/pages/Models/index.tsx src/pages/Settings/index.tsx src/pages/Channels/index.tsx src/pages/Chat/ChatInput.tsx tests/unit/theme-application.test.tsx tests/unit/workspace-page-layout.test.tsx tests/unit/ui-primitives-theme.test.tsx tests/unit/chat-layout.test.tsx tests/unit/theme-second-wave-pages.test.ts tests/unit/channel-config-modal.test.tsx tests/unit/setup-wizard-layout.test.tsx tests/unit/channels-page.test.tsx tests/unit/chat-theme-shell.test.ts --max-warnings=0`
+- `pnpm exec eslint src/components/channels/ChannelConfigModal.tsx tests/unit/channel-config-modal.test.tsx --max-warnings=0`
+- `pnpm exec eslint src/components/channels/ChannelConfigModal.tsx src/components/settings/ProvidersSettings.tsx src/pages/Settings/index.tsx src/pages/Chat/ChatInput.tsx src/pages/Chat/ChatToolbar.tsx src/pages/Chat/ChatMessage.tsx src/pages/Chat/index.tsx src/pages/Agents/index.tsx src/pages/Skills/index.tsx src/pages/Cron/index.tsx src/pages/Setup/index.tsx tests/unit/channel-config-modal.test.tsx tests/unit/theme-second-wave-pages.test.ts tests/unit/chat-theme-shell.test.ts tests/unit/chat-input.test.tsx tests/unit/chat-humanized-actions.test.tsx --max-warnings=0`
 - `pnpm run typecheck`
 - 如果 `build:vite` 报 `./assets/e-*.js from index.html` 这类错误，先检查根 `index.html` 是否被参考产物污染，确认入口仍是 `/src/main.tsx`
+- `tests/unit/theme-second-wave-pages.test.ts` 现在同时锁住 `Settings / Providers` 的桌面 pane 语法，改动这两页时要同步维护这条回归锁
 
 ### 构建级
 
@@ -89,6 +96,8 @@
 - 搜索、列表、输入区重新长回厚表单感
 - `Channels` 大文件测试在默认 5 秒超时下偶发超时；如果只验证这一页，统一使用 `--testTimeout=15000`，不要把资源抖动误判成回归
 - `ChatInput` 的 composer 节奏已经收紧，相关源码断言目前以 `min-h-[82px] / min-h-[68px]` 为准；如果继续调整输入坞站高度，要同步修改 `chat-theme-shell` 里的结构断言
+- `ChannelConfigModal` 已继续压平为桌面 modal / pane 语法；如果继续调标题、字段和底部动作，必须同步更新 `channel-config-modal` 的 class 断言
+- `Settings / Providers / Channels / Chat / Setup` 这批热点已经证明“只改 token 不够”，后续调整必须同时检查 utility button、badge、picker、log panel 和 inspector 的局部语法
 - 品牌色再次滑入背景层
 - 浅色主题重新回暖
 - 聊天列表、频道页、设置页各自形成新的局部风格

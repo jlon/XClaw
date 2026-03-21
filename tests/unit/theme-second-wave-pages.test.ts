@@ -22,6 +22,10 @@ describe('second-wave desktop theme rollout', () => {
     expect(source).toContain('surface-base');
     expect(source).toContain('app-field-surface');
     expect(source).toContain('tokenInputClasses');
+    expect(source).toContain('settingsPageTitleClass');
+    expect(source).toContain('settingsHeadingClass');
+    expect(source).toContain('listRowClass');
+    expect(source).toContain('panelSurfaceClass');
     expect(source).toContain('border-border/70');
     expect(source).not.toContain('opacity-0 group-hover:opacity-100');
   });
@@ -39,10 +43,13 @@ describe('second-wave desktop theme rollout', () => {
     expect(source).not.toContain('border-black/10');
     expect(source).not.toContain('dark:border-white/10');
     expect(source).not.toContain('hover:bg-black/5');
+    expect(source).not.toContain('rounded-full');
+    expect(source).not.toContain('hover:bg-accent/60');
     expect(source).toContain('app-insight-surface');
     expect(source).toContain('app-field-surface');
     expect(source).toContain('border-border/70');
-    expect(source).toContain('hover:bg-accent/60');
+    expect(source).toContain('rounded-[12px]');
+    expect(source).toContain('hover:bg-[hsl(var(--surface-hover)/0.46)]');
   });
 
   it('keeps setup on the same desktop surface system instead of a standalone warm web wizard skin', () => {
@@ -66,5 +73,22 @@ describe('second-wave desktop theme rollout', () => {
     expect(source).toContain('app-panel-surface-elevated');
     expect(source).toContain('app-field-surface');
     expect(source).toContain('border-border/70');
+  });
+
+  it('keeps channels and the channel config modal on the same desktop surface language without pill-heavy web syntax', () => {
+    const files = [
+      'src/pages/Channels/index.tsx',
+      'src/components/channels/ChannelConfigModal.tsx',
+    ];
+
+    const source = files.map((relativePath) => readFileSync(resolve(process.cwd(), relativePath), 'utf8')).join('\n');
+
+    expect(source).not.toContain('rounded-full');
+    expect(source).not.toContain('bg-secondary/80');
+    expect(source).not.toContain('hover:bg-accent/60');
+    expect(source).toContain('rounded-[10px]');
+    expect(source).toContain('app-pane-surface');
+    expect(source).toContain('app-modal-surface');
+    expect(source).toContain('searchFieldClass');
   });
 });

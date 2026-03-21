@@ -690,7 +690,7 @@ export function ChatInput({
         )}
 
         {/* Input Row */}
-        <div className={cn('app-chat-composer-dock relative rounded-[16px] px-3 py-2.5 transition-all', dragOver ? 'border-primary/30 ring-2 ring-primary/12' : '')}>
+        <div className={cn('app-chat-composer-dock relative rounded-[14px] px-3 py-2.5 transition-all', dragOver ? 'border-primary/30 ring-2 ring-primary/12' : '')}>
           <div className="app-chat-composer-editor">
             <textarea
               ref={textareaRef}
@@ -774,11 +774,11 @@ export function ChatInput({
                 <button
                   type="button"
                   onClick={() => setTargetAgentId(null)}
-                  className="app-chat-runtime-pill inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[11.5px] font-medium text-foreground transition-colors hover:bg-[hsl(var(--foreground)/0.05)]"
+                  className="app-chat-composer-target-chip inline-flex h-6 items-center gap-1.5 rounded-[8px] px-1.5 text-[11px] font-medium text-foreground/74 transition-colors hover:text-foreground"
                   title={t('composer.clearTarget')}
                 >
                   <span className="max-w-[180px] truncate">{t('composer.targetChip', { agent: selectedTarget.name })}</span>
-                  <X className="h-3.5 w-3.5 text-muted-foreground" />
+                  <X className="h-3.5 w-3.5 text-muted-foreground/72" />
                 </button>
               )}
 
@@ -842,10 +842,10 @@ export function ChatInput({
                         onClick={() => {
                           void handleModelSelect(null);
                         }}
-                        className="flex w-full flex-col items-start rounded-[10px] px-3 py-2 text-left transition-[background-color,color] hover:bg-[hsl(var(--foreground)/0.04)]"
+                        className="flex w-full flex-col items-start rounded-[10px] px-3 py-2 text-left transition-[background-color,color] hover:bg-[hsl(var(--foreground)/0.032)]"
                       >
-                        <span className="text-[13px] font-medium text-foreground">{t('composer.modelPickerDefault')}</span>
-                        <span className="text-[10.5px] text-muted-foreground/78">{t('composer.modelPickerDefaultHint')}</span>
+                        <span className="text-[12.5px] font-medium text-foreground/92">{t('composer.modelPickerDefault')}</span>
+                        <span className="text-[10.5px] text-muted-foreground/72">{t('composer.modelPickerDefaultHint')}</span>
                       </button>
                       {modelsLoading && (
                         <div className="px-3 py-6 text-center text-[12px] text-muted-foreground">
@@ -891,7 +891,7 @@ export function ChatInput({
               size="icon"
               className={`pointer-events-auto h-8 w-8 shrink-0 rounded-[12px] transition-[background-color,color,box-shadow] ${
                 sending
-                  ? 'app-chat-runtime-pill text-foreground hover:bg-[hsl(var(--foreground)/0.06)]'
+                  ? 'border border-[hsl(var(--border-subtle)/0.62)] bg-[hsl(var(--surface-elevated)/0.96)] text-foreground hover:bg-[hsl(var(--foreground)/0.04)]'
                   : canSend
                     ? 'bg-primary text-primary-foreground shadow-none hover:bg-primary/90'
                     : 'bg-transparent text-muted-foreground/45 hover:bg-transparent'
@@ -952,7 +952,7 @@ function AttachmentPreview({
         </div>
       ) : (
         // Generic file card
-        <div className="app-pane-surface flex max-w-[200px] items-center gap-2 rounded-[10px] px-3 py-2">
+        <div className="app-pane-surface flex max-w-[200px] items-center gap-2 rounded-[9px] px-3 py-2">
           <FileIcon mimeType={attachment.mimeType} className="h-5 w-5 shrink-0 text-muted-foreground" />
           <div className="min-w-0 overflow-hidden">
             <p className="text-xs font-medium truncate">{attachment.fileName}</p>
@@ -980,7 +980,7 @@ function AttachmentPreview({
       {/* Remove button */}
       <button
         onClick={onRemove}
-        className="absolute -right-1 -top-1 rounded-full bg-destructive p-0.5 text-destructive-foreground opacity-0 transition-opacity group-hover:opacity-100"
+        className="absolute -right-1 -top-1 rounded-[8px] border border-border/60 bg-[hsl(var(--surface-elevated)/0.98)] p-1 text-muted-foreground/78 opacity-0 transition-[opacity,background-color,color] group-hover:opacity-100 hover:bg-[hsl(var(--foreground)/0.05)] hover:text-foreground"
       >
         <X className="h-3 w-3" />
       </button>

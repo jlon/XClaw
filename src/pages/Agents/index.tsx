@@ -42,23 +42,23 @@ interface ChannelGroupItem {
 }
 
 const headerButtonClasses =
-  'h-8 rounded-full px-3.5 text-[12.5px] font-medium shadow-none border-border/70 bg-transparent text-foreground/78 transition-colors hover:bg-accent/60 hover:text-foreground';
+  'h-8 rounded-[12px] px-3.5 text-[12.5px] font-medium shadow-none border-border/70 bg-transparent text-foreground/78 transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
 const fieldInputClasses =
   'h-[44px] rounded-xl text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30';
 const modalSurfaceClasses =
   'app-modal-surface w-full rounded-[20px]';
 const badgeClasses =
-  'h-5 rounded-full border border-border/70 bg-background/70 px-2 text-[10px] font-medium text-foreground/70 shadow-none';
+  'h-5 rounded-[10px] border border-border/70 bg-background/70 px-2 text-[10px] font-medium text-foreground/70 shadow-none';
 const panelCardClasses =
-  'group flex items-stretch gap-3 rounded-[13px] border border-transparent px-3 py-2.5 text-left transition-colors hover:border-border/60 hover:bg-[hsl(var(--surface-hover)/0.52)]';
+  'group flex items-stretch gap-3 rounded-[13px] border border-transparent px-3 py-2.5 text-left transition-colors hover:border-border/60 hover:bg-[hsl(var(--surface-hover)/0.42)]';
 const modalTitleClasses =
   'text-[20px] md:text-[22px] font-semibold tracking-tight text-foreground';
 const modalDescriptionClasses =
   'mt-1 text-[13px] font-medium leading-[1.6] text-foreground/68';
 const dialogIconButtonClasses =
-  'h-8 w-8 rounded-full border border-border/70 bg-transparent shadow-none text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground';
+  'h-8 w-8 rounded-[12px] border border-border/70 bg-transparent shadow-none text-muted-foreground transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
 const dialogActionButtonClasses =
-  'h-9 rounded-full px-4 text-[13px] font-medium shadow-none border-border/70 bg-transparent text-foreground/80 transition-colors hover:bg-accent/60 hover:text-foreground';
+  'h-9 rounded-[12px] px-4 text-[13px] font-medium shadow-none border-border/70 bg-transparent text-foreground/80 transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
 
 export function Agents() {
   const { t } = useTranslation('agents');
@@ -148,7 +148,7 @@ export function Agents() {
             </Button>
             <Button
               onClick={() => setShowAddDialog(true)}
-              className="h-9 rounded-full px-4 text-[13px] font-medium shadow-none"
+              className="h-9 rounded-[12px] px-4 text-[13px] font-medium shadow-none"
             >
               <Plus className="h-3.5 w-3.5 mr-2" />
               {t('addAgent')}
@@ -301,7 +301,7 @@ function AgentCard({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 text-muted-foreground/70 transition-all hover:bg-destructive/10 hover:text-destructive"
+                className="h-7 w-7 rounded-[12px] text-muted-foreground/70 transition-all hover:bg-destructive/10 hover:text-destructive"
                 onClick={onDelete}
                 title={t('deleteAgent')}
               >
@@ -311,7 +311,7 @@ function AgentCard({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-muted-foreground/70 transition-all hover:bg-accent/60 hover:text-foreground"
+              className="h-7 w-7 rounded-[12px] text-muted-foreground/70 transition-all hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground"
               onClick={onOpenSettings}
               title={t('settings')}
             >
@@ -319,9 +319,9 @@ function AgentCard({
             </Button>
           </div>
         </div>
-            <p className="text-[12.5px] text-foreground/56 line-clamp-1 leading-[1.45]">
-              {t('channelsLine', { channels: channelsText })}
-            </p>
+        <p className="text-[12.5px] leading-[1.45] text-foreground/56 line-clamp-1">
+          {t('channelsLine', { channels: channelsText })}
+        </p>
       </div>
     </div>
   );
@@ -409,7 +409,7 @@ function AddAgentDialog({
             <Button
               onClick={() => void handleSubmit()}
               disabled={saving || !name.trim()}
-              className="h-9 rounded-full px-4 text-[13px] font-medium shadow-none"
+              className="h-9 rounded-[12px] px-4 text-[13px] font-medium shadow-none"
             >
               {saving ? (
                 <>
@@ -510,7 +510,7 @@ function AgentSettingsModal({
                     variant="outline"
                     onClick={() => void handleSaveName()}
                     disabled={savingName || !name.trim() || name.trim() === agent.name}
-                    className="h-[44px] rounded-xl border-border/70 bg-transparent px-4 text-[13px] font-medium text-foreground/80 shadow-none transition-colors hover:bg-accent/60 hover:text-foreground"
+                    className="h-[44px] rounded-[12px] border-border/70 bg-transparent px-4 text-[13px] font-medium text-foreground/80 shadow-none transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground"
                   >
                     {savingName ? (
                       <RefreshCw className="h-4 w-4 animate-spin" />
