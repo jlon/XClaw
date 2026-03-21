@@ -4,7 +4,7 @@
  * with markdown, thinking sections, images, and tool cards.
  */
 import { useState, useCallback, useEffect, memo } from 'react';
-import { Copy, Check, ChevronDown, ChevronRight, Wrench, FileText, Film, Music, FileArchive, File, X, FolderOpen, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Copy, Check, ChevronDown, ChevronRight, FileText, Film, Music, FileArchive, File, X, FolderOpen, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { createPortal } from 'react-dom';
@@ -23,6 +23,7 @@ interface ChatMessageProps {
     label: string;
     style: string;
   };
+  showAvatar?: boolean;
   isStreaming?: boolean;
   streamingTools?: Array<{
     id?: string;
@@ -47,6 +48,7 @@ export const ChatMessage = memo(function ChatMessage({
   message,
   showThinking,
   assistantAvatar,
+  showAvatar = true,
   isStreaming = false,
   streamingTools = [],
 }: ChatMessageProps) {
@@ -71,6 +73,7 @@ export const ChatMessage = memo(function ChatMessage({
   const hasStreamingToolStatus = isStreaming && streamingTools.length > 0;
   if (!hasText && !visibleThinking && images.length === 0 && visibleTools.length === 0 && attachedFiles.length === 0 && !hasStreamingToolStatus) return null;
   const hasSecondaryContent = hasText || hasStreamingToolStatus || !!visibleThinking || visibleTools.length > 0 || images.length > 0 || attachedFiles.length > 0;
+  const hasProcessContent = !isUser && (hasStreamingToolStatus || !!visibleThinking || visibleTools.length > 0);
 
   return (
     <div
@@ -80,12 +83,16 @@ export const ChatMessage = memo(function ChatMessage({
       )}
     >
       {!isUser && (
-        <AgentAvatar
-          label={assistantAvatar?.label ?? 'A'}
-          style={assistantAvatar?.style ?? 'from-primary to-rose-500'}
-          className="mt-0.5 h-[34px] w-[34px]"
-          textClassName="text-sm"
-        />
+        showAvatar ? (
+          <AgentAvatar
+            label={assistantAvatar?.label ?? 'A'}
+            style={assistantAvatar?.style ?? 'from-primary to-rose-500'}
+            className="mt-0.5 h-[34px] w-[34px]"
+            textClassName="text-sm"
+          />
+        ) : (
+          <div data-testid="chat-assistant-avatar-placeholder" aria-hidden="true" className="mt-0.5 h-[34px] w-[34px] shrink-0" />
+        )
       )}
 
       <div
@@ -94,6 +101,26 @@ export const ChatMessage = memo(function ChatMessage({
           isUser ? 'app-chat-message-column--user' : 'app-chat-message-column--assistant',
         )}
       >
+        {hasProcessContent && (
+          <div className="app-chat-message-process">
+            {isStreaming && streamingTools.length > 0 && (
+              <ToolStatusBar tools={streamingTools} />
+            )}
+
+            {visibleThinking && (
+              <ThinkingBlock content={visibleThinking} />
+            )}
+
+            {visibleTools.length > 0 && (
+              <div className="space-y-1">
+                {visibleTools.map((tool, i) => (
+                  <ToolCard key={tool.id || i} name={tool.name} input={tool.input} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {hasText && (
           <MessageBubble
             text={text}
@@ -115,22 +142,6 @@ export const ChatMessage = memo(function ChatMessage({
                 timestamp={message.timestamp}
                 align={isUser ? 'end' : 'start'}
               />
-            )}
-
-            {isStreaming && !isUser && streamingTools.length > 0 && (
-              <ToolStatusBar tools={streamingTools} />
-            )}
-
-            {visibleThinking && (
-              <ThinkingBlock content={visibleThinking} />
-            )}
-
-            {visibleTools.length > 0 && (
-              <div className="space-y-1">
-                {visibleTools.map((tool, i) => (
-                  <ToolCard key={tool.id || i} name={tool.name} input={tool.input} />
-                ))}
-              </div>
             )}
 
             {isUser && images.length > 0 && (
@@ -265,7 +276,7 @@ function ToolStatusBar({
   }>;
 }) {
   return (
-    <div className="w-full space-y-1">
+    <div className="app-chat-process-rail app-chat-secondary-block w-full">
       {tools.map((tool) => {
         const duration = formatDuration(tool.durationMs);
         const isRunning = tool.status === 'running';
@@ -275,20 +286,20 @@ function ToolStatusBar({
             key={tool.toolCallId || tool.id || tool.name}
             data-state={tool.status}
             className={cn(
-              'app-chat-tool-status flex items-center gap-2 rounded-[12px] px-2.5 py-1.5 text-xs transition-colors',
+              'app-chat-process-node app-chat-tool-status flex items-center gap-1.5 rounded-[12px] px-2 py-1 text-xs transition-colors',
               isRunning && 'text-foreground',
               !isRunning && !isError && 'text-muted-foreground',
               isError && 'text-destructive',
             )}
           >
+            <span className="app-chat-process-dot shrink-0" aria-hidden="true" />
             {isRunning && <Loader2 className="h-3.5 w-3.5 animate-spin text-primary shrink-0" />}
             {!isRunning && !isError && <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[hsl(var(--success))]" />}
             {isError && <AlertCircle className="h-3.5 w-3.5 text-destructive shrink-0" />}
-            <Wrench className="h-3 w-3 shrink-0 opacity-60" />
-            <span className="font-mono text-[12px] font-medium">{tool.name}</span>
-            {duration && <span className="text-[11px] opacity-60">{tool.summary ? `(${duration})` : duration}</span>}
+            <span className="text-[11.5px] font-medium">{tool.name}</span>
+            {duration && <span className="text-[11px] opacity-55">{tool.summary ? `(${duration})` : duration}</span>}
             {tool.summary && (
-              <span className="truncate text-[11px] opacity-70">{tool.summary}</span>
+              <span className="app-chat-process-summary truncate text-[11px] opacity-70">{tool.summary}</span>
             )}
           </div>
         );
@@ -312,13 +323,14 @@ function MessageMetaBar({ text, timestamp, align }: { text: string; timestamp?: 
   return (
     <div
       className={cn(
-        'app-chat-hoverbar inline-flex items-center gap-2.5 px-0.5 py-0.5 opacity-70 transition-opacity duration-200 select-none group-hover:opacity-100',
+        'app-chat-hoverbar inline-flex items-center gap-1.5 px-0.5 py-0.5 opacity-25 transition-opacity duration-200 select-none group-hover:opacity-100 group-focus-within:opacity-100',
         align === 'end' ? 'self-end justify-end' : 'self-start justify-start',
       )}
     >
       <span className="app-chat-meta-row text-[11px] text-muted-foreground">
         {timestamp ? formatTimestamp(timestamp) : ''}
       </span>
+      {timestamp && <span className="app-chat-meta-divider" aria-hidden="true" />}
       <button
         type="button"
         className="app-chat-meta-action"
@@ -345,13 +357,13 @@ function MessageBubble({
 }) {
   return (
     <div
-      data-testid={isUser ? 'chat-user-bubble' : undefined}
       className={cn(
         'relative max-w-full text-[15px] leading-[1.62]',
         isUser
           ? 'app-chat-bubble-user rounded-[18px] rounded-br-[6px] border px-4 py-2.5'
           : 'app-chat-bubble-assistant rounded-[18px] rounded-tl-[6px] px-0 py-0 text-foreground',
       )}
+      data-testid={isUser ? 'chat-user-bubble' : 'chat-assistant-bubble'}
     >
       {isUser ? (
         <p className="whitespace-pre-wrap break-words text-[15px] leading-[1.62]">{text}</p>
@@ -374,7 +386,7 @@ function MessageBubble({
                   );
                 }
                 return (
-                  <pre className="app-chat-code-block overflow-x-auto rounded-[16px] px-4 py-3">
+                  <pre className="app-chat-code-block overflow-x-auto rounded-[14px] px-3.5 py-2.5">
                     <code className={cn('text-[13px] font-mono leading-6', className)} {...props}>
                       {children}
                     </code>
@@ -413,11 +425,12 @@ function ThinkingBlock({ content }: { content: string }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="app-chat-thinking-card app-chat-secondary-block w-full text-[14px]">
+    <div className="app-chat-thinking-card app-chat-process-rail app-chat-secondary-block w-full text-[14px]">
       <button
-        className="app-chat-secondary-toggle"
+        className="app-chat-secondary-toggle app-chat-process-toggle"
         onClick={() => setExpanded(!expanded)}
       >
+        <span className="app-chat-process-dot shrink-0" aria-hidden="true" />
         {expanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
         <span className="font-medium">{t('message.thinking')}</span>
       </button>
@@ -461,16 +474,16 @@ function FileCard({ file }: { file: AttachedFileMeta }) {
   return (
     <div
       className={cn(
-        'app-chat-file-card flex max-w-[200px] items-center gap-2.5 rounded-[12px] px-3 py-2',
+        'app-chat-file-card flex max-w-[220px] items-center gap-2 rounded-[9px] px-2.5 py-1.5',
         file.filePath && 'cursor-pointer transition-colors hover:bg-accent/60'
       )}
       onClick={handleOpen}
       title={file.filePath ? t('message.openFile') : undefined}
     >
-      <FileIcon mimeType={file.mimeType} className="h-5 w-5 shrink-0 text-muted-foreground" />
+      <FileIcon mimeType={file.mimeType} className="h-4.5 w-4.5 shrink-0 text-muted-foreground" />
       <div className="min-w-0 overflow-hidden">
-        <p className="text-xs font-medium truncate">{file.fileName}</p>
-        <p className="text-[10px] text-muted-foreground">
+        <p className="truncate text-[11px] font-medium">{file.fileName}</p>
+        <p className="text-[10px] text-muted-foreground/78">
           {file.fileSize > 0 ? formatFileSize(file.fileSize) : t('message.file')}
         </p>
       </div>
@@ -498,7 +511,7 @@ function ImageThumbnail({
   void filePath; void base64; void mimeType;
   return (
     <div
-      className="group/img app-chat-media-card relative h-32 w-32 cursor-zoom-in overflow-hidden rounded-[12px]"
+      className="group/img app-chat-media-card relative h-32 w-32 cursor-zoom-in overflow-hidden rounded-[10px]"
       onClick={onPreview}
     >
       <img
@@ -532,7 +545,7 @@ function ImagePreviewCard({
   void filePath; void base64; void mimeType;
   return (
     <div
-      className="group/img app-chat-media-card relative max-w-[220px] cursor-zoom-in overflow-hidden rounded-[12px]"
+      className="group/img app-chat-media-card relative max-w-[220px] cursor-zoom-in overflow-hidden rounded-[10px]"
       onClick={onPreview}
     >
       <img src={src} alt={fileName} loading="lazy" decoding="async" className="block w-full" />
@@ -628,8 +641,7 @@ function ToolCard({ name, input }: { name: string; input: unknown }) {
         onClick={() => setExpanded(!expanded)}
       >
         <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[hsl(var(--success))]" />
-        <Wrench className="h-3 w-3 shrink-0 opacity-60" />
-        <span className="font-mono text-xs">{name}</span>
+        <span className="text-xs font-medium">{name}</span>
         {expanded ? <ChevronDown className="h-3 w-3 ml-auto" /> : <ChevronRight className="h-3 w-3 ml-auto" />}
       </button>
       {expanded && input != null && (

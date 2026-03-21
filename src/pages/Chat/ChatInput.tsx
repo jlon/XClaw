@@ -41,6 +41,8 @@ interface ChatInputProps {
   disabled?: boolean;
   sending?: boolean;
   isEmpty?: boolean;
+  draftSeed?: string;
+  draftSeedVersion?: number;
   showScrollToLatest?: boolean;
   hasPendingLatest?: boolean;
   onScrollToLatest?: () => void;
@@ -200,6 +202,8 @@ export function ChatInput({
   disabled = false,
   sending = false,
   isEmpty = false,
+  draftSeed,
+  draftSeedVersion = 0,
   showScrollToLatest = false,
   hasPendingLatest = false,
   onScrollToLatest,
@@ -303,6 +307,17 @@ export function ChatInput({
       textareaRef.current.focus();
     }
   }, [disabled]);
+
+  useEffect(() => {
+    if (!draftSeedVersion || !draftSeed) return;
+    setInput(draftSeed);
+    requestAnimationFrame(() => {
+      if (!textareaRef.current) return;
+      textareaRef.current.focus();
+      const caret = draftSeed.length;
+      textareaRef.current.setSelectionRange(caret, caret);
+    });
+  }, [draftSeed, draftSeedVersion]);
 
   useEffect(() => {
     if (!targetAgentId) return;

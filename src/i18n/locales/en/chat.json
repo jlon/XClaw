@@ -7,10 +7,13 @@
         "description": "Keep conversation, execution, and multi-agent collaboration inside one stable desktop workspace.",
         "askQuestions": "Handle Tasks",
         "askQuestionsDesc": "Work on task-oriented requests",
+        "askQuestionsPrompt": "Help me handle a concrete task:",
         "creativeTasks": "Continuous Execution",
         "creativeTasksDesc": "Keep running through multi-step work",
+        "creativeTasksPrompt": "Help me keep driving this multi-step work:",
         "brainstorming": "Multi-Agent Parallel",
-        "brainstormingDesc": "Split complex work and push multiple roles in parallel"
+        "brainstormingDesc": "Split complex work and push multiple roles in parallel",
+        "brainstormingPrompt": "Help me break down this complex task and coordinate multiple agents in parallel:"
     },
     "noLogs": "(No logs available yet)",
     "toolbar": {

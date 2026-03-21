@@ -20,6 +20,21 @@ import { cn } from '@/lib/utils';
 import { useStickToBottomInstant } from '@/hooks/use-stick-to-bottom-instant';
 import { useMinLoading } from '@/hooks/use-min-loading';
 
+const messageVisualRole = (message: RawMessage, showThinking: boolean): 'assistant' | 'user' | null => {
+  const role = typeof message.role === 'string' ? message.role.toLowerCase() : '';
+  if (role === 'toolresult' || role === 'tool_result') return null;
+  const hasText = extractText(message).trim().length > 0;
+  const hasThinking = showThinking && !!extractThinking(message)?.trim();
+  const hasImages = extractImages(message).length > 0;
+  const hasTools = extractToolUse(message).length > 0;
+  const hasAttachedFiles = (message._attachedFiles?.length ?? 0) > 0;
+  if (!hasText && !hasThinking && !hasImages && !hasTools && !hasAttachedFiles) return null;
+  return role === 'user' ? 'user' : 'assistant';
+};
+
+const stackSpacingClass = (isClusteredWithPrevious: boolean, isFirst: boolean) =>
+  isFirst ? 'mt-0' : isClusteredWithPrevious ? 'mt-2' : 'mt-4';
+
 export function Chat() {
   const { t } = useTranslation('chat');
   const gatewayStatus = useGatewayStore((s) => s.status);
@@ -45,9 +60,10 @@ export function Chat() {
 
   const cleanupEmptySession = useChatStore((s) => s.cleanupEmptySession);
 
-  const [streamingTimestamp, setStreamingTimestamp] = useState<number>(0);
   const [showScrollToLatest, setShowScrollToLatest] = useState(false);
   const [hasPendingLatest, setHasPendingLatest] = useState(false);
+  const [draftSeed, setDraftSeed] = useState('');
+  const [draftSeedVersion, setDraftSeedVersion] = useState(0);
   const minLoading = useMinLoading(loading && messages.length > 0);
   const { contentRef, scrollRef } = useStickToBottomInstant(currentSessionKey);
   const isNearBottomRef = useRef(true);
@@ -70,17 +86,6 @@ export function Chat() {
   }, [fetchAgents]);
 
   // Update timestamp when sending starts
-  useEffect(() => {
-    if (sending && streamingTimestamp === 0) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setStreamingTimestamp(Date.now() / 1000);
-    } else if (!sending && streamingTimestamp !== 0) {
-      setStreamingTimestamp(0);
-    }
-  }, [sending, streamingTimestamp]);
-
-  // Gateway not running block has been completely removed so the UI always renders.
-
   const streamMsg = streamingMessage && typeof streamingMessage === 'object'
     ? streamingMessage as unknown as { role?: string; content?: unknown; timestamp?: number }
     : null;
@@ -103,6 +108,36 @@ export function Chat() {
     agentId: currentAgentId,
     agentName: currentAgentName,
   }), [currentAgentId, currentAgentName, currentSessionKey, currentSessionLabel]);
+  const renderedMessages = useMemo(() => {
+    const visibleMessages: Array<{
+      idx: number;
+      message: RawMessage;
+      visualRole: 'assistant' | 'user';
+      showAvatar?: boolean;
+      isClusteredWithPrevious?: boolean;
+    }> = [];
+    for (const [idx, message] of messages.entries()) {
+      const visualRole = messageVisualRole(message, showThinking);
+      if (!visualRole) continue;
+      visibleMessages.push({ idx, message, visualRole });
+    }
+    for (const [visibleIndex, entry] of visibleMessages.entries()) {
+      const previousRole = visibleMessages[visibleIndex - 1]?.visualRole ?? null;
+      entry.showAvatar = entry.visualRole !== 'assistant' || previousRole !== 'assistant';
+      entry.isClusteredWithPrevious = previousRole === entry.visualRole;
+    }
+    return visibleMessages as Array<{
+      idx: number;
+      message: RawMessage;
+      visualRole: 'assistant' | 'user';
+      showAvatar: boolean;
+      isClusteredWithPrevious: boolean;
+    }>;
+  }, [messages, showThinking]);
+  const lastVisibleRole = renderedMessages.at(-1)?.visualRole ?? null;
+  const nextAssistantAvatarVisible = lastVisibleRole !== 'assistant';
+  const nextAssistantClustered = lastVisibleRole === 'assistant';
+  const nextAssistantSpacingClass = stackSpacingClass(nextAssistantClustered, renderedMessages.length === 0);
   const composerErrorCopy = error
     ? (/timed out/i.test(error) ? t('errors.requestTimeout') : error)
     : null;
@@ -164,48 +199,63 @@ export function Chat() {
             <WelcomeScreen
               currentAgentName={currentAgentName}
               gatewayState={gatewayStatus.state}
+              onQuickAction={(nextDraft) => {
+                setDraftSeed(nextDraft);
+                setDraftSeedVersion((version) => version + 1);
+              }}
             />
           </div>
         ) : (
           <div className="app-chat-workbench">
             <div className="app-chat-thread-stage px-1 py-4 md:px-2 md:py-5">
-              <div ref={contentRef} className="space-y-5">
-                {messages.map((msg, idx) => (
-                  <ChatMessage
-                    key={msg.id || `msg-${idx}`}
-                    message={msg}
-                    showThinking={showThinking}
-                    assistantAvatar={assistantAvatar}
-                  />
+              <div ref={contentRef} className="flex flex-col">
+                {renderedMessages.map(({ message, idx, showAvatar, isClusteredWithPrevious }, visibleIndex) => (
+                  <div
+                    key={message.id || `msg-${idx}`}
+                    className={cn(stackSpacingClass(isClusteredWithPrevious, visibleIndex === 0))}
+                  >
+                    <ChatMessage
+                      message={message}
+                      showThinking={showThinking}
+                      assistantAvatar={assistantAvatar}
+                      showAvatar={showAvatar}
+                    />
+                  </div>
                 ))}
 
                 {shouldRenderStreaming && (
-                  <ChatMessage
-                    message={(streamMsg
-                      ? {
-                          ...(streamMsg as Record<string, unknown>),
-                          role: (typeof streamMsg.role === 'string' ? streamMsg.role : 'assistant') as RawMessage['role'],
-                          content: streamMsg.content ?? streamText,
-                          timestamp: streamMsg.timestamp ?? streamingTimestamp,
-                        }
-                      : {
-                          role: 'assistant',
-                          content: streamText,
-                          timestamp: streamingTimestamp,
-                        }) as RawMessage}
-                    showThinking={showThinking}
-                    assistantAvatar={assistantAvatar}
-                    isStreaming
-                    streamingTools={streamingTools}
-                  />
+                  <div className={cn(nextAssistantSpacingClass)}>
+                    <ChatMessage
+                      message={(streamMsg
+                        ? {
+                            ...(streamMsg as Record<string, unknown>),
+                            role: (typeof streamMsg.role === 'string' ? streamMsg.role : 'assistant') as RawMessage['role'],
+                            content: streamMsg.content ?? streamText,
+                            timestamp: streamMsg.timestamp,
+                          }
+                        : {
+                            role: 'assistant',
+                            content: streamText,
+                          }) as RawMessage}
+                      showThinking={showThinking}
+                      assistantAvatar={assistantAvatar}
+                      showAvatar={nextAssistantAvatarVisible}
+                      isStreaming
+                      streamingTools={streamingTools}
+                    />
+                  </div>
                 )}
 
                 {sending && pendingFinal && !shouldRenderStreaming && (
-                  <ActivityIndicator phase="tool_processing" avatar={assistantAvatar} />
+                  <div className={cn(nextAssistantSpacingClass)}>
+                    <ActivityIndicator phase="tool_processing" avatar={assistantAvatar} showAvatar={nextAssistantAvatarVisible} />
+                  </div>
                 )}
 
                 {sending && !pendingFinal && !hasAnyStreamContent && (
-                  <TypingIndicator avatar={assistantAvatar} />
+                  <div className={cn(nextAssistantSpacingClass)}>
+                    <TypingIndicator avatar={assistantAvatar} showAvatar={nextAssistantAvatarVisible} />
+                  </div>
                 )}
               </div>
             </div>
@@ -242,6 +292,8 @@ export function Chat() {
         disabled={!isGatewayRunning}
         sending={sending}
         isEmpty={isEmpty}
+        draftSeed={draftSeed}
+        draftSeedVersion={draftSeedVersion}
         showScrollToLatest={showScrollToLatest}
         hasPendingLatest={hasPendingLatest}
         onScrollToLatest={scrollToLatest}
@@ -264,9 +316,11 @@ export function Chat() {
 function WelcomeScreen({
   currentAgentName,
   gatewayState,
+  onQuickAction,
 }: {
   currentAgentName: string;
   gatewayState: string;
+  onQuickAction: (draft: string) => void;
 }) {
   const { t } = useTranslation('chat');
   const quickActions = [
@@ -274,43 +328,47 @@ function WelcomeScreen({
       key: 'askQuestions',
       label: t('welcome.askQuestions'),
       description: t('welcome.askQuestionsDesc'),
+      prompt: t('welcome.askQuestionsPrompt'),
     },
     {
       key: 'creativeTasks',
       label: t('welcome.creativeTasks'),
       description: t('welcome.creativeTasksDesc'),
+      prompt: t('welcome.creativeTasksPrompt'),
     },
     {
       key: 'brainstorming',
       label: t('welcome.brainstorming'),
       description: t('welcome.brainstormingDesc'),
+      prompt: t('welcome.brainstormingPrompt'),
     },
   ];
   const runtimeIssue = gatewayState !== 'running' ? t('header.runtimeIssue', { state: gatewayState }) : null;
 
   return (
-    <div data-testid="chat-welcome-hero" className="app-chat-welcome-hero mx-auto flex min-h-full w-full max-w-[1000px] flex-col px-1 pb-5 pt-1">
-      <div className="mx-auto flex flex-1 w-full max-w-3xl flex-col justify-center gap-8">
-        <div className="max-w-2xl">
+    <div data-testid="chat-welcome-hero" className="app-chat-welcome-hero mx-auto flex min-h-full w-full max-w-[1000px] flex-col px-1 pb-4 pt-1">
+      <div className="mx-auto flex w-full max-w-[46rem] flex-1 flex-col justify-center gap-6">
+        <div className="max-w-[38rem]">
           <p className="app-chat-header-meta text-[12px]">{currentAgentName}</p>
-          <h1 className="mt-3 text-[2.4rem] font-semibold tracking-[-0.06em] text-foreground md:text-[3.2rem]">
+          <h1 className="mt-2.5 text-[2rem] font-semibold tracking-[-0.055em] text-foreground md:text-[2.6rem]">
             {t('welcome.subtitle')}
           </h1>
-          <p className="mt-3 max-w-2xl text-[15px] leading-7 text-muted-foreground md:text-[16px]">
+          <p className="mt-2.5 max-w-[34rem] text-[14px] leading-6 text-muted-foreground md:text-[15px]">
             {t('welcome.description')}
           </p>
           {runtimeIssue && (
-            <p className="app-chat-header-meta mt-4 text-sm">
+            <p className="app-chat-header-meta mt-3 text-sm">
               {runtimeIssue}
             </p>
           )}
         </div>
 
-        <div className="space-y-2.5">
-          {quickActions.map(({ key, label, description }) => (
+        <div className="space-y-1">
+          {quickActions.map(({ key, label, description, prompt }) => (
             <button
               key={key}
-              className="app-chat-quick-action group px-1 py-3 text-left"
+              className="app-chat-quick-action group px-1 py-2 text-left"
+              onClick={() => onQuickAction(prompt)}
             >
               <div className="app-chat-quick-action-copy min-w-0">
                 <div className="app-chat-quick-action-label">{label}</div>
@@ -328,15 +386,21 @@ function WelcomeScreen({
 
 function TypingIndicator({
   avatar,
+  showAvatar,
 }: {
   avatar: {
     label: string;
     style: string;
   };
+  showAvatar: boolean;
 }) {
   return (
     <div className="chat-im-font flex gap-2.5">
-      <AgentAvatar label={avatar.label} style={avatar.style} className="mt-1 h-9 w-9" textClassName="text-sm" />
+      {showAvatar ? (
+        <AgentAvatar label={avatar.label} style={avatar.style} className="mt-1 h-9 w-9" textClassName="text-sm" />
+      ) : (
+        <div aria-hidden="true" className="mt-1 h-9 w-9 shrink-0" />
+      )}
       <div className="app-chat-runtime-pill w-fit rounded-[14px] px-3 py-2 text-foreground">
         <div className="flex gap-1">
           <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -353,18 +417,24 @@ function TypingIndicator({
 function ActivityIndicator({
   phase,
   avatar,
+  showAvatar,
 }: {
   phase: 'tool_processing';
   avatar: {
     label: string;
     style: string;
   };
+  showAvatar: boolean;
 }) {
   const { t } = useTranslation('chat');
   void phase;
   return (
     <div className="chat-im-font flex gap-2.5">
-      <AgentAvatar label={avatar.label} style={avatar.style} className="mt-1 h-9 w-9" textClassName="text-sm" />
+      {showAvatar ? (
+        <AgentAvatar label={avatar.label} style={avatar.style} className="mt-1 h-9 w-9" textClassName="text-sm" />
+      ) : (
+        <div aria-hidden="true" className="mt-1 h-9 w-9 shrink-0" />
+      )}
       <div className="app-chat-runtime-pill w-fit rounded-[14px] px-3 py-2 text-foreground">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />

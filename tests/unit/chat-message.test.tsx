@@ -32,22 +32,30 @@ vi.mock('react-i18next', () => ({
 
 describe('ChatMessage', () => {
   it('renders user messages with the neutral bubble treatment', () => {
-    const message: RawMessage = {
+    const userMessage: RawMessage = {
       role: 'user',
       content: 'Need a calmer bubble',
       timestamp: 1710000000,
     };
+    const assistantMessage: RawMessage = {
+      role: 'assistant',
+      content: 'Keep the assistant as document flow',
+      timestamp: 1710000100,
+    };
 
     render(
-      <ChatMessage
-        message={message}
-        showThinking={false}
-      />,
+      <div>
+        <ChatMessage message={userMessage} showThinking={false} />
+        <ChatMessage message={assistantMessage} showThinking={false} />
+      </div>,
     );
 
-    const bubble = screen.getByTestId('chat-user-bubble');
-    expect(bubble).not.toHaveClass('bg-[#0a84ff]');
-    expect(bubble).toHaveClass('border');
+    const userBubble = screen.getByTestId('chat-user-bubble');
+    const assistantBubble = screen.getByTestId('chat-assistant-bubble');
+
+    expect(userBubble).not.toHaveClass('bg-[#0a84ff]');
+    expect(userBubble).toHaveClass('border');
+    expect(assistantBubble).not.toHaveClass('border');
   });
 
   it('shows a lightweight copy action below both user and assistant messages', () => {
@@ -96,6 +104,27 @@ describe('ChatMessage', () => {
     expect(image).toHaveAttribute('decoding', 'async');
   });
 
+  it('keeps code blocks and non-image file attachments on their existing content branches', () => {
+    const assistantMessage: RawMessage = {
+      role: 'assistant',
+      content: '```ts\nconst answer = 42;\n```',
+      timestamp: 1710000150,
+      _attachedFiles: [
+        {
+          fileName: 'notes.txt',
+          mimeType: 'text/plain',
+          filePath: '/tmp/notes.txt',
+          fileSize: 12,
+        },
+      ],
+    };
+
+    render(<ChatMessage message={assistantMessage} showThinking={false} />);
+
+    expect(screen.getByText('const answer = 42;')).toBeInTheDocument();
+    expect(screen.getByText('notes.txt')).toBeInTheDocument();
+  });
+
   it('renders a three-dot streaming indicator for assistant messages instead of a single pulse bar', () => {
     const message: RawMessage = {
       role: 'assistant',
@@ -109,5 +138,43 @@ describe('ChatMessage', () => {
 
     const indicator = screen.getByTestId('chat-streaming-indicator');
     expect(indicator.children).toHaveLength(3);
+  });
+
+  it('renders assistant process rails before the final answer body', () => {
+    const message: RawMessage = {
+      role: 'assistant',
+      content: [
+        { type: 'thinking', thinking: 'First think through the approach' },
+        { type: 'text', text: 'Final answer' },
+      ],
+      timestamp: 1710000300,
+    };
+
+    render(<ChatMessage message={message} showThinking assistantAvatar={{ label: 'A', style: 'from-primary to-primary' }} />);
+
+    const thinkingToggle = screen.getByRole('button', { name: /Thinking/i });
+    const answer = screen.getByText('Final answer');
+    const relation = thinkingToggle.compareDocumentPosition(answer);
+
+    expect((relation & Node.DOCUMENT_POSITION_FOLLOWING) !== 0).toBe(true);
+  });
+
+  it('uses an invisible spacer instead of repeating the assistant avatar when chrome is suppressed', () => {
+    const assistantMessage: RawMessage = {
+      role: 'assistant',
+      content: 'Grouped follow-up',
+      timestamp: 1710000400,
+    };
+
+    render(
+      <ChatMessage
+        message={assistantMessage}
+        showThinking={false}
+        assistantAvatar={{ label: 'A', style: 'from-primary to-primary' }}
+        showAvatar={false}
+      />,
+    );
+
+    expect(screen.getByTestId('chat-assistant-avatar-placeholder')).toBeInTheDocument();
   });
 });

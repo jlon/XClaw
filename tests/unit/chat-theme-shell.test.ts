@@ -79,6 +79,16 @@ describe('chat desktop shell theme', () => {
     expect(themeSource).toContain('.app-chat-file-card');
   });
 
+  it('keeps assistant messages document-like while user replies stay softly tinted', () => {
+    const messageSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/ChatMessage.tsx'), 'utf8');
+    const themeSource = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
+
+    expect(messageSource).toContain("data-testid={isUser ? 'chat-user-bubble' : 'chat-assistant-bubble'}");
+    expect(themeSource).toContain('.app-chat-bubble-assistant {\n  background: transparent;');
+    expect(themeSource).toContain('.app-chat-bubble-user {\n  background: hsl(var(--primary) / 0.055);');
+    expect(themeSource).toContain('.app-chat-message-column--user {\n  align-items: flex-end;\n  margin-inline-start: auto;\n  max-width: min(78%, 31rem);');
+  });
+
   it('keeps runtime typing pills separate from tool status rails so loading bubbles stay visually complete', () => {
     const pageSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/index.tsx'), 'utf8');
     const themeSource = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
@@ -100,11 +110,15 @@ describe('chat desktop shell theme', () => {
   it('moves chat rows onto a unified message column and secondary rail instead of hardcoded split widths', () => {
     const messageSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/ChatMessage.tsx'), 'utf8');
     const themeSource = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
+    const pageSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/index.tsx'), 'utf8');
 
     expect(messageSource).toContain('app-chat-message-column');
     expect(messageSource).toContain('app-chat-message-secondary');
     expect(messageSource).not.toContain("max-w-[70%] md:max-w-[62%]");
     expect(messageSource).not.toContain("max-w-[min(76%,40rem)]");
+    expect(pageSource).toContain('stackSpacingClass');
+    expect(pageSource).toContain('isClusteredWithPrevious');
+    expect(pageSource).toContain('nextAssistantSpacingClass');
     expect(themeSource).toContain('.app-chat-message-column');
     expect(themeSource).toContain('.app-chat-message-secondary');
   });

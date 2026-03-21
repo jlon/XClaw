@@ -69,15 +69,17 @@ vi.mock('@/lib/chat-avatar', () => ({
 
 vi.mock('@/pages/Chat/ChatInput', () => ({
   ChatInput: ({
+    draftSeed,
     showScrollToLatest,
     hasPendingLatest,
     onScrollToLatest,
   }: {
+    draftSeed?: string;
     showScrollToLatest?: boolean;
     hasPendingLatest?: boolean;
     onScrollToLatest?: () => void;
   }) => (
-    <div data-testid="chat-input-dock">
+    <div data-testid="chat-input-dock" data-draft-seed={draftSeed ?? ''}>
       {showScrollToLatest && (
         <button type="button" onClick={onScrollToLatest} aria-label="Scroll to latest">
           {hasPendingLatest ? 'pending latest' : 'scroll latest'}
@@ -88,8 +90,10 @@ vi.mock('@/pages/Chat/ChatInput', () => ({
 }));
 
 vi.mock('@/pages/Chat/ChatMessage', () => ({
-  ChatMessage: ({ message }: { message: { content?: string } }) => (
-    <div data-testid="chat-message-row">{String(message.content ?? '')}</div>
+  ChatMessage: ({ message, showAvatar }: { message: { content?: string }; showAvatar?: boolean }) => (
+    <div data-testid="chat-message-row" data-show-avatar={showAvatar === false ? 'false' : 'true'}>
+      {String(message.content ?? '')}
+    </div>
   ),
 }));
 
@@ -111,14 +115,20 @@ vi.mock('react-i18next', () => ({
           return 'Handle tasks';
         case 'welcome.askQuestionsDesc':
           return 'Handle tasks desc';
+        case 'welcome.askQuestionsPrompt':
+          return 'Help me handle a concrete task:';
         case 'welcome.creativeTasks':
           return 'Continuous execution';
         case 'welcome.creativeTasksDesc':
           return 'Continuous execution desc';
+        case 'welcome.creativeTasksPrompt':
+          return 'Help me keep driving this multi-step work:';
         case 'welcome.brainstorming':
           return 'Parallel agents';
         case 'welcome.brainstormingDesc':
           return 'Parallel agents desc';
+        case 'welcome.brainstormingPrompt':
+          return 'Help me break down this complex task and coordinate multiple agents in parallel:';
         case 'message.toolProcessing':
           return 'Processing tools';
         default:
@@ -199,5 +209,84 @@ describe('chat humanized actions', () => {
 
     expect(screen.getByText('This request timed out')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Dismiss' })).toBeInTheDocument();
+  });
+
+  it('hydrates the composer with a starter prompt when a welcome quick action is clicked', async () => {
+    chatState.messages = [];
+
+    render(<Chat />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Handle tasks/i }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('chat-input-dock')).toHaveAttribute('data-draft-seed', 'Help me handle a concrete task:');
+    });
+  });
+
+  it('suppresses repeated assistant avatar chrome for consecutive assistant outputs', () => {
+    chatState.messages = [
+      {
+        id: 'm1',
+        role: 'assistant',
+        content: 'First assistant block',
+        timestamp: 1710000000,
+      },
+      {
+        id: 'm2',
+        role: 'assistant',
+        content: 'Second assistant block',
+        timestamp: 1710000001,
+      },
+      {
+        id: 'm3',
+        role: 'user',
+        content: 'User reply',
+        timestamp: 1710000002,
+      },
+      {
+        id: 'm4',
+        role: 'assistant',
+        content: 'Assistant after user',
+        timestamp: 1710000003,
+      },
+    ];
+
+    render(<Chat />);
+
+    const rows = screen.getAllByTestId('chat-message-row');
+    expect(rows).toHaveLength(4);
+    expect(rows[0]).toHaveAttribute('data-show-avatar', 'true');
+    expect(rows[1]).toHaveAttribute('data-show-avatar', 'false');
+    expect(rows[3]).toHaveAttribute('data-show-avatar', 'true');
+  });
+
+  it('keeps consecutive assistant outputs tighter than a role change', () => {
+    chatState.messages = [
+      {
+        id: 'm1',
+        role: 'assistant',
+        content: 'Assistant block one',
+        timestamp: 1710000000,
+      },
+      {
+        id: 'm2',
+        role: 'assistant',
+        content: 'Assistant block two',
+        timestamp: 1710000001,
+      },
+      {
+        id: 'm3',
+        role: 'user',
+        content: 'User reply',
+        timestamp: 1710000002,
+      },
+    ];
+
+    render(<Chat />);
+
+    const rows = screen.getAllByTestId('chat-message-row');
+    expect(rows[0].parentElement).toHaveClass('mt-0');
+    expect(rows[1].parentElement).toHaveClass('mt-2');
+    expect(rows[2].parentElement).toHaveClass('mt-4');
   });
 });

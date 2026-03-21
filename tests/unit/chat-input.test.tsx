@@ -222,6 +222,81 @@ describe('ChatInput agent targeting', () => {
     expect(chatState.setSessionModel).toHaveBeenCalledWith('openai/gpt-5.2-codex');
   });
 
+  it('keeps quick actions muted by default and only strengthens them when active', async () => {
+    chatState.sessions = [
+      {
+        key: 'agent:main:main',
+        model: 'moonshot/kimi-k2.5',
+      },
+    ];
+    gatewayRpcMock.mockResolvedValue({
+      models: [
+        { provider: 'moonshot', id: 'kimi-k2.5', name: 'Kimi K2.5' },
+      ],
+    });
+    agentsState.agents = [
+      {
+        id: 'main',
+        name: 'Main',
+        isDefault: true,
+        modelDisplay: 'Kimi K2.5',
+        inheritedModel: true,
+        workspace: '~/.openclaw/workspace',
+        agentDir: '~/.openclaw/agents/main/agent',
+        mainSessionKey: 'agent:main:main',
+        channelTypes: [],
+      },
+      {
+        id: 'research',
+        name: 'Research',
+        isDefault: false,
+        modelDisplay: 'Claude',
+        inheritedModel: false,
+        workspace: '~/.openclaw/workspace-research',
+        agentDir: '~/.openclaw/agents/research/agent',
+        mainSessionKey: 'agent:research:desk',
+        channelTypes: [],
+      },
+    ];
+
+    render(<ChatInput onSend={vi.fn()} />);
+
+    const agentTrigger = screen.getByTitle('Choose agent');
+    const modelTrigger = screen.getByTestId('chat-model-trigger');
+
+    expect(agentTrigger).toHaveClass('app-chat-composer-tool-button');
+    expect(agentTrigger).not.toHaveClass('app-chat-composer-tool-button--active');
+    expect(modelTrigger).toHaveClass('app-chat-composer-tool-button');
+    expect(modelTrigger).not.toHaveClass('app-chat-composer-tool-button--active');
+
+    await act(async () => {
+      fireEvent.click(agentTrigger);
+    });
+    expect(agentTrigger).toHaveClass('app-chat-composer-tool-button--active');
+
+    await act(async () => {
+      fireEvent.click(modelTrigger);
+    });
+    expect(modelTrigger).toHaveClass('app-chat-composer-tool-button--active');
+  });
+
+  it('hydrates the textarea from an external quick-action seed without auto-sending', async () => {
+    const onSend = vi.fn();
+
+    render(
+      <ChatInput
+        onSend={onSend}
+        draftSeed="Help me handle a concrete task:"
+        draftSeedVersion={1}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('textbox')).toHaveValue('Help me handle a concrete task:');
+    });
+    expect(onSend).not.toHaveBeenCalled();
+  });
+
   it('prefers OpenClaw key refs when provided by models.list', async () => {
     gatewayRpcMock.mockResolvedValue({
       models: [

@@ -7,10 +7,13 @@
         "description": "対話、実行、マルチ Agent 協調をひとつの安定したデスクトップ作業面にまとめます。",
         "askQuestions": "タスク対応",
         "askQuestionsDesc": "タスク指向の依頼に対応します",
+        "askQuestionsPrompt": "明確なタスクの対応を手伝ってください：",
         "creativeTasks": "連続実行",
         "creativeTasksDesc": "複数ステップの作業を継続して進めます",
+        "creativeTasksPrompt": "この複数ステップ作業を継続的に進めるのを手伝ってください：",
         "brainstorming": "マルチエージェント並列実行",
-        "brainstormingDesc": "複雑な作業を分割し、複数の役割を並行して進めます"
+        "brainstormingDesc": "複雑な作業を分割し、複数の役割を並行して進めます",
+        "brainstormingPrompt": "この複雑な作業を分解し、複数 Agent の並列進行を組み立てるのを手伝ってください："
     },
     "noLogs": "（ログはまだありません）",
     "toolbar": {

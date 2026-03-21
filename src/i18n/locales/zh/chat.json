@@ -7,10 +7,13 @@
         "description": "把对话、执行和多 Agent 协作收在同一个桌面工作区里，保持清晰、稳定、可持续推进。",
         "askQuestions": "处理任务",
         "askQuestionsDesc": "处理面向任务的请求",
+        "askQuestionsPrompt": "帮我处理一个明确任务：",
         "creativeTasks": "持续执行",
         "creativeTasksDesc": "持续推进多步骤工作",
+        "creativeTasksPrompt": "帮我持续推进这项多步骤工作：",
         "brainstorming": "多智能体并行",
-        "brainstormingDesc": "把复杂任务拆开，并行推进不同角色的工作"
+        "brainstormingDesc": "把复杂任务拆开，并行推进不同角色的工作",
+        "brainstormingPrompt": "帮我拆解这个复杂任务，并安排多 Agent 并行推进："
     },
     "noLogs": "（暂无日志）",
     "toolbar": {
