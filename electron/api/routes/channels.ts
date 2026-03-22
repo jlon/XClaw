@@ -26,6 +26,7 @@ import {
   ensureFeishuPluginInstalled,
   ensureQQBotPluginInstalled,
   ensureWeComPluginInstalled,
+  ensureWeixinPluginInstalled,
 } from '../../utils/plugin-install';
 import {
   computeChannelRuntimeStatus,
@@ -33,6 +34,13 @@ import {
   type ChannelRuntimeAccountSnapshot,
 } from '../../../src/lib/channel-status';
 import { whatsAppLoginManager } from '../../utils/whatsapp-login';
+import { weixinLoginManager } from '../../utils/weixin-login';
+import {
+  getWeixinGuardianEnabled,
+  setWeixinGuardianEnabled,
+  weixinGuardianService,
+} from '../../utils/weixin-guardian';
+import { logger } from '../../utils/logger';
 import type { HostApiContext } from '../context';
 import { parseJsonBody, sendJson } from '../route-utils';
 
@@ -147,6 +155,9 @@ interface ChannelAccountView {
   linked: boolean;
   enabled: boolean;
   lastError?: string;
+  lastConnectedAt?: number | null;
+  lastInboundAt?: number | null;
+  lastOutboundAt?: number | null;
   status: 'connected' | 'connecting' | 'disconnected' | 'error';
   isDefault: boolean;
   agentId?: string;
@@ -233,6 +244,9 @@ async function buildChannelAccountsView(ctx: HostApiContext, shouldProbe = false
         linked: runtime?.linked === true,
         enabled,
         lastError: typeof runtime?.lastError === 'string' ? runtime.lastError : undefined,
+        lastConnectedAt: runtime?.lastConnectedAt ?? null,
+        lastInboundAt: runtime?.lastInboundAt ?? null,
+        lastOutboundAt: runtime?.lastOutboundAt ?? null,
         status,
         isDefault: accountId === defaultAccountId,
         agentId: agentsSnapshot.channelAccountOwners[`${channelType}:${accountId}`],
@@ -370,6 +384,87 @@ export async function handleChannelRoutes(
     return true;
   }
 
+  if (url.pathname === '/api/channels/weixin/start' && req.method === 'POST') {
+    try {
+      const installResult = await ensureWeixinPluginInstalled();
+      if (!installResult.installed) {
+        sendJson(res, 500, { success: false, error: installResult.warning || 'Weixin plugin install failed' });
+        return true;
+      }
+      const body = await parseJsonBody<{ accountId?: string; force?: boolean; config?: Record<string, unknown> }>(req);
+      const result = await weixinLoginManager.start(ctx, {
+        accountId: body.accountId,
+        force: body.force,
+        config: body.config,
+      }).catch((error) => {
+        logger.error('failed to start weixin login session', error);
+        throw error;
+      });
+      sendJson(res, 200, { success: true, ...result });
+    } catch (error) {
+      sendJson(res, 500, { success: false, error: String(error) });
+    }
+    return true;
+  }
+
+  if (url.pathname === '/api/channels/weixin/poll' && req.method === 'POST') {
+    try {
+      const body = await parseJsonBody<{ sessionKey?: string }>(req);
+      const sessionKey = body.sessionKey?.trim();
+      if (!sessionKey) {
+        sendJson(res, 400, { success: false, error: 'sessionKey is required' });
+        return true;
+      }
+      sendJson(res, 200, { success: true, ...weixinLoginManager.poll(sessionKey) });
+    } catch (error) {
+      sendJson(res, 500, { success: false, error: String(error) });
+    }
+    return true;
+  }
+
+  if (url.pathname === '/api/channels/weixin/cancel' && req.method === 'POST') {
+    try {
+      const body = await parseJsonBody<{ sessionKey?: string }>(req);
+      await weixinLoginManager.stop(body.sessionKey?.trim());
+      sendJson(res, 200, { success: true });
+    } catch (error) {
+      sendJson(res, 500, { success: false, error: String(error) });
+    }
+    return true;
+  }
+
+  if (url.pathname === '/api/channels/weixin/guardian' && req.method === 'GET') {
+    try {
+      const accountId = url.searchParams.get('accountId')?.trim();
+      if (!accountId) {
+        sendJson(res, 400, { success: false, error: 'accountId is required' });
+        return true;
+      }
+      const enabled = await getWeixinGuardianEnabled(accountId);
+      sendJson(res, 200, { success: true, enabled });
+    } catch (error) {
+      sendJson(res, 500, { success: false, error: String(error) });
+    }
+    return true;
+  }
+
+  if (url.pathname === '/api/channels/weixin/guardian' && req.method === 'PUT') {
+    try {
+      const body = await parseJsonBody<{ accountId: string; enabled: boolean }>(req);
+      const accountId = body.accountId?.trim();
+      if (!accountId) {
+        sendJson(res, 400, { success: false, error: 'accountId is required' });
+        return true;
+      }
+      await setWeixinGuardianEnabled(accountId, body.enabled === true);
+      await weixinGuardianService.runCheck(ctx);
+      sendJson(res, 200, { success: true, enabled: body.enabled === true });
+    } catch (error) {
+      sendJson(res, 500, { success: false, error: String(error) });
+    }
+    return true;
+  }
+
   if (url.pathname === '/api/channels/config' && req.method === 'POST') {
     try {
       const body = await parseJsonBody<{ channelType: string; config: Record<string, unknown>; accountId?: string }>(req);
@@ -398,6 +493,13 @@ export async function handleChannelRoutes(
         const installResult = await ensureFeishuPluginInstalled();
         if (!installResult.installed) {
           sendJson(res, 500, { success: false, error: installResult.warning || 'Feishu plugin install failed' });
+          return true;
+        }
+      }
+      if (body.channelType === 'openclaw-weixin') {
+        const installResult = await ensureWeixinPluginInstalled();
+        if (!installResult.installed) {
+          sendJson(res, 500, { success: false, error: installResult.warning || 'Weixin plugin install failed' });
           return true;
         }
       }

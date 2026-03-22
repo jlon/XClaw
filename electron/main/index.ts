@@ -40,6 +40,7 @@ import { HostEventBus } from '../api/event-bus';
 import { deviceOAuthManager } from '../utils/device-oauth';
 import { browserOAuthManager } from '../utils/browser-oauth';
 import { whatsAppLoginManager } from '../utils/whatsapp-login';
+import { weixinGuardianService } from '../utils/weixin-guardian';
 import { runSetupActivationSideEffects } from './setup-activation';
 import { applyUserDataDirOverride } from './user-data-override';
 import { createBeforeQuitHandler } from './quit-handoff';
@@ -313,13 +314,16 @@ async function initialize(): Promise<void> {
   // Register IPC handlers
   registerIpcHandlers(gatewayManager, gatewayRuntimeController, clawHubService, window);
 
-  hostApiServer = startHostApiServer({
+  const hostApiContext = {
     gatewayManager,
     gatewayRuntimeController,
     clawHubService,
     eventBus: hostEventBus,
     mainWindow: window,
-  });
+  };
+
+  hostApiServer = startHostApiServer(hostApiContext);
+  weixinGuardianService.start(hostApiContext);
 
   // Register update handlers
   registerUpdateHandlers(appUpdater, window);
@@ -339,6 +343,9 @@ async function initialize(): Promise<void> {
         logger.warn('Failed to re-merge XClaw context after gateway reconnect:', error);
       });
     }
+    if (status.state === 'running') {
+      void weixinGuardianService.runCheck();
+    }
   });
 
   gatewayManager.on('error', (error) => {
@@ -354,6 +361,7 @@ async function initialize(): Promise<void> {
   });
 
   gatewayManager.on('channel:status', (data) => {
+    void weixinGuardianService.runCheck();
     hostEventBus.emit('gateway:channel-status', data);
   });
 

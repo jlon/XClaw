@@ -43,6 +43,8 @@
     "account": {
         "add": "添加账号",
         "edit": "编辑",
+        "addByQr": "扫码添加账号",
+        "relogin": "重新扫码",
         "delete": "删除账号",
         "deleteChannel": "删除频道",
         "deleteConfirm": "确定要删除该账号吗？",
@@ -56,6 +58,7 @@
         "customIdPlaceholder": "例如：feishu-sales-bot",
         "customIdHint": "可自定义账号 ID，用于区分同一频道下的多个账号。",
         "renameHint": "修改后会同步更新默认账号和 Agent 绑定。",
+        "readonlyIdHint": "该账号 ID 来自微信扫码登录结果，不能在 XClaw 内重命名。",
         "invalidId": "账号 ID 不能为空",
         "idLabel": "账号标识：{{id}}",
         "boundTo": "由 {{agent}} 负责处理",
@@ -184,6 +187,16 @@
                 "前往 设置 > 已关联设备 >包含连接设备",
                 "扫描下方显示的二维码",
                 "系统将自动识别您的手机号"
+            ]
+        },
+        "openclaw-weixin": {
+            "description": "通过扫描官方 OpenClaw 微信插件二维码连接微信",
+            "docsUrl": "https://www.npmjs.com/package/@tencent-weixin/openclaw-weixin",
+            "instructions": [
+                "在频道页选择微信并发起扫码登录",
+                "使用要绑定的微信账号扫描二维码",
+                "等待插件确认新的机器人账号",
+                "当微信会话失效时，使用重新扫码恢复连接"
             ]
         },
         "dingtalk": {
@@ -403,6 +416,28 @@
                 "获取 App ID 和 Client Secret",
                 "在下方填写凭证信息"
             ]
+        }
+    },
+    "weixin": {
+        "guardian": {
+            "title": "健康守护",
+            "subtitle": "根据运行时错误和 24 小时活动窗口提示当前微信账号的风险状态。",
+            "disabled": "健康守护当前关闭。开启后才会为这个账号提示风险。",
+            "healthy": "最近活动正常。",
+            "warningIdle": "这个账号正在接近 24 小时活动窗口。",
+            "expiredIdle": "这个账号很可能已经超过 24 小时活动窗口，可能需要重新扫码。",
+            "expiredError": "运行时已报告会话过期信号，需要重新扫码恢复。",
+            "noAutoKeepAlive": "XClaw 这里只做提醒和诊断，不会自动发送保活消息。"
+        },
+        "limits": {
+            "title": "微信限制说明",
+            "subtitle": "这个频道严格遵循官方插件和平台约束。",
+            "items": {
+                "accountId": "账号 ID 来自真实扫码登录结果，在 XClaw 中保持只读。",
+                "relogin": "重新绑定或会话恢复都需要再次扫码。",
+                "expiry": "微信会话在长时间无活动后可能进入风险或失效状态。",
+                "guard": "健康守护只提供提醒，不会绕过平台规则。"
+            }
         }
     },
     "viewDocs": "查看文档"

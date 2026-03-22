@@ -7,7 +7,7 @@ import {
   type ChannelType,
 } from '@/types/channel';
 
-type RegistryChannelType = Extract<ChannelType, 'feishu' | 'wecom' | 'dingtalk' | 'telegram' | 'qqbot'>;
+type RegistryChannelType = Extract<ChannelType, 'feishu' | 'wecom' | 'dingtalk' | 'telegram' | 'qqbot' | 'openclaw-weixin'>;
 
 const dmPolicyOptions = [
   { value: 'open', label: '开放' },
@@ -85,6 +85,10 @@ const evidence = {
   qqbotPlugin: [
     'node_modules/@sliverp/qqbot/src/types.ts:32',
     'node_modules/@sliverp/qqbot/src/config.ts:67',
+  ],
+  weixinPlugin: [
+    'node_modules/@tencent-weixin/openclaw-weixin/src/auth/accounts.ts:244',
+    'node_modules/@tencent-weixin/openclaw-weixin/src/config/config-schema.ts:12',
   ],
 } as const;
 
@@ -462,6 +466,32 @@ export const CHANNEL_FIELD_REGISTRY: Record<RegistryChannelType, ChannelFieldReg
           }),
         ]),
       ],
+      behaviorControls: [],
+    },
+  },
+  'openclaw-weixin': {
+    basicFields: [
+      createCandidateField('name', '账号名称', 'string', [...evidence.weixinPlugin], {
+        storagePath: 'channels.openclaw-weixin.accounts.<accountId>.name',
+        description: '仅用于 XClaw 内部展示，不影响上游账号标识。',
+      }),
+      createCandidateField('cdnBaseUrl', 'CDN 地址', 'string', [...evidence.weixinPlugin], {
+        storagePath: 'channels.openclaw-weixin.accounts.<accountId>.cdnBaseUrl',
+        description: '覆盖微信插件使用的媒体 CDN 地址。',
+      }),
+    ],
+    advancedSections: [
+      createSection('runtime', '运行设置', [
+        createCandidateField('routeTag', '路由标签', 'number', [...evidence.weixinPlugin], {
+          storagePath: 'channels.openclaw-weixin.accounts.<accountId>.routeTag',
+          description: '按需透传给微信网关请求头的 SKRouteTag。',
+        }),
+      ]),
+    ],
+    behaviorControls: [behaviorControls.enabled, behaviorControls.defaultAccount, behaviorControls.binding],
+    candidateFields: {
+      basicFields: [],
+      advancedSections: [],
       behaviorControls: [],
     },
   },

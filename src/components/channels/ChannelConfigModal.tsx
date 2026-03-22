@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   X,
   Loader2,
-  QrCode,
   ExternalLink,
   BookOpen,
   Eye,
@@ -12,19 +11,21 @@ import {
   CheckCircle,
   ShieldCheck,
 } from 'lucide-react';
+import QRCode from 'qrcode';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { useChannelsStore } from '@/stores/channels';
+import { ChannelIcon } from '@/components/channels/ChannelIcon';
 
 import { hostApiFetch } from '@/lib/host-api';
 import { subscribeHostEvent } from '@/lib/host-events';
 import { cn } from '@/lib/utils';
 import {
-  CHANNEL_ICONS,
   CHANNEL_NAMES,
   CHANNEL_META,
   getPrimaryChannels,
@@ -34,13 +35,6 @@ import {
 } from '@/types/channel';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
-import telegramIcon from '@/assets/channels/telegram.svg';
-import discordIcon from '@/assets/channels/discord.svg';
-import whatsappIcon from '@/assets/channels/whatsapp.svg';
-import dingtalkIcon from '@/assets/channels/dingtalk.svg';
-import feishuIcon from '@/assets/channels/feishu.svg';
-import wecomIcon from '@/assets/channels/wecom.svg';
-import qqIcon from '@/assets/channels/qq.svg';
 
 interface ChannelConfigModalProps {
   initialSelectedType?: ChannelType | null;
@@ -50,11 +44,51 @@ interface ChannelConfigModalProps {
   allowEditAccountId?: boolean;
   existingAccountIds?: string[];
   initialConfigValues?: Record<string, string>;
+  availableAgents?: Array<{ id: string; name: string }>;
   agentId?: string;
   accountId?: string;
   onClose: () => void;
   onChannelSaved?: (channelType: ChannelType, accountId?: string) => void | Promise<void>;
 }
+
+type QrChannelFlow = {
+  startPath: string;
+  cancelPath: string;
+  qrEvent: string;
+  successEvent: string;
+  errorEvent: string;
+};
+
+const QR_CHANNEL_FLOWS: Partial<Record<ChannelType, QrChannelFlow>> = {
+  whatsapp: {
+    startPath: '/api/channels/whatsapp/start',
+    cancelPath: '/api/channels/whatsapp/cancel',
+    qrEvent: 'channel:whatsapp-qr',
+    successEvent: 'channel:whatsapp-success',
+    errorEvent: 'channel:whatsapp-error',
+  },
+};
+
+type WeixinLoginStartResponse = {
+  error?: string;
+  message?: string;
+  qrcodeUrl?: string;
+  sessionKey?: string;
+  success?: boolean;
+};
+
+type WeixinLoginPollResponse = {
+  accountId?: string;
+  connected?: boolean;
+  error?: string;
+  message?: string;
+  qrcodeUrl?: string;
+  sessionKey?: string;
+  status?: 'wait' | 'scaned' | 'confirmed' | 'expired' | 'error';
+  success?: boolean;
+};
+
+const WEIXIN_POLL_MS = 1500;
 
 const inputClasses = 'h-11 rounded-[10px] border border-border/60 app-field-surface font-mono text-[13px] text-foreground shadow-none transition-colors placeholder:text-muted-foreground/55 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/18 focus-visible:ring-offset-0';
 const labelClasses = 'text-[12.5px] font-semibold tracking-[0.01em] text-foreground/78';
@@ -72,6 +106,7 @@ export function ChannelConfigModal({
   allowEditAccountId = false,
   existingAccountIds = [],
   initialConfigValues,
+  availableAgents = [],
   agentId,
   accountId,
   onClose,
@@ -83,13 +118,17 @@ export function ChannelConfigModal({
   const [configValues, setConfigValues] = useState<Record<string, string>>({});
   const [channelName, setChannelName] = useState('');
   const [accountIdInput, setAccountIdInput] = useState(accountId || '');
+  const [selectedAgentId, setSelectedAgentId] = useState(agentId || '');
   const [connecting, setConnecting] = useState(false);
   const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
   const [qrCode, setQrCode] = useState<string | null>(null);
+  const [weixinSessionKey, setWeixinSessionKey] = useState<string | null>(null);
   const [validating, setValidating] = useState(false);
   const [loadingConfig, setLoadingConfig] = useState(false);
   const [isExistingConfig, setIsExistingConfig] = useState(false);
   const firstInputRef = useRef<HTMLInputElement>(null);
+  const qrCanvasRef = useRef<HTMLCanvasElement>(null);
+  const weixinPollBusyRef = useRef(false);
   const [validationResult, setValidationResult] = useState<{
     valid: boolean;
     errors: string[];
@@ -97,10 +136,13 @@ export function ChannelConfigModal({
   } | null>(null);
 
   const meta: ChannelMeta | null = selectedType ? CHANNEL_META[selectedType] : null;
+  const qrFlow = selectedType ? QR_CHANNEL_FLOWS[selectedType] ?? null : null;
+  const isWeixinChannel = selectedType === 'openclaw-weixin';
   const shouldUseCredentialValidation = selectedType !== 'feishu';
+  const initialBoundAgentId = agentId?.trim() || '';
   const resolvedAccountId = allowEditAccountId
     ? accountIdInput.trim()
-    : (accountId ?? (agentId ? (agentId === 'main' ? 'default' : agentId) : undefined));
+    : accountId;
 
   useEffect(() => {
     setSelectedType(initialSelectedType);
@@ -111,14 +153,22 @@ export function ChannelConfigModal({
   }, [accountId]);
 
   useEffect(() => {
+    setSelectedAgentId(agentId || '');
+  }, [agentId, selectedType]);
+
+  useEffect(() => {
     if (!selectedType) {
       setConfigValues({});
       setChannelName('');
       setIsExistingConfig(false);
       setValidationResult(null);
       setQrCode(null);
+      setWeixinSessionKey(null);
       setConnecting(false);
-      hostApiFetch('/api/channels/whatsapp/cancel', { method: 'POST' }).catch(() => { });
+      Object.values(QR_CHANNEL_FLOWS).forEach((flow) => {
+        if (!flow) return;
+        hostApiFetch(flow.cancelPath, { method: 'POST' }).catch(() => { });
+      });
       return;
     }
 
@@ -179,7 +229,36 @@ export function ChannelConfigModal({
     }
   }, [selectedType, loadingConfig, showChannelName]);
 
-  const finishSave = useCallback(async (channelType: ChannelType) => {
+  useEffect(() => {
+    if (!qrCode || qrCode.startsWith('data:image') || !qrCanvasRef.current) {
+      return;
+    }
+
+    void Promise.resolve(QRCode.toCanvas(qrCanvasRef.current, qrCode, {
+      width: 240,
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF',
+      },
+    })).catch(() => { });
+  }, [qrCode]);
+
+  useEffect(() => {
+    if (!isWeixinChannel || !weixinSessionKey) {
+      return;
+    }
+
+    return () => {
+      hostApiFetch('/api/channels/weixin/cancel', {
+        method: 'POST',
+        body: JSON.stringify({ sessionKey: weixinSessionKey }),
+      }).catch(() => { });
+    };
+  }, [isWeixinChannel, weixinSessionKey]);
+
+  const finishSave = useCallback(async (channelType: ChannelType, savedAccountId?: string) => {
+    const targetAccountId = savedAccountId ?? resolvedAccountId ?? 'default';
     const displayName = showChannelName && channelName.trim()
       ? channelName.trim()
       : CHANNEL_NAMES[channelType];
@@ -195,41 +274,72 @@ export function ChannelConfigModal({
       await fetchChannels();
     }
 
-    await onChannelSaved?.(channelType, resolvedAccountId);
-  }, [addChannel, channelName, channels, configValues, fetchChannels, meta?.configFields, onChannelSaved, resolvedAccountId, showChannelName]);
+    if (selectedAgentId !== initialBoundAgentId) {
+      if (selectedAgentId) {
+        const bindResult = await hostApiFetch<{ success?: boolean; error?: string }>('/api/channels/binding', {
+          method: 'PUT',
+          body: JSON.stringify({
+            channelType,
+            accountId: targetAccountId,
+            agentId: selectedAgentId,
+          }),
+        });
+        if (!bindResult?.success) {
+          throw new Error(bindResult?.error || 'Failed to bind agent');
+        }
+      } else if (initialBoundAgentId) {
+        const clearResult = await hostApiFetch<{ success?: boolean; error?: string }>('/api/channels/binding', {
+          method: 'DELETE',
+          body: JSON.stringify({
+            channelType,
+            accountId: targetAccountId,
+          }),
+        });
+        if (!clearResult?.success) {
+          throw new Error(clearResult?.error || 'Failed to clear agent binding');
+        }
+      }
+    }
+
+    await onChannelSaved?.(channelType, targetAccountId);
+  }, [addChannel, channelName, channels, configValues, fetchChannels, initialBoundAgentId, meta?.configFields, onChannelSaved, resolvedAccountId, selectedAgentId, showChannelName]);
 
   useEffect(() => {
-    if (selectedType !== 'whatsapp') return;
+    if (!selectedType || !qrFlow) return;
 
     const onQr = (...args: unknown[]) => {
-      const data = args[0] as { qr: string; raw: string };
+      const data = args[0] as { qr?: string; raw?: string; qrDataUrl?: string };
       void data.raw;
-      setQrCode(`data:image/png;base64,${data.qr}`);
+      const nextQr = data.qrDataUrl?.trim()
+        || (data.qr ? `data:image/png;base64,${data.qr}` : '');
+      if (!nextQr) return;
+      setQrCode(nextQr);
     };
 
     const onSuccess = async (...args: unknown[]) => {
       const data = args[0] as { accountId?: string } | undefined;
-      void data?.accountId;
-      toast.success(t('toast.whatsappConnected'));
       try {
-        const saveResult = await hostApiFetch<{ success?: boolean; error?: string }>('/api/channels/config', {
-          method: 'POST',
-          body: JSON.stringify({ channelType: 'whatsapp', config: { enabled: true }, accountId: resolvedAccountId }),
-        });
-        if (!saveResult?.success) {
-          throw new Error(saveResult?.error || 'Failed to save WhatsApp config');
+        if (selectedType === 'whatsapp') {
+          toast.success(t('toast.whatsappConnected'));
+          const saveResult = await hostApiFetch<{ success?: boolean; error?: string }>('/api/channels/config', {
+            method: 'POST',
+            body: JSON.stringify({ channelType: 'whatsapp', config: { enabled: true }, accountId: resolvedAccountId }),
+          });
+          if (!saveResult?.success) {
+            throw new Error(saveResult?.error || 'Failed to save WhatsApp config');
+          }
+          await finishSave('whatsapp');
+        } else {
+          toast.success(t('toast.channelSaved', { name: CHANNEL_NAMES[selectedType] }));
+          await finishSave(selectedType, data?.accountId);
         }
 
         try {
-          await finishSave('whatsapp');
+          await fetchChannels();
         } catch (postSaveError) {
           toast.warning(t('toast.savedButRefreshFailed'));
           console.warn('Channel saved but post-save refresh failed:', postSaveError);
         }
-        // Gateway restart is already triggered by scheduleGatewayChannelRestart
-        // in the POST /api/channels/config route handler (debounced).  Calling
-        // restart() here directly races with that debounced restart and the
-        // config write, which can cause openclaw.json overwrites.
         onClose();
       } catch (error) {
         toast.error(t('toast.configFailed', { error: String(error) }));
@@ -239,22 +349,90 @@ export function ChannelConfigModal({
 
     const onError = (...args: unknown[]) => {
       const err = args[0] as string;
-      toast.error(t('toast.whatsappFailed', { error: err }));
+      if (selectedType === 'whatsapp') {
+        toast.error(t('toast.whatsappFailed', { error: err }));
+      } else {
+        toast.error(t('toast.configFailed', { error: err }));
+      }
       setQrCode(null);
       setConnecting(false);
     };
 
-    const removeQrListener = subscribeHostEvent('channel:whatsapp-qr', onQr);
-    const removeSuccessListener = subscribeHostEvent('channel:whatsapp-success', onSuccess);
-    const removeErrorListener = subscribeHostEvent('channel:whatsapp-error', onError);
+    const removeQrListener = subscribeHostEvent(qrFlow.qrEvent, onQr);
+    const removeSuccessListener = subscribeHostEvent(qrFlow.successEvent, onSuccess);
+    const removeErrorListener = subscribeHostEvent(qrFlow.errorEvent, onError);
 
     return () => {
       removeQrListener();
       removeSuccessListener();
       removeErrorListener();
-      hostApiFetch('/api/channels/whatsapp/cancel', { method: 'POST' }).catch(() => { });
+      hostApiFetch(qrFlow.cancelPath, { method: 'POST' }).catch(() => { });
     };
-  }, [finishSave, onClose, resolvedAccountId, selectedType, t]);
+  }, [fetchChannels, finishSave, onClose, qrFlow, resolvedAccountId, selectedType, t]);
+
+  useEffect(() => {
+    if (!isWeixinChannel || !weixinSessionKey || !connecting) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const poll = async () => {
+      if (weixinPollBusyRef.current) {
+        return;
+      }
+      weixinPollBusyRef.current = true;
+      try {
+        const result = await hostApiFetch<WeixinLoginPollResponse>('/api/channels/weixin/poll', {
+          method: 'POST',
+          body: JSON.stringify({ sessionKey: weixinSessionKey }),
+        });
+        if (cancelled) {
+          return;
+        }
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to poll Weixin login status');
+        }
+        if (result.qrcodeUrl?.trim()) {
+          setQrCode(result.qrcodeUrl.trim());
+        }
+        if (result.status === 'confirmed' && result.connected && result.accountId) {
+          toast.success(t('toast.channelSaved', { name: CHANNEL_NAMES['openclaw-weixin'] }));
+          await finishSave('openclaw-weixin', result.accountId);
+          try {
+            await fetchChannels();
+          } catch (postSaveError) {
+            toast.warning(t('toast.savedButRefreshFailed'));
+            console.warn('Channel saved but post-save refresh failed:', postSaveError);
+          }
+          onClose();
+          return;
+        }
+        if (result.status === 'expired') {
+          toast.error(t('toast.configFailed', { error: 'QR code expired, please refresh.' }));
+          setConnecting(false);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          toast.error(t('toast.configFailed', { error: String(error) }));
+          setConnecting(false);
+        }
+      } finally {
+        weixinPollBusyRef.current = false;
+      }
+    };
+
+    void poll();
+    const timer = window.setInterval(() => {
+      void poll();
+    }, WEIXIN_POLL_MS);
+
+    return () => {
+      cancelled = true;
+      weixinPollBusyRef.current = false;
+      window.clearInterval(timer);
+    };
+  }, [connecting, fetchChannels, finishSave, isWeixinChannel, onClose, t, weixinSessionKey]);
 
   const handleValidate = async () => {
     if (!selectedType || !shouldUseCredentialValidation) return;
@@ -320,10 +498,29 @@ export function ChannelConfigModal({
         }
       }
 
-      if (meta.connectionType === 'qr') {
-        await hostApiFetch('/api/channels/whatsapp/start', {
+      if (selectedType === 'openclaw-weixin') {
+        const result = await hostApiFetch<WeixinLoginStartResponse>('/api/channels/weixin/start', {
           method: 'POST',
-          body: JSON.stringify({ accountId: resolvedAccountId || 'default' }),
+          body: JSON.stringify({
+            ...(resolvedAccountId ? { accountId: resolvedAccountId, force: true } : {}),
+            config: configValues,
+          }),
+        });
+        if (!result.success || !result.sessionKey?.trim() || !result.qrcodeUrl?.trim()) {
+          throw new Error(result.error || result.message || 'Failed to start Weixin login');
+        }
+        setWeixinSessionKey(result.sessionKey.trim());
+        setQrCode(result.qrcodeUrl.trim());
+        return;
+      }
+
+      if (meta.connectionType === 'qr' && qrFlow) {
+        const body = selectedType === 'whatsapp'
+          ? { accountId: resolvedAccountId || 'default' }
+          : (resolvedAccountId ? { accountId: resolvedAccountId, force: true } : {});
+        await hostApiFetch(qrFlow.startPath, {
+          method: 'POST',
+          body: JSON.stringify(body),
         });
         return;
       }
@@ -521,9 +718,7 @@ export function ChannelConfigModal({
                 {qrCode.startsWith('data:image') ? (
                   <img src={qrCode} alt="Scan QR Code" className="h-60 w-60 rounded-[12px] object-contain" />
                 ) : (
-                  <div className="app-pane-surface flex h-60 w-60 items-center justify-center rounded-[12px] border border-border/55">
-                    <QrCode className="h-32 w-32 text-gray-400" />
-                  </div>
+                  <canvas ref={qrCanvasRef} className="h-60 w-60 rounded-[12px]" />
                 )}
               </div>
               <p className="text-[13px] leading-5 text-muted-foreground/78">
@@ -606,6 +801,28 @@ export function ChannelConfigModal({
                     className={inputClasses}
                   />
                   <p className="text-[11.5px] leading-5 text-muted-foreground/68">{t('account.customIdHint')}</p>
+                </div>
+              )}
+
+              {availableAgents.length > 0 && (
+                <div className="space-y-2.5">
+                  <Label htmlFor="channel-config-agent" className={labelClasses}>{t('account.bindAgentLabel')}</Label>
+                  <Select
+                    id="channel-config-agent"
+                    aria-label={t('account.bindAgentLabel')}
+                    data-testid="channel-config-agent-select"
+                    value={selectedAgentId}
+                    onValueChange={setSelectedAgentId}
+                    options={[
+                      { value: '', label: t('account.unassigned') },
+                      ...availableAgents.map((agent) => ({
+                        value: agent.id,
+                        label: agent.name,
+                      })),
+                    ]}
+                    className="h-11 rounded-[10px] border border-border/60 app-field-surface text-[13px] shadow-none"
+                  />
+                  <p className="text-[11.5px] leading-5 text-muted-foreground/68">{t('account.bindAgentHint')}</p>
                 </div>
               )}
 
@@ -734,24 +951,7 @@ interface ConfigFieldProps {
 }
 
 function ChannelLogo({ type }: { type: ChannelType }) {
-  switch (type) {
-    case 'telegram':
-      return <img src={telegramIcon} alt="Telegram" className="w-[22px] h-[22px] dark:invert" />;
-    case 'discord':
-      return <img src={discordIcon} alt="Discord" className="w-[22px] h-[22px] dark:invert" />;
-    case 'whatsapp':
-      return <img src={whatsappIcon} alt="WhatsApp" className="w-[22px] h-[22px] dark:invert" />;
-    case 'dingtalk':
-      return <img src={dingtalkIcon} alt="DingTalk" className="w-[22px] h-[22px] dark:invert" />;
-    case 'feishu':
-      return <img src={feishuIcon} alt="Feishu" className="w-[22px] h-[22px] dark:invert" />;
-    case 'wecom':
-      return <img src={wecomIcon} alt="WeCom" className="w-[22px] h-[22px] dark:invert" />;
-    case 'qqbot':
-      return <img src={qqIcon} alt="QQ" className="w-[22px] h-[22px] dark:invert" />;
-    default:
-      return <span className="text-[22px]">{CHANNEL_ICONS[type] || '💬'}</span>;
-  }
+  return <ChannelIcon type={type} size={22} />;
 }
 
 function ConfigField({ field, value, onChange, showSecret, onToggleSecret }: ConfigFieldProps) {

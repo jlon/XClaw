@@ -20,12 +20,56 @@ const MANIFEST_ID_FIXES: Record<string, string> = {
   'wecom-openclaw-plugin': 'wecom',
 };
 
+const WEIXIN_GATEWAY_BRIDGE_IMPORT = 'import { ErrorCodes, errorShape } from "openclaw/plugin-sdk";';
+const WEIXIN_LEGACY_PROTOCOL_IMPORT_PATTERNS = [
+  /import\s+\{\s*ErrorCodes\s*,\s*errorShape\s*\}\s+from\s+"openclaw\/plugin-sdk\/gateway\/protocol";?\n?/g,
+  /import\s+\{\s*ErrorCodes\s*,\s*errorShape\s*\}\s+from\s+'openclaw\/plugin-sdk\/gateway\/protocol';?\n?/g,
+];
+const WEIXIN_GATEWAY_BRIDGE_SENTINEL = 'api.registerGatewayMethod("xclaw.weixin.login.start"';
+const WEIXIN_GATEWAY_BRIDGE_ANCHOR = '    api.registerChannel({ plugin: weixinPlugin });';
+const WEIXIN_GATEWAY_BRIDGE_SNIPPET = [
+  '    api.registerGatewayMethod("xclaw.weixin.login.start", async ({ params, respond, context }) => {',
+  '      try {',
+  '        const accountId = typeof params.accountId === "string" && params.accountId.trim() ? params.accountId.trim() : undefined;',
+  '        await context.stopChannel("openclaw-weixin", accountId);',
+  '        if (!weixinPlugin.gateway?.loginWithQrStart) {',
+  '          respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "weixin QR login start is not available"));',
+  '          return;',
+  '        }',
+  '        respond(true, await weixinPlugin.gateway.loginWithQrStart({',
+  '          accountId,',
+  '          force: Boolean(params.force),',
+  '          timeoutMs: typeof params.timeoutMs === "number" ? params.timeoutMs : undefined,',
+  '          verbose: Boolean(params.verbose),',
+  '        }));',
+  '      } catch (error) {',
+  '        respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, String(error)));',
+  '      }',
+  '    });',
+  '    api.registerGatewayMethod("xclaw.weixin.login.wait", async ({ params, respond }) => {',
+  '      try {',
+  '        if (!weixinPlugin.gateway?.loginWithQrWait) {',
+  '          respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "weixin QR login wait is not available"));',
+  '          return;',
+  '        }',
+  '        respond(true, await weixinPlugin.gateway.loginWithQrWait({',
+  '          accountId: typeof params.accountId === "string" && params.accountId.trim() ? params.accountId.trim() : undefined,',
+  '          timeoutMs: typeof params.timeoutMs === "number" ? params.timeoutMs : undefined,',
+  '          sessionKey: typeof params.sessionKey === "string" && params.sessionKey.trim() ? params.sessionKey.trim() : undefined,',
+  '        }));',
+  '      } catch (error) {',
+  '        respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, String(error)));',
+  '      }',
+  '    });',
+].join('\n');
+
 /**
  * After a plugin has been copied to ~/.openclaw/extensions/<dir>, fix any
  * known manifest-ID mismatches so the Gateway can load the plugin.
  * Also patches package.json fields that the Gateway uses as "entry hints".
  */
-export function fixupPluginManifest(targetDir: string): void {
+export function fixupPluginManifest(targetDir: string): boolean {
+  let modified = false;
   // 1. Fix openclaw.plugin.json id
   const manifestPath = join(targetDir, 'openclaw.plugin.json');
   try {
@@ -37,6 +81,7 @@ export function fixupPluginManifest(targetDir: string): void {
       manifest.id = newId;
       writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf-8');
       logger.info(`[plugin] Fixed manifest ID: ${oldId} → ${newId}`);
+      modified = true;
     }
   } catch {
     // manifest may not exist yet — ignore
@@ -47,30 +92,31 @@ export function fixupPluginManifest(targetDir: string): void {
   try {
     const raw = readFileSync(pkgPath, 'utf-8');
     const pkg = JSON.parse(raw);
-    let modified = false;
+    let packageModified = false;
 
     // Check if the package name contains a legacy ID that needs fixing
     for (const [oldId, newId] of Object.entries(MANIFEST_ID_FIXES)) {
       if (typeof pkg.name === 'string' && pkg.name.includes(oldId)) {
         pkg.name = pkg.name.replace(oldId, newId);
-        modified = true;
+        packageModified = true;
       }
       const install = pkg.openclaw?.install;
       if (install) {
         if (typeof install.npmSpec === 'string' && install.npmSpec.includes(oldId)) {
           install.npmSpec = install.npmSpec.replace(oldId, newId);
-          modified = true;
+          packageModified = true;
         }
         if (typeof install.localPath === 'string' && install.localPath.includes(oldId)) {
           install.localPath = install.localPath.replace(oldId, newId);
-          modified = true;
+          packageModified = true;
         }
       }
     }
 
-    if (modified) {
+    if (packageModified) {
       writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf-8');
       logger.info(`[plugin] Fixed package.json entry hints in ${targetDir}`);
+      modified = true;
     }
   } catch {
     // ignore
@@ -78,7 +124,58 @@ export function fixupPluginManifest(targetDir: string): void {
 
   // 3. Fix hardcoded plugin IDs in compiled JS entry files.
   //    The Gateway validates that the JS export's `id` matches the manifest.
-  patchPluginEntryIds(targetDir);
+  if (patchPluginEntryIds(targetDir)) {
+    modified = true;
+  }
+  if (patchWeixinPluginSdkImport(targetDir)) {
+    modified = true;
+  }
+  if (patchWeixinPluginGatewayBridge(targetDir)) {
+    modified = true;
+  }
+
+  return modified;
+}
+
+function patchWeixinPluginSdkImport(targetDir: string): boolean {
+  const indexPath = join(targetDir, 'index.ts');
+  if (!existsSync(indexPath)) {
+    return false;
+  }
+
+  let content: string;
+  try {
+    content = readFileSync(indexPath, 'utf-8');
+  } catch {
+    return false;
+  }
+
+  let nextContent = content;
+  for (const pattern of WEIXIN_LEGACY_PROTOCOL_IMPORT_PATTERNS) {
+    nextContent = nextContent.replace(pattern, '');
+  }
+
+  if (nextContent === content && !content.includes(WEIXIN_GATEWAY_BRIDGE_IMPORT)) {
+    return false;
+  }
+
+  if (
+    !nextContent.includes(WEIXIN_GATEWAY_BRIDGE_IMPORT)
+    && nextContent.includes('import { buildChannelConfigSchema } from "openclaw/plugin-sdk";')
+  ) {
+    nextContent = nextContent.replace(
+      'import { buildChannelConfigSchema } from "openclaw/plugin-sdk";',
+      `import { buildChannelConfigSchema } from "openclaw/plugin-sdk";\n${WEIXIN_GATEWAY_BRIDGE_IMPORT}`,
+    );
+  }
+
+  if (nextContent === content) {
+    return false;
+  }
+
+  writeFileSync(indexPath, nextContent, 'utf-8');
+  logger.info(`[plugin] Normalized Weixin plugin SDK imports in ${targetDir}`);
+  return true;
 }
 
 /**
@@ -86,16 +183,17 @@ export function fixupPluginManifest(targetDir: string): void {
  * plugin export matches the manifest.  Without this, the Gateway rejects
  * the plugin with "plugin id mismatch".
  */
-function patchPluginEntryIds(targetDir: string): void {
+function patchPluginEntryIds(targetDir: string): boolean {
   const pkgPath = join(targetDir, 'package.json');
   let pkg: Record<string, unknown>;
   try {
     pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
   } catch {
-    return;
+    return false;
   }
 
   const entryFiles = [pkg.main, pkg.module].filter(Boolean) as string[];
+  let modified = false;
 
   for (const entry of entryFiles) {
     const entryPath = join(targetDir, entry);
@@ -117,6 +215,7 @@ function patchPluginEntryIds(targetDir: string): void {
       if (replaced !== content) {
         content = replaced;
         patched = true;
+        modified = true;
         logger.info(`[plugin] Patched plugin ID in ${entry}: "${wrongId}" → "${correctId}"`);
       }
     }
@@ -125,6 +224,52 @@ function patchPluginEntryIds(targetDir: string): void {
       writeFileSync(entryPath, content, 'utf-8');
     }
   }
+
+  return modified;
+}
+
+export function patchWeixinPluginGatewayBridge(targetDir: string): boolean {
+  const indexPath = join(targetDir, 'index.ts');
+  if (!existsSync(indexPath)) {
+    return false;
+  }
+
+  let content: string;
+  try {
+    content = readFileSync(indexPath, 'utf-8');
+  } catch {
+    return false;
+  }
+
+  if (content.includes(WEIXIN_GATEWAY_BRIDGE_SENTINEL)) {
+    return false;
+  }
+
+  if (!content.includes('import { weixinPlugin } from "./src/channel.js";')) {
+    return false;
+  }
+
+  const sdkImport = 'import { buildChannelConfigSchema } from "openclaw/plugin-sdk";';
+  if (!content.includes(WEIXIN_GATEWAY_BRIDGE_IMPORT)) {
+    if (!content.includes(sdkImport)) {
+      logger.warn(`[plugin] Failed to patch Weixin gateway bridge import in ${targetDir}`);
+      return false;
+    }
+    content = content.replace(sdkImport, `${sdkImport}\n${WEIXIN_GATEWAY_BRIDGE_IMPORT}`);
+  }
+
+  if (!content.includes(WEIXIN_GATEWAY_BRIDGE_ANCHOR)) {
+    logger.warn(`[plugin] Failed to patch Weixin gateway bridge anchor in ${targetDir}`);
+    return false;
+  }
+
+  content = content.replace(
+    WEIXIN_GATEWAY_BRIDGE_ANCHOR,
+    `${WEIXIN_GATEWAY_BRIDGE_ANCHOR}\n${WEIXIN_GATEWAY_BRIDGE_SNIPPET}`,
+  );
+  writeFileSync(indexPath, content, 'utf-8');
+  logger.info(`[plugin] Patched Weixin gateway bridge in ${targetDir}`);
+  return true;
 }
 
 // ── Plugin npm name mapping ──────────────────────────────────────────────────
@@ -134,6 +279,7 @@ const PLUGIN_NPM_NAMES: Record<string, string> = {
   wecom: '@openclaw-china/wecom',
   'openclaw-lark': '@larksuite/openclaw-lark',
   qqbot: '@sliverp/qqbot',
+  'openclaw-weixin': '@tencent-weixin/openclaw-weixin',
 };
 
 // ── Version helper ───────────────────────────────────────────────────────────
@@ -263,7 +409,7 @@ export function ensurePluginInstalled(
   candidateSources: string[],
   pluginLabel: string,
   legacyPluginDirNames: string[] = [],
-): { installed: boolean; warning?: string } {
+): { installed: boolean; warning?: string; changed?: boolean } {
   const extensionsRoot = join(homedir(), '.openclaw', 'extensions');
   const targetDir = join(homedir(), '.openclaw', 'extensions', pluginDirName);
   const targetManifest = join(targetDir, 'openclaw.plugin.json');
@@ -280,20 +426,29 @@ export function ensurePluginInstalled(
       }
     }
   };
+  const repairInstalledMirror = (): boolean => {
+    try {
+      return fixupPluginManifest(targetDir);
+    } catch (error) {
+      logger.warn(`[plugin] Failed to repair installed ${pluginLabel} plugin mirror`, error);
+      return false;
+    }
+  };
 
   const sourceDir = candidateSources.find((dir) => existsSync(join(dir, 'openclaw.plugin.json')));
 
   // If already installed, check whether an upgrade is available
   if (existsSync(targetManifest)) {
+    const changed = repairInstalledMirror();
     if (!sourceDir) {
       cleanupLegacyPluginDirs();
-      return { installed: true };
+      return { installed: true, changed };
     }
     const installedVersion = readPluginVersion(targetPkgJson);
     const sourceVersion = readPluginVersion(join(sourceDir, 'package.json'));
     if (!sourceVersion || !installedVersion || sourceVersion === installedVersion) {
       cleanupLegacyPluginDirs();
-      return { installed: true };
+      return { installed: true, changed };
     }
     // Version differs — fall through to overwrite install
     logger.info(
@@ -313,7 +468,7 @@ export function ensurePluginInstalled(
       fixupPluginManifest(targetDir);
       cleanupLegacyPluginDirs();
       logger.info(`Installed ${pluginLabel} plugin from bundled mirror: ${sourceDir}`);
-      return { installed: true };
+      return { installed: true, changed: true };
     } catch {
       return { installed: false, warning: `Failed to install bundled ${pluginLabel} plugin mirror` };
     }
@@ -338,12 +493,13 @@ export function ensurePluginInstalled(
             fixupPluginManifest(targetDir);
             if (existsSync(join(targetDir, 'openclaw.plugin.json'))) {
               cleanupLegacyPluginDirs();
-              return { installed: true };
+              return { installed: true, changed: true };
             }
           } catch (err) {
             logger.warn(`[plugin] Failed to install ${pluginLabel} plugin from node_modules:`, err);
           }
         } else if (existsSync(targetManifest)) {
+          repairInstalledMirror();
           cleanupLegacyPluginDirs();
           return { installed: true }; // same version, already installed
         }
@@ -401,6 +557,10 @@ export function ensureQQBotPluginInstalled(): { installed: boolean; warning?: st
   return ensurePluginInstalled('qqbot', buildCandidateSources('qqbot'), 'QQ Bot');
 }
 
+export function ensureWeixinPluginInstalled(): { installed: boolean; warning?: string; changed?: boolean } {
+  return ensurePluginInstalled('openclaw-weixin', buildCandidateSources('openclaw-weixin'), 'Weixin');
+}
+
 // ── Bulk startup installer ───────────────────────────────────────────────────
 
 /**
@@ -411,6 +571,7 @@ const ALL_BUNDLED_PLUGINS = [
   { fn: ensureWeComPluginInstalled, label: 'WeCom' },
   { fn: ensureQQBotPluginInstalled, label: 'QQ Bot' },
   { fn: ensureFeishuPluginInstalled, label: 'Feishu' },
+  { fn: ensureWeixinPluginInstalled, label: 'Weixin' },
 ] as const;
 
 /**

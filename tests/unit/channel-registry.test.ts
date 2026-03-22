@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { CHANNEL_FIELD_REGISTRY } from '@/lib/channel-registry';
 
-const CHANNELS = ['feishu', 'wecom', 'dingtalk', 'telegram', 'qqbot'] as const;
+const CHANNELS = ['feishu', 'wecom', 'dingtalk', 'telegram', 'qqbot', 'openclaw-weixin'] as const;
 
 const collectActiveFieldKeys = (channelType: (typeof CHANNELS)[number]) => {
   const entry = CHANNEL_FIELD_REGISTRY[channelType];
@@ -66,6 +66,10 @@ describe('CHANNEL_FIELD_REGISTRY', () => {
       ...qqbot.candidateFields.advancedSections.flatMap((section) => section.fields),
       ...qqbot.candidateFields.behaviorControls,
     ].map((field) => field.key)).toContain('markdownSupport');
+  });
+
+  it('keeps weixin limited to the confirmed v1 account fields', () => {
+    expect(collectActiveFieldKeys('openclaw-weixin')).toEqual(['name', 'cdnBaseUrl', 'routeTag']);
   });
 
   it('keeps displayed plugin-derived fields grounded in current editor roundtrip evidence', () => {

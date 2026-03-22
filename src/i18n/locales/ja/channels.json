@@ -43,6 +43,8 @@
     "account": {
         "add": "アカウントを追加",
         "edit": "編集",
+        "addByQr": "QRでアカウント追加",
+        "relogin": "QRを再スキャン",
         "delete": "アカウントを削除",
         "deleteChannel": "チャンネルを削除",
         "deleteConfirm": "このアカウントを削除してもよろしいですか？",
@@ -56,6 +58,7 @@
         "customIdPlaceholder": "例: feishu-sales-bot",
         "customIdHint": "同じチャンネル内の複数アカウントを区別するため、任意の ID を設定できます。",
         "renameHint": "変更すると、既定アカウントと Agent バインドも一緒に更新されます。",
+        "readonlyIdHint": "このアカウント ID は WeChat のログイン結果から決まるため、XClaw では変更できません。",
         "invalidId": "アカウント ID は空にできません",
         "idLabel": "アカウント識別子: {{id}}",
         "boundTo": "{{agent}} が担当",
@@ -184,6 +187,16 @@
                 "設定 > リンクされたデバイス > デバイスをリンク に移動します",
                 "以下に表示されるQRコードをスキャンします",
                 "システムが自動的に電話番号を識別します"
+            ]
+        },
+        "openclaw-weixin": {
+            "description": "公式 OpenClaw Weixin プラグインの QR コードをスキャンして WeChat に接続します",
+            "docsUrl": "https://www.npmjs.com/package/@tencent-weixin/openclaw-weixin",
+            "instructions": [
+                "Channels で WeChat を選択して QR ログインを開始します",
+                "連携したい WeChat アカウントで QR コードをスキャンします",
+                "プラグインが新しいボットアカウントを確定するまで待ちます",
+                "WeChat セッションが切れた場合は再ログインを実行します"
             ]
         },
         "dingtalk": {
@@ -402,6 +415,28 @@
                 "認証情報を入力します"
             ],
             "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/KPIJwlyiGiupMrkiS9ice39Zn2c"
+        }
+    },
+    "weixin": {
+        "guardian": {
+            "title": "ヘルスガード",
+            "subtitle": "ランタイムエラーと 24 時間の活動ウィンドウをもとに、この WeChat アカウントのリスクを確認します。",
+            "disabled": "ヘルスガードはオフです。有効にすると、このアカウントのリスク通知を受け取れます。",
+            "healthy": "最近の活動は正常です。",
+            "warningIdle": "このアカウントは 24 時間の活動ウィンドウに近づいています。",
+            "expiredIdle": "このアカウントは 24 時間の活動ウィンドウを超えた可能性があり、QR の再スキャンが必要です。",
+            "expiredError": "ランタイムがセッション期限切れのシグナルを返しました。復旧には QR を再スキャンしてください。",
+            "noAutoKeepAlive": "XClaw はここで通知と診断だけを行い、自動のキープアライブメッセージは送りません。"
+        },
+        "limits": {
+            "title": "WeChat の制約",
+            "subtitle": "このチャンネルは公式プラグインとプラットフォーム制約に従います。",
+            "items": {
+                "accountId": "アカウント ID は実際の QR ログイン結果から決まり、XClaw では読み取り専用です。",
+                "relogin": "再バインドやセッション回復には QR の再スキャンが必要です。",
+                "expiry": "WeChat セッションは長時間無活動だとリスク状態または失効状態になる場合があります。",
+                "guard": "ヘルスガードは通知のみで、プラットフォーム規約を回避しません。"
+            }
         }
     },
     "viewDocs": "ドキュメントを表示"

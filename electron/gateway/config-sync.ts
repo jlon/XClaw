@@ -36,6 +36,7 @@ const CHANNEL_PLUGIN_MAP: Record<string, { dirName: string; npmName: string; leg
   wecom: { dirName: 'wecom', npmName: '@openclaw-china/wecom', legacyDirNames: ['wecom-openclaw-plugin'] },
   feishu: { dirName: 'openclaw-lark', npmName: '@larksuite/openclaw-lark', legacyDirNames: ['feishu-openclaw-plugin'] },
   qqbot: { dirName: 'qqbot', npmName: '@sliverp/qqbot' },
+  'openclaw-weixin': { dirName: 'openclaw-weixin', npmName: '@tencent-weixin/openclaw-weixin' },
 };
 
 function cleanupLegacyPluginDirs(channelType: string, legacyDirNames: string[]): void {
@@ -109,6 +110,11 @@ function ensureConfiguredPluginsUpgraded(configuredChannels: string[]): void {
           logger.warn(`[plugin] Failed to ${isInstalled ? 'auto-upgrade' : 'install'} ${channelType} plugin:`, err);
         }
       } else if (isInstalled) {
+        try {
+          fixupPluginManifest(targetDir);
+        } catch (err) {
+          logger.warn(`[plugin] Failed to repair installed ${channelType} plugin mirror:`, err);
+        }
         cleanupLegacyPluginDirs(channelType, legacyDirNames);
       }
       continue;
@@ -125,6 +131,11 @@ function ensureConfiguredPluginsUpgraded(configuredChannels: string[]): void {
       }
       // Skip only if installed AND same version
       if (isInstalled && installedVersion && sourceVersion === installedVersion) {
+        try {
+          fixupPluginManifest(targetDir);
+        } catch (err) {
+          logger.warn(`[plugin] Failed to repair installed ${channelType} plugin mirror:`, err);
+        }
         cleanupLegacyPluginDirs(channelType, legacyDirNames);
         continue;
       }

@@ -9,6 +9,13 @@ const sendJsonMock = vi.fn();
 const parseJsonBodyMock = vi.fn();
 const renameChannelAccountConfigMock = vi.fn();
 const renameChannelAccountBindingMock = vi.fn();
+const ensureWeixinPluginInstalledMock = vi.fn();
+const weixinLoginStartMock = vi.fn();
+const weixinLoginPollMock = vi.fn();
+const weixinLoginStopMock = vi.fn();
+const getWeixinGuardianEnabledMock = vi.fn();
+const setWeixinGuardianEnabledMock = vi.fn();
+const runWeixinGuardianCheckMock = vi.fn();
 
 vi.mock('@electron/utils/channel-config', () => ({
   deleteChannelAccountConfig: vi.fn(),
@@ -39,12 +46,29 @@ vi.mock('@electron/utils/plugin-install', () => ({
   ensureFeishuPluginInstalled: vi.fn(),
   ensureQQBotPluginInstalled: vi.fn(),
   ensureWeComPluginInstalled: vi.fn(),
+  ensureWeixinPluginInstalled: (...args: unknown[]) => ensureWeixinPluginInstalledMock(...args),
 }));
 
 vi.mock('@electron/utils/whatsapp-login', () => ({
   whatsAppLoginManager: {
     start: vi.fn(),
     stop: vi.fn(),
+  },
+}));
+
+vi.mock('@electron/utils/weixin-login', () => ({
+  weixinLoginManager: {
+    start: (...args: unknown[]) => weixinLoginStartMock(...args),
+    poll: (...args: unknown[]) => weixinLoginPollMock(...args),
+    stop: (...args: unknown[]) => weixinLoginStopMock(...args),
+  },
+}));
+
+vi.mock('@electron/utils/weixin-guardian', () => ({
+  getWeixinGuardianEnabled: (...args: unknown[]) => getWeixinGuardianEnabledMock(...args),
+  setWeixinGuardianEnabled: (...args: unknown[]) => setWeixinGuardianEnabledMock(...args),
+  weixinGuardianService: {
+    runCheck: (...args: unknown[]) => runWeixinGuardianCheckMock(...args),
   },
 }));
 
@@ -57,6 +81,21 @@ describe('handleChannelRoutes', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     parseJsonBodyMock.mockResolvedValue({});
+    ensureWeixinPluginInstalledMock.mockReturnValue({ installed: true });
+    weixinLoginStartMock.mockResolvedValue({
+      qrcodeUrl: 'https://ilinkai.weixin.qq.com/qrcode/session-1',
+      sessionKey: 'session-1',
+      message: 'ready',
+    });
+    weixinLoginPollMock.mockReturnValue({
+      status: 'wait',
+      connected: false,
+      sessionKey: 'session-1',
+    });
+    weixinLoginStopMock.mockResolvedValue(undefined);
+    getWeixinGuardianEnabledMock.mockResolvedValue(false);
+    setWeixinGuardianEnabledMock.mockResolvedValue(undefined);
+    runWeixinGuardianCheckMock.mockResolvedValue(undefined);
     listAgentsSnapshotMock.mockResolvedValue({
       entries: [],
       channelAccountOwners: {},
@@ -257,6 +296,50 @@ describe('handleChannelRoutes', () => {
     );
   });
 
+  it('starts the weixin login flow and returns the qr payload immediately', async () => {
+    ensureWeixinPluginInstalledMock.mockReturnValue({ installed: true, changed: true });
+    parseJsonBodyMock.mockResolvedValue({
+      accountId: 'wx-im-bot',
+      force: true,
+      config: { routeTag: 'wechat-gray' },
+    });
+
+    const restartMock = vi.fn().mockResolvedValue(undefined);
+    const { handleChannelRoutes } = await import('@electron/api/routes/channels');
+
+    const handled = await handleChannelRoutes(
+      { method: 'POST' } as IncomingMessage,
+      {} as ServerResponse,
+      new URL('http://127.0.0.1:3210/api/channels/weixin/start'),
+      {
+        gatewayManager: {
+          rpc: vi.fn(),
+          restart: restartMock,
+          getStatus: () => ({ state: 'running' }),
+          debouncedReload: vi.fn(),
+          debouncedRestart: vi.fn(),
+        },
+      } as never,
+    );
+
+    expect(handled).toBe(true);
+    expect(restartMock).not.toHaveBeenCalled();
+    expect(weixinLoginStartMock).toHaveBeenCalledWith(
+      expect.anything(),
+      {
+        accountId: 'wx-im-bot',
+        force: true,
+        config: { routeTag: 'wechat-gray' },
+      },
+    );
+    expect(sendJsonMock).toHaveBeenCalledWith(expect.anything(), 200, {
+      success: true,
+      qrcodeUrl: 'https://ilinkai.weixin.qq.com/qrcode/session-1',
+      sessionKey: 'session-1',
+      message: 'ready',
+    });
+  });
+
   it('keeps channel connected when one account is healthy and another errors', async () => {
     listConfiguredChannelsMock.mockResolvedValue(['telegram']);
     listConfiguredChannelAccountsMock.mockResolvedValue({
@@ -369,6 +452,174 @@ describe('handleChannelRoutes', () => {
       expect.anything(),
       200,
       expect.objectContaining({ success: true, accountId: 'sales-bot' }),
+    );
+  });
+
+  it('installs the weixin plugin before saving openclaw-weixin config', async () => {
+    parseJsonBodyMock.mockResolvedValue({
+      channelType: 'openclaw-weixin',
+      accountId: 'wx-bot',
+      config: {
+        name: 'WeChat Bot',
+      },
+    });
+
+    const { handleChannelRoutes } = await import('@electron/api/routes/channels');
+    const handled = await handleChannelRoutes(
+      { method: 'POST' } as IncomingMessage,
+      {} as ServerResponse,
+      new URL('http://127.0.0.1:3210/api/channels/config'),
+      {
+        gatewayManager: {
+          rpc: vi.fn(),
+          getStatus: () => ({ state: 'running' }),
+        },
+        gatewayRuntimeController: {
+          requestRuntimeRefresh: vi.fn().mockResolvedValue(undefined),
+        },
+      } as never,
+    );
+
+    expect(handled).toBe(true);
+    expect(ensureWeixinPluginInstalledMock).toHaveBeenCalledTimes(1);
+    expect(sendJsonMock).toHaveBeenCalledWith(expect.anything(), 200, { success: true });
+  });
+
+  it('starts polls and cancels weixin QR login through the dedicated manager', async () => {
+    parseJsonBodyMock
+      .mockResolvedValueOnce({ accountId: 'wx-bot', force: true, config: { routeTag: 'wechat-gray' } })
+      .mockResolvedValueOnce({ sessionKey: 'session-1' })
+      .mockResolvedValueOnce({ sessionKey: 'session-1' });
+
+    const requestRuntimeRefresh = vi.fn().mockResolvedValue(undefined);
+    const gatewayManager = {
+      rpc: vi.fn(),
+      getStatus: () => ({ state: 'running' }),
+    };
+
+    const { handleChannelRoutes } = await import('@electron/api/routes/channels');
+
+    const startHandled = await handleChannelRoutes(
+      { method: 'POST' } as IncomingMessage,
+      {} as ServerResponse,
+      new URL('http://127.0.0.1:3210/api/channels/weixin/start'),
+      {
+        gatewayManager,
+        gatewayRuntimeController: {
+          requestRuntimeRefresh,
+        },
+      } as never,
+    );
+
+    const pollHandled = await handleChannelRoutes(
+      { method: 'POST' } as IncomingMessage,
+      {} as ServerResponse,
+      new URL('http://127.0.0.1:3210/api/channels/weixin/poll'),
+      {
+        gatewayManager,
+        gatewayRuntimeController: {
+          requestRuntimeRefresh,
+        },
+      } as never,
+    );
+
+    const cancelHandled = await handleChannelRoutes(
+      { method: 'POST' } as IncomingMessage,
+      {} as ServerResponse,
+      new URL('http://127.0.0.1:3210/api/channels/weixin/cancel'),
+      {
+        gatewayManager,
+        gatewayRuntimeController: {
+          requestRuntimeRefresh,
+        },
+      } as never,
+    );
+
+    expect(startHandled).toBe(true);
+    expect(pollHandled).toBe(true);
+    expect(cancelHandled).toBe(true);
+    expect(ensureWeixinPluginInstalledMock).toHaveBeenCalledTimes(1);
+    expect(weixinLoginStartMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        gatewayManager,
+        gatewayRuntimeController: expect.objectContaining({
+          requestRuntimeRefresh,
+        }),
+      }),
+      {
+        accountId: 'wx-bot',
+        force: true,
+        config: { routeTag: 'wechat-gray' },
+      },
+    );
+    expect(weixinLoginPollMock).toHaveBeenCalledWith('session-1');
+    expect(weixinLoginStopMock).toHaveBeenCalledWith('session-1');
+    expect(sendJsonMock).toHaveBeenNthCalledWith(1, expect.anything(), 200, {
+      success: true,
+      qrcodeUrl: 'https://ilinkai.weixin.qq.com/qrcode/session-1',
+      sessionKey: 'session-1',
+      message: 'ready',
+    });
+    expect(sendJsonMock).toHaveBeenNthCalledWith(2, expect.anything(), 200, {
+      success: true,
+      status: 'wait',
+      connected: false,
+      sessionKey: 'session-1',
+    });
+    expect(sendJsonMock).toHaveBeenNthCalledWith(3, expect.anything(), 200, { success: true });
+  });
+
+  it('reads the persisted weixin guardian toggle for an account', async () => {
+    getWeixinGuardianEnabledMock.mockResolvedValue(true);
+
+    const { handleChannelRoutes } = await import('@electron/api/routes/channels');
+    const handled = await handleChannelRoutes(
+      { method: 'GET' } as IncomingMessage,
+      {} as ServerResponse,
+      new URL('http://127.0.0.1:3210/api/channels/weixin/guardian?accountId=wx-im-bot'),
+      {
+        gatewayManager: {
+          rpc: vi.fn(),
+          getStatus: () => ({ state: 'running' }),
+        },
+      } as never,
+    );
+
+    expect(handled).toBe(true);
+    expect(getWeixinGuardianEnabledMock).toHaveBeenCalledWith('wx-im-bot');
+    expect(sendJsonMock).toHaveBeenCalledWith(
+      expect.anything(),
+      200,
+      expect.objectContaining({ success: true, enabled: true }),
+    );
+  });
+
+  it('persists the weixin guardian toggle and triggers an immediate check', async () => {
+    parseJsonBodyMock.mockResolvedValue({
+      accountId: 'wx-im-bot',
+      enabled: true,
+    });
+
+    const { handleChannelRoutes } = await import('@electron/api/routes/channels');
+    const handled = await handleChannelRoutes(
+      { method: 'PUT' } as IncomingMessage,
+      {} as ServerResponse,
+      new URL('http://127.0.0.1:3210/api/channels/weixin/guardian'),
+      {
+        gatewayManager: {
+          rpc: vi.fn(),
+          getStatus: () => ({ state: 'running' }),
+        },
+      } as never,
+    );
+
+    expect(handled).toBe(true);
+    expect(setWeixinGuardianEnabledMock).toHaveBeenCalledWith('wx-im-bot', true);
+    expect(runWeixinGuardianCheckMock).toHaveBeenCalled();
+    expect(sendJsonMock).toHaveBeenCalledWith(
+      expect.anything(),
+      200,
+      expect.objectContaining({ success: true, enabled: true }),
     );
   });
 });

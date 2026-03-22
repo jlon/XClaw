@@ -25,13 +25,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { ChannelIcon } from '@/components/channels/ChannelIcon';
 import { WorkspacePageFrame, WorkspacePageLoading, WorkspacePageScrollArea, WorkspacePageShell } from '@/components/layout/WorkspacePage';
 import { useCronStore } from '@/stores/cron';
 import { useGatewayStore } from '@/stores/gateway';
 import { formatRelativeTime, cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { CronJob, CronJobCreateInput, ScheduleType } from '@/types/cron';
-import { CHANNEL_ICONS, type ChannelType } from '@/types/channel';
+import type { ChannelType } from '@/types/channel';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 
@@ -451,7 +452,7 @@ function CronJobCard({ job, onToggle, onEdit, onDelete, onTrigger }: CronJobCard
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11.25px] font-medium text-muted-foreground/78">
           {job.target && (
             <span className="flex items-center gap-1.5">
-              {CHANNEL_ICONS[job.target.channelType as ChannelType]}
+              <ChannelIcon type={job.target.channelType as ChannelType} size={16} />
               {job.target.channelName}
             </span>
           )}

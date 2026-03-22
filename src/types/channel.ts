@@ -8,6 +8,7 @@
  */
 export type ChannelType =
   | 'whatsapp'
+  | 'openclaw-weixin'
   | 'dingtalk'
   | 'telegram'
   | 'discord'
@@ -147,6 +148,7 @@ export interface ChannelMeta {
  */
 export const CHANNEL_ICONS: Record<ChannelType, string> = {
   whatsapp: '📱',
+  'openclaw-weixin': '💚',
   dingtalk: '💬',
   telegram: '✈️',
   discord: '🎮',
@@ -167,6 +169,7 @@ export const CHANNEL_ICONS: Record<ChannelType, string> = {
  */
 export const CHANNEL_NAMES: Record<ChannelType, string> = {
   whatsapp: 'WhatsApp',
+  'openclaw-weixin': 'WeChat',
   dingtalk: 'DingTalk',
   telegram: 'Telegram',
   discord: 'Discord',
@@ -388,6 +391,22 @@ export const CHANNEL_META: Record<ChannelType, ChannelMeta> = {
       'channels:meta.whatsapp.instructions.2',
       'channels:meta.whatsapp.instructions.3',
     ],
+  },
+  'openclaw-weixin': {
+    id: 'openclaw-weixin',
+    name: 'WeChat',
+    icon: '💚',
+    description: 'channels:meta.openclaw-weixin.description',
+    connectionType: 'qr',
+    docsUrl: 'channels:meta.openclaw-weixin.docsUrl',
+    configFields: [],
+    instructions: [
+      'channels:meta.openclaw-weixin.instructions.0',
+      'channels:meta.openclaw-weixin.instructions.1',
+      'channels:meta.openclaw-weixin.instructions.2',
+      'channels:meta.openclaw-weixin.instructions.3',
+    ],
+    isPlugin: true,
   },
   signal: {
     id: 'signal',
@@ -627,7 +646,7 @@ export const CHANNEL_META: Record<ChannelType, ChannelMeta> = {
  * Get primary supported channels (non-plugin, commonly used)
  */
 export function getPrimaryChannels(): ChannelType[] {
-  return ['telegram', 'discord', 'whatsapp', 'dingtalk', 'feishu', 'wecom', 'qqbot'];
+  return ['telegram', 'discord', 'whatsapp', 'openclaw-weixin', 'dingtalk', 'feishu', 'wecom', 'qqbot'];
 }
 
 /**

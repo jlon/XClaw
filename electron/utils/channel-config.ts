@@ -16,6 +16,7 @@ import { withConfigLock } from './config-mutex';
 const OPENCLAW_DIR = join(homedir(), '.openclaw');
 const CONFIG_FILE = join(OPENCLAW_DIR, 'openclaw.json');
 const WECOM_PLUGIN_ID = 'wecom';
+const WEIXIN_PLUGIN_ID = 'openclaw-weixin';
 const FEISHU_PLUGIN_ID_CANDIDATES = ['openclaw-lark', 'feishu-openclaw-plugin'] as const;
 const DEFAULT_ACCOUNT_ID = 'default';
 const CHANNEL_TOP_LEVEL_KEYS_TO_KEEP = new Set(['accounts', 'defaultAccount', 'enabled']);
@@ -239,6 +240,33 @@ async function ensurePluginAllowlist(currentConfig: OpenClawConfig, channelType:
             : [];
         if (!allow.includes('qqbot')) {
             currentConfig.plugins.allow = [...allow, 'qqbot'];
+        }
+    }
+
+    if (channelType === WEIXIN_PLUGIN_ID) {
+        if (!currentConfig.plugins) {
+            currentConfig.plugins = {
+                allow: [WEIXIN_PLUGIN_ID],
+                enabled: true,
+                entries: {
+                    [WEIXIN_PLUGIN_ID]: { enabled: true }
+                }
+            };
+        } else {
+            currentConfig.plugins.enabled = true;
+            const allow: string[] = Array.isArray(currentConfig.plugins.allow)
+                ? (currentConfig.plugins.allow as string[])
+                : [];
+            if (!allow.includes(WEIXIN_PLUGIN_ID)) {
+                currentConfig.plugins.allow = [...allow, WEIXIN_PLUGIN_ID];
+            }
+            if (!currentConfig.plugins.entries) {
+                currentConfig.plugins.entries = {};
+            }
+            if (!currentConfig.plugins.entries[WEIXIN_PLUGIN_ID]) {
+                currentConfig.plugins.entries[WEIXIN_PLUGIN_ID] = {};
+            }
+            currentConfig.plugins.entries[WEIXIN_PLUGIN_ID].enabled = true;
         }
     }
 }
@@ -553,6 +581,24 @@ export async function saveChannelConfig(
             transformedKeys: Object.keys(transformedConfig),
         });
         console.log(`Saved channel config for ${channelType} account ${resolvedAccountId}`);
+    });
+}
+
+export async function ensureChannelPluginEnabled(channelType: string): Promise<boolean> {
+    return withConfigLock(async () => {
+        const currentConfig = await readOpenClawConfig();
+        const before = JSON.stringify(currentConfig.plugins ?? {});
+        await ensurePluginAllowlist(currentConfig, channelType);
+        const after = JSON.stringify(currentConfig.plugins ?? {});
+        if (before === after) {
+            return false;
+        }
+        await writeOpenClawConfig(currentConfig);
+        logger.info('Ensured channel plugin allowlist', {
+            channelType,
+            configFile: CONFIG_FILE,
+        });
+        return true;
     });
 }
 

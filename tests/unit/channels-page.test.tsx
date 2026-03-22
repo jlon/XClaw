@@ -9,9 +9,12 @@ const modalSavePayload = {
   accountId: 'default',
 };
 
-const { gatewayState } = vi.hoisted(() => ({
+const { gatewayState, lastChannelConfigModalProps } = vi.hoisted(() => ({
   gatewayState: {
     status: { state: 'running', port: 18789 },
+  },
+  lastChannelConfigModalProps: {
+    current: null as null | Record<string, unknown>,
   },
 }));
 
@@ -43,27 +46,34 @@ vi.mock('sonner', () => ({
 
 vi.mock('@/components/channels/ChannelConfigModal', () => ({
   ChannelConfigModal: (props: {
+    initialSelectedType?: string | null;
+    availableAgents?: Array<{ id: string; name: string }>;
+    agentId?: string;
     onClose: () => void;
     onChannelSaved?: (channelType: string, accountId?: string) => void | Promise<void>;
-  }) => (
-    <div data-testid="channel-config-modal">
-      <button type="button" onClick={() => props.onClose()}>
-        mock-modal-close
-      </button>
-      <button
-        type="button"
-        onClick={() => props.onChannelSaved?.(modalSavePayload.channelType, modalSavePayload.accountId)}
-      >
-        mock-modal-save
-      </button>
-    </div>
-  ),
+  }) => {
+    lastChannelConfigModalProps.current = props;
+    return (
+      <div data-testid="channel-config-modal">
+        <button type="button" onClick={() => props.onClose()}>
+          mock-modal-close
+        </button>
+        <button
+          type="button"
+          onClick={() => props.onChannelSaved?.(modalSavePayload.channelType, modalSavePayload.accountId)}
+        >
+          mock-modal-save
+        </button>
+      </div>
+    );
+  },
 }));
 
 describe('Channels page status refresh', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     gatewayState.status = { state: 'running', port: 18789 };
+    lastChannelConfigModalProps.current = null;
     modalSavePayload.channelType = 'feishu';
     modalSavePayload.accountId = 'default';
     let feishuEditorValues = {
@@ -256,6 +266,311 @@ describe('Channels page status refresh', () => {
 
     await waitFor(() => {
       expect(hostApiFetchMock).toHaveBeenCalledWith('/api/channels/accounts?probe=1');
+    });
+  });
+
+  it('shows WeChat in the primary channel catalog even before it is configured', async () => {
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(hostApiFetchMock).toHaveBeenCalledWith('/api/channels/accounts');
+    });
+
+    expect(screen.getByText('WeChat')).toBeInTheDocument();
+  });
+
+  it('uses QR onboarding instead of inline save when weixin has no configured account yet', async () => {
+    hostApiFetchMock.mockImplementation(async (path: string) => {
+      if (path.startsWith('/api/channels/accounts')) {
+        return {
+          success: true,
+          channels: [],
+        };
+      }
+
+      if (path === '/api/agents') {
+        return {
+          success: true,
+          agents: [],
+        };
+      }
+
+      if (path.startsWith('/api/channels/config-editor/openclaw-weixin')) {
+        return {
+          success: true,
+          values: {},
+        };
+      }
+
+      throw new Error(`Unexpected host API path: ${path}`);
+    });
+
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(hostApiFetchMock).toHaveBeenCalledWith('/api/channels/accounts');
+      expect(screen.getByTestId('channel-rail-item-openclaw-weixin')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('channel-rail-item-openclaw-weixin'));
+    });
+
+    expect(screen.getAllByRole('button', { name: 'account.addByQr' }).length).toBeGreaterThan(0);
+    expect(screen.queryByRole('button', { name: 'dialog.saveAndConnect' })).not.toBeInTheDocument();
+  });
+
+  it('keeps the weixin account id read-only and exposes QR-specific actions from the workbench', async () => {
+    hostApiFetchMock.mockImplementation(async (path: string) => {
+      if (path.startsWith('/api/channels/accounts')) {
+        return {
+          success: true,
+          channels: [
+            {
+              channelType: 'openclaw-weixin',
+              defaultAccountId: 'wx-im-bot',
+              enabled: true,
+              status: 'connected',
+              accounts: [
+                {
+                  accountId: 'wx-im-bot',
+                  name: 'WeChat Bot',
+                  configured: true,
+                  enabled: true,
+                  status: 'connected',
+                  isDefault: true,
+                },
+              ],
+            },
+          ],
+        };
+      }
+
+      if (path === '/api/agents') {
+        return {
+          success: true,
+          agents: [],
+        };
+      }
+
+      if (path.startsWith('/api/channels/config-editor/openclaw-weixin')) {
+        return {
+          success: true,
+          values: {
+            name: 'WeChat Bot',
+            cdnBaseUrl: 'https://cdn.example.com',
+            routeTag: 7,
+          },
+        };
+      }
+
+      throw new Error(`Unexpected host API path: ${path}`);
+    });
+
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(hostApiFetchMock).toHaveBeenCalledWith('/api/channels/accounts');
+      expect(hostApiFetchMock).toHaveBeenCalledWith('/api/channels/config-editor/openclaw-weixin?accountId=wx-im-bot');
+    });
+
+    expect(screen.getByDisplayValue('wx-im-bot')).toHaveAttribute('readonly');
+    expect(screen.getByRole('button', { name: 'account.addByQr' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'account.relogin' })).toBeInTheDocument();
+  });
+
+  it('passes agent choices into the weixin QR modal during onboarding', async () => {
+    hostApiFetchMock.mockImplementation(async (path: string) => {
+      if (path.startsWith('/api/channels/accounts')) {
+        return {
+          success: true,
+          channels: [],
+        };
+      }
+
+      if (path === '/api/agents') {
+        return {
+          success: true,
+          agents: [
+            { id: 'planner', name: 'Planner' },
+            { id: 'sales', name: 'Sales' },
+          ],
+        };
+      }
+
+      throw new Error(`Unexpected host API path: ${path}`);
+    });
+
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('channel-rail-item-openclaw-weixin')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('channel-rail-item-openclaw-weixin'));
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getAllByRole('button', { name: 'account.addByQr' })[0]);
+    });
+
+    expect(lastChannelConfigModalProps.current).toMatchObject({
+      initialSelectedType: 'openclaw-weixin',
+      availableAgents: [
+        { id: 'planner', name: 'Planner' },
+        { id: 'sales', name: 'Sales' },
+      ],
+      agentId: undefined,
+    });
+  });
+
+  it('passes the current binding into the relogin modal so editing keeps the selected agent', async () => {
+    hostApiFetchMock.mockImplementation(async (path: string) => {
+      if (path.startsWith('/api/channels/accounts')) {
+        return {
+          success: true,
+          channels: [
+            {
+              channelType: 'openclaw-weixin',
+              defaultAccountId: 'wx-im-bot',
+              enabled: true,
+              status: 'connected',
+              accounts: [
+                {
+                  accountId: 'wx-im-bot',
+                  name: 'WeChat Bot',
+                  configured: true,
+                  enabled: true,
+                  status: 'connected',
+                  isDefault: true,
+                  agentId: 'planner',
+                },
+              ],
+            },
+          ],
+        };
+      }
+
+      if (path === '/api/agents') {
+        return {
+          success: true,
+          agents: [
+            { id: 'planner', name: 'Planner' },
+            { id: 'sales', name: 'Sales' },
+          ],
+        };
+      }
+
+      if (path.startsWith('/api/channels/config-editor/openclaw-weixin')) {
+        return {
+          success: true,
+          values: {
+            name: 'WeChat Bot',
+          },
+        };
+      }
+
+      throw new Error(`Unexpected host API path: ${path}`);
+    });
+
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'account.relogin' })).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'account.relogin' }));
+    });
+
+    expect(lastChannelConfigModalProps.current).toMatchObject({
+      initialSelectedType: 'openclaw-weixin',
+      availableAgents: [
+        { id: 'planner', name: 'Planner' },
+        { id: 'sales', name: 'Sales' },
+      ],
+      agentId: 'planner',
+    });
+  });
+
+  it('shows the weixin health guard card and persists its toggle', async () => {
+    hostApiFetchMock.mockImplementation(async (path: string, init?: RequestInit) => {
+      if (path.startsWith('/api/channels/accounts')) {
+        return {
+          success: true,
+          channels: [
+            {
+              channelType: 'openclaw-weixin',
+              defaultAccountId: 'wx-im-bot',
+              enabled: true,
+              status: 'connected',
+              accounts: [
+                {
+                  accountId: 'wx-im-bot',
+                  name: 'WeChat Bot',
+                  configured: true,
+                  enabled: true,
+                  status: 'connected',
+                  isDefault: true,
+                  lastOutboundAt: Date.now() - 21 * 60 * 60 * 1000,
+                },
+              ],
+            },
+          ],
+        };
+      }
+
+      if (path === '/api/agents') {
+        return {
+          success: true,
+          agents: [],
+        };
+      }
+
+      if (path.startsWith('/api/channels/config-editor/openclaw-weixin')) {
+        return {
+          success: true,
+          values: {
+            name: 'WeChat Bot',
+          },
+        };
+      }
+
+      if (path === '/api/channels/weixin/guardian?accountId=wx-im-bot') {
+        return {
+          success: true,
+          enabled: true,
+        };
+      }
+
+      if (path === '/api/channels/weixin/guardian' && init?.method === 'PUT') {
+        return {
+          success: true,
+          enabled: false,
+        };
+      }
+
+      throw new Error(`Unexpected host API path: ${path}`);
+    });
+
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(hostApiFetchMock).toHaveBeenCalledWith('/api/channels/weixin/guardian?accountId=wx-im-bot');
+    });
+
+    expect(screen.getByText('weixin.guardian.title')).toBeInTheDocument();
+    expect(screen.getByText('weixin.guardian.warningIdle')).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('weixin-guardian-switch'));
+    });
+
+    await waitFor(() => {
+      expect(hostApiFetchMock).toHaveBeenCalledWith('/api/channels/weixin/guardian', expect.objectContaining({
+        method: 'PUT',
+      }));
     });
   });
 

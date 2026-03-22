@@ -17,10 +17,11 @@ import {
 import { hostApiFetch } from '@/lib/host-api';
 import { subscribeHostEvent } from '@/lib/host-events';
 import { ChannelConfigModal } from '@/components/channels/ChannelConfigModal';
+import { ChannelIcon } from '@/components/channels/ChannelIcon';
 import { CHANNEL_FIELD_REGISTRY, V1_CHANNEL_REGISTRY_ORDER } from '@/lib/channel-registry';
 import { cn } from '@/lib/utils';
+import { evaluateWeixinGuardian, type WeixinGuardianEvaluation } from '../../../shared/weixin-guardian';
 import {
-  CHANNEL_ICONS,
   CHANNEL_META,
   getPrimaryChannels,
   type ChannelType,
@@ -30,14 +31,6 @@ import {
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import telegramIcon from '@/assets/channels/telegram.svg';
-import discordIcon from '@/assets/channels/discord.svg';
-import whatsappIcon from '@/assets/channels/whatsapp.svg';
-import dingtalkIcon from '@/assets/channels/dingtalk.svg';
-import feishuIcon from '@/assets/channels/feishu.svg';
-import wecomIcon from '@/assets/channels/wecom.svg';
-import qqIcon from '@/assets/channels/qq.svg';
-
 interface ChannelAccountItem {
   accountId: string;
   name: string;
@@ -45,6 +38,9 @@ interface ChannelAccountItem {
   status: 'connected' | 'connecting' | 'disconnected' | 'error';
   enabled: boolean;
   lastError?: string;
+  lastConnectedAt?: number | null;
+  lastInboundAt?: number | null;
+  lastOutboundAt?: number | null;
   isDefault: boolean;
   agentId?: string;
 }
@@ -100,6 +96,10 @@ const inspectorSubtitleClass = 'mt-1 text-[11px] leading-5 text-muted-foreground
 
 function isRegistryChannelType(channelType: string): channelType is RegistryChannelType {
   return channelType in CHANNEL_FIELD_REGISTRY;
+}
+
+function isWeixinChannel(channelType: ChannelType | null | undefined): channelType is 'openclaw-weixin' {
+  return channelType === 'openclaw-weixin';
 }
 
 function removeDeletedTarget(groups: ChannelGroupItem[], target: DeleteTarget): ChannelGroupItem[] {
@@ -329,6 +329,38 @@ function getConfiguredChannelRailTone(enabled: boolean): string {
     : 'status-indicator status-indicator-idle';
 }
 
+function getWeixinGuardianTone(evaluation: WeixinGuardianEvaluation | null): string {
+  if (!evaluation) {
+    return 'border-[hsl(var(--border-subtle)/0.58)] bg-transparent text-muted-foreground';
+  }
+  if (evaluation.level === 'expired') {
+    return 'border-destructive/30 bg-destructive/10 text-destructive';
+  }
+  if (evaluation.level === 'warning') {
+    return 'border-[hsl(var(--warning))/0.26] bg-[hsl(var(--warning))/0.1] text-[hsl(var(--warning))]';
+  }
+  return 'border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300';
+}
+
+function getWeixinGuardianMessageKey(evaluation: WeixinGuardianEvaluation | null, enabled: boolean): string {
+  if (!enabled) {
+    return 'weixin.guardian.disabled';
+  }
+  if (!evaluation) {
+    return 'weixin.guardian.disabled';
+  }
+  if (evaluation.reason === 'runtime-error') {
+    return 'weixin.guardian.expiredError';
+  }
+  if (evaluation.level === 'expired') {
+    return 'weixin.guardian.expiredIdle';
+  }
+  if (evaluation.level === 'warning') {
+    return 'weixin.guardian.warningIdle';
+  }
+  return 'weixin.guardian.healthy';
+}
+
 export function Channels() {
   const { t } = useTranslation('channels');
   const gatewayStatus = useGatewayStore((state) => state.status);
@@ -348,6 +380,7 @@ export function Channels() {
   const [allowExistingConfigInModal, setAllowExistingConfigInModal] = useState(true);
   const [allowEditAccountIdInModal, setAllowEditAccountIdInModal] = useState(false);
   const [existingAccountIdsForModal, setExistingAccountIdsForModal] = useState<string[]>([]);
+  const [initialAgentIdForModal, setInitialAgentIdForModal] = useState<string | undefined>(undefined);
   const [initialConfigValuesForModal, setInitialConfigValuesForModal] = useState<Record<string, string> | undefined>(undefined);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [channelQuery, setChannelQuery] = useState('');
@@ -358,6 +391,9 @@ export function Channels() {
   const [editorSaving, setEditorSaving] = useState(false);
   const [editorValidating, setEditorValidating] = useState(false);
   const [editorTogglingEnabled, setEditorTogglingEnabled] = useState(false);
+  const [weixinGuardianEnabled, setWeixinGuardianEnabled] = useState(false);
+  const [weixinGuardianLoading, setWeixinGuardianLoading] = useState(false);
+  const [weixinGuardianSaving, setWeixinGuardianSaving] = useState(false);
   const [pendingSelection, setPendingSelection] = useState<PendingSelectionTarget | null>(null);
   const [editorValidation, setEditorValidation] = useState<{
     valid: boolean;
@@ -519,6 +555,19 @@ export function Channels() {
     () => selectedGroup?.accounts.find((account) => account.accountId === selectedAccountId),
     [selectedAccountId, selectedGroup],
   );
+  const selectedIsWeixin = useMemo(() => isWeixinChannel(selectedChannelType), [selectedChannelType]);
+  const weixinGuardianEvaluation = useMemo(
+    () => (selectedIsWeixin && selectedAccount
+      ? evaluateWeixinGuardian({
+        enabled: weixinGuardianEnabled,
+        lastError: selectedAccount.lastError,
+        lastConnectedAt: selectedAccount.lastConnectedAt,
+        lastInboundAt: selectedAccount.lastInboundAt,
+        lastOutboundAt: selectedAccount.lastOutboundAt,
+      })
+      : null),
+    [selectedAccount, selectedIsWeixin, weixinGuardianEnabled],
+  );
   const filteredChannelTypes = useMemo(() => {
     const query = channelQuery.trim().toLowerCase();
     if (!query) return allChannelTypes;
@@ -647,6 +696,35 @@ export function Channels() {
     setAccountIdDraft(selectedAccountId || FALLBACK_ACCOUNT_ID);
   }, [selectedAccountId, selectedChannelType]);
 
+  useEffect(() => {
+    if (!selectedIsWeixin || !selectedAccountId) {
+      setWeixinGuardianEnabled(false);
+      setWeixinGuardianLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setWeixinGuardianLoading(true);
+
+    void hostApiFetch<{ success: boolean; enabled?: boolean }>(
+      `/api/channels/weixin/guardian?accountId=${encodeURIComponent(selectedAccountId)}`,
+    ).then((result) => {
+      if (cancelled) return;
+      setWeixinGuardianEnabled(result.enabled === true);
+    }).catch(() => {
+      if (cancelled) return;
+      setWeixinGuardianEnabled(false);
+    }).finally(() => {
+      if (!cancelled) {
+        setWeixinGuardianLoading(false);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedAccountId, selectedIsWeixin]);
+
   const handleRefresh = () => {
     setRefreshing(true);
     void fetchPageData({ probe: true, silent: true });
@@ -697,6 +775,11 @@ export function Channels() {
     const nextAccountId = accountIdDraft.trim();
     if (!nextAccountId) {
       toast.error(t('account.invalidId'));
+      return;
+    }
+    if (selectedIsWeixin && selectedAccountId && nextAccountId !== selectedAccountId) {
+      setAccountIdDraft(selectedAccountId);
+      toast.error(t('account.readonlyIdHint'));
       return;
     }
     if (selectedGroup?.accounts.some((account) => account.accountId === nextAccountId && account.accountId !== selectedAccountId)) {
@@ -805,6 +888,25 @@ export function Channels() {
     }
   };
 
+  const handleWeixinGuardianToggle = async (enabled: boolean) => {
+    if (!selectedIsWeixin || !selectedAccountId) return;
+    setWeixinGuardianSaving(true);
+    try {
+      const result = await hostApiFetch<{ success: boolean; enabled?: boolean }>('/api/channels/weixin/guardian', {
+        method: 'PUT',
+        body: JSON.stringify({
+          accountId: selectedAccountId,
+          enabled,
+        }),
+      });
+      setWeixinGuardianEnabled(result.enabled === true);
+    } catch (error) {
+      toast.error(t('toast.configFailed', { error: String(error) }));
+    } finally {
+      setWeixinGuardianSaving(false);
+    }
+  };
+
   const openChannelDocs = (channelType: ChannelType) => {
     const url = t(CHANNEL_META[channelType].docsUrl);
     try {
@@ -825,6 +927,7 @@ export function Channels() {
       allowExistingConfig?: boolean;
       allowEditAccountId?: boolean;
       existingAccountIds?: string[];
+      initialAgentId?: string;
       initialConfigValues?: Record<string, string>;
     },
   ) => {
@@ -833,6 +936,7 @@ export function Channels() {
     setAllowExistingConfigInModal(options?.allowExistingConfig ?? true);
     setAllowEditAccountIdInModal(options?.allowEditAccountId ?? false);
     setExistingAccountIdsForModal(options?.existingAccountIds ?? []);
+    setInitialAgentIdForModal(options?.initialAgentId);
     setInitialConfigValuesForModal(options?.initialConfigValues);
     setShowConfigModal(true);
   };
@@ -842,6 +946,7 @@ export function Channels() {
     setAllowExistingConfigInModal(true);
     setAllowEditAccountIdInModal(false);
     setExistingAccountIdsForModal([]);
+    setInitialAgentIdForModal(undefined);
     setInitialConfigValuesForModal(undefined);
   }, []);
 
@@ -1083,6 +1188,12 @@ export function Channels() {
                             variant="outline"
                             className="h-7 rounded-[10px] px-3 text-[12px] text-foreground/80 shadow-none hover:text-foreground"
                             onClick={() => {
+                              if (isWeixinChannel(selectedGroup.channelType as ChannelType)) {
+                                void openConfigModal(selectedGroup.channelType as ChannelType, {
+                                  allowExistingConfig: true,
+                                });
+                                return;
+                              }
                               const nextAccountId = createNewAccountId(
                                 selectedGroup.channelType,
                                 selectedGroup.accounts.map((item) => item.accountId),
@@ -1096,7 +1207,7 @@ export function Channels() {
                             }}
                           >
                             <Plus className="mr-1 h-3.5 w-3.5" />
-                            {t('account.add')}
+                            {isWeixinChannel(selectedGroup.channelType as ChannelType) ? t('account.addByQr') : t('account.add')}
                           </Button>
                         )}
                         {selectedGroup && (
@@ -1221,7 +1332,7 @@ export function Channels() {
                           }}
                         >
                           <Plus className="mr-1 h-3.5 w-3.5" />
-                          {t('addChannel')}
+                          {selectedIsWeixin ? t('account.addByQr') : t('addChannel')}
                         </Button>
                       </div>
                     )}
@@ -1234,6 +1345,37 @@ export function Channels() {
               {!selectedMeta && (
                 <div className="app-empty-surface rounded-[14px] p-5 text-sm text-muted-foreground">
                   {t('availableDesc')}
+                </div>
+              )}
+
+              {selectedMeta && selectedIsWeixin && !selectedGroup && (
+                <div className="space-y-4">
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                    <div>
+                      <h3 className={inspectorTitleClass}>{selectedMeta.name}</h3>
+                      <p className={inspectorSubtitleClass}>{t(selectedMeta.description.replace('channels:', ''))}</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 rounded-[10px] px-3 text-[12px]"
+                      onClick={() => openChannelDocs('openclaw-weixin')}
+                    >
+                      <BookOpen className="mr-1 h-3.5 w-3.5" />
+                      {t('dialog.viewDocs')}
+                      <ExternalLink className="ml-1 h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      void openConfigModal('openclaw-weixin', {
+                        allowExistingConfig: true,
+                      });
+                    }}
+                    className="rounded-[10px]"
+                  >
+                    {t('account.addByQr')}
+                  </Button>
                 </div>
               )}
 
@@ -1260,6 +1402,7 @@ export function Channels() {
                       void openConfigModal('whatsapp', {
                         accountId: selectedAccountId,
                         allowExistingConfig: true,
+                        initialAgentId: selectedAccount?.agentId,
                       });
                     }}
                     className="rounded-[10px]"
@@ -1293,6 +1436,7 @@ export function Channels() {
                       void openConfigModal(selectedChannelType, {
                         accountId: selectedAccountId,
                         allowExistingConfig: true,
+                        initialAgentId: selectedAccount?.agentId,
                       });
                     }}
                     className="rounded-[10px]"
@@ -1302,7 +1446,7 @@ export function Channels() {
                 </div>
               )}
 
-              {selectedMeta && selectedChannelType !== 'whatsapp' && selectedRegistry && (
+              {selectedMeta && selectedChannelType !== 'whatsapp' && selectedRegistry && !(selectedIsWeixin && !selectedGroup) && (
                 <div className="flex min-h-[560px] flex-col">
                   <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                     <div>
@@ -1323,10 +1467,11 @@ export function Channels() {
                           void openConfigModal(selectedChannelType, {
                             accountId: selectedAccountId,
                             allowExistingConfig: true,
+                            initialAgentId: selectedAccount?.agentId,
                           });
                         }}
                       >
-                        {t('account.edit')}
+                        {selectedIsWeixin ? t(selectedAccountId ? 'account.relogin' : 'account.addByQr') : t('account.edit')}
                       </Button>
                       <Button
                         size="sm"
@@ -1366,14 +1511,18 @@ export function Channels() {
                             )}
                           </div>
                           <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82 line-clamp-2" title={t('account.renameHint')}>
-                            {t('account.renameHint')}
+                            {selectedIsWeixin ? t('account.readonlyIdHint') : t('account.renameHint')}
                           </p>
                           <Input
                             id="channel-account-id"
                             value={accountIdDraft}
                             disabled={editorLoading || editorSaving}
-                            onChange={(event) => setAccountIdDraft(event.target.value)}
-                            placeholder={t('account.customIdPlaceholder')}
+                            readOnly={selectedIsWeixin}
+                            onChange={(event) => {
+                              if (selectedIsWeixin) return;
+                              setAccountIdDraft(event.target.value);
+                            }}
+                            placeholder={selectedIsWeixin ? '' : t('account.customIdPlaceholder')}
                             className="app-field-surface mt-3 h-9 rounded-[10px] border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] text-[13px] shadow-none"
                           />
                         </div>
@@ -1443,6 +1592,70 @@ export function Channels() {
                         </div>
                       </div>
                     </div>
+
+                    {selectedIsWeixin && selectedAccount && (
+                      <div className={sectionCardClass}>
+                        <div className="mb-4 flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-[13px] font-semibold text-foreground">{t('weixin.guardian.title')}</p>
+                            <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82">
+                              {t('weixin.guardian.subtitle')}
+                            </p>
+                          </div>
+                          <Switch
+                            data-testid="weixin-guardian-switch"
+                            checked={weixinGuardianEnabled}
+                            className="data-[state=checked]:bg-foreground/75 dark:data-[state=checked]:bg-white/70"
+                            disabled={weixinGuardianLoading || weixinGuardianSaving}
+                            onCheckedChange={(checked) => {
+                              void handleWeixinGuardianToggle(checked);
+                            }}
+                          />
+                        </div>
+
+                        <div className={cn(fieldCardClass, 'space-y-3 px-3.5 py-3', getWeixinGuardianTone(weixinGuardianEvaluation))}>
+                          <p className="text-[12px] font-medium">
+                            {t(getWeixinGuardianMessageKey(weixinGuardianEvaluation, weixinGuardianEnabled))}
+                          </p>
+                          <p className="text-[11px] leading-5">
+                            {t('weixin.guardian.noAutoKeepAlive')}
+                          </p>
+                          {weixinGuardianEnabled && weixinGuardianEvaluation && weixinGuardianEvaluation.level !== 'healthy' && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              className="h-7 rounded-[10px] px-2.5 text-[11px]"
+                              onClick={() => {
+                                if (!selectedChannelType) return;
+                                void openConfigModal(selectedChannelType, {
+                                  accountId: selectedAccountId,
+                                  allowExistingConfig: true,
+                                  initialAgentId: selectedAccount?.agentId,
+                                });
+                              }}
+                            >
+                              {t('account.relogin')}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedIsWeixin && (
+                      <div className={sectionCardClass}>
+                        <div className="mb-4">
+                          <p className="text-[13px] font-semibold text-foreground">{t('weixin.limits.title')}</p>
+                          <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82">{t('weixin.limits.subtitle')}</p>
+                        </div>
+                        <div className={cn(fieldCardClass, 'space-y-2 px-3.5 py-3 text-[11px] leading-5 text-muted-foreground/82')}>
+                          <p>{t('weixin.limits.items.accountId')}</p>
+                          <p>{t('weixin.limits.items.relogin')}</p>
+                          <p>{t('weixin.limits.items.expiry')}</p>
+                          <p>{t('weixin.limits.items.guard')}</p>
+                        </div>
+                      </div>
+                    )}
 
                     {visibleAdvancedSections.map((section) => (
                       <ChannelEditorSection
@@ -1547,6 +1760,8 @@ export function Channels() {
           allowExistingConfig={allowExistingConfigInModal}
           allowEditAccountId={allowEditAccountIdInModal}
           existingAccountIds={existingAccountIdsForModal}
+          availableAgents={agents}
+          agentId={initialAgentIdForModal}
           initialConfigValues={initialConfigValuesForModal}
           showChannelName={false}
           onClose={resetConfigModalState}
@@ -1754,24 +1969,7 @@ function ChannelFieldEditor({
 }
 
 function ChannelLogo({ type }: { type: ChannelType }) {
-  switch (type) {
-    case 'telegram':
-      return <img src={telegramIcon} alt="Telegram" className="w-[22px] h-[22px] dark:invert" />;
-    case 'discord':
-      return <img src={discordIcon} alt="Discord" className="w-[22px] h-[22px] dark:invert" />;
-    case 'whatsapp':
-      return <img src={whatsappIcon} alt="WhatsApp" className="w-[22px] h-[22px] dark:invert" />;
-    case 'dingtalk':
-      return <img src={dingtalkIcon} alt="DingTalk" className="w-[22px] h-[22px] dark:invert" />;
-    case 'feishu':
-      return <img src={feishuIcon} alt="Feishu" className="w-[22px] h-[22px] dark:invert" />;
-    case 'wecom':
-      return <img src={wecomIcon} alt="WeCom" className="w-[22px] h-[22px] dark:invert" />;
-    case 'qqbot':
-      return <img src={qqIcon} alt="QQ" className="w-[22px] h-[22px] dark:invert" />;
-    default:
-      return <span className="text-[22px]">{CHANNEL_ICONS[type] || '💬'}</span>;
-  }
+  return <ChannelIcon type={type} size={22} />;
 }
 
 export default Channels;

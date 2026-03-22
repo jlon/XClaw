@@ -7,7 +7,7 @@ import { GatewayManager, GatewayStatus } from './manager';
 /**
  * Channel types supported by OpenClaw
  */
-export type ChannelType = 'whatsapp' | 'dingtalk' | 'telegram' | 'discord' | 'wechat';
+export type ChannelType = 'whatsapp' | 'openclaw-weixin' | 'dingtalk' | 'telegram' | 'discord';
 
 /**
  * Channel status

@@ -182,6 +182,48 @@ describe('Feishu plugin configuration', () => {
   });
 });
 
+describe('Weixin plugin configuration', () => {
+  beforeEach(async () => {
+    vi.resetAllMocks();
+    vi.resetModules();
+    await rm(testHome, { recursive: true, force: true });
+    await rm(testUserData, { recursive: true, force: true });
+  });
+
+  it('writes account config and enables the openclaw-weixin plugin allowlist', async () => {
+    const { saveChannelConfig } = await import('@electron/utils/channel-config');
+
+    await saveChannelConfig(
+      'openclaw-weixin',
+      {
+        name: 'WeChat Bot',
+        cdnBaseUrl: 'https://cdn.example.com',
+        routeTag: 7,
+      },
+      'wx-bot',
+    );
+
+    const config = await readOpenClawJson();
+    const plugins = config.plugins as { allow: string[], entries: Record<string, { enabled?: boolean }> };
+    const channels = config.channels as Record<string, {
+      defaultAccount?: string;
+      accounts: Record<string, { name?: string; cdnBaseUrl?: string; routeTag?: number; enabled?: boolean }>;
+    }>;
+
+    expect(plugins.allow).toContain('openclaw-weixin');
+    expect(plugins.entries['openclaw-weixin'].enabled).toBe(true);
+    expect(channels['openclaw-weixin'].defaultAccount).toBe('wx-bot');
+    expect(channels['openclaw-weixin'].accounts['wx-bot']).toEqual(
+      expect.objectContaining({
+        name: 'WeChat Bot',
+        cdnBaseUrl: 'https://cdn.example.com',
+        routeTag: 7,
+        enabled: true,
+      }),
+    );
+  });
+});
+
 describe('channel editor values', () => {
   beforeEach(async () => {
     vi.resetAllMocks();
