@@ -18,6 +18,8 @@ import { hostApiFetch } from '@/lib/host-api';
 import { subscribeHostEvent } from '@/lib/host-events';
 import { ChannelConfigModal } from '@/components/channels/ChannelConfigModal';
 import { ChannelIcon } from '@/components/channels/ChannelIcon';
+import { ChannelEntryBoard } from '@/components/channels/ChannelEntryBoard';
+import { getChannelBoardColumnCount, getChannelCenterLayoutMode } from '@/lib/channel-center-layout';
 import { CHANNEL_FIELD_REGISTRY, V1_CHANNEL_REGISTRY_ORDER } from '@/lib/channel-registry';
 import { cn } from '@/lib/utils';
 import { evaluateWeixinGuardian, type WeixinGuardianEvaluation } from '../../../shared/weixin-guardian';
@@ -85,10 +87,14 @@ const selectedWorkbenchItemClass =
   'border-transparent bg-[hsl(var(--foreground)/0.055)] text-foreground';
 const sectionCardClass = 'rounded-[11px] border border-[hsl(var(--border-subtle)/0.58)] bg-transparent shadow-none';
 const fieldCardClass = 'rounded-[10px] border border-[hsl(var(--border-subtle)/0.58)] bg-[hsl(var(--foreground)/0.018)] shadow-none';
-const searchFieldClass = 'h-9 rounded-[10px] border border-transparent bg-[hsl(var(--foreground)/0.04)] pl-10 text-[13px] shadow-none placeholder:text-muted-foreground/52 hover:bg-[hsl(var(--foreground)/0.048)] focus-visible:border-[hsl(var(--border-strong)/0.46)] focus-visible:bg-[hsl(var(--surface-elevated)/0.98)] focus-visible:ring-0';
-const railRowClass = 'w-full rounded-[10px] border border-transparent px-2.5 py-2 text-left transition-colors';
-const railIconClass = 'flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-[10px] border border-[hsl(var(--border-subtle)/0.8)] bg-[hsl(var(--foreground)/0.03)]';
-const sectionLabelClass = 'px-1 text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground/56';
+const searchFieldClass = 'h-8.5 rounded-[12px] border border-[hsl(var(--border-subtle)/0.48)] bg-[hsl(var(--surface-panel)/0.86)] pl-9 text-[12.5px] shadow-none placeholder:text-muted-foreground/52 hover:border-[hsl(var(--border-subtle)/0.72)] hover:bg-[hsl(var(--surface-elevated)/0.98)] focus-visible:border-[hsl(var(--border-strong)/0.52)] focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
+const railRowClass = 'group w-full rounded-[14px] border border-transparent px-2.5 py-2 text-left transition-[background-color,border-color,box-shadow,transform] duration-150';
+const selectedRailCardClass = 'translate-y-[-1px] border-[hsl(var(--border-strong)/0.42)] bg-[hsl(var(--surface-elevated)/0.98)] text-foreground shadow-[0_12px_26px_rgba(15,23,42,0.06)]';
+const idleRailCardClass = 'bg-[hsl(var(--surface-panel)/0.58)] hover:border-[hsl(var(--border-subtle)/0.82)] hover:bg-[hsl(var(--surface-hover)/0.58)]';
+const railIconClass = 'flex h-9.5 w-9.5 shrink-0 items-center justify-center rounded-[13px] border border-[hsl(var(--border-subtle)/0.72)] bg-[hsl(var(--surface-elevated)/0.98)] shadow-[inset_0_1px_0_rgba(255,255,255,0.22)]';
+const railMetaBadgeClass = 'inline-flex shrink-0 items-center rounded-full border border-[hsl(var(--border-subtle)/0.6)] bg-[hsl(var(--foreground)/0.035)] px-1.75 py-0.5 text-[10px] font-medium leading-none text-foreground/62';
+const railStateBadgeClass = 'inline-flex shrink-0 items-center rounded-full border border-[hsl(var(--border-subtle)/0.54)] bg-[hsl(var(--surface-elevated)/0.98)] px-2 py-0.5 text-[10px] font-medium leading-none text-foreground/68';
+const sectionLabelClass = 'px-0.5 text-[10px] font-semibold uppercase tracking-[0.09em] text-muted-foreground/52';
 const headerTitleClass = 'text-[22px] font-semibold tracking-tight text-foreground md:text-[24px]';
 const headerSubtitleClass = 'mt-1 text-[12px] leading-5 text-foreground/58';
 const inspectorTitleClass = 'text-[15px] font-semibold text-foreground md:text-[16px]';
@@ -329,6 +335,19 @@ function getConfiguredChannelRailTone(enabled: boolean): string {
     : 'status-indicator status-indicator-idle';
 }
 
+function getChannelConnectionLabel(channelType: ChannelType, t: (key: string) => string): string {
+  switch (CHANNEL_META[channelType].connectionType) {
+    case 'qr':
+      return t('dialog.qrCode');
+    case 'webhook':
+      return 'Webhook';
+    case 'oauth':
+      return 'OAuth';
+    default:
+      return t('dialog.token');
+  }
+}
+
 function getWeixinGuardianTone(evaluation: WeixinGuardianEvaluation | null): string {
   if (!evaluation) {
     return 'border-[hsl(var(--border-subtle)/0.58)] bg-transparent text-muted-foreground';
@@ -364,6 +383,7 @@ function getWeixinGuardianMessageKey(evaluation: WeixinGuardianEvaluation | null
 export function Channels() {
   const { t } = useTranslation('channels');
   const gatewayStatus = useGatewayStore((state) => state.status);
+  const contentRef = useRef<HTMLDivElement | null>(null);
   const lastGatewayStateRef = useRef(gatewayStatus.state);
   const runtimeRetryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -384,6 +404,7 @@ export function Channels() {
   const [initialConfigValuesForModal, setInitialConfigValuesForModal] = useState<Record<string, string> | undefined>(undefined);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [channelQuery, setChannelQuery] = useState('');
+  const [containerWidth, setContainerWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 0));
   const [accountIdDraft, setAccountIdDraft] = useState('');
   const [editorValues, setEditorValues] = useState<Record<string, EditorValue>>({});
   const [loadedEditorValues, setLoadedEditorValues] = useState<Record<string, EditorValue>>({});
@@ -446,7 +467,7 @@ export function Channels() {
         if (current && nextAllChannelTypes.includes(current)) {
           return current;
         }
-        return preferredChannel;
+        return current === null ? null : preferredChannel;
       });
 
       if (
@@ -483,6 +504,42 @@ export function Channels() {
   }, []);
 
   useEffect(() => {
+    const node = contentRef.current;
+    const updateWidth = (nextWidth?: number) => {
+      const fallbackWidth = typeof window !== 'undefined' ? window.innerWidth : 0;
+      setContainerWidth(Math.max(Math.round(nextWidth ?? node?.clientWidth ?? fallbackWidth), 0));
+    };
+
+    updateWidth();
+
+    const handleResize = () => updateWidth();
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleResize);
+    }
+
+    if (!node || typeof ResizeObserver === 'undefined') {
+      return () => {
+        if (typeof window !== 'undefined') {
+          window.removeEventListener('resize', handleResize);
+        }
+      };
+    }
+
+    const observer = new ResizeObserver((entries) => {
+      updateWidth(entries[0]?.contentRect.width);
+    });
+
+    observer.observe(node);
+
+    return () => {
+      observer.disconnect();
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('resize', handleResize);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     const unsubscribe = subscribeHostEvent('gateway:channel-status', () => {
       void fetchPageData({ silent: true });
     });
@@ -510,14 +567,6 @@ export function Channels() {
   const groupedByType = useMemo(() => {
     return Object.fromEntries(channelGroups.map((group) => [group.channelType, group]));
   }, [channelGroups]);
-
-  const configuredGroups = useMemo(() => {
-    const known = displayedChannelTypes
-      .map((type) => groupedByType[type])
-      .filter((group): group is ChannelGroupItem => Boolean(group));
-    const unknown = channelGroups.filter((group) => !displayedChannelTypes.includes(group.channelType as ChannelType));
-    return [...known, ...unknown];
-  }, [channelGroups, displayedChannelTypes, groupedByType]);
 
   const unsupportedGroups = displayedChannelTypes.filter((type) => !configuredTypes.includes(type));
   const allChannelTypes = useMemo(() => {
@@ -588,6 +637,38 @@ export function Channels() {
     () => filteredChannelTypes.filter((type) => !groupedByType[type]),
     [filteredChannelTypes, groupedByType],
   );
+  const configuredBoardItems = useMemo(
+    () => configuredFilteredChannelTypes.map((channelType) => {
+      const meta = CHANNEL_META[channelType];
+      const group = groupedByType[channelType];
+      return {
+        channelType,
+        name: meta.name,
+        description: t('accountListSummary', { count: group.accounts.length, default: group.defaultAccountId }),
+        primaryActionLabel: t('configuredBadge'),
+        summaryItems: [
+          { value: getRuntimeAwareStatusLabel(group.status, runtimeAvailable, t) },
+          { value: group.enabled ? t('enabledLabel') : t('disabledLabel') },
+        ],
+        indicatorClassName: getRuntimeAwareStatusTone(group.status, runtimeAvailable),
+      };
+    }),
+    [configuredFilteredChannelTypes, groupedByType, runtimeAvailable, t],
+  );
+  const availableBoardItems = useMemo(
+    () => unconfiguredFilteredChannelTypes.map((channelType) => {
+      const meta = CHANNEL_META[channelType];
+      return {
+        channelType,
+        name: meta.name,
+        description: t(meta.description.replace('channels:', '')),
+        primaryActionLabel: t('addChannel'),
+        summaryItems: [{ value: getChannelConnectionLabel(channelType, t) }],
+        indicatorClassName: 'status-indicator status-indicator-idle status-indicator-glow',
+      };
+    }),
+    [t, unconfiguredFilteredChannelTypes],
+  );
   const accountIdBaseline = useMemo(
     () => (selectedChannelType && selectedChannelType !== 'whatsapp' ? (selectedAccountId || FALLBACK_ACCOUNT_ID) : ''),
     [selectedAccountId, selectedChannelType],
@@ -600,7 +681,14 @@ export function Channels() {
     () => (typeof window !== 'undefined' && window.electron?.platform === 'win32' ? 'subtle-scrollbar-win' : 'subtle-scrollbar'),
     [],
   );
-
+  const layoutMode = useMemo(
+    () => getChannelCenterLayoutMode(containerWidth, Boolean(selectedChannelType)),
+    [containerWidth, selectedChannelType],
+  );
+  const boardColumnCount = useMemo(
+    () => getChannelBoardColumnCount(containerWidth),
+    [containerWidth],
+  );
   const applySelection = useCallback((channelType: ChannelType, accountId?: string) => {
     setSelectedChannelType(channelType);
     setSelectedAccountId(accountId);
@@ -624,18 +712,6 @@ export function Channels() {
     );
     return cloneEditorValues(result.success ? (result.values || {}) : {});
   }, []);
-
-  useEffect(() => {
-    if (loading) return;
-    const preferredChannel =
-      configuredGroups[0]?.channelType as ChannelType | undefined
-      ?? displayedChannelTypes[0]
-      ?? null;
-    if (!preferredChannel) return;
-    if (!selectedChannelType || !allChannelTypes.includes(selectedChannelType)) {
-      setSelectedChannelType(preferredChannel);
-    }
-  }, [allChannelTypes, configuredGroups, displayedChannelTypes, loading, selectedChannelType]);
 
   useEffect(() => {
     if (!selectedChannelType) {
@@ -1038,21 +1114,48 @@ export function Channels() {
             </div>
           )}
 
-          <div
-            data-testid="channels-workbench"
-            className="grid min-w-0 gap-5 xl:grid-cols-[minmax(320px,0.94fr)_minmax(540px,1.28fr)] min-[1440px]:grid-cols-[minmax(250px,0.9fr)_minmax(360px,1.08fr)_minmax(460px,1.32fr)]"
-          >
+          <div ref={contentRef} className="min-w-0">
+            {layoutMode === 'board' ? (
+              <ChannelEntryBoard
+                title={t('supportedChannels')}
+                subtitle={t('subtitle')}
+                query={channelQuery}
+                queryPlaceholder={t('searchPlaceholder')}
+                onQueryChange={setChannelQuery}
+                sections={[
+                  {
+                    id: 'configured',
+                    title: t('configuredSection'),
+                    description: t('configuredDesc'),
+                    items: configuredBoardItems,
+                  },
+                  {
+                    id: 'available',
+                    title: t('availableSection'),
+                    description: t('availableDesc'),
+                    items: availableBoardItems,
+                  },
+                ]}
+                emptyMessage={t('emptySearch')}
+                columnCount={boardColumnCount}
+                onSelectChannel={(channelType) => requestSelectionChange(channelType)}
+              />
+            ) : (
+            <div
+              data-testid="channels-workbench"
+              className="grid min-w-0 gap-5 xl:grid-cols-[minmax(272px,0.82fr)_minmax(560px,1.34fr)] min-[1440px]:grid-cols-[minmax(224px,0.74fr)_minmax(336px,1fr)_minmax(520px,1.48fr)]"
+            >
             <div data-testid="channels-navigation-stack" className="grid min-w-0 gap-5 min-[1440px]:contents">
-              <section className={cn(paneSurfaceClass, 'p-3')}>
-                <div className="flex items-start justify-between gap-3">
+              <section className={cn(paneSurfaceClass, 'p-2.5')}>
+                <div className="flex items-start justify-between gap-2.5">
                   <div>
                     <h2 className="text-sm font-semibold text-foreground">{t('supportedChannels')}</h2>
-                    <p className="mt-0.5 text-[11px] leading-5 text-muted-foreground/82">{t('availableDesc')}</p>
+                    <p className="mt-0.5 hidden text-[11px] leading-5 text-muted-foreground/78 xl:block">{t('availableDesc')}</p>
                   </div>
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-8 rounded-[10px] px-3 text-[12px] text-foreground/78 shadow-none hover:text-foreground"
+                    className="h-8 rounded-[11px] px-2.5 text-[11.5px] text-foreground/78 shadow-none hover:text-foreground"
                     onClick={() => {
                       const nextChannel = unsupportedGroups[0] || allChannelTypes[0];
                       if (nextChannel) {
@@ -1065,8 +1168,8 @@ export function Channels() {
                   </Button>
                 </div>
 
-                <div className="relative mt-2">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/70" />
+                <div className="relative mt-2.5">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/68" />
                   <Input
                     value={channelQuery}
                     onChange={(event) => setChannelQuery(event.target.value)}
@@ -1075,7 +1178,7 @@ export function Channels() {
                   />
                 </div>
 
-                <div className="mt-3 space-y-3">
+                <div className="mt-3 space-y-2.5">
                   {configuredFilteredChannelTypes.length > 0 && (
                     <div className="space-y-1.5">
                       <p className={sectionLabelClass}>
@@ -1085,6 +1188,7 @@ export function Channels() {
                         const meta = CHANNEL_META[channelType];
                         const group = groupedByType[channelType];
                         const isSelected = selectedChannelType === channelType;
+                        const statusLabel = getRuntimeAwareStatusLabel(group.status, runtimeAvailable, t);
                         return (
                           <button
                             key={channelType}
@@ -1092,27 +1196,38 @@ export function Channels() {
                             data-testid={`channel-rail-item-${channelType}`}
                             aria-pressed={isSelected}
                             onClick={() => requestSelectionChange(channelType)}
-                          className={cn(
+                            className={cn(
                               railRowClass,
                               isSelected
-                                ? selectedWorkbenchItemClass
-                                : 'hover:bg-[hsl(var(--foreground)/0.04)]',
+                                ? selectedRailCardClass
+                                : idleRailCardClass,
                             )}
                           >
-                            <div className="flex items-center gap-3">
+                            <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5">
                               <div className={railIconClass}>
                                 <ChannelLogo type={channelType} />
                               </div>
-                              <div className="min-w-0 flex-1">
-                                <p className="truncate text-[13px] font-medium text-foreground">{meta.name}</p>
-                                <p className="mt-0.5 truncate text-[11px] text-muted-foreground/82">
-                                  {`${group.accounts.length} · ${getRuntimeAwareStatusLabel(group.status, runtimeAvailable, t)} · ${group.enabled ? t('enabledLabel') : t('disabledLabel')}`}
-                                </p>
+                              <div className="min-w-0 space-y-1">
+                                <p className="truncate text-[13px] font-semibold text-foreground">{meta.name}</p>
+                                <div
+                                  data-testid={`channel-rail-meta-${channelType}`}
+                                  className="flex min-w-0 items-center gap-1.5 overflow-hidden text-[10.5px] leading-none text-muted-foreground/76"
+                                >
+                                  <span className="truncate">{statusLabel}</span>
+                                  <span className="hidden shrink-0 min-[420px]:inline text-foreground/28">·</span>
+                                  <span className="hidden truncate min-[420px]:inline">{getChannelConnectionLabel(channelType, t)}</span>
+                                </div>
                               </div>
-                              <div
-                                data-testid={`channel-rail-indicator-${channelType}`}
-                                className={cn('h-2.5 w-2.5 shrink-0 rounded-[999px]', getConfiguredChannelRailTone(group.enabled))}
-                              />
+                              <div className="flex shrink-0 items-center gap-1.5 self-start">
+                                <span data-testid={`channel-rail-count-${channelType}`} className={railMetaBadgeClass}>{group.accounts.length}</span>
+                                <span className="hidden min-[420px]:inline-flex shrink-0 items-center rounded-full border border-[hsl(var(--border-subtle)/0.54)] bg-[hsl(var(--surface-elevated)/0.98)] px-2 py-0.5 text-[10px] font-medium leading-none text-foreground/68">
+                                  {group.enabled ? t('enabledLabel') : t('disabledLabel')}
+                                </span>
+                                <div
+                                  data-testid={`channel-rail-indicator-${channelType}`}
+                                  className={cn('h-2.5 w-2.5 shrink-0 rounded-[999px]', getConfiguredChannelRailTone(group.enabled))}
+                                />
+                              </div>
                             </div>
                           </button>
                         );
@@ -1135,22 +1250,33 @@ export function Channels() {
                             data-testid={`channel-rail-item-${channelType}`}
                             aria-pressed={isSelected}
                             onClick={() => requestSelectionChange(channelType)}
-                          className={cn(
+                            className={cn(
                               railRowClass,
                               isSelected
-                                ? selectedWorkbenchItemClass
-                                : 'hover:bg-[hsl(var(--foreground)/0.04)]',
+                                ? selectedRailCardClass
+                                : idleRailCardClass,
                             )}
                           >
-                            <div className="flex items-center gap-3">
+                            <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5">
                               <div className={railIconClass}>
                                 <ChannelLogo type={channelType} />
                               </div>
-                              <div className="min-w-0 flex-1">
-                                <p className="truncate text-[13px] font-medium text-foreground">{meta.name}</p>
-                                <p className="mt-0.5 truncate text-[11px] text-muted-foreground/82">{t('available')}</p>
+                              <div className="min-w-0 space-y-1">
+                                <p className="truncate text-[13px] font-semibold text-foreground">{meta.name}</p>
+                                <div
+                                  data-testid={`channel-rail-meta-${channelType}`}
+                                  className="flex min-w-0 items-center gap-1.5 overflow-hidden text-[10.5px] leading-none text-muted-foreground/76"
+                                >
+                                  <span className="truncate">{getChannelConnectionLabel(channelType, t)}</span>
+                                </div>
                               </div>
-                              <div className="status-indicator status-indicator-idle h-2.5 w-2.5 shrink-0 rounded-[999px]" />
+                              <div className="flex shrink-0 items-center gap-1.5 self-start">
+                                <span className={railStateBadgeClass}>{t('available')}</span>
+                                <div
+                                  data-testid={`channel-rail-indicator-${channelType}`}
+                                  className="status-indicator status-indicator-idle h-2.5 w-2.5 shrink-0 rounded-[999px]"
+                                />
+                              </div>
                             </div>
                           </button>
                         );
@@ -1748,6 +1874,8 @@ export function Channels() {
                 </div>
               )}
             </section>
+            </div>
+            )}
           </div>
         </WorkspacePageScrollArea>
       </WorkspacePageShell>
