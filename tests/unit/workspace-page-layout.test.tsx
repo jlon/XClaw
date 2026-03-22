@@ -38,6 +38,23 @@ describe('workspace page layout', () => {
     expect(source).toContain('box-shadow: none;');
   });
 
+  it('keeps desktop shell chrome on theme tokens instead of hardcoded light fills', () => {
+    const source = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
+    const shellSource = source.match(/\.desktop-app-shell \{[\s\S]*?\.desktop-app-titlebar \{/u)?.[0] ?? '';
+
+    expect(shellSource).toContain('.desktop-app-shell {');
+    expect(shellSource).toContain('hsl(var(--chrome) / 0.98)');
+    expect(shellSource).toContain('.desktop-app-shell-body {');
+    expect(shellSource).toContain('hsl(var(--surface-base) / 0.98)');
+    expect(shellSource).toContain('.desktop-app-shell-sidebar {');
+    expect(shellSource).toContain('.desktop-app-chat-nav-shell {');
+    expect(shellSource).toContain('hsl(var(--chrome-divider) / 0.82)');
+    expect(shellSource).toContain('.desktop-app-workspace {');
+    expect(shellSource).toContain('hsl(var(--surface-panel) / 0.965)');
+    expect(shellSource).not.toContain('background: #f8f8f9;');
+    expect(shellSource).not.toContain('background: #fafafa;');
+  });
+
   it('marks workspace frame, shell, and scroll area with shared desktop classes', () => {
     render(
       <WorkspacePageFrame data-testid="frame">

@@ -75,6 +75,9 @@
 - `pnpm exec eslint src/pages/Channels/index.tsx tests/unit/channels-page.test.tsx --max-warnings=0`
 - `pnpm exec vitest run tests/unit/channels-page.test.tsx tests/unit/channel-center-layout.test.ts`
 - `pnpm run build:vite`
+- 本轮“聚焦编辑态 + 极简入口板收口”后，再次通过：
+- `pnpm exec eslint src/pages/Channels/index.tsx src/components/channels/ChannelEntryBoard.tsx src/components/channels/ChannelFocusWorkspace.tsx src/components/channels/ChannelAccountList.tsx src/components/channels/ChannelConfigEditor.tsx tests/unit/channels-page.test.tsx --max-warnings=0`
+- `pnpm exec vitest run tests/unit/channels-page.test.tsx`
 
 ## 建议新增测试
 
@@ -118,6 +121,8 @@
 - 主要工作区页面统一挂到共享壳层，避免全局留白策略再次分叉
 - `MainLayout` 主内容区由容器接管滚动，不再默认让页面自己叠一层大外边距滚动
 - 频道页工作区遵守“默认入口卡片板、选中后聚焦编辑、超宽三栏”的分段式规则，不再在标准窗口下硬挤两栏工作台
+- 聚焦编辑态需要显式展示“返回全部频道”，并在未保存修改时拦截返回入口板
+- 首屏入口板不再重复渲染第二组大标题和说明，默认窗口应保持极简首屏密度
 - 入口板卡片摘要只显示渠道级说明与聚合状态，不泄露默认账号 ID 等账号级细节
 - 从入口板筛选后进入频道时，工作台左栏不会继承旧搜索条件
 - 左栏插件角标不会继续挤压频道卡片
@@ -284,3 +289,34 @@
 - 高级配置分层清晰，支持的字段能正确回填与保存
 - `pnpm run build:vite`、`pnpm run typecheck`、相关单测、`pnpm run test:e2e` 全部通过
 - mac 与 Windows 手工检查不出现明显交互退化
+
+## 最近一次验证
+
+2026-03-22 频道中心“桌面化清理”验证结果：
+
+- `pnpm exec eslint src/pages/Channels/index.tsx src/components/channels/ChannelEntryBoard.tsx src/components/channels/ChannelEntryCard.tsx src/components/channels/ChannelFocusWorkspace.tsx src/components/channels/ChannelAccountList.tsx src/components/channels/ChannelConfigEditor.tsx --max-warnings=0`
+- `pnpm exec vitest run tests/unit/channels-page.test.tsx`
+- `pnpm run build:vite`
+- `pnpm run typecheck`
+
+结果：
+
+- 上述命令全部通过
+- `build:vite` 仍有既有 chunk size / dynamic import 提示，但不是本轮频道中心改动引入的新失败
+
+2026-03-22 频道中心“review 闭环”验证结果：
+
+- `pnpm exec vitest run tests/unit/workspace-page-layout.test.tsx -t "desktop shell chrome on theme tokens"`
+- `pnpm exec vitest run tests/unit/channels-page.test.tsx -t "theme-compatible surfaces|glossy desktop-web shadows|inspector rows"`
+- `pnpm exec eslint src/components/channels/ChannelEntryCard.tsx src/components/channels/ChannelFocusWorkspace.tsx src/components/channels/ChannelAccountList.tsx src/components/channels/ChannelConfigEditor.tsx src/pages/Channels/index.tsx tests/unit/channels-page.test.tsx tests/unit/workspace-page-layout.test.tsx --max-warnings=0`
+- `pnpm exec vitest run tests/unit/channels-page.test.tsx tests/unit/workspace-page-layout.test.tsx`
+- `pnpm run build:vite`
+- `pnpm run typecheck`
+
+结果：
+
+- review 中指出的 3 条问题已分别有回归约束：全局 shell token 化、频道卡片去 glossy shadow、右栏 inspector row 化
+- `43/43` 相关单测通过
+- `build:vite` 通过
+- `typecheck` 通过
+- `build:vite` 仍保留既有 chunk size / dynamic import 提示，不属于本轮新增失败

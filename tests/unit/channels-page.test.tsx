@@ -69,7 +69,19 @@ vi.mock('@/components/channels/ChannelConfigModal', () => ({
   },
 }));
 
-async function enterChannelFromBoard(channelType: string, options?: { trigger?: 'card' | 'action' }) {
+function setViewportWidth(width: number) {
+  Object.defineProperty(window, 'innerWidth', {
+    configurable: true,
+    writable: true,
+    value: width,
+  });
+  window.dispatchEvent(new Event('resize'));
+}
+
+async function enterChannelFromBoard(
+  channelType: string,
+  options?: { trigger?: 'card' | 'action'; expectLayout?: 'focus' | 'workbench' },
+) {
   await waitFor(() => {
     expect(screen.getByTestId('channel-entry-board')).toBeInTheDocument();
   });
@@ -86,14 +98,20 @@ async function enterChannelFromBoard(channelType: string, options?: { trigger?: 
   });
 
   await waitFor(() => {
-    expect(screen.getByTestId('channels-workbench')).toBeInTheDocument();
-    expect(screen.getByTestId(`channel-rail-item-${channelType}`)).toHaveAttribute('aria-pressed', 'true');
+    if (options?.expectLayout === 'workbench') {
+      expect(screen.getByTestId('channels-workbench')).toBeInTheDocument();
+      expect(screen.getByTestId(`channel-rail-item-${channelType}`)).toHaveAttribute('aria-pressed', 'true');
+      return;
+    }
+    expect(screen.getByTestId('channel-focus-workspace')).toBeInTheDocument();
+    expect(screen.getByTestId('channel-account-list')).toBeInTheDocument();
   });
 }
 
 describe('Channels page status refresh', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    setViewportWidth(1280);
     gatewayState.status = { state: 'running', port: 18789 };
     lastChannelConfigModalProps.current = null;
     modalSavePayload.channelType = 'feishu';
@@ -650,9 +668,10 @@ describe('Channels page status refresh', () => {
   });
 
   it('enters a channel when clicking the card action or the card itself', async () => {
+    setViewportWidth(1720);
     render(<Channels />);
 
-    await enterChannelFromBoard('feishu', { trigger: 'action' });
+    await enterChannelFromBoard('feishu', { trigger: 'action', expectLayout: 'workbench' });
 
     await act(async () => {
       fireEvent.click(screen.getByTestId('channel-rail-item-telegram'));
@@ -690,6 +709,7 @@ describe('Channels page status refresh', () => {
   });
 
   it('does not leak board search filters into the workbench rail', async () => {
+    setViewportWidth(1720);
     render(<Channels />);
 
     await waitFor(() => {
@@ -702,16 +722,17 @@ describe('Channels page status refresh', () => {
       });
     });
 
-    await enterChannelFromBoard('telegram');
+    await enterChannelFromBoard('telegram', { expectLayout: 'workbench' });
 
     expect(screen.getByTestId('channel-rail-item-feishu')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('searchPlaceholder')).toHaveValue('');
   });
 
   it('shows configured summaries for collapsed advanced sections', async () => {
+    setViewportWidth(1720);
     render(<Channels />);
 
-    await enterChannelFromBoard('feishu');
+    await enterChannelFromBoard('feishu', { expectLayout: 'workbench' });
 
     await act(async () => {
       fireEvent.click(screen.getByTestId('channel-rail-item-dingtalk'));
@@ -731,9 +752,10 @@ describe('Channels page status refresh', () => {
   });
 
   it('asks before discarding unsaved editor changes when switching channel', async () => {
+    setViewportWidth(1720);
     render(<Channels />);
 
-    await enterChannelFromBoard('feishu');
+    await enterChannelFromBoard('feishu', { expectLayout: 'workbench' });
 
     await waitFor(() => {
       expect(screen.getByDisplayValue('cli_xxx')).toBeInTheDocument();
@@ -764,9 +786,10 @@ describe('Channels page status refresh', () => {
   });
 
   it('uses theme-compatible surfaces instead of fixed warm-only fills', async () => {
+    setViewportWidth(1720);
     render(<Channels />);
 
-    await enterChannelFromBoard('feishu');
+    await enterChannelFromBoard('feishu', { expectLayout: 'workbench' });
 
     await waitFor(() => {
       expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('bg-[hsl(var(--surface-elevated)/0.98)]');
@@ -775,20 +798,36 @@ describe('Channels page status refresh', () => {
     expect(screen.getByTestId('channel-rail-item-feishu').className).not.toContain('#f7f2e9');
     expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('bg-[hsl(var(--surface-elevated)/0.98)]');
     expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('rounded-[14px]');
-    expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('shadow-[0_12px_26px_rgba(15,23,42,0.06)]');
+    expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('shadow-[0_6px_16px_hsl(var(--foreground)/0.035)]');
 
     expect(screen.getByPlaceholderText('searchPlaceholder').className).not.toContain('#f5f1e8');
     expect(screen.getByPlaceholderText('searchPlaceholder').className).toContain('bg-[hsl(var(--surface-panel)/0.86)]');
   });
 
+  it('keeps the entry and workbench cards free of glossy desktop-web shadows', async () => {
+    setViewportWidth(1720);
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('channel-entry-card-feishu')).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId('channel-entry-card-feishu').className).not.toContain('shadow-[0_12px_28px_rgba(15,23,42,0.055)]');
+
+    await enterChannelFromBoard('feishu', { expectLayout: 'workbench' });
+
+    expect(screen.getByTestId('channel-rail-item-feishu').className).not.toContain('shadow-[0_12px_26px_rgba(15,23,42,0.06)]');
+  });
+
   it('uses a staged responsive workbench so default windows prefer two columns before expanding to three', async () => {
+    setViewportWidth(1720);
     render(<Channels />);
 
     await waitFor(() => {
       expect(screen.getByTestId('channels-shell')).toBeInTheDocument();
     });
 
-    await enterChannelFromBoard('feishu');
+    await enterChannelFromBoard('feishu', { expectLayout: 'workbench' });
 
     expect(screen.getByTestId('channels-shell').className).toContain('max-w-[1680px]');
     expect(screen.getByTestId('channels-shell').className).not.toContain('max-w-5xl');
@@ -799,9 +838,10 @@ describe('Channels page status refresh', () => {
   });
 
   it('renders the left rail as compact adaptive cards instead of loose full-width rows', async () => {
+    setViewportWidth(1720);
     render(<Channels />);
 
-    await enterChannelFromBoard('feishu');
+    await enterChannelFromBoard('feishu', { expectLayout: 'workbench' });
 
     expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('rounded-[14px]');
     expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('px-2.5');
@@ -822,7 +862,6 @@ describe('Channels page status refresh', () => {
 
     expect(screen.getByTestId('channels-scroll-area').className).toContain('workspace-page-scroll');
     expect(screen.getByTestId('channels-editor-scroll').className).toContain('subtle-scrollbar');
-    expect(screen.getByRole('button', { name: 'addChannel' }).className).not.toContain('bg-primary');
     expect(screen.getByRole('button', { name: 'account.add' }).className).not.toContain('bg-primary');
     expect(screen.getByRole('button', { name: 'dialog.updateAndReconnect' }).className).toContain('bg-primary');
   });
@@ -833,11 +872,29 @@ describe('Channels page status refresh', () => {
     await enterChannelFromBoard('feishu');
 
     await waitFor(() => {
-      expect(screen.getByText('editor.behaviorTitle')).toBeInTheDocument();
+      expect(screen.getByText('接入规则')).toBeInTheDocument();
     });
 
     expect(screen.queryByText('account.bindAgentHint')).not.toBeInTheDocument();
     expect(screen.getAllByText('account.unassigned').length).toBeGreaterThan(0);
+  });
+
+  it('renders compact editor fields as inspector rows instead of nested filled cards', async () => {
+    render(<Channels />);
+
+    await enterChannelFromBoard('feishu');
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('cli_xxx')).toBeInTheDocument();
+    });
+
+    const accountIdCard = screen.getByTestId('channel-account-id-card');
+    const appIdCard = screen.getByTestId('channel-field-header-appId').parentElement;
+
+    expect(accountIdCard.className).toContain('border-transparent');
+    expect(accountIdCard.className).not.toContain('bg-[hsl(var(--foreground)/0.01)]');
+    expect(appIdCard?.className).toContain('border-transparent');
+    expect(appIdCard?.className).not.toContain('bg-[hsl(var(--foreground)/0.01)]');
   });
 
   it('uses custom select triggers for agent binding and policy fields instead of native selects', async () => {
@@ -920,9 +977,10 @@ describe('Channels page status refresh', () => {
   });
 
   it('shows human-readable rail connection copy and labels the account + agent controls', async () => {
+    setViewportWidth(1720);
     render(<Channels />);
 
-    await enterChannelFromBoard('feishu');
+    await enterChannelFromBoard('feishu', { expectLayout: 'workbench' });
 
     await waitFor(() => {
       expect(screen.getByTestId('channel-rail-item-feishu')).toBeInTheDocument();
@@ -935,9 +993,10 @@ describe('Channels page status refresh', () => {
   });
 
   it('keeps configured rail indicators green when the channel is enabled even if it is currently disconnected', async () => {
+    setViewportWidth(1720);
     render(<Channels />);
 
-    await enterChannelFromBoard('wecom');
+    await enterChannelFromBoard('wecom', { expectLayout: 'workbench' });
 
     await waitFor(() => {
       expect(screen.getByTestId('channel-rail-indicator-wecom')).toBeInTheDocument();
@@ -947,7 +1006,7 @@ describe('Channels page status refresh', () => {
     expect(screen.getByTestId('channel-rail-indicator-wecom').className).toContain('status-indicator-connected');
   });
 
-  it('keeps the basic config stacked until wide screens so labels do not collapse into narrow columns', async () => {
+  it('uses the same responsive two-column grid for config and common sections while keeping long fields full width', async () => {
     render(<Channels />);
 
     await enterChannelFromBoard('wecom');
@@ -956,9 +1015,9 @@ describe('Channels page status refresh', () => {
       expect(screen.getByDisplayValue('aibVSuoUd2im_LWIl')).toBeInTheDocument();
     });
 
-    expect(screen.getByTestId('channel-basic-fields-grid').className).toContain('xl:grid-cols-2');
-    expect(screen.getByTestId('channel-basic-fields-grid').className).not.toContain('md:grid-cols-2');
-    expect(screen.getByTestId('channel-account-id-card').className).not.toContain('md:grid-cols-');
+    expect(screen.getByTestId('channel-basic-fields-grid').className).toContain('md:grid-cols-2');
+    expect(screen.getByTestId('channel-account-id-card').className).toContain('md:col-span-2');
+    expect(screen.getByTestId('channel-behavior-grid').className).toContain('md:grid-cols-2');
     expect(screen.getByTestId('channel-field-header-botId').className).not.toContain('md:min-h-[3.5rem]');
   });
 
@@ -1055,9 +1114,10 @@ describe('Channels page status refresh', () => {
 
       gatewayState.status = { state: 'running', port: 18789 };
 
+      setViewportWidth(1720);
       render(<Channels />);
 
-      await enterChannelFromBoard('wecom');
+      await enterChannelFromBoard('wecom', { expectLayout: 'workbench' });
 
       await act(async () => {
         await Promise.resolve();
@@ -1144,13 +1204,15 @@ describe('Channels page status refresh', () => {
     }, { timeout: 3000 });
 
     await waitFor(() => {
-      expect(screen.getByText('消息接入规则')).toBeInTheDocument();
+      expect(screen.getByText('接入规则')).toBeInTheDocument();
       expect(screen.getByText('允许进入的私聊用户')).toBeInTheDocument();
       expect(screen.getByDisplayValue('pangtong')).toBeInTheDocument();
       expect(screen.getByText('允许进入的群聊')).toBeInTheDocument();
       expect(screen.getByDisplayValue('group-alpha')).toBeInTheDocument();
       expect(screen.getByText('仅在被 @ 时回复')).toBeInTheDocument();
     }, { timeout: 3000 });
+
+    expect(screen.getByTestId('channel-editor-section-content-access').className).toContain('md:grid-cols-2');
   });
 
   it('uses runtime-unavailable copy instead of disconnected when the gateway state is not ready', async () => {
@@ -1205,9 +1267,10 @@ describe('Channels page status refresh', () => {
 
     gatewayState.status = { state: 'stopped', port: 18789 };
 
+    setViewportWidth(1720);
     render(<Channels />);
 
-    await enterChannelFromBoard('wecom');
+    await enterChannelFromBoard('wecom', { expectLayout: 'workbench' });
 
     await waitFor(() => {
       expect(screen.getByText('gatewayRuntimeUnavailable')).toBeInTheDocument();
@@ -1216,6 +1279,70 @@ describe('Channels page status refresh', () => {
 
     expect(screen.getByTestId('channel-rail-item-wecom')).toHaveTextContent('account.connectionStatus.runtimeUnavailable');
     expect(screen.getByTestId('channel-account-item-default')).not.toHaveTextContent('account.connectionStatus.disconnected');
+  });
+
+  it('shows only one top-level gateway warning when the gateway is stopped', async () => {
+    hostApiFetchMock.mockImplementation(async (path: string) => {
+      if (path.startsWith('/api/channels/accounts')) {
+        return {
+          success: true,
+          channels: [],
+          runtimeAvailable: false,
+          gatewayState: 'stopped',
+        };
+      }
+
+      if (path === '/api/agents') {
+        return {
+          success: true,
+          agents: [],
+        };
+      }
+
+      throw new Error(`Unexpected host API path: ${path}`);
+    });
+
+    gatewayState.status = { state: 'stopped', port: 18789 };
+
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(screen.getByText('gatewayWarning')).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText('gatewayRuntimeUnavailable')).not.toBeInTheDocument();
+  });
+
+  it('shows the runtime wait banner instead of the generic gateway warning while starting', async () => {
+    hostApiFetchMock.mockImplementation(async (path: string) => {
+      if (path.startsWith('/api/channels/accounts')) {
+        return {
+          success: true,
+          channels: [],
+          runtimeAvailable: false,
+          gatewayState: 'starting',
+        };
+      }
+
+      if (path === '/api/agents') {
+        return {
+          success: true,
+          agents: [],
+        };
+      }
+
+      throw new Error(`Unexpected host API path: ${path}`);
+    });
+
+    gatewayState.status = { state: 'starting', port: 18789 };
+
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(screen.getByText('gatewayRuntimeUnavailable')).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText('gatewayWarning')).not.toBeInTheDocument();
   });
 
   it('renames the selected account id and keeps the workbench focused on the renamed account', async () => {

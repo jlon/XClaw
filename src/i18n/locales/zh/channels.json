@@ -17,6 +17,7 @@
     "gatewayRuntimeUnavailable": "运行时状态暂时不可用，当前只展示本地配置。正在等待网关 {{state}} 后重新同步。",
     "availableChannels": "可用频道",
     "supportedChannels": "支持的频道",
+    "backToBoard": "返回全部频道",
     "configuredSection": "已配置",
     "availableSection": "待添加",
     "pluginBadge": "插件",

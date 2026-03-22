@@ -17,6 +17,7 @@
     "gatewayRuntimeUnavailable": "Runtime status is temporarily unavailable. The page is showing local config only and will retry once the gateway is {{state}}.",
     "availableChannels": "Available Channels",
     "supportedChannels": "Supported Channels",
+    "backToBoard": "Back to all channels",
     "configuredSection": "Configured",
     "availableSection": "Available",
     "available": "Available Channels",

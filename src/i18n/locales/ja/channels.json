@@ -17,6 +17,7 @@
     "gatewayRuntimeUnavailable": "ランタイム状態をまだ取得できていません。いまはローカル設定のみを表示しており、ゲートウェイが {{state}} になり次第再同期します。",
     "availableChannels": "利用可能なチャンネル",
     "supportedChannels": "サポートされているチャンネル",
+    "backToBoard": "すべてのチャンネルへ戻る",
     "configuredSection": "設定済み",
     "availableSection": "未追加",
     "available": "利用可能なチャンネル",

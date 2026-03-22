@@ -1,12 +1,8 @@
-import { useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from 'react';
-import { RefreshCw, Trash2, AlertCircle, Plus, Search, BookOpen, ExternalLink } from 'lucide-react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { RefreshCw, AlertCircle, Plus, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { useGatewayStore } from '@/stores/gateway';
 import {
   WorkspacePageFrame,
@@ -19,6 +15,9 @@ import { subscribeHostEvent } from '@/lib/host-events';
 import { ChannelConfigModal } from '@/components/channels/ChannelConfigModal';
 import { ChannelIcon } from '@/components/channels/ChannelIcon';
 import { ChannelEntryBoard } from '@/components/channels/ChannelEntryBoard';
+import { ChannelFocusWorkspace } from '@/components/channels/ChannelFocusWorkspace';
+import { ChannelAccountList } from '@/components/channels/ChannelAccountList';
+import { ChannelConfigEditor } from '@/components/channels/ChannelConfigEditor';
 import { getChannelBoardColumnCount, getChannelCenterLayoutMode } from '@/lib/channel-center-layout';
 import { CHANNEL_FIELD_REGISTRY, V1_CHANNEL_REGISTRY_ORDER } from '@/lib/channel-registry';
 import { cn } from '@/lib/utils';
@@ -73,32 +72,25 @@ interface DeleteTarget {
   accountId?: string;
 }
 
-interface PendingSelectionTarget {
-  channelType: ChannelType;
-  accountId?: string;
-}
+type PendingNavigationTarget =
+  | { kind: 'selection'; channelType: ChannelType; accountId?: string }
+  | { kind: 'board' };
 
 type RegistryChannelType = keyof typeof CHANNEL_FIELD_REGISTRY;
 type EditorValue = string | boolean | number | string[];
 const FALLBACK_ACCOUNT_ID = 'default';
 
-const paneSurfaceClass = 'app-pane-surface min-w-0 rounded-[12px] border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] shadow-none';
-const selectedWorkbenchItemClass =
-  'border-transparent bg-[hsl(var(--foreground)/0.055)] text-foreground';
-const sectionCardClass = 'rounded-[11px] border border-[hsl(var(--border-subtle)/0.58)] bg-transparent shadow-none';
-const fieldCardClass = 'rounded-[10px] border border-[hsl(var(--border-subtle)/0.58)] bg-[hsl(var(--foreground)/0.018)] shadow-none';
+const paneSurfaceClass = 'app-pane-surface min-w-0 rounded-[14px] border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] shadow-none';
 const searchFieldClass = 'h-8.5 rounded-[12px] border border-[hsl(var(--border-subtle)/0.48)] bg-[hsl(var(--surface-panel)/0.86)] pl-9 text-[12.5px] shadow-none placeholder:text-muted-foreground/52 hover:border-[hsl(var(--border-subtle)/0.72)] hover:bg-[hsl(var(--surface-elevated)/0.98)] focus-visible:border-[hsl(var(--border-strong)/0.52)] focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
 const railRowClass = 'group w-full rounded-[14px] border border-transparent px-2.5 py-2 text-left transition-[background-color,border-color,box-shadow,transform] duration-150';
-const selectedRailCardClass = 'translate-y-[-1px] border-[hsl(var(--border-strong)/0.42)] bg-[hsl(var(--surface-elevated)/0.98)] text-foreground shadow-[0_12px_26px_rgba(15,23,42,0.06)]';
+const selectedRailCardClass = 'translate-y-[-1px] border-[hsl(var(--border-strong)/0.36)] bg-[hsl(var(--surface-elevated)/0.98)] text-foreground shadow-[0_6px_16px_hsl(var(--foreground)/0.035)]';
 const idleRailCardClass = 'bg-[hsl(var(--surface-panel)/0.58)] hover:border-[hsl(var(--border-subtle)/0.82)] hover:bg-[hsl(var(--surface-hover)/0.58)]';
-const railIconClass = 'flex h-9.5 w-9.5 shrink-0 items-center justify-center rounded-[13px] border border-[hsl(var(--border-subtle)/0.72)] bg-[hsl(var(--surface-elevated)/0.98)] shadow-[inset_0_1px_0_rgba(255,255,255,0.22)]';
+const railIconClass = 'flex h-9.5 w-9.5 shrink-0 items-center justify-center rounded-[13px] border border-[hsl(var(--border-subtle)/0.72)] bg-[hsl(var(--surface-elevated)/0.98)] shadow-none';
 const railMetaBadgeClass = 'inline-flex shrink-0 items-center rounded-full border border-[hsl(var(--border-subtle)/0.6)] bg-[hsl(var(--foreground)/0.035)] px-1.75 py-0.5 text-[10px] font-medium leading-none text-foreground/62';
 const railStateBadgeClass = 'inline-flex shrink-0 items-center rounded-full border border-[hsl(var(--border-subtle)/0.54)] bg-[hsl(var(--surface-elevated)/0.98)] px-2 py-0.5 text-[10px] font-medium leading-none text-foreground/68';
 const sectionLabelClass = 'px-0.5 text-[10px] font-semibold uppercase tracking-[0.09em] text-muted-foreground/52';
-const headerTitleClass = 'text-[22px] font-semibold tracking-tight text-foreground md:text-[24px]';
-const headerSubtitleClass = 'mt-1 text-[12px] leading-5 text-foreground/58';
-const inspectorTitleClass = 'text-[15px] font-semibold text-foreground md:text-[16px]';
-const inspectorSubtitleClass = 'mt-1 text-[11px] leading-5 text-muted-foreground/76';
+const headerTitleClass = 'text-[18px] font-semibold tracking-tight text-foreground md:text-[20px]';
+const headerSubtitleClass = 'mt-0.5 text-[11px] leading-5 text-foreground/54';
 
 function isRegistryChannelType(channelType: string): channelType is RegistryChannelType {
   return channelType in CHANNEL_FIELD_REGISTRY;
@@ -124,26 +116,8 @@ function removeDeletedTarget(groups: ChannelGroupItem[], target: DeleteTarget): 
   return groups.filter((group) => group.channelType !== target.channelType);
 }
 
-function resolveTranslationText(t: (key: string) => string, value?: string): string {
-  if (!value) return '';
-  return value.startsWith('channels:') ? t(value.replace('channels:', '')) : value;
-}
-
 function isStringArrayValue(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((item) => typeof item === 'string');
-}
-
-function getFieldValueForDisplay(field: ChannelConfigContractField, value: EditorValue | undefined): EditorValue | undefined {
-  if (value !== undefined) return value;
-  return field.defaultValue;
-}
-
-function getFieldStringValue(field: ChannelConfigContractField, value: EditorValue | undefined): string {
-  const resolved = getFieldValueForDisplay(field, value);
-  if (typeof resolved === 'string') return resolved;
-  if (typeof resolved === 'number') return String(resolved);
-  if (isStringArrayValue(resolved)) return resolved.join(', ');
-  return '';
 }
 
 function getEditorStringValue(editorValues: Record<string, EditorValue>, key: string): string {
@@ -198,11 +172,6 @@ function getVisibleSection(
   };
 }
 
-function getFieldBooleanValue(field: ChannelConfigContractField, value: EditorValue | undefined): boolean {
-  const resolved = getFieldValueForDisplay(field, value);
-  return resolved === true;
-}
-
 function cloneEditorValue(value: EditorValue): EditorValue {
   return isStringArrayValue(value) ? [...value] : value;
 }
@@ -245,60 +214,6 @@ function areEditorValuesEqual(left: Record<string, EditorValue>, right: Record<s
     }
   }
   return true;
-}
-
-function getFieldSummaryValue(
-  field: ChannelConfigContractField,
-  value: EditorValue | undefined,
-  t: (key: string, options?: Record<string, unknown>) => string,
-): string | null {
-  const resolved = getFieldValueForDisplay(field, value);
-  if (resolved === undefined || resolved === null) return null;
-
-  if (field.valueType === 'password') {
-    return typeof resolved === 'string' && resolved.trim().length > 0 ? t('editor.summaryConfigured') : null;
-  }
-
-  if (typeof resolved === 'string') {
-    const trimmed = resolved.trim();
-    if (!trimmed) return null;
-    const option = field.options?.find((item) => item.value === trimmed);
-    return resolveTranslationText(t, option?.label || trimmed);
-  }
-
-  if (typeof resolved === 'boolean') {
-    return resolved ? t('enabledLabel') : t('disabledLabel');
-  }
-
-  if (typeof resolved === 'number') {
-    return String(resolved);
-  }
-
-  if (isStringArrayValue(resolved)) {
-    const items = resolved.map((item) => item.trim()).filter(Boolean);
-    if (items.length === 0) return null;
-    if (items.length <= 2) {
-      return items.join(', ');
-    }
-    return `${items.slice(0, 2).join(', ')} ${t('editor.summaryMoreCount', { count: items.length - 2 })}`;
-  }
-
-  return null;
-}
-
-function getSectionSummary(
-  section: ChannelConfigContractSection,
-  editorValues: Record<string, EditorValue>,
-  t: (key: string, options?: Record<string, unknown>) => string,
-): string | null {
-  const summaryItems = section.fields.flatMap((field) => {
-    const summaryValue = getFieldSummaryValue(field, editorValues[field.key], t);
-    if (!summaryValue) return [];
-    return [`${resolveTranslationText(t, field.label)}：${summaryValue}`];
-  });
-
-  if (summaryItems.length === 0) return null;
-  return summaryItems.slice(0, 2).join(' · ');
 }
 
 function getChannelStatusTone(status: ChannelGroupItem['status'] | ChannelAccountItem['status']): string {
@@ -404,6 +319,7 @@ export function Channels() {
   const [channelGroups, setChannelGroups] = useState<ChannelGroupItem[]>([]);
   const [agents, setAgents] = useState<AgentItem[]>([]);
   const [showConfigModal, setShowConfigModal] = useState(false);
+  const [showEntryBoard, setShowEntryBoard] = useState(true);
   const [selectedChannelType, setSelectedChannelType] = useState<ChannelType | null>(null);
   const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>(undefined);
   const [allowExistingConfigInModal, setAllowExistingConfigInModal] = useState(true);
@@ -425,7 +341,7 @@ export function Channels() {
   const [weixinGuardianEnabled, setWeixinGuardianEnabled] = useState(false);
   const [weixinGuardianLoading, setWeixinGuardianLoading] = useState(false);
   const [weixinGuardianSaving, setWeixinGuardianSaving] = useState(false);
-  const [pendingSelection, setPendingSelection] = useState<PendingSelectionTarget | null>(null);
+  const [pendingNavigation, setPendingNavigation] = useState<PendingNavigationTarget | null>(null);
   const [editorValidation, setEditorValidation] = useState<{
     valid: boolean;
     errors: string[];
@@ -627,10 +543,17 @@ export function Channels() {
       : null),
     [selectedAccount, selectedIsWeixin, weixinGuardianEnabled],
   );
-  const layoutMode = useMemo(
-    () => getChannelCenterLayoutMode(containerWidth, Boolean(selectedChannelType)),
-    [containerWidth, selectedChannelType],
+  const hasSelectedContext = useMemo(
+    () => !showEntryBoard && Boolean(selectedChannelType),
+    [selectedChannelType, showEntryBoard],
   );
+  const layoutMode = useMemo(
+    () => getChannelCenterLayoutMode(containerWidth, hasSelectedContext),
+    [containerWidth, hasSelectedContext],
+  );
+  const effectiveGatewayState = runtimeGatewayState || gatewayStatus.state;
+  const showGatewayStoppedBanner = layoutMode === 'board' && effectiveGatewayState !== 'running' && effectiveGatewayState !== 'starting';
+  const showRuntimeWaitingBanner = !error && !runtimeAvailable && !showGatewayStoppedBanner;
   const boardColumnCount = useMemo(
     () => getChannelBoardColumnCount(containerWidth),
     [containerWidth],
@@ -701,6 +624,14 @@ export function Channels() {
     }),
     [t, unconfiguredFilteredChannelTypes],
   );
+  const selectedChannelDescription = useMemo(
+    () => (selectedChannelType ? getChannelEntryDescription(selectedChannelType, t) : t('availableDesc')),
+    [selectedChannelType, t],
+  );
+  const selectedAccountSummary = useMemo(
+    () => (selectedGroup ? t('entryAccountCount', { count: selectedGroup.accounts.length }) : t('availableDesc')),
+    [selectedGroup, t],
+  );
   const accountIdBaseline = useMemo(
     () => (selectedChannelType && selectedChannelType !== 'whatsapp' ? (selectedAccountId || FALLBACK_ACCOUNT_ID) : ''),
     [selectedAccountId, selectedChannelType],
@@ -714,20 +645,32 @@ export function Channels() {
     [],
   );
   const applySelection = useCallback((channelType: ChannelType, accountId?: string) => {
+    setShowEntryBoard(false);
     setSelectedChannelType(channelType);
     setSelectedAccountId(accountId);
   }, []);
 
   const requestSelectionChange = useCallback((channelType: ChannelType, accountId?: string) => {
-    if (selectedChannelType === channelType && selectedAccountId === accountId) {
+    if (!showEntryBoard && selectedChannelType === channelType && selectedAccountId === accountId) {
       return;
     }
     if (isEditorDirty && !editorSaving) {
-      setPendingSelection({ channelType, accountId });
+      setPendingNavigation({ kind: 'selection', channelType, accountId });
       return;
     }
     applySelection(channelType, accountId);
-  }, [applySelection, editorSaving, isEditorDirty, selectedAccountId, selectedChannelType]);
+  }, [applySelection, editorSaving, isEditorDirty, selectedAccountId, selectedChannelType, showEntryBoard]);
+
+  const requestBoardReturn = useCallback(() => {
+    if (showEntryBoard) {
+      return;
+    }
+    if (isEditorDirty && !editorSaving) {
+      setPendingNavigation({ kind: 'board' });
+      return;
+    }
+    setShowEntryBoard(true);
+  }, [editorSaving, isEditorDirty, showEntryBoard]);
 
   const fetchEditorValues = useCallback(async (channelType: ChannelType, accountId?: string) => {
     const accountParam = accountId ? `?accountId=${encodeURIComponent(accountId)}` : '';
@@ -1072,13 +1015,140 @@ export function Channels() {
   };
 
   const createNewAccountId = (channelType: string, existingAccounts: string[]): string => {
-    // Generate a collision-safe default account id for user editing.
     let nextAccountId = `${channelType}-${crypto.randomUUID().slice(0, 8)}`;
     while (existingAccounts.includes(nextAccountId)) {
       nextAccountId = `${channelType}-${crypto.randomUUID().slice(0, 8)}`;
     }
     return nextAccountId;
   };
+
+  const handleAddAccount = () => {
+    if (!selectedChannelType) return;
+    if (selectedGroup) {
+      if (isWeixinChannel(selectedGroup.channelType as ChannelType)) {
+        void openConfigModal(selectedGroup.channelType as ChannelType, {
+          allowExistingConfig: true,
+        });
+        return;
+      }
+      const nextAccountId = createNewAccountId(
+        selectedGroup.channelType,
+        selectedGroup.accounts.map((item) => item.accountId),
+      );
+      void openConfigModal(selectedGroup.channelType as ChannelType, {
+        accountId: nextAccountId,
+        allowExistingConfig: false,
+        allowEditAccountId: true,
+        existingAccountIds: selectedGroup.accounts.map((item) => item.accountId),
+      });
+      return;
+    }
+    void openConfigModal(selectedChannelType, {
+      allowExistingConfig: true,
+    });
+  };
+
+  const handleOpenSelectedModal = () => {
+    if (!selectedChannelType) return;
+    void openConfigModal(selectedChannelType, {
+      accountId: selectedAccountId,
+      allowExistingConfig: true,
+      initialAgentId: selectedAccount?.agentId,
+    });
+  };
+
+  const accountPane = selectedChannelType ? (
+    <ChannelAccountList
+      channelType={selectedChannelType}
+      title={selectedMeta?.name || ''}
+      summary={selectedAccountSummary}
+      emptyDescription={selectedChannelDescription}
+      addActionLabel={selectedGroup ? (selectedIsWeixin ? t('account.addByQr') : t('account.add')) : (selectedIsWeixin ? t('account.addByQr') : t('addChannel'))}
+      accounts={selectedGroup?.accounts}
+      selectedAccountId={selectedAccountId}
+      t={t}
+      onAddAccount={handleAddAccount}
+      onDeleteChannel={() => {
+        if (!selectedGroup) return;
+        setDeleteTarget({ channelType: selectedGroup.channelType });
+      }}
+      onSelectAccount={(accountId) => {
+        requestSelectionChange(selectedChannelType, accountId);
+      }}
+      onSetDefaultAccount={(accountId) => {
+        if (!selectedGroup) return;
+        void handleSetDefaultAccount(selectedGroup.channelType, accountId);
+      }}
+      onDeleteAccount={(accountId) => {
+        if (!selectedGroup) return;
+        setDeleteTarget({ channelType: selectedGroup.channelType, accountId });
+      }}
+      getStatusLabel={(status) => getRuntimeAwareStatusLabel(status, runtimeAvailable, t)}
+      getStatusTone={(status) => getRuntimeAwareStatusTone(status, runtimeAvailable)}
+    />
+  ) : null;
+
+  const editorPane = (
+    <ChannelConfigEditor
+      channelType={selectedChannelType}
+      title={selectedMeta?.name}
+      description={selectedChannelDescription}
+      selectedAccountId={selectedAccountId}
+      selectedAccount={selectedAccount
+        ? {
+          accountId: selectedAccount.accountId,
+          isDefault: selectedAccount.isDefault,
+          agentId: selectedAccount.agentId,
+        }
+        : undefined}
+      selectedGroup={selectedGroup ? { enabled: selectedGroup.enabled } : undefined}
+      hasRegistry={Boolean(selectedRegistry)}
+      basicFields={selectedRegistry?.basicFields || []}
+      visibleAdvancedSections={visibleAdvancedSections}
+      candidateSections={candidateSections}
+      editorValues={editorValues}
+      accountIdDraft={accountIdDraft}
+      agents={agents}
+      editorLoading={editorLoading}
+      editorSaving={editorSaving}
+      editorValidating={editorValidating}
+      editorTogglingEnabled={editorTogglingEnabled}
+      selectedIsWeixin={selectedIsWeixin}
+      weixinGuardianEnabled={weixinGuardianEnabled}
+      weixinGuardianLoading={weixinGuardianLoading}
+      weixinGuardianSaving={weixinGuardianSaving}
+      weixinGuardianToneClass={getWeixinGuardianTone(weixinGuardianEvaluation)}
+      weixinGuardianMessageKey={getWeixinGuardianMessageKey(weixinGuardianEvaluation, weixinGuardianEnabled)}
+      showWeixinGuardianRelogin={Boolean(weixinGuardianEnabled && weixinGuardianEvaluation && weixinGuardianEvaluation.level !== 'healthy')}
+      editorValidation={editorValidation}
+      editorScrollbarClass={editorScrollbarClass}
+      t={t}
+      onAccountIdChange={setAccountIdDraft}
+      onFieldChange={handleEditorValueChange}
+      onValidate={() => {
+        void handleValidateConfig();
+      }}
+      onSave={() => {
+        void handleSaveInlineConfig();
+      }}
+      onToggleEnabled={(checked) => {
+        if (!selectedChannelType) return;
+        void handleSetChannelEnabled(selectedChannelType, checked);
+      }}
+      onBindAgent={(agentId) => {
+        if (!selectedChannelType || !selectedAccountId) return;
+        void handleBindAgent(selectedChannelType, selectedAccountId, agentId);
+      }}
+      onOpenDocs={() => {
+        if (!selectedChannelType) return;
+        openChannelDocs(selectedChannelType);
+      }}
+      onOpenModal={handleOpenSelectedModal}
+      onWeixinGuardianToggle={(checked) => {
+        void handleWeixinGuardianToggle(checked);
+      }}
+    />
+  );
 
   if (loading) {
     return <WorkspacePageLoading />;
@@ -1090,7 +1160,7 @@ export function Channels() {
         data-testid="channels-shell"
         className="max-w-[1680px]"
       >
-        <div className="mb-5 flex shrink-0 flex-col justify-between gap-3 md:flex-row md:items-center">
+        <div className="mb-3.5 flex shrink-0 flex-col justify-between gap-2 md:flex-row md:items-center">
           <div>
             <h1 className={headerTitleClass}>
               {t('title')}
@@ -1105,7 +1175,7 @@ export function Channels() {
               variant="outline"
               onClick={handleRefresh}
               disabled={gatewayStatus.state !== 'running' || refreshing}
-              className="h-8 rounded-[10px] px-3 text-[12px] font-medium text-foreground/80 shadow-none transition-colors hover:text-foreground"
+              className="h-7 rounded-[10px] px-3 text-[11.5px] font-medium text-foreground/80 shadow-none transition-colors hover:text-foreground"
             >
               <RefreshCw className={cn('mr-2 h-3.5 w-3.5', refreshing && 'animate-spin')} />
               {t('refresh')}
@@ -1114,7 +1184,7 @@ export function Channels() {
         </div>
 
         <WorkspacePageScrollArea data-testid="channels-scroll-area">
-          {gatewayStatus.state !== 'running' && (
+          {showGatewayStoppedBanner && (
             <div className="app-insight-surface mb-6 flex items-center gap-3 rounded-[11px] border border-[hsl(var(--warning))/0.14] px-3.5 py-2.5 text-[hsl(var(--warning))]">
               <AlertCircle className="h-5 w-5" />
               <span className="text-sm font-medium">
@@ -1132,17 +1202,15 @@ export function Channels() {
             </div>
           )}
 
-          {!error && !runtimeAvailable && (
+          {showRuntimeWaitingBanner && (
             <div className="app-insight-surface mb-6 rounded-[11px] border border-[hsl(var(--warning))/0.14] px-3.5 py-2.5 text-sm text-[hsl(var(--warning))]">
-              {t('gatewayRuntimeUnavailable', { state: runtimeGatewayState })}
+              {t('gatewayRuntimeUnavailable', { state: effectiveGatewayState })}
             </div>
           )}
 
           <div ref={contentRef} className="min-w-0">
             {layoutMode === 'board' ? (
               <ChannelEntryBoard
-                title={t('supportedChannels')}
-                subtitle={t('subtitle')}
                 query={boardQuery}
                 queryPlaceholder={t('searchPlaceholder')}
                 onQueryChange={setBoardQuery}
@@ -1164,741 +1232,161 @@ export function Channels() {
                 columnCount={boardColumnCount}
                 onSelectChannel={(channelType) => requestSelectionChange(channelType)}
               />
+            ) : layoutMode === 'focus' ? (
+              <ChannelFocusWorkspace
+                backLabel={t('backToBoard')}
+                title={selectedMeta?.name || t('supportedChannels')}
+                description={selectedChannelDescription}
+                icon={selectedChannelType ? <ChannelLogo type={selectedChannelType} /> : null}
+                onBack={requestBoardReturn}
+                accountPane={accountPane}
+                editorPane={editorPane}
+              />
             ) : (
-            <div
-              data-testid="channels-workbench"
-              className="grid min-w-0 gap-5 xl:grid-cols-[minmax(272px,0.82fr)_minmax(560px,1.34fr)] min-[1440px]:grid-cols-[minmax(224px,0.74fr)_minmax(336px,1fr)_minmax(520px,1.48fr)]"
-            >
-            <div data-testid="channels-navigation-stack" className="grid min-w-0 gap-5 min-[1440px]:contents">
-              <section className={cn(paneSurfaceClass, 'p-2.5')}>
-                <div className="flex items-start justify-between gap-2.5">
-                  <div>
-                    <h2 className="text-sm font-semibold text-foreground">{t('supportedChannels')}</h2>
-                    <p className="mt-0.5 hidden text-[11px] leading-5 text-muted-foreground/78 xl:block">{t('availableDesc')}</p>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-8 rounded-[11px] px-2.5 text-[11.5px] text-foreground/78 shadow-none hover:text-foreground"
-                    onClick={() => {
-                      const nextChannel = unsupportedGroups[0] || allChannelTypes[0];
-                      if (nextChannel) {
-                        requestSelectionChange(nextChannel);
-                      }
-                    }}
-                  >
-                    <Plus className="mr-1 h-3.5 w-3.5" />
-                    {t('addChannel')}
-                  </Button>
-                </div>
-
-                <div className="relative mt-2.5">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/68" />
-                  <Input
-                    value={railQuery}
-                    onChange={(event) => setRailQuery(event.target.value)}
-                    placeholder={t('searchPlaceholder')}
-                    className={searchFieldClass}
-                  />
-                </div>
-
-                <div className="mt-3 space-y-2.5">
-                  {configuredFilteredChannelTypes.length > 0 && (
-                    <div className="space-y-1.5">
-                      <p className={sectionLabelClass}>
-                        {t('configuredSection')}
-                      </p>
-                      {configuredFilteredChannelTypes.map((channelType) => {
-                        const meta = CHANNEL_META[channelType];
-                        const group = groupedByType[channelType];
-                        const isSelected = selectedChannelType === channelType;
-                        const statusLabel = getRuntimeAwareStatusLabel(group.status, runtimeAvailable, t);
-                        return (
-                          <button
-                            key={channelType}
-                            type="button"
-                            data-testid={`channel-rail-item-${channelType}`}
-                            aria-pressed={isSelected}
-                            onClick={() => requestSelectionChange(channelType)}
-                            className={cn(
-                              railRowClass,
-                              isSelected
-                                ? selectedRailCardClass
-                                : idleRailCardClass,
-                            )}
-                          >
-                            <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5">
-                              <div className={railIconClass}>
-                                <ChannelLogo type={channelType} />
-                              </div>
-                              <div className="min-w-0 space-y-1">
-                                <p className="truncate text-[13px] font-semibold text-foreground">{meta.name}</p>
-                                <div
-                                  data-testid={`channel-rail-meta-${channelType}`}
-                                  className="flex min-w-0 items-center gap-1.5 overflow-hidden text-[10.5px] leading-none text-muted-foreground/76"
-                                >
-                                  <span className="truncate">{statusLabel}</span>
-                                  <span className="hidden shrink-0 min-[420px]:inline text-foreground/28">·</span>
-                                  <span className="hidden truncate min-[420px]:inline">{getChannelConnectionLabel(channelType, t)}</span>
-                                </div>
-                              </div>
-                              <div className="flex shrink-0 items-center gap-1.5 self-start">
-                                <span data-testid={`channel-rail-count-${channelType}`} className={railMetaBadgeClass}>{group.accounts.length}</span>
-                                <span className="hidden min-[420px]:inline-flex shrink-0 items-center rounded-full border border-[hsl(var(--border-subtle)/0.54)] bg-[hsl(var(--surface-elevated)/0.98)] px-2 py-0.5 text-[10px] font-medium leading-none text-foreground/68">
-                                  {group.enabled ? t('enabledLabel') : t('disabledLabel')}
-                                </span>
-                                <div
-                                  data-testid={`channel-rail-indicator-${channelType}`}
-                                  className={cn('h-2.5 w-2.5 shrink-0 rounded-[999px]', getConfiguredChannelRailTone(group.enabled))}
-                                />
-                              </div>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {unconfiguredFilteredChannelTypes.length > 0 && (
-                    <div className="space-y-1.5">
-                      <p className={sectionLabelClass}>
-                        {t('availableSection')}
-                      </p>
-                      {unconfiguredFilteredChannelTypes.map((channelType) => {
-                        const meta = CHANNEL_META[channelType];
-                        const isSelected = selectedChannelType === channelType;
-                        return (
-                          <button
-                            key={channelType}
-                            type="button"
-                            data-testid={`channel-rail-item-${channelType}`}
-                            aria-pressed={isSelected}
-                            onClick={() => requestSelectionChange(channelType)}
-                            className={cn(
-                              railRowClass,
-                              isSelected
-                                ? selectedRailCardClass
-                                : idleRailCardClass,
-                            )}
-                          >
-                            <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5">
-                              <div className={railIconClass}>
-                                <ChannelLogo type={channelType} />
-                              </div>
-                              <div className="min-w-0 space-y-1">
-                                <p className="truncate text-[13px] font-semibold text-foreground">{meta.name}</p>
-                                <div
-                                  data-testid={`channel-rail-meta-${channelType}`}
-                                  className="flex min-w-0 items-center gap-1.5 overflow-hidden text-[10.5px] leading-none text-muted-foreground/76"
-                                >
-                                  <span className="truncate">{getChannelConnectionLabel(channelType, t)}</span>
-                                </div>
-                              </div>
-                              <div className="flex shrink-0 items-center gap-1.5 self-start">
-                                <span className={railStateBadgeClass}>{t('available')}</span>
-                                <div
-                                  data-testid={`channel-rail-indicator-${channelType}`}
-                                  className="status-indicator status-indicator-idle h-2.5 w-2.5 shrink-0 rounded-[999px]"
-                                />
-                              </div>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {filteredChannelTypes.length === 0 && (
-                    <div className="app-empty-surface rounded-[14px] px-3 py-4 text-xs text-muted-foreground">
-                      {t('emptySearch')}
-                    </div>
-                  )}
-                </div>
-              </section>
-
-              <section className={cn(paneSurfaceClass, 'p-3')}>
-                {selectedMeta && (
-                  <>
-                    <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                      <div className="min-w-0">
-                        <h2 className="text-[14px] font-semibold text-foreground">{selectedMeta.name}</h2>
-                        <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82">
-                          {selectedGroup
-                            ? t('accountListSummary', { count: selectedGroup.accounts.length, default: selectedGroup.defaultAccountId })
-                            : t('availableDesc')}
-                        </p>
+              <div
+                data-testid="channels-workbench"
+                className="grid min-w-0 gap-5 xl:grid-cols-[minmax(272px,0.82fr)_minmax(560px,1.34fr)] min-[1440px]:grid-cols-[minmax(224px,0.74fr)_minmax(336px,1fr)_minmax(520px,1.48fr)]"
+              >
+                <div data-testid="channels-navigation-stack" className="grid min-w-0 gap-5 min-[1440px]:contents">
+                  <section className={cn(paneSurfaceClass, 'p-2.5')}>
+                    <div className="flex items-start justify-between gap-2.5">
+                      <div>
+                        <h2 className="text-sm font-semibold text-foreground">{t('supportedChannels')}</h2>
+                        <p className="mt-0.5 hidden text-[11px] leading-5 text-muted-foreground/78 xl:block">{t('availableDesc')}</p>
                       </div>
-                      <div
-                        data-testid="channel-account-header-actions"
-                        className="grid shrink-0 grid-flow-col auto-cols-max items-center justify-end gap-2 self-start"
-                      >
-                        {selectedGroup && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-7 rounded-[10px] px-3 text-[12px] text-foreground/80 shadow-none hover:text-foreground"
-                            onClick={() => {
-                              if (isWeixinChannel(selectedGroup.channelType as ChannelType)) {
-                                void openConfigModal(selectedGroup.channelType as ChannelType, {
-                                  allowExistingConfig: true,
-                                });
-                                return;
-                              }
-                              const nextAccountId = createNewAccountId(
-                                selectedGroup.channelType,
-                                selectedGroup.accounts.map((item) => item.accountId),
-                              );
-                              void openConfigModal(selectedGroup.channelType as ChannelType, {
-                                accountId: nextAccountId,
-                                allowExistingConfig: false,
-                                allowEditAccountId: true,
-                                existingAccountIds: selectedGroup.accounts.map((item) => item.accountId),
-                              });
-                            }}
-                          >
-                            <Plus className="mr-1 h-3.5 w-3.5" />
-                            {isWeixinChannel(selectedGroup.channelType as ChannelType) ? t('account.addByQr') : t('account.add')}
-                          </Button>
-                        )}
-                        {selectedGroup && (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-7 w-7 rounded-[10px] text-muted-foreground hover:bg-[hsl(var(--foreground)/0.05)] hover:text-destructive"
-                            onClick={() => setDeleteTarget({ channelType: selectedGroup.channelType })}
-                            title={t('account.deleteChannel')}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-
-                    {selectedGroup ? (
-                      <div className="space-y-2">
-                        {selectedGroup.accounts.map((account) => {
-                          const displayName =
-                            account.accountId === 'default' && account.name === account.accountId
-                              ? t('account.mainAccount')
-                              : account.name;
-                          const isSelected = selectedAccountId === account.accountId;
-                          return (
-                            <div
-                              key={`${selectedGroup.channelType}-${account.accountId}`}
-                              role="button"
-                              tabIndex={0}
-                              data-testid={`channel-account-item-${account.accountId}`}
-                              onClick={() => requestSelectionChange(selectedGroup.channelType as ChannelType, account.accountId)}
-                              onKeyDown={(event) => {
-                                if (event.key === 'Enter' || event.key === ' ') {
-                                  event.preventDefault();
-                                  requestSelectionChange(selectedGroup.channelType as ChannelType, account.accountId);
-                                }
-                              }}
-                              className={cn(
-                                'group w-full rounded-[10px] border px-3 py-2.5 text-left transition-colors',
-                                isSelected
-                                  ? selectedWorkbenchItemClass
-                                  : 'app-pane-surface hover:bg-[hsl(var(--foreground)/0.038)]',
-                              )}
-                            >
-                              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-center gap-2">
-                                    <p className="truncate text-sm font-medium text-foreground">{displayName}</p>
-                                    {account.isDefault && (
-                                      <Badge variant="secondary" className="h-5 rounded-[9px] border border-border/55 bg-[hsl(var(--foreground)/0.04)] px-1.5 text-[10px] font-medium text-foreground/72 shadow-none hover:bg-[hsl(var(--foreground)/0.04)]">
-                                        {t('account.default')}
-                                      </Badge>
-                                    )}
-                                    {!account.enabled && (
-                                      <Badge variant="outline" className="h-5 rounded-[9px] border border-border/55 px-1.5 text-[10px] text-foreground/68 shadow-none">
-                                        {t('disabledLabel')}
-                                      </Badge>
-                                    )}
-                                  </div>
-                                  <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82">{t('account.idLabel', { id: account.accountId })}</p>
-                                  <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82">
-                                    {account.agentId ? t('account.boundTo', { agent: account.agentId }) : t('account.unassigned')}
-                                  </p>
-                                  <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82">
-                                    {t('account.connectionStatusLabel', {
-                                      status: getRuntimeAwareStatusLabel(account.status, runtimeAvailable, t),
-                                    })}
-                                  </p>
-                                  {account.lastError && (
-                                    <p className="mt-1 text-xs leading-5 text-destructive">{account.lastError}</p>
-                                  )}
-                                </div>
-
-                                <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5 opacity-70 transition-opacity group-hover:opacity-100">
-                                  <div className={cn('h-2.5 w-2.5 rounded-[999px]', getRuntimeAwareStatusTone(account.status, runtimeAvailable))} />
-                                  {!account.isDefault && (
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant="outline"
-                                      className="h-7 rounded-[10px] px-2.5 text-[11px]"
-                                      onClick={(event) => {
-                                        event.stopPropagation();
-                                        void handleSetDefaultAccount(selectedGroup.channelType, account.accountId);
-                                      }}
-                                    >
-                                      {t('account.setDefault')}
-                                    </Button>
-                                  )}
-                                  <Button
-                                    type="button"
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-7 w-7 rounded-[9px] text-muted-foreground hover:text-destructive hover:bg-[hsl(var(--foreground)/0.05)]"
-                                    onClick={(event) => {
-                                      event.stopPropagation();
-                                      setDeleteTarget({ channelType: selectedGroup.channelType, accountId: account.accountId });
-                                    }}
-                                    title={t('account.delete')}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="app-empty-surface rounded-[14px] px-4 py-5">
-                        <p className="mb-1 text-sm font-medium text-foreground">{selectedMeta.name}</p>
-                        <p className="text-[11px] leading-5 text-muted-foreground/82">{t(selectedMeta.description.replace('channels:', ''))}</p>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="mt-4 h-7 rounded-[10px] px-3 text-[12px] text-foreground/80 shadow-none hover:text-foreground"
-                          onClick={() => {
-                            if (!selectedChannelType) return;
-                            void openConfigModal(selectedChannelType, {
-                              allowExistingConfig: true,
-                            });
-                          }}
-                        >
-                          <Plus className="mr-1 h-3.5 w-3.5" />
-                          {selectedIsWeixin ? t('account.addByQr') : t('addChannel')}
-                        </Button>
-                      </div>
-                    )}
-                  </>
-                )}
-              </section>
-            </div>
-
-            <section className={cn(paneSurfaceClass, 'p-3')}>
-              {!selectedMeta && (
-                <div className="app-empty-surface rounded-[14px] p-5 text-sm text-muted-foreground">
-                  {t('availableDesc')}
-                </div>
-              )}
-
-              {selectedMeta && selectedIsWeixin && !selectedGroup && (
-                <div className="space-y-4">
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                    <div>
-                      <h3 className={inspectorTitleClass}>{selectedMeta.name}</h3>
-                      <p className={inspectorSubtitleClass}>{t(selectedMeta.description.replace('channels:', ''))}</p>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-8 rounded-[10px] px-3 text-[12px]"
-                      onClick={() => openChannelDocs('openclaw-weixin')}
-                    >
-                      <BookOpen className="mr-1 h-3.5 w-3.5" />
-                      {t('dialog.viewDocs')}
-                      <ExternalLink className="ml-1 h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                  <Button
-                    onClick={() => {
-                      void openConfigModal('openclaw-weixin', {
-                        allowExistingConfig: true,
-                      });
-                    }}
-                    className="rounded-[10px]"
-                  >
-                    {t('account.addByQr')}
-                  </Button>
-                </div>
-              )}
-
-              {selectedMeta && selectedChannelType === 'whatsapp' && (
-                <div className="space-y-4">
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                    <div>
-                      <h3 className={inspectorTitleClass}>{selectedMeta.name}</h3>
-                      <p className={inspectorSubtitleClass}>{t(selectedMeta.description.replace('channels:', ''))}</p>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-8 rounded-[10px] px-3 text-[12px]"
-                      onClick={() => openChannelDocs('whatsapp')}
-                    >
-                      <BookOpen className="mr-1 h-3.5 w-3.5" />
-                      {t('dialog.viewDocs')}
-                      <ExternalLink className="ml-1 h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                  <Button
-                    onClick={() => {
-                      void openConfigModal('whatsapp', {
-                        accountId: selectedAccountId,
-                        allowExistingConfig: true,
-                        initialAgentId: selectedAccount?.agentId,
-                      });
-                    }}
-                    className="rounded-[10px]"
-                  >
-                    {t('dialog.generateQRCode')}
-                  </Button>
-                </div>
-              )}
-
-              {selectedMeta && selectedChannelType !== 'whatsapp' && !selectedRegistry && (
-                <div className="space-y-4">
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                    <div>
-                      <h3 className={inspectorTitleClass}>{selectedMeta.name}</h3>
-                      <p className={inspectorSubtitleClass}>{t(selectedMeta.description.replace('channels:', ''))}</p>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-8 rounded-[10px] px-3 text-[12px]"
-                      onClick={() => selectedChannelType && openChannelDocs(selectedChannelType)}
-                    >
-                      <BookOpen className="mr-1 h-3.5 w-3.5" />
-                      {t('dialog.viewDocs')}
-                      <ExternalLink className="ml-1 h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                  <Button
-                    onClick={() => {
-                      if (!selectedChannelType) return;
-                      void openConfigModal(selectedChannelType, {
-                        accountId: selectedAccountId,
-                        allowExistingConfig: true,
-                        initialAgentId: selectedAccount?.agentId,
-                      });
-                    }}
-                    className="rounded-[10px]"
-                  >
-                    {selectedGroup ? t('account.edit') : t('dialog.saveAndConnect')}
-                  </Button>
-                </div>
-              )}
-
-              {selectedMeta && selectedChannelType !== 'whatsapp' && selectedRegistry && !(selectedIsWeixin && !selectedGroup) && (
-                <div className="flex min-h-[560px] flex-col">
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                    <div>
-                      <h3 className={inspectorTitleClass}>{selectedMeta.name}</h3>
-                      <p className={inspectorSubtitleClass}>
-                        {selectedAccount
-                          ? t('account.idLabel', { id: selectedAccount.accountId })
-                          : t(selectedMeta.description.replace('channels:', ''))}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-8 rounded-[10px] px-3 text-[12px]"
+                        className="h-8 rounded-[11px] px-2.5 text-[11.5px] text-foreground/78 shadow-none hover:text-foreground"
                         onClick={() => {
-                          if (!selectedChannelType) return;
-                          void openConfigModal(selectedChannelType, {
-                            accountId: selectedAccountId,
-                            allowExistingConfig: true,
-                            initialAgentId: selectedAccount?.agentId,
-                          });
+                          const nextChannel = unsupportedGroups[0] || allChannelTypes[0];
+                          if (nextChannel) {
+                            requestSelectionChange(nextChannel);
+                          }
                         }}
                       >
-                        {selectedIsWeixin ? t(selectedAccountId ? 'account.relogin' : 'account.addByQr') : t('account.edit')}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-8 rounded-[10px] px-3 text-[12px]"
-                        onClick={() => selectedChannelType && openChannelDocs(selectedChannelType)}
-                      >
-                        <BookOpen className="mr-1 h-3.5 w-3.5" />
-                        {t('dialog.viewDocs')}
-                        <ExternalLink className="ml-1 h-3.5 w-3.5" />
+                        <Plus className="mr-1 h-3.5 w-3.5" />
+                        {t('addChannel')}
                       </Button>
                     </div>
-                  </div>
 
-                  <div
-                    data-testid="channels-editor-scroll"
-                    className={cn('mt-5 flex-1 space-y-4 overflow-y-auto pr-2', editorScrollbarClass)}
-                  >
-                    <div className={sectionCardClass}>
-                      <div className="mb-4">
-                        <p className="text-[13px] font-semibold text-foreground">{t('editor.basicTitle')}</p>
-                        <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82">{t('editor.basicDesc')}</p>
-                      </div>
-                      <div data-testid="channel-basic-fields-grid" className="grid gap-3 xl:grid-cols-2">
-                        <div
-                          data-testid="channel-account-id-card"
-                          className={cn(fieldCardClass, 'px-4 py-3 xl:col-span-2')}
-                        >
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Label htmlFor="channel-account-id" className="text-xs font-medium text-foreground/80">
-                              {t('account.customIdLabel')}
-                            </Label>
-                            {selectedAccount?.isDefault && (
-                              <Badge variant="secondary" className="h-5 rounded-[9px] border border-border/55 bg-[hsl(var(--foreground)/0.04)] px-1.5 text-[10px] font-medium text-foreground/72 shadow-none hover:bg-[hsl(var(--foreground)/0.04)]">
-                                {t('account.default')}
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82 line-clamp-2" title={t('account.renameHint')}>
-                            {selectedIsWeixin ? t('account.readonlyIdHint') : t('account.renameHint')}
-                          </p>
-                          <Input
-                            id="channel-account-id"
-                            value={accountIdDraft}
-                            disabled={editorLoading || editorSaving}
-                            readOnly={selectedIsWeixin}
-                            onChange={(event) => {
-                              if (selectedIsWeixin) return;
-                              setAccountIdDraft(event.target.value);
-                            }}
-                            placeholder={selectedIsWeixin ? '' : t('account.customIdPlaceholder')}
-                            className="app-field-surface mt-3 h-9 rounded-[10px] border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] text-[13px] shadow-none"
-                          />
-                        </div>
-                        {selectedRegistry.basicFields.map((field) => (
-                          <ChannelFieldEditor
-                            key={field.key}
-                            field={field}
-                            t={t}
-                            value={editorValues[field.key]}
-                            disabled={editorLoading || editorSaving}
-                            onChange={(value) => handleEditorValueChange(field.key, value)}
-                          />
-                        ))}
-                      </div>
+                    <div className="relative mt-2.5">
+                      <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/68" />
+                      <Input
+                        value={railQuery}
+                        onChange={(event) => setRailQuery(event.target.value)}
+                        placeholder={t('searchPlaceholder')}
+                        className={searchFieldClass}
+                      />
                     </div>
 
-                    <div className={sectionCardClass}>
-                      <div className="mb-4">
-                        <p className="text-[13px] font-semibold text-foreground">{t('editor.behaviorTitle')}</p>
-                        <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82">{t('editor.behaviorDesc')}</p>
-                      </div>
-                      <div className="space-y-4">
-                        <div className={cn(fieldCardClass, 'grid gap-3 px-3.5 py-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start')}>
-                          <div className="min-w-0">
-                            <Label className="text-[12px] font-medium text-foreground">{t('dialog.enableChannel')}</Label>
-                            <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82">
-                              {selectedGroup?.enabled ? t('enabledLabel') : t('disabledLabel')}
-                            </p>
-                          </div>
-                          <Switch
-                            checked={selectedGroup?.enabled ?? true}
-                            className="data-[state=checked]:bg-foreground/75 dark:data-[state=checked]:bg-white/70"
-                            disabled={!selectedChannelType || editorTogglingEnabled}
-                            onCheckedChange={(checked) => {
-                              if (!selectedChannelType) return;
-                              void handleSetChannelEnabled(selectedChannelType, checked);
-                            }}
-                          />
-                        </div>
+                    <div className="mt-3 space-y-2.5">
+                      {configuredFilteredChannelTypes.length > 0 && (
+                        <div className="space-y-1.5">
+                          <p className={sectionLabelClass}>{t('configuredSection')}</p>
+                          {configuredFilteredChannelTypes.map((channelType) => {
+                            const meta = CHANNEL_META[channelType];
+                            const group = groupedByType[channelType];
+                            const isSelected = selectedChannelType === channelType;
+                            const statusLabel = getRuntimeAwareStatusLabel(group.status, runtimeAvailable, t);
 
-                        <div className={cn(fieldCardClass, 'grid gap-3 px-3.5 py-3 md:grid-cols-[minmax(0,1fr)_minmax(220px,240px)] md:items-start')}>
-                          <div className="min-w-0">
-                            <Label htmlFor="channel-account-agent" className="text-[12px] font-medium text-foreground">
-                              {t('account.bindAgentLabel')}
-                            </Label>
-                            <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82 line-clamp-2">
-                              {selectedAccount?.agentId || t('account.unassigned')}
-                            </p>
-                          </div>
-                          <Select
-                            id="channel-account-agent"
-                            value={selectedAccount?.agentId || ''}
-                            data-testid="channel-agent-select-trigger"
-                            onValueChange={(agentId) => {
-                              if (!selectedChannelType || !selectedAccountId) return;
-                              void handleBindAgent(selectedChannelType, selectedAccountId, agentId);
-                            }}
-                            options={[
-                              { value: '', label: t('account.unassigned') },
-                              ...agents.map((agent) => ({
-                                value: agent.id,
-                                label: agent.name,
-                              })),
-                            ]}
-                            className="app-field-surface h-9 w-full max-w-full rounded-[10px] text-[13px] shadow-none"
-                          />
+                            return (
+                              <button
+                                key={channelType}
+                                type="button"
+                                data-testid={`channel-rail-item-${channelType}`}
+                                aria-pressed={isSelected}
+                                onClick={() => requestSelectionChange(channelType)}
+                                className={cn(railRowClass, isSelected ? selectedRailCardClass : idleRailCardClass)}
+                              >
+                                <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5">
+                                  <div className={railIconClass}>
+                                    <ChannelLogo type={channelType} />
+                                  </div>
+                                  <div className="min-w-0 space-y-1">
+                                    <p className="truncate text-[13px] font-semibold text-foreground">{meta.name}</p>
+                                    <div
+                                      data-testid={`channel-rail-meta-${channelType}`}
+                                      className="flex min-w-0 items-center gap-1.5 overflow-hidden text-[10.5px] leading-none text-muted-foreground/76"
+                                    >
+                                      <span className="truncate">{statusLabel}</span>
+                                      <span className="hidden shrink-0 min-[420px]:inline text-foreground/28">·</span>
+                                      <span className="hidden truncate min-[420px]:inline">{getChannelConnectionLabel(channelType, t)}</span>
+                                    </div>
+                                  </div>
+                                  <div className="flex shrink-0 items-center gap-1.5 self-start">
+                                    <span data-testid={`channel-rail-count-${channelType}`} className={railMetaBadgeClass}>{group.accounts.length}</span>
+                                    <span className="hidden min-[420px]:inline-flex shrink-0 items-center rounded-full border border-[hsl(var(--border-subtle)/0.54)] bg-[hsl(var(--surface-elevated)/0.98)] px-2 py-0.5 text-[10px] font-medium leading-none text-foreground/68">
+                                      {group.enabled ? t('enabledLabel') : t('disabledLabel')}
+                                    </span>
+                                    <div
+                                      data-testid={`channel-rail-indicator-${channelType}`}
+                                      className={cn('h-2.5 w-2.5 shrink-0 rounded-[999px]', getConfiguredChannelRailTone(group.enabled))}
+                                    />
+                                  </div>
+                                </div>
+                              </button>
+                            );
+                          })}
                         </div>
-                      </div>
+                      )}
+
+                      {unconfiguredFilteredChannelTypes.length > 0 && (
+                        <div className="space-y-1.5">
+                          <p className={sectionLabelClass}>{t('availableSection')}</p>
+                          {unconfiguredFilteredChannelTypes.map((channelType) => {
+                            const meta = CHANNEL_META[channelType];
+                            const isSelected = selectedChannelType === channelType;
+
+                            return (
+                              <button
+                                key={channelType}
+                                type="button"
+                                data-testid={`channel-rail-item-${channelType}`}
+                                aria-pressed={isSelected}
+                                onClick={() => requestSelectionChange(channelType)}
+                                className={cn(railRowClass, isSelected ? selectedRailCardClass : idleRailCardClass)}
+                              >
+                                <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5">
+                                  <div className={railIconClass}>
+                                    <ChannelLogo type={channelType} />
+                                  </div>
+                                  <div className="min-w-0 space-y-1">
+                                    <p className="truncate text-[13px] font-semibold text-foreground">{meta.name}</p>
+                                    <div
+                                      data-testid={`channel-rail-meta-${channelType}`}
+                                      className="flex min-w-0 items-center gap-1.5 overflow-hidden text-[10.5px] leading-none text-muted-foreground/76"
+                                    >
+                                      <span className="truncate">{getChannelConnectionLabel(channelType, t)}</span>
+                                    </div>
+                                  </div>
+                                  <div className="flex shrink-0 items-center gap-1.5 self-start">
+                                    <span className={railStateBadgeClass}>{t('available')}</span>
+                                    <div
+                                      data-testid={`channel-rail-indicator-${channelType}`}
+                                      className="status-indicator status-indicator-idle h-2.5 w-2.5 shrink-0 rounded-[999px]"
+                                    />
+                                  </div>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {filteredChannelTypes.length === 0 && (
+                        <div className="app-empty-surface rounded-[14px] px-3 py-4 text-xs text-muted-foreground">
+                          {t('emptySearch')}
+                        </div>
+                      )}
                     </div>
+                  </section>
 
-                    {selectedIsWeixin && selectedAccount && (
-                      <div className={sectionCardClass}>
-                        <div className="mb-4 flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <p className="text-[13px] font-semibold text-foreground">{t('weixin.guardian.title')}</p>
-                            <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82">
-                              {t('weixin.guardian.subtitle')}
-                            </p>
-                          </div>
-                          <Switch
-                            data-testid="weixin-guardian-switch"
-                            checked={weixinGuardianEnabled}
-                            className="data-[state=checked]:bg-foreground/75 dark:data-[state=checked]:bg-white/70"
-                            disabled={weixinGuardianLoading || weixinGuardianSaving}
-                            onCheckedChange={(checked) => {
-                              void handleWeixinGuardianToggle(checked);
-                            }}
-                          />
-                        </div>
-
-                        <div className={cn(fieldCardClass, 'space-y-3 px-3.5 py-3', getWeixinGuardianTone(weixinGuardianEvaluation))}>
-                          <p className="text-[12px] font-medium">
-                            {t(getWeixinGuardianMessageKey(weixinGuardianEvaluation, weixinGuardianEnabled))}
-                          </p>
-                          <p className="text-[11px] leading-5">
-                            {t('weixin.guardian.noAutoKeepAlive')}
-                          </p>
-                          {weixinGuardianEnabled && weixinGuardianEvaluation && weixinGuardianEvaluation.level !== 'healthy' && (
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="outline"
-                              className="h-7 rounded-[10px] px-2.5 text-[11px]"
-                              onClick={() => {
-                                if (!selectedChannelType) return;
-                                void openConfigModal(selectedChannelType, {
-                                  accountId: selectedAccountId,
-                                  allowExistingConfig: true,
-                                  initialAgentId: selectedAccount?.agentId,
-                                });
-                              }}
-                            >
-                              {t('account.relogin')}
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {selectedIsWeixin && (
-                      <div className={sectionCardClass}>
-                        <div className="mb-4">
-                          <p className="text-[13px] font-semibold text-foreground">{t('weixin.limits.title')}</p>
-                          <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82">{t('weixin.limits.subtitle')}</p>
-                        </div>
-                        <div className={cn(fieldCardClass, 'space-y-2 px-3.5 py-3 text-[11px] leading-5 text-muted-foreground/82')}>
-                          <p>{t('weixin.limits.items.accountId')}</p>
-                          <p>{t('weixin.limits.items.relogin')}</p>
-                          <p>{t('weixin.limits.items.expiry')}</p>
-                          <p>{t('weixin.limits.items.guard')}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {visibleAdvancedSections.map((section) => (
-                      <ChannelEditorSection
-                        key={section.id}
-                        title={section.label}
-                        subtitle={getSectionSummary(section, editorValues, t) || t('editor.sectionSubtitle', { count: section.fields.length })}
-                        defaultOpen={section.id === 'access'}
-                      >
-                        {section.fields.map((field) => (
-                          <ChannelFieldEditor
-                            key={field.key}
-                            field={field}
-                            t={t}
-                            value={editorValues[field.key]}
-                            disabled={editorLoading || editorSaving}
-                            onChange={(value) => handleEditorValueChange(field.key, value)}
-                          />
-                        ))}
-                      </ChannelEditorSection>
-                    ))}
-
-                    {candidateSections.map((section) => (
-                      <ChannelEditorSection
-                        key={section.id}
-                        title={section.label}
-                        subtitle={getSectionSummary(section, editorValues, t) || t('editor.pluginSectionSubtitle', { count: section.fields.length })}
-                        badge={t('editor.pluginBadge')}
-                      >
-                        {section.fields.map((field) => (
-                          <ChannelFieldEditor
-                            key={field.key}
-                            field={field}
-                            t={t}
-                            value={editorValues[field.key]}
-                            disabled={editorLoading || editorSaving}
-                            onChange={(value) => handleEditorValueChange(field.key, value)}
-                          />
-                        ))}
-                      </ChannelEditorSection>
-                    ))}
-
-                    {editorValidation && (
-                      <div className={cn(
-                        'rounded-[12px] border px-4 py-3 text-sm',
-                        editorValidation.valid
-                          ? 'border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300'
-                          : 'border-destructive/30 bg-destructive/10 text-destructive',
-                      )}>
-                        {editorValidation.errors.length > 0 && (
-                          <div className="space-y-1">
-                            {editorValidation.errors.map((item) => (
-                              <p key={item}>{item}</p>
-                            ))}
-                          </div>
-                        )}
-                        {editorValidation.warnings.length > 0 && (
-                          <div className={cn('space-y-1', editorValidation.errors.length > 0 && 'mt-3')}>
-                            {editorValidation.warnings.map((item) => (
-                              <p key={item}>{item}</p>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-5 flex flex-wrap items-center justify-end gap-2 border-t border-border/70 pt-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="h-8 rounded-[10px] px-3 text-[12px]"
-                      disabled={editorLoading || editorValidating || editorSaving}
-                      onClick={() => {
-                        void handleValidateConfig();
-                      }}
-                    >
-                      {editorValidating ? t('dialog.validating') : t('dialog.validateConfig')}
-                    </Button>
-                    <Button
-                      type="button"
-                      className="h-8 rounded-[10px] px-3 text-[12px]"
-                      disabled={editorLoading || editorSaving}
-                      onClick={() => {
-                        void handleSaveInlineConfig();
-                      }}
-                    >
-                      {editorSaving ? t('dialog.validatingAndSaving') : (selectedGroup ? t('dialog.updateAndReconnect') : t('dialog.saveAndConnect'))}
-                    </Button>
-                  </div>
+                  {accountPane}
                 </div>
-              )}
-            </section>
-            </div>
+
+                {editorPane}
+              </div>
             )}
           </div>
         </WorkspacePageScrollArea>
@@ -1940,183 +1428,23 @@ export function Channels() {
       />
 
       <ConfirmDialog
-        open={!!pendingSelection}
+        open={!!pendingNavigation}
         title={t('editor.unsavedChangesTitle')}
         message={t('editor.unsavedChangesMessage')}
         confirmLabel={t('editor.discardChangesConfirm')}
         cancelLabel={t('common.cancel', 'Cancel')}
         onConfirm={() => {
-          if (pendingSelection) {
-            applySelection(pendingSelection.channelType, pendingSelection.accountId);
+          if (pendingNavigation?.kind === 'selection') {
+            applySelection(pendingNavigation.channelType, pendingNavigation.accountId);
           }
-          setPendingSelection(null);
+          if (pendingNavigation?.kind === 'board') {
+            setShowEntryBoard(true);
+          }
+          setPendingNavigation(null);
         }}
-        onCancel={() => setPendingSelection(null)}
+        onCancel={() => setPendingNavigation(null)}
       />
     </WorkspacePageFrame>
-  );
-}
-
-function ChannelEditorSection({
-  title,
-  subtitle,
-  badge,
-  defaultOpen = false,
-  children,
-}: {
-  title: string;
-  subtitle: string;
-  badge?: string;
-  defaultOpen?: boolean;
-  children: ReactNode;
-}) {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <details
-      open={open}
-      onToggle={(event) => setOpen(event.currentTarget.open)}
-      className="rounded-[11px] border border-[hsl(var(--border-subtle)/0.58)] bg-transparent px-3.25 py-3 shadow-none"
-    >
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[13px] font-semibold text-foreground">{title}</p>
-          <p className="mt-1 text-[11px] leading-5 text-muted-foreground/82 line-clamp-2" title={subtitle}>{subtitle}</p>
-        </div>
-        {badge && (
-              <Badge variant="secondary" className="h-5 rounded-[9px] border border-border/55 bg-[hsl(var(--foreground)/0.04)] px-1.5 text-[10px] font-medium text-foreground/72 shadow-none hover:bg-[hsl(var(--foreground)/0.04)]">
-            {badge}
-          </Badge>
-        )}
-      </summary>
-      <div className="mt-3.5 grid gap-3.5">{children}</div>
-    </details>
-  );
-}
-
-function ChannelFieldEditor({
-  field,
-  value,
-  disabled,
-  onChange,
-  t,
-}: {
-  field: ChannelConfigContractField;
-  value: EditorValue | undefined;
-  disabled?: boolean;
-  onChange: (value: EditorValue) => void;
-  t: (key: string, options?: Record<string, unknown>) => string;
-}) {
-  const label = resolveTranslationText(t, field.label);
-  const description = resolveTranslationText(t, field.description);
-  const placeholder = resolveTranslationText(t, field.placeholder);
-  const inputId = `channel-editor-${field.key}`;
-  const defaultValueLabel = field.defaultValue === undefined
-    ? null
-    : typeof field.defaultValue === 'boolean'
-      ? (field.defaultValue ? t('enabledLabel') : t('disabledLabel'))
-      : typeof field.defaultValue === 'number'
-        ? String(field.defaultValue)
-        : isStringArrayValue(field.defaultValue)
-          ? field.defaultValue.join(', ')
-          : field.defaultValue;
-  const defaultBadgeLabel = defaultValueLabel ? t('editor.defaultValueBadge', { value: defaultValueLabel }) : null;
-
-  if (field.type === 'boolean') {
-    return (
-      <div className="rounded-[10px] border border-[hsl(var(--border-subtle)/0.58)] bg-[hsl(var(--foreground)/0.018)] px-3.25 py-3 shadow-none">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1 space-y-1">
-            <Label className="text-[11px] font-medium text-foreground/78">{label}</Label>
-            {description && <p className="text-[11px] leading-5 text-muted-foreground/82 line-clamp-2" title={description}>{description}</p>}
-          </div>
-          {defaultBadgeLabel && (
-            <span
-              className="max-w-[11rem] truncate rounded-[9px] border border-border/55 bg-[hsl(var(--foreground)/0.035)] px-2 py-1 text-[10px] font-medium text-muted-foreground"
-              title={t('editor.defaultValueLabel', { value: defaultValueLabel })}
-            >
-              {defaultBadgeLabel}
-            </span>
-          )}
-          <Switch
-            checked={getFieldBooleanValue(field, value)}
-            disabled={disabled}
-            onCheckedChange={(checked) => onChange(checked)}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-1.5 rounded-[10px] border border-[hsl(var(--border-subtle)/0.58)] bg-[hsl(var(--foreground)/0.018)] px-3.25 py-3 shadow-none">
-      <div data-testid={`channel-field-header-${field.key}`}>
-        <div className="flex items-start justify-between gap-3">
-          <Label htmlFor={inputId} className="min-w-0 flex-1 text-[11px] font-medium text-foreground/78">{label}</Label>
-          {defaultBadgeLabel && (
-            <span
-              className="max-w-[11rem] truncate rounded-[9px] border border-border/55 bg-[hsl(var(--foreground)/0.035)] px-2 py-1 text-[10px] font-medium text-muted-foreground"
-              title={t('editor.defaultValueLabel', { value: defaultValueLabel })}
-            >
-              {defaultBadgeLabel}
-            </span>
-          )}
-        </div>
-        {description && <p className="text-[11px] leading-5 text-muted-foreground/82 line-clamp-2" title={description}>{description}</p>}
-      </div>
-
-      {field.type === 'select' ? (
-        <Select
-          id={inputId}
-          value={getFieldStringValue(field, value)}
-          data-testid={`channel-field-select-trigger-${field.key}`}
-          disabled={disabled}
-          placeholder={placeholder || t('editor.selectPlaceholder')}
-          onValueChange={(nextValue) => onChange(nextValue)}
-          options={(field.options || []).map((option) => ({
-            value: option.value,
-            label: resolveTranslationText(t, option.label),
-          }))}
-          className="app-field-surface h-9 rounded-[10px] border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] text-[13px] shadow-none"
-        />
-      ) : field.type === 'array' ? (
-        <Input
-          id={inputId}
-          type="text"
-          value={getFieldStringValue(field, value)}
-          disabled={disabled}
-          onChange={(event) =>
-            onChange(
-              event.target.value
-                .split(',')
-                .map((item) => item.trim())
-                .filter(Boolean),
-            )
-          }
-          placeholder={placeholder}
-          className="app-field-surface h-9 rounded-[10px] border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] text-[13px] shadow-none"
-        />
-      ) : field.type === 'number' ? (
-        <Input
-          id={inputId}
-          type="number"
-          value={getFieldStringValue(field, value)}
-          disabled={disabled}
-          onChange={(event) => onChange(event.target.value === '' ? '' : Number(event.target.value))}
-          placeholder={placeholder}
-          className="app-field-surface h-9 rounded-[10px] border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] text-[13px] shadow-none"
-        />
-      ) : (
-        <Input
-          id={inputId}
-          type={field.valueType === 'password' ? 'password' : 'text'}
-          value={getFieldStringValue(field, value)}
-          disabled={disabled}
-          onChange={(event) => onChange(event.target.value)}
-          placeholder={placeholder}
-          className="app-field-surface h-9 rounded-[10px] border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] text-[13px] shadow-none"
-        />
-      )}
-    </div>
   );
 }
 
