@@ -24,6 +24,7 @@
     "configured": "設定済みチャンネル",
     "configuredDesc": "すでに設定済みのチャンネルを管理",
     "configuredBadge": "設定済み",
+    "entryAccountCount": "{{count}} アカウント",
     "deleteConfirm": "このチャンネルを削除してもよろしいですか？",
     "showAll": "すべて表示",
     "pluginBadge": "プラグイン",
@@ -131,6 +132,7 @@
     "meta": {
         "telegram": {
             "description": "@BotFather からのボットトークンを使用して Telegram に接続します",
+            "entryBlurb": "Telegram ボットを接続すると、プライベートチャットからそのまま XClaw とやり取りできます。個人利用や小規模チームに向いています。",
             "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/TjiGwxsMWi7hpDkDAQBc0ydMnEf#MEkKdqXP1orZU2x4SrFcdUHgnl1",
             "fields": {
                 "botToken": {
@@ -153,6 +155,7 @@
         },
         "discord": {
             "description": "Developer Portal からのボットトークンを使用して Discord に接続します",
+            "entryBlurb": "XClaw を Discord のサーバーやチャンネルに入れて、コミュニティや開発の会話の中から AI に直接アクセスできます。",
             "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/BkOywJYCAiYRN9k4KTTceKPMnxg#QS6LdxnA2oNtfcxtFc8cgabnnNd",
             "fields": {
                 "token": {
@@ -181,6 +184,7 @@
         },
         "whatsapp": {
             "description": "QRコードをスキャンして WhatsApp に接続します（電話番号は不要です）",
+            "entryBlurb": "QR コードで WhatsApp を連携し、普段のモバイル会話の流れのまま XClaw とやり取りできます。",
             "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/ES7fwUfH8iGl8FkHYfFcyWB3n4d#doxcnUElomBZLi0NnKLUzn6zLbd",
             "instructions": [
                 "携帯電話で WhatsApp を開きます",
@@ -191,6 +195,7 @@
         },
         "openclaw-weixin": {
             "description": "公式 OpenClaw Weixin プラグインの QR コードをスキャンして WeChat に接続します",
+            "entryBlurb": "一度 QR をスキャンすれば WeChat の連絡先からそのまま XClaw と会話でき、AI を使ったやり取りがより自然になります。",
             "docsUrl": "https://www.npmjs.com/package/@tencent-weixin/openclaw-weixin",
             "instructions": [
                 "Channels で WeChat を選択して QR ログインを開始します",
@@ -201,6 +206,7 @@
         },
         "dingtalk": {
             "description": "OpenClaw のチャンネルプラグイン経由で DingTalk に接続します（Stream モード）",
+            "entryBlurb": "XClaw を DingTalk に接続すると、チームはグループチャットや DM からそのまま指示を処理できます。",
             "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/Y5eNwiSiZidkLskrwtJc1rUln0b#doxcnDgA78n43DbkiQjI1OqUA7b",
             "fields": {
                 "clientId": {
@@ -248,6 +254,7 @@
         },
         "feishu": {
             "description": "WebSocket 経由で Feishu/Lark ボットに接続します",
+            "entryBlurb": "XClaw を Feishu / Lark に入れると、日々のチャットの流れを崩さずにチームが AI と会話できます。",
             "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/GKn8wOvHnibpPNkNkPzcAvGlnzK#GdHUdp9t9oqyegxwV8ScLvVGn1c",
             "fields": {
                 "appId": {
@@ -268,6 +275,7 @@
         },
         "wecom": {
             "description": "プラグイン経由で WeCom Bot (企業微信) に接続します",
+            "entryBlurb": "WeCom と連携すると、社内の個別チャットやグループチャットから XClaw にすばやくアクセスできます。",
             "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/JTGnwoV0RixKPtkr4w7c7gpAnDc",
             "fields": {
                 "botId": {
@@ -399,6 +407,7 @@
         },
         "qqbot": {
             "description": "@sliverp/qqbot プラグイン経由で QQ ボットに接続します",
+            "entryBlurb": "軽いセットアップで XClaw を QQ に接続し、普段の QQ 会話の中でそのまま AI とやり取りできます。",
             "fields": {
                 "appId": {
                     "label": "App ID",

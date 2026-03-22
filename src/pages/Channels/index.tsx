@@ -348,6 +348,15 @@ function getChannelConnectionLabel(channelType: ChannelType, t: (key: string) =>
   }
 }
 
+function getChannelEntryDescription(channelType: ChannelType, t: (key: string) => string): string {
+  const entryBlurbKey = `meta.${channelType}.entryBlurb`;
+  const entryBlurb = t(entryBlurbKey);
+  if (entryBlurb !== entryBlurbKey) {
+    return entryBlurb;
+  }
+  return t(CHANNEL_META[channelType].description.replace('channels:', ''));
+}
+
 function getWeixinGuardianTone(evaluation: WeixinGuardianEvaluation | null): string {
   if (!evaluation) {
     return 'border-[hsl(var(--border-subtle)/0.58)] bg-transparent text-muted-foreground';
@@ -403,7 +412,8 @@ export function Channels() {
   const [initialAgentIdForModal, setInitialAgentIdForModal] = useState<string | undefined>(undefined);
   const [initialConfigValuesForModal, setInitialConfigValuesForModal] = useState<Record<string, string> | undefined>(undefined);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
-  const [channelQuery, setChannelQuery] = useState('');
+  const [boardQuery, setBoardQuery] = useState('');
+  const [railQuery, setRailQuery] = useState('');
   const [containerWidth, setContainerWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 0));
   const [accountIdDraft, setAccountIdDraft] = useState('');
   const [editorValues, setEditorValues] = useState<Record<string, EditorValue>>({});
@@ -617,18 +627,39 @@ export function Channels() {
       : null),
     [selectedAccount, selectedIsWeixin, weixinGuardianEnabled],
   );
-  const filteredChannelTypes = useMemo(() => {
-    const query = channelQuery.trim().toLowerCase();
+  const layoutMode = useMemo(
+    () => getChannelCenterLayoutMode(containerWidth, Boolean(selectedChannelType)),
+    [containerWidth, selectedChannelType],
+  );
+  const boardColumnCount = useMemo(
+    () => getChannelBoardColumnCount(containerWidth),
+    [containerWidth],
+  );
+  const filterChannelTypes = useCallback((queryValue: string) => {
+    const query = queryValue.trim().toLowerCase();
     if (!query) return allChannelTypes;
     return allChannelTypes.filter((type) => {
       const meta = CHANNEL_META[type];
       return (
         meta.name.toLowerCase().includes(query)
         || t(meta.description.replace('channels:', '')).toLowerCase().includes(query)
+        || getChannelEntryDescription(type, t).toLowerCase().includes(query)
         || type.toLowerCase().includes(query)
       );
     });
-  }, [allChannelTypes, channelQuery, t]);
+  }, [allChannelTypes, t]);
+  const boardFilteredChannelTypes = useMemo(
+    () => filterChannelTypes(boardQuery),
+    [boardQuery, filterChannelTypes],
+  );
+  const railFilteredChannelTypes = useMemo(
+    () => filterChannelTypes(railQuery),
+    [filterChannelTypes, railQuery],
+  );
+  const filteredChannelTypes = useMemo(
+    () => (layoutMode === 'board' ? boardFilteredChannelTypes : railFilteredChannelTypes),
+    [boardFilteredChannelTypes, layoutMode, railFilteredChannelTypes],
+  );
   const configuredFilteredChannelTypes = useMemo(
     () => filteredChannelTypes.filter((type) => Boolean(groupedByType[type])),
     [filteredChannelTypes, groupedByType],
@@ -644,11 +675,12 @@ export function Channels() {
       return {
         channelType,
         name: meta.name,
-        description: t('accountListSummary', { count: group.accounts.length, default: group.defaultAccountId }),
+        description: getChannelEntryDescription(channelType, t),
         primaryActionLabel: t('configuredBadge'),
         summaryItems: [
           { value: getRuntimeAwareStatusLabel(group.status, runtimeAvailable, t) },
           { value: group.enabled ? t('enabledLabel') : t('disabledLabel') },
+          { value: t('entryAccountCount', { count: group.accounts.length }) },
         ],
         indicatorClassName: getRuntimeAwareStatusTone(group.status, runtimeAvailable),
       };
@@ -661,7 +693,7 @@ export function Channels() {
       return {
         channelType,
         name: meta.name,
-        description: t(meta.description.replace('channels:', '')),
+        description: getChannelEntryDescription(channelType, t),
         primaryActionLabel: t('addChannel'),
         summaryItems: [{ value: getChannelConnectionLabel(channelType, t) }],
         indicatorClassName: 'status-indicator status-indicator-idle status-indicator-glow',
@@ -680,14 +712,6 @@ export function Channels() {
   const editorScrollbarClass = useMemo(
     () => (typeof window !== 'undefined' && window.electron?.platform === 'win32' ? 'subtle-scrollbar-win' : 'subtle-scrollbar'),
     [],
-  );
-  const layoutMode = useMemo(
-    () => getChannelCenterLayoutMode(containerWidth, Boolean(selectedChannelType)),
-    [containerWidth, selectedChannelType],
-  );
-  const boardColumnCount = useMemo(
-    () => getChannelBoardColumnCount(containerWidth),
-    [containerWidth],
   );
   const applySelection = useCallback((channelType: ChannelType, accountId?: string) => {
     setSelectedChannelType(channelType);
@@ -1119,9 +1143,9 @@ export function Channels() {
               <ChannelEntryBoard
                 title={t('supportedChannels')}
                 subtitle={t('subtitle')}
-                query={channelQuery}
+                query={boardQuery}
                 queryPlaceholder={t('searchPlaceholder')}
-                onQueryChange={setChannelQuery}
+                onQueryChange={setBoardQuery}
                 sections={[
                   {
                     id: 'configured',
@@ -1171,8 +1195,8 @@ export function Channels() {
                 <div className="relative mt-2.5">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/68" />
                   <Input
-                    value={channelQuery}
-                    onChange={(event) => setChannelQuery(event.target.value)}
+                    value={railQuery}
+                    onChange={(event) => setRailQuery(event.target.value)}
                     placeholder={t('searchPlaceholder')}
                     className={searchFieldClass}
                   />

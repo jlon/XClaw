@@ -640,6 +640,7 @@ describe('Channels page status refresh', () => {
     expect(within(configuredCard).getByRole('button', { name: 'configuredBadge' })).toBeInTheDocument();
     expect(within(configuredCard).getAllByText('account.connectionStatus.connected').length).toBeGreaterThan(0);
     expect(within(configuredCard).getByText('enabledLabel')).toBeInTheDocument();
+    expect(within(configuredCard).queryByText('default')).not.toBeInTheDocument();
     expect(within(configuredCard).getByTestId('channel-entry-indicator-feishu')).toBeInTheDocument();
 
     expect(within(availableCard).getByTestId('channel-icon-discord')).toBeInTheDocument();
@@ -686,6 +687,25 @@ describe('Channels page status refresh', () => {
     });
 
     expect(screen.getByText('emptySearch')).toBeInTheDocument();
+  });
+
+  it('does not leak board search filters into the workbench rail', async () => {
+    render(<Channels />);
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('searchPlaceholder')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      fireEvent.change(screen.getByPlaceholderText('searchPlaceholder'), {
+        target: { value: 'tele' },
+      });
+    });
+
+    await enterChannelFromBoard('telegram');
+
+    expect(screen.getByTestId('channel-rail-item-feishu')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('searchPlaceholder')).toHaveValue('');
   });
 
   it('shows configured summaries for collapsed advanced sections', async () => {

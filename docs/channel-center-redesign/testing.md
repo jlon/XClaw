@@ -71,6 +71,10 @@
 - `pnpm exec vitest run tests/unit/channels-page.test.tsx -t "uses theme-compatible surfaces|uses a staged responsive workbench|uses subtle page scrollbars"`
 - `pnpm exec vitest run tests/unit/workspace-page-layout.test.tsx`
 - `pnpm run build:vite`
+- 本轮“默认入口卡片板 + 渠道说明文案 + 搜索状态拆分”收口后，再次通过：
+- `pnpm exec eslint src/pages/Channels/index.tsx tests/unit/channels-page.test.tsx --max-warnings=0`
+- `pnpm exec vitest run tests/unit/channels-page.test.tsx tests/unit/channel-center-layout.test.ts`
+- `pnpm run build:vite`
 
 ## 建议新增测试
 
@@ -114,6 +118,8 @@
 - 主要工作区页面统一挂到共享壳层，避免全局留白策略再次分叉
 - `MainLayout` 主内容区由容器接管滚动，不再默认让页面自己叠一层大外边距滚动
 - 频道页工作区遵守“默认入口卡片板、选中后聚焦编辑、超宽三栏”的分段式规则，不再在标准窗口下硬挤两栏工作台
+- 入口板卡片摘要只显示渠道级说明与聚合状态，不泄露默认账号 ID 等账号级细节
+- 从入口板筛选后进入频道时，工作台左栏不会继承旧搜索条件
 - 左栏插件角标不会继续挤压频道卡片
 - 新增账号进入空白编辑态
 - 删除账号后，选中态正确回退

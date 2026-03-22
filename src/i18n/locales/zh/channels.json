@@ -25,6 +25,7 @@
     "configured": "已配置频道",
     "configuredDesc": "管理已完成配置的频道",
     "configuredBadge": "已配置",
+    "entryAccountCount": "{{count}} 个账号",
     "deleteConfirm": "确定要删除此频道吗？",
     "showAll": "显示全部",
     "toast": {
@@ -131,6 +132,7 @@
     "meta": {
         "telegram": {
             "description": "使用 @BotFather 提供的机器人令牌连接 Telegram",
+            "entryBlurb": "接入 Telegram 机器人后，可在私聊中直接和 XClaw 协作，适合个人或轻团队快速开箱。",
             "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/TjiGwxsMWi7hpDkDAQBc0ydMnEf#PL8ndvsEwoYVWIx1T4mcB1EvnSb",
             "fields": {
                 "botToken": {
@@ -153,6 +155,7 @@
         },
         "discord": {
             "description": "使用开发者门户提供的机器人令牌连接 Discord",
+            "entryBlurb": "将 XClaw 接入 Discord 服务器或频道，成员可在社群讨论中直接触达 AI，适合社区和开发协作。",
             "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/BkOywJYCAiYRN9k4KTTceKPMnxg#C9zjdBRT1oqZ4VxF8q7ceRxQnLk",
             "fields": {
                 "token": {
@@ -181,6 +184,7 @@
         },
         "whatsapp": {
             "description": "通过扫描二维码连接 WhatsApp（无需手机号）",
+            "entryBlurb": "扫码关联 WhatsApp 后，可在移动端直接与 XClaw 对话，适合跨设备沟通和轻量通知场景。",
             "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/ES7fwUfH8iGl8FkHYfFcyWB3n4d#doxcnsDDFbeEzqgjN6HSlyonLvc",
             "instructions": [
                 "在手机上打开 WhatsApp",
@@ -191,6 +195,7 @@
         },
         "openclaw-weixin": {
             "description": "通过扫描官方 OpenClaw 微信插件二维码连接微信",
+            "entryBlurb": "一键扫码关联微信，在微信联系人中与 XClaw 对话，AI 协作和沟通更简单。",
             "docsUrl": "https://www.npmjs.com/package/@tencent-weixin/openclaw-weixin",
             "instructions": [
                 "在频道页选择微信并发起扫码登录",
@@ -201,6 +206,7 @@
         },
         "dingtalk": {
             "description": "通过 OpenClaw 渠道插件连接钉钉（Stream 模式）",
+            "entryBlurb": "将 XClaw 接入钉钉机器人，团队成员可在钉钉群聊或私聊中直接与 XClaw 交互，高效处理工作指令。",
             "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/Y5eNwiSiZidkLskrwtJc1rUln0b#doxcnr8KfaA2mNPeQUeHO83eDPh",
             "fields": {
                 "clientId": {
@@ -248,6 +254,7 @@
         },
         "feishu": {
             "description": "通过飞书官方推出的 OpenClaw 插件连接飞书/Lark 机器人",
+            "entryBlurb": "将 XClaw 接入飞书机器人，团队成员在群聊或私聊中即可直接对话 XClaw，无缝衔接办公流程。",
             "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/GKn8wOvHnibpPNkNkPzcAvGlnzK#Py88dTltfoJc1jxAhIBcW3Pkn7b",
             "fields": {
                 "appId": {
@@ -269,6 +276,7 @@
         },
         "wecom": {
             "description": "通过插件连接企业微信机器人",
+            "entryBlurb": "扫码一键关联企微，后续可在企微群聊或私聊中直接与 XClaw 沟通交互，实现高效协作。",
             "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/JTGnwoV0RixKPtkr4w7c7gpAnDc",
             "fields": {
                 "botId": {
@@ -400,6 +408,7 @@
         },
         "qqbot": {
             "description": "通过 @sliverp/qqbot 插件连接 QQ 机器人",
+            "entryBlurb": "极简配置流程，快速将 XClaw 接入 QQ 中，后续可在 QQ 内与 XClaw 方便对话交互。",
             "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/KPIJwlyiGiupMrkiS9ice39Zn2c",
             "fields": {
                 "appId": {
