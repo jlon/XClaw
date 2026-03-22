@@ -2,7 +2,7 @@
  * Electron Main Process Entry
  * Manages window creation, system tray, and IPC handlers
  */
-import { app, BrowserWindow, nativeImage, session, shell } from 'electron';
+import { app, BrowserWindow, session, shell } from 'electron';
 import type { Server } from 'node:http';
 import { join } from 'path';
 import { GatewayManager } from '../gateway/manager';
@@ -21,6 +21,7 @@ import { appUpdater, registerUpdateHandlers } from './updater';
 import { logger } from '../utils/logger';
 import { warmupNetworkOptimization } from '../utils/uv-env';
 import { initTelemetry } from '../utils/telemetry';
+import { applyPlatformAppIcon, getWindowIcon } from './app-icon';
 
 import { ClawHubService } from '../gateway/clawhub';
 import { ensureXClawContext } from '../utils/openclaw-workspace';
@@ -112,33 +113,6 @@ const handleBeforeQuit = createBeforeQuitHandler({
 });
 
 /**
- * Resolve the icons directory path (works in both dev and packaged mode)
- */
-function getIconsDir(): string {
-  if (app.isPackaged) {
-    // Packaged: icons are in extraResources → process.resourcesPath/resources/icons
-    return join(process.resourcesPath, 'resources', 'icons');
-  }
-  // Development: relative to dist-electron/main/
-  return join(__dirname, '../../resources/icons');
-}
-
-/**
- * Get the app icon for the current platform
- */
-function getAppIcon(): Electron.NativeImage | undefined {
-  if (process.platform === 'darwin') return undefined; // macOS uses the app bundle icon
-
-  const iconsDir = getIconsDir();
-  const iconPath =
-    process.platform === 'win32'
-      ? join(iconsDir, 'icon.ico')
-      : join(iconsDir, 'icon.png');
-  const icon = nativeImage.createFromPath(iconPath);
-  return icon.isEmpty() ? undefined : icon;
-}
-
-/**
  * Create the main application window
  */
 function createWindow(): BrowserWindow {
@@ -149,7 +123,7 @@ function createWindow(): BrowserWindow {
     height: DEFAULT_MAIN_WINDOW_HEIGHT,
     minWidth: DEFAULT_MAIN_WINDOW_MIN_WIDTH,
     minHeight: DEFAULT_MAIN_WINDOW_MIN_HEIGHT,
-    icon: getAppIcon(),
+    icon: getWindowIcon(),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       nodeIntegration: false,
@@ -485,6 +459,8 @@ if (gotTheLock) {
 
   // Application lifecycle
   app.whenReady().then(() => {
+    applyPlatformAppIcon();
+
     void initialize().catch((error) => {
       logger.error('Application initialization failed:', error);
     });

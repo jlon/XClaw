@@ -321,11 +321,14 @@ pnpm typecheck            # TypeScriptの型チェック
 # テスト
 pnpm test                 # ユニットテストを実行
 pnpm run test:e2e         # Playwright スモークテストを実行
+pnpm run clean            # ルート直下のローカル生成物を削除
+pnpm run clean:deep       # build/ のパッケージ中間生成物も削除
 pnpm run comms:replay     # 通信リプレイ指標を算出
 pnpm run comms:baseline   # 通信ベースラインを更新
 pnpm run comms:compare    # リプレイ指標をベースライン閾値と比較
 
 # ビルド＆パッケージ
+pnpm run icons            # アプリと Web のアイコン資産を再生成
 pnpm run build:vite       # フロントエンドのみビルド
 pnpm build                # フルプロダクションビルド（パッケージアセット含む）
 pnpm package              # 現在のプラットフォーム向けにパッケージ化（同梱プリインストールスキルを含む）

@@ -11,6 +11,10 @@ const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.resolve(__dirname, '..');
 const ICONS_DIR = path.join(PROJECT_ROOT, 'resources', 'icons');
 const SVG_SOURCE = path.join(ICONS_DIR, 'icon.svg');
+const FAVICON_SVG_SOURCE = path.join(ICONS_DIR, 'favicon.svg');
+const PUBLIC_DIR = path.join(PROJECT_ROOT, 'public');
+const MASTER_ICON_SIZE = 2048;
+const MASTER_FAVICON_SIZE = 512;
 
 echo`🎨 Generating XClaw icons using Node.js...`;
 
@@ -19,16 +23,26 @@ if (!fs.existsSync(SVG_SOURCE)) {
   echo`❌ SVG source not found: ${SVG_SOURCE}`;
   process.exit(1);
 }
+if (!fs.existsSync(FAVICON_SVG_SOURCE)) {
+  echo`❌ Favicon SVG source not found: ${FAVICON_SVG_SOURCE}`;
+  process.exit(1);
+}
 
 // Ensure icons directory exists
 await fs.ensureDir(ICONS_DIR);
+await fs.ensureDir(PUBLIC_DIR);
 
 try {
   // 1. Generate Master PNG Buffer (1024x1024)
   echo`  Processing SVG source...`;
   const masterPngBuffer = await sharp(SVG_SOURCE)
-    .resize(1024, 1024)
-    .png() // Ensure it's PNG
+    .resize(MASTER_ICON_SIZE, MASTER_ICON_SIZE)
+    .png()
+    .toBuffer();
+
+  const faviconPngBuffer = await sharp(FAVICON_SVG_SOURCE)
+    .resize(MASTER_FAVICON_SIZE, MASTER_FAVICON_SIZE)
+    .png()
     .toBuffer();
 
   // Save the main icon.png (typically 512x512 for Electron root icon)
@@ -37,6 +51,17 @@ try {
     .toFile(path.join(ICONS_DIR, 'icon.png'));
   echo`  ✅ Created icon.png (512x512)`;
 
+  await fs.copy(FAVICON_SVG_SOURCE, path.join(PUBLIC_DIR, 'favicon.svg'));
+  await sharp(faviconPngBuffer)
+    .resize(32, 32)
+    .png()
+    .toFile(path.join(PUBLIC_DIR, 'favicon-32.png'));
+  await sharp(masterPngBuffer)
+    .resize(180, 180)
+    .png()
+    .toFile(path.join(PUBLIC_DIR, 'apple-touch-icon.png'));
+  echo`  ✅ Created public favicon assets`;
+
   // 2. Generate Windows .ico
   // png2icons expects a buffer. It returns a buffer (or null).
   // createICO(buffer, scalingAlgorithm, withSize, useMath)
@@ -44,6 +69,7 @@ try {
   // Defaulting to Bezier (3) for quality or Hermite (2) for speed. Let's use 2 (Hermite) as it's balanced.
   echo`🪟 Generating Windows .ico...`;
   const icoBuffer = png2icons.createICO(masterPngBuffer, png2icons.HERMITE, 0, false);
+  const faviconIcoBuffer = png2icons.createICO(faviconPngBuffer, png2icons.HERMITE, 0, false);
   
   if (icoBuffer) {
     fs.writeFileSync(path.join(ICONS_DIR, 'icon.ico'), icoBuffer);
@@ -51,6 +77,13 @@ try {
   } else {
     echo(chalk.red`  ❌ Failed to create icon.ico`);
     // detailed error might not be available from png2icons simple API, often returns null on failure
+  }
+
+  if (faviconIcoBuffer) {
+    fs.writeFileSync(path.join(PUBLIC_DIR, 'favicon.ico'), faviconIcoBuffer);
+    echo`  ✅ Created favicon.ico`;
+  } else {
+    echo(chalk.red`  ❌ Failed to create favicon.ico`);
   }
 
   // 3. Generate macOS .icns
@@ -91,7 +124,7 @@ try {
     echo`  ⚠️  tray-icon-template.svg not found, skipping tray icon generation`;
   }
 
-  echo`\n✨ Icon generation complete! Files located in: ${ICONS_DIR}`;
+  echo`\n✨ Icon generation complete! Files located in: ${ICONS_DIR} and ${PUBLIC_DIR}`;
 
 } catch (error) {
   echo(chalk.red`\n❌ Fatal Error: ${error.message}`);

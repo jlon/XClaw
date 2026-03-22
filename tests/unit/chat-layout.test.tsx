@@ -78,18 +78,25 @@ function translate(key: string, vars?: Record<string, unknown>): string {
     case 'sidebar.newChat':
       return 'New Chat';
     case 'sidebar.models':
+    case 'common:sidebar.models':
       return 'Models';
     case 'sidebar.agents':
+    case 'common:sidebar.agents':
       return 'Agents';
     case 'sidebar.channels':
+    case 'common:sidebar.channels':
       return 'Channels';
     case 'sidebar.skills':
+    case 'common:sidebar.skills':
       return 'Skills';
     case 'sidebar.cronTasks':
+    case 'common:sidebar.cronTasks':
       return 'Cron Tasks';
     case 'sidebar.settings':
+    case 'common:sidebar.settings':
       return 'Settings';
     case 'sidebar.openClawPage':
+    case 'common:sidebar.openClawPage':
       return 'OpenClaw Page';
     case 'actions.confirm':
       return 'Confirm';
@@ -197,12 +204,39 @@ describe('chat layout', () => {
     expect(screen.getByRole('button', { name: 'Search chats' })).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'New Chat' })).toHaveLength(1);
     expect(screen.getByRole('button', { name: 'chat:sessionPane.workspaceLauncher' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'common:sidebar.settings' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Expand sidebar' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Chat' })).not.toBeInTheDocument();
     expect(screen.getByTestId('chat-sessions-scroll-area')).toHaveClass('subtle-scrollbar');
     expect(screen.getByTestId('chat-sessions-scroll-area')).not.toHaveClass('subtle-scrollbar-win');
     expect(screen.queryByText(/\d{1,2}:\d{2}/)).not.toBeInTheDocument();
+  });
+
+  it('applies low-saturation theme tones to chat session pane icons without tinting the labels', () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <Routes>
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<div>Chat body</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole('button', { name: 'Search chats' }).querySelector('.app-chat-session-toned-icon--search')).not.toBeNull();
+    expect(screen.getAllByRole('button', { name: 'New Chat' })[0]?.querySelector('.app-chat-session-toned-icon--new')).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'chat:sessionPane.workspaceLauncher' }).querySelector('.app-chat-session-toned-icon--workspace')).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'Settings' }).querySelector('.app-chat-session-toned-icon--settings')).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'chat:sessionPane.workspaceLauncher' })).not.toHaveClass('text-[#b48745]');
+
+    fireEvent.click(screen.getByRole('button', { name: 'chat:sessionPane.workspaceLauncher' }));
+
+    expect(screen.getByRole('button', { name: 'Models' }).querySelector('.app-chat-session-toned-icon--models')).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'Agents' }).querySelector('.app-chat-session-toned-icon--agents')).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'Channels' }).querySelector('.app-chat-session-toned-icon--channels')).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'Skills' }).querySelector('.app-chat-session-toned-icon--skills')).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'Cron Tasks' }).querySelector('.app-chat-session-toned-icon--cron')).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'OpenClaw Page' }).querySelector('.app-chat-session-toned-icon--terminal')).not.toBeNull();
   });
 
   it('hides the chat sessions pane when chat focus mode is active', () => {
@@ -308,7 +342,7 @@ describe('chat layout', () => {
     expect(screen.queryByRole('link', { name: 'Chat' })).not.toBeInTheDocument();
     expect(screen.queryByTestId('sidebar-brand-wordmark')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'chat:sessionPane.workspaceLauncher' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'common:sidebar.settings' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
   });
 
   it('keeps the global sidebar free of session rows', () => {
@@ -319,6 +353,24 @@ describe('chat layout', () => {
     );
 
     expect(screen.queryByText('Design review')).not.toBeInTheDocument();
+  });
+
+  it('keeps the global sidebar on the same font stack and applies toned navigation icons', () => {
+    const { container } = render(
+      <MemoryRouter initialEntries={['/channels']}>
+        <Sidebar />
+      </MemoryRouter>,
+    );
+
+    expect(container.querySelector('aside')?.className).toContain('[font-family:var(--font-sidebar)]');
+    expect(screen.getByRole('link', { name: 'Chat' }).querySelector('.app-sidebar-toned-icon--chat')).not.toBeNull();
+    expect(screen.getByRole('link', { name: 'Models' }).querySelector('.app-sidebar-toned-icon--models')).not.toBeNull();
+    expect(screen.getByRole('link', { name: 'Agents' }).querySelector('.app-sidebar-toned-icon--agents')).not.toBeNull();
+    expect(screen.getByRole('link', { name: 'Channels' }).querySelector('.app-sidebar-toned-icon--channels')).not.toBeNull();
+    expect(screen.getByRole('link', { name: 'Skills' }).querySelector('.app-sidebar-toned-icon--skills')).not.toBeNull();
+    expect(screen.getByRole('link', { name: 'Cron Tasks' }).querySelector('.app-sidebar-toned-icon--cron')).not.toBeNull();
+    expect(screen.getByRole('link', { name: 'Settings' }).querySelector('.app-sidebar-toned-icon--settings')).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'OpenClaw Page' }).querySelector('.app-sidebar-toned-icon--terminal')).not.toBeNull();
   });
 
   it('filters sessions from the local search box', () => {

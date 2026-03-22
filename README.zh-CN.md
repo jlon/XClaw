@@ -325,11 +325,14 @@ pnpm typecheck            # TypeScript 类型检查
 # 测试
 pnpm test                 # 运行单元测试
 pnpm run test:e2e         # 运行 Playwright 冒烟测试
+pnpm run clean            # 清理仓库根目录的本地构建与测试产物
+pnpm run clean:deep       # 额外清理 build/ 打包中间产物
 pnpm run comms:replay     # 计算通信回放指标
 pnpm run comms:baseline   # 刷新通信基线快照
 pnpm run comms:compare    # 将回放指标与基线阈值对比
 
 # 构建与打包
+pnpm run icons            # 重新生成应用与 Web 图标资源
 pnpm run build:vite       # 仅构建前端
 pnpm build                # 完整生产构建（含打包资源）
 pnpm package              # 为当前平台打包（包含预装技能资源）

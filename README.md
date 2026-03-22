@@ -325,11 +325,14 @@ pnpm typecheck            # TypeScript validation
 # Testing
 pnpm test                 # Run unit tests
 pnpm run test:e2e         # Run Playwright smoke tests
+pnpm run clean            # Remove local build/test artifacts from the repo root
+pnpm run clean:deep       # Also remove build/ packaging intermediates
 pnpm run comms:replay     # Compute communication replay metrics
 pnpm run comms:baseline   # Refresh communication baseline snapshot
 pnpm run comms:compare    # Compare replay metrics against baseline thresholds
 
 # Build & Package
+pnpm run icons            # Regenerate app and web icon assets
 pnpm run build:vite       # Build frontend only
 pnpm build                # Full production build (with packaging assets)
 pnpm package              # Package for current platform (includes bundled preinstalled skills)

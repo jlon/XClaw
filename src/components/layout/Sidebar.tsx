@@ -27,11 +27,36 @@ interface SidebarProps {
   className?: string;
 }
 
+type SidebarTone =
+  | 'chat'
+  | 'models'
+  | 'agents'
+  | 'channels'
+  | 'skills'
+  | 'cron'
+  | 'settings'
+  | 'terminal';
+
 interface NavItemProps {
   to: string;
   icon: React.ReactNode;
   label: string;
   collapsed?: boolean;
+  tone: SidebarTone;
+}
+
+function SidebarToneIcon({
+  tone,
+  children,
+}: {
+  tone: SidebarTone;
+  children: React.ReactElement;
+}) {
+  return (
+    <span className={cn('app-sidebar-toned-icon', `app-sidebar-toned-icon--${tone}`)}>
+      {children}
+    </span>
+  );
 }
 
 function RailTooltip({
@@ -63,7 +88,7 @@ function RailTooltip({
   );
 }
 
-function NavItem({ to, icon, label, collapsed }: NavItemProps) {
+function NavItem({ to, icon, label, collapsed, tone }: NavItemProps) {
   return (
     <RailTooltip collapsed={collapsed} label={label}>
       <NavLink
@@ -71,7 +96,7 @@ function NavItem({ to, icon, label, collapsed }: NavItemProps) {
         aria-label={collapsed ? label : undefined}
         className={({ isActive }) =>
           cn(
-            'flex w-full items-center rounded-[10px] border border-transparent px-2.5 py-2 text-[13px] font-medium transition-[background-color,color,border-color,box-shadow,padding,gap] duration-200 ease-out',
+            'app-sidebar-nav-link flex w-full items-center rounded-[10px] border border-transparent px-2.5 py-2 text-[13px] font-normal tracking-[0.01em] transition-[background-color,color,border-color,box-shadow,padding,gap] duration-200 ease-out',
             'text-foreground/68',
             collapsed
               ? 'mx-auto h-8 w-8 justify-center gap-0 px-0 hover:border-transparent hover:bg-[hsl(var(--surface-hover)/0.96)] hover:text-foreground hover:shadow-none'
@@ -82,10 +107,12 @@ function NavItem({ to, icon, label, collapsed }: NavItemProps) {
           )
         }
       >
-        {({ isActive }) => (
+        {() => (
           <>
-            <div className={cn('flex shrink-0 items-center justify-center', isActive ? 'text-foreground' : 'text-muted-foreground/82')}>
-              {icon}
+            <div className="flex shrink-0 items-center justify-center">
+              <SidebarToneIcon tone={tone}>
+                {icon}
+              </SidebarToneIcon>
             </div>
             <span
               className={cn(
@@ -126,18 +153,18 @@ export function Sidebar({ railOnly = false, className }: SidebarProps) {
   };
 
   const navItems = [
-    { to: '/', icon: <MessageSquareText className="h-[18px] w-[18px]" strokeWidth={2} />, label: t('sidebar.chat') },
-    { to: '/models', icon: <Cpu className="h-[18px] w-[18px]" strokeWidth={2} />, label: t('sidebar.models') },
-    { to: '/agents', icon: <Bot className="h-[18px] w-[18px]" strokeWidth={2} />, label: t('sidebar.agents') },
-    { to: '/channels', icon: <Network className="h-[18px] w-[18px]" strokeWidth={2} />, label: t('sidebar.channels') },
-    { to: '/skills', icon: <Puzzle className="h-[18px] w-[18px]" strokeWidth={2} />, label: t('sidebar.skills') },
-    { to: '/cron', icon: <Clock className="h-[18px] w-[18px]" strokeWidth={2} />, label: t('sidebar.cronTasks') },
+    { to: '/', icon: <MessageSquareText className="h-[18px] w-[18px]" strokeWidth={2} />, label: t('sidebar.chat'), tone: 'chat' as const },
+    { to: '/models', icon: <Cpu className="h-[18px] w-[18px]" strokeWidth={2} />, label: t('sidebar.models'), tone: 'models' as const },
+    { to: '/agents', icon: <Bot className="h-[18px] w-[18px]" strokeWidth={2} />, label: t('sidebar.agents'), tone: 'agents' as const },
+    { to: '/channels', icon: <Network className="h-[18px] w-[18px]" strokeWidth={2} />, label: t('sidebar.channels'), tone: 'channels' as const },
+    { to: '/skills', icon: <Puzzle className="h-[18px] w-[18px]" strokeWidth={2} />, label: t('sidebar.skills'), tone: 'skills' as const },
+    { to: '/cron', icon: <Clock className="h-[18px] w-[18px]" strokeWidth={2} />, label: t('sidebar.cronTasks'), tone: 'cron' as const },
   ];
 
   return (
     <aside
       className={cn(
-        'desktop-app-sidebar desktop-app-sidebar-surface flex shrink-0 flex-col overflow-hidden border-r border-border/55 transition-[width,background-color,border-color] duration-300 ease-out',
+        'desktop-app-sidebar desktop-app-sidebar-surface flex shrink-0 flex-col overflow-hidden border-r border-border/55 [font-family:var(--font-sidebar)] transition-[width,background-color,border-color] duration-300 ease-out',
         railOnly ? 'desktop-app-sidebar-rail' : 'desktop-app-sidebar-panel',
         collapsed ? 'w-11' : 'w-56',
         className,
@@ -190,6 +217,7 @@ export function Sidebar({ railOnly = false, className }: SidebarProps) {
           icon={<SettingsIcon className="h-[18px] w-[18px]" strokeWidth={2} />}
           label={t('sidebar.settings')}
           collapsed={collapsed}
+          tone="settings"
         />
 
         <RailTooltip collapsed={collapsed} label={t('sidebar.openClawPage')}>
@@ -197,7 +225,7 @@ export function Sidebar({ railOnly = false, className }: SidebarProps) {
             type="button"
             aria-label={collapsed ? t('sidebar.openClawPage') : undefined}
             className={cn(
-              'mt-1 flex h-auto w-full items-center rounded-[10px] border border-transparent px-2.5 py-2 text-[13px] font-medium transition-[background-color,color,border-color,box-shadow,padding,gap] duration-200 ease-out',
+              'app-sidebar-nav-link mt-1 flex h-auto w-full items-center rounded-[10px] border border-transparent px-2.5 py-2 text-[13px] font-normal tracking-[0.01em] transition-[background-color,color,border-color,box-shadow,padding,gap] duration-200 ease-out',
               'text-foreground/64',
               collapsed
                 ? 'mx-auto h-8 w-8 justify-center gap-0 px-0 hover:border-transparent hover:bg-[hsl(var(--surface-hover)/0.96)] hover:text-foreground hover:shadow-none'
@@ -205,8 +233,10 @@ export function Sidebar({ railOnly = false, className }: SidebarProps) {
             )}
             onClick={openDevConsole}
           >
-            <div className="flex shrink-0 items-center justify-center text-muted-foreground">
-              <Terminal className="h-[18px] w-[18px]" strokeWidth={2} />
+            <div className="flex shrink-0 items-center justify-center">
+              <SidebarToneIcon tone="terminal">
+                <Terminal className="h-[18px] w-[18px]" strokeWidth={2} />
+              </SidebarToneIcon>
             </div>
             <span
               className={cn(
