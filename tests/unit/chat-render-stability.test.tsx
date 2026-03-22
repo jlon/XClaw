@@ -208,4 +208,18 @@ describe('chat render stability', () => {
     expect(queryByTestId('chat-welcome-hero')).not.toBeInTheDocument();
     expect(queryByText('Start the work')).not.toBeInTheDocument();
   });
+
+  it('uses desktop scrollbars for populated chat threads and subtle scrollbars only for the welcome shell', () => {
+    const { container, rerender } = render(<Chat />);
+    const populatedScrollShell = container.querySelector('.app-chat-shell > .chat-im-font');
+
+    expect(populatedScrollShell).toHaveClass('workspace-page-scroll-default');
+    expect(populatedScrollShell).not.toHaveClass('subtle-scrollbar');
+
+    chatState.messages = [];
+    rerender(<Chat />);
+
+    const emptyScrollShell = container.querySelector('.app-chat-shell > .chat-im-font');
+    expect(emptyScrollShell).toHaveClass('subtle-scrollbar');
+  });
 });

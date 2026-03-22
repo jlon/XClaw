@@ -4,7 +4,7 @@
  * with markdown, thinking sections, images, and tool cards.
  */
 import { useState, useCallback, useEffect, memo } from 'react';
-import { Copy, Check, ChevronDown, ChevronRight, FileText, Film, Music, FileArchive, File, X, FolderOpen, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Copy, Check, ChevronDown, ChevronRight, FileText, Film, Music, FileArchive, File, X, FolderOpen, Loader2, CheckCircle2, AlertCircle, ThumbsUp, ThumbsDown } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { createPortal } from 'react-dom';
@@ -66,13 +66,14 @@ export const ChatMessage = memo(function ChatMessage({
 
   const attachedFiles = message._attachedFiles || [];
   const [lightboxImg, setLightboxImg] = useState<{ src: string; fileName: string; filePath?: string; base64?: string; mimeType?: string } | null>(null);
+  const [feedback, setFeedback] = useState<'helpful' | 'not_helpful' | null>(null);
 
   // Never render tool result messages in chat UI
   if (isToolResult) return null;
 
   const hasStreamingToolStatus = isStreaming && streamingTools.length > 0;
   if (!hasText && !visibleThinking && images.length === 0 && visibleTools.length === 0 && attachedFiles.length === 0 && !hasStreamingToolStatus) return null;
-  const hasSecondaryContent = hasText || hasStreamingToolStatus || !!visibleThinking || visibleTools.length > 0 || images.length > 0 || attachedFiles.length > 0;
+  const hasSecondaryContent = images.length > 0 || attachedFiles.length > 0;
   const hasProcessContent = !isUser && (hasStreamingToolStatus || !!visibleThinking || visibleTools.length > 0);
 
   return (
@@ -122,11 +123,23 @@ export const ChatMessage = memo(function ChatMessage({
         )}
 
         {hasText && (
-          <MessageBubble
-            text={text}
-            isUser={isUser}
-            isStreaming={isStreaming}
-          />
+          <div
+            className={cn(
+              'app-chat-message-primary',
+              isUser ? 'app-chat-message-primary--user' : 'app-chat-message-primary--assistant',
+            )}
+          >
+            <MessageBubble
+              text={text}
+              isUser={isUser}
+              isStreaming={isStreaming}
+            />
+            <MessageMetaBar
+              text={text}
+              timestamp={message.timestamp}
+              align={isUser ? 'end' : 'start'}
+            />
+          </div>
         )}
 
         {hasSecondaryContent && (
@@ -136,14 +149,6 @@ export const ChatMessage = memo(function ChatMessage({
               isUser ? 'app-chat-message-secondary--user' : 'app-chat-message-secondary--assistant',
             )}
           >
-            {hasText && (
-              <MessageMetaBar
-                text={text}
-                timestamp={message.timestamp}
-                align={isUser ? 'end' : 'start'}
-              />
-            )}
-
             {isUser && images.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {images.map((img, i) => {
@@ -241,6 +246,13 @@ export const ChatMessage = memo(function ChatMessage({
             )}
           </div>
         )}
+
+        {!isUser && hasText && (
+          <AssistantFeedbackRail
+            value={feedback}
+            onChange={setFeedback}
+          />
+        )}
       </div>
 
       {lightboxImg && (
@@ -323,8 +335,8 @@ function MessageMetaBar({ text, timestamp, align }: { text: string; timestamp?: 
   return (
     <div
       className={cn(
-        'app-chat-hoverbar inline-flex items-center gap-1.5 px-0.5 py-0.5 opacity-35 transition-opacity duration-200 select-none group-hover:opacity-100 group-focus-within:opacity-100',
-        align === 'end' ? 'self-end justify-end' : 'self-start justify-start',
+        'app-chat-hoverbar app-chat-hoverbar--floating pointer-events-none absolute bottom-full z-10 mb-2 inline-flex items-center gap-1.5 rounded-full px-2 py-1 opacity-0 shadow-sm transition-opacity duration-200 select-none group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100',
+        align === 'end' ? 'right-0 justify-end' : 'left-0 justify-start',
       )}
     >
       <span className="app-chat-meta-row text-[11px] text-muted-foreground">
@@ -358,18 +370,18 @@ function MessageBubble({
   return (
     <div
       className={cn(
-        'relative max-w-full text-[15px] leading-[1.62]',
+        'relative max-w-full text-[14px] leading-[1.6]',
         isUser
-          ? 'app-chat-bubble-user rounded-[18px] rounded-br-[6px] border px-4.5 py-3'
-          : 'app-chat-bubble-assistant rounded-[18px] rounded-tl-[6px] px-0 py-0 text-foreground',
+          ? 'app-chat-bubble-user rounded-[12px] rounded-br-[4px] border px-4 py-3'
+          : 'app-chat-bubble-assistant rounded-[12px] rounded-bl-[4px] px-0 py-0 text-foreground',
       )}
       data-testid={isUser ? 'chat-user-bubble' : 'chat-assistant-bubble'}
     >
       {isUser ? (
-        <p className="whitespace-pre-wrap break-words text-[15px] leading-[1.62]">{text}</p>
+        <p className="whitespace-pre-wrap break-words text-[14px] leading-[1.6]">{text}</p>
       ) : (
         <div className={cn(
-          'prose prose-sm dark:prose-invert max-w-none break-words text-[15px] leading-[1.62] text-foreground/94 prose-p:my-2 prose-ul:my-2.5 prose-ol:my-2.5 prose-li:my-1 prose-pre:my-2.5 prose-headings:mb-2 prose-headings:mt-4',
+          'prose prose-sm dark:prose-invert max-w-none break-words text-[14px] leading-[1.6] text-foreground/94 prose-p:my-2 prose-ul:my-2.5 prose-ol:my-2.5 prose-li:my-1 prose-pre:my-2.5 prose-headings:mb-2 prose-headings:mt-4',
           isStreaming && 'app-chat-streaming-content',
         )}>
           <ReactMarkdown
@@ -414,6 +426,95 @@ function MessageBubble({
         </div>
       )}
 
+    </div>
+  );
+}
+
+function AssistantFeedbackRail({
+  value,
+  onChange,
+}: {
+  value: 'helpful' | 'not_helpful' | null;
+  onChange: (next: 'helpful' | 'not_helpful' | null) => void;
+}) {
+  const { t } = useTranslation(['chat', 'common']);
+  const [draft, setDraft] = useState('');
+  const isPanelOpen = value === 'not_helpful';
+
+  return (
+    <div className="app-chat-feedback">
+      <div className="app-chat-feedback-actions">
+        <button
+          type="button"
+          className="app-chat-feedback-button"
+          aria-label={t('message.feedbackHelpful')}
+          title={t('message.feedbackHelpful')}
+          aria-pressed={value === 'helpful'}
+          data-active={value === 'helpful'}
+          onClick={() => {
+            setDraft('');
+            onChange(value === 'helpful' ? null : 'helpful');
+          }}
+        >
+          <ThumbsUp className="h-3.5 w-3.5" />
+        </button>
+        <button
+          type="button"
+          className="app-chat-feedback-button"
+          aria-label={t('message.feedbackNotHelpful')}
+          title={t('message.feedbackNotHelpful')}
+          aria-pressed={value === 'not_helpful'}
+          data-active={value === 'not_helpful'}
+          onClick={() => {
+            if (value === 'not_helpful') setDraft('');
+            onChange(value === 'not_helpful' ? null : 'not_helpful');
+          }}
+        >
+          <ThumbsDown className="h-3.5 w-3.5" />
+        </button>
+      </div>
+      {isPanelOpen && (
+        <div className="app-chat-feedback-panel">
+          <div className="app-chat-feedback-panel-header">
+            <p className="app-chat-feedback-panel-title">{t('message.feedbackPanelTitle')}</p>
+            <button
+              type="button"
+              className="app-chat-feedback-panel-close"
+              aria-label={t('common:actions.close')}
+              title={t('common:actions.close')}
+              onClick={() => {
+                setDraft('');
+                onChange(null);
+              }}
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <div className="app-chat-feedback-input-row">
+            <label className="app-chat-feedback-input-wrapper">
+              <input
+                type="text"
+                className="app-chat-feedback-input"
+                placeholder={t('message.feedbackPlaceholder')}
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+              />
+            </label>
+            <button
+              type="button"
+              className="app-chat-feedback-submit"
+              disabled={!draft.trim()}
+              onClick={() => {
+                if (!draft.trim()) return;
+                setDraft('');
+                onChange(null);
+              }}
+            >
+              {t('message.feedbackSubmit')}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -511,7 +612,7 @@ function ImageThumbnail({
   void filePath; void base64; void mimeType;
   return (
     <div
-      className="group/img app-chat-media-card relative h-32 w-32 cursor-zoom-in overflow-hidden rounded-[10px]"
+      className="group/img app-chat-media-card relative max-h-[200px] max-w-[200px] cursor-zoom-in overflow-hidden rounded-[8px]"
       onClick={onPreview}
     >
       <img
@@ -519,7 +620,7 @@ function ImageThumbnail({
         alt={fileName}
         loading="lazy"
         decoding="async"
-        className="h-full w-full object-cover transition-transform duration-200 group-hover/img:scale-[1.01]"
+        className="block max-h-[200px] max-w-[200px] object-cover"
       />
     </div>
   );
@@ -545,10 +646,10 @@ function ImagePreviewCard({
   void filePath; void base64; void mimeType;
   return (
     <div
-      className="group/img app-chat-media-card relative max-w-[220px] cursor-zoom-in overflow-hidden rounded-[10px]"
+      className="group/img app-chat-media-card relative max-h-[200px] max-w-[200px] cursor-zoom-in overflow-hidden rounded-[8px]"
       onClick={onPreview}
     >
-      <img src={src} alt={fileName} loading="lazy" decoding="async" className="block w-full" />
+      <img src={src} alt={fileName} loading="lazy" decoding="async" className="block max-h-[200px] max-w-[200px] object-cover" />
     </div>
   );
 }

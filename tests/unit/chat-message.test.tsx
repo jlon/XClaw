@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { ChatMessage } from '@/pages/Chat/ChatMessage';
 import type { RawMessage } from '@/stores/chat';
 
@@ -21,6 +21,18 @@ vi.mock('react-i18next', () => ({
           return 'File';
         case 'message.image':
           return 'Image';
+        case 'message.feedbackHelpful':
+          return 'Helpful';
+        case 'message.feedbackNotHelpful':
+          return 'Not helpful';
+        case 'message.feedbackPanelTitle':
+          return 'Thanks for the feedback';
+        case 'message.feedbackPlaceholder':
+          return 'Tell us what was not helpful';
+        case 'message.feedbackSubmit':
+          return 'Submit';
+        case 'common:actions.close':
+          return 'Close';
         case 'common:actions.copy':
           return 'Copy';
         default:
@@ -31,7 +43,7 @@ vi.mock('react-i18next', () => ({
 }));
 
 describe('ChatMessage', () => {
-  it('renders user messages with the neutral bubble treatment', () => {
+  it('renders user and assistant replies on dedicated desktop-im primary shells', () => {
     const userMessage: RawMessage = {
       role: 'user',
       content: 'Need a calmer bubble',
@@ -52,10 +64,17 @@ describe('ChatMessage', () => {
 
     const userBubble = screen.getByTestId('chat-user-bubble');
     const assistantBubble = screen.getByTestId('chat-assistant-bubble');
+    const userPrimary = userBubble.closest('.app-chat-message-primary');
+    const assistantPrimary = assistantBubble.closest('.app-chat-message-primary');
 
-    expect(userBubble).not.toHaveClass('bg-[#0a84ff]');
+    expect(userPrimary).toBeInTheDocument();
+    expect(assistantPrimary).toBeInTheDocument();
+    expect(userBubble).toHaveClass('rounded-[12px]');
+    expect(userBubble).toHaveClass('rounded-br-[4px]');
     expect(userBubble).toHaveClass('border');
-    expect(assistantBubble).not.toHaveClass('border');
+    expect(assistantBubble).toHaveClass('rounded-[12px]');
+    expect(assistantBubble).toHaveClass('rounded-bl-[4px]');
+    expect(assistantBubble).not.toHaveClass('rounded-tl-[6px]');
   });
 
   it('shows a lightweight copy action below both user and assistant messages', () => {
@@ -78,6 +97,36 @@ describe('ChatMessage', () => {
     );
 
     expect(screen.getAllByTitle('Copy')).toHaveLength(2);
+  });
+
+  it('renders a visible assistant feedback rail with desktop-im thumbs affordances', () => {
+    const assistantMessage: RawMessage = {
+      role: 'assistant',
+      content: 'And me',
+      timestamp: 1710000100,
+    };
+
+    render(<ChatMessage message={assistantMessage} showThinking={false} />);
+
+    expect(screen.getByRole('button', { name: 'Helpful' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Not helpful' })).toBeInTheDocument();
+  });
+
+  it('opens a dislike feedback panel with a close action and optional input', () => {
+    const assistantMessage: RawMessage = {
+      role: 'assistant',
+      content: 'And me',
+      timestamp: 1710000100,
+    };
+
+    render(<ChatMessage message={assistantMessage} showThinking={false} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Not helpful' }));
+
+    expect(screen.getByText('Thanks for the feedback')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Tell us what was not helpful')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
   });
 
   it('marks chat images as lazy async media so long sessions scroll with less pressure', () => {

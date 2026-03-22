@@ -200,6 +200,9 @@ export function Chat() {
     }
     setHasPendingLatest(false);
   }, [scrollRef]);
+  const scrollChromeClass = isEmpty
+    ? (isWindows ? 'subtle-scrollbar-win' : 'subtle-scrollbar')
+    : (isWindows ? 'workspace-page-scroll-win' : 'workspace-page-scroll-default');
 
   return (
     <div className={cn('app-chat-shell relative flex h-full flex-col transition-colors duration-500')}>
@@ -207,7 +210,7 @@ export function Chat() {
         ref={scrollRef}
         className={cn(
           'chat-im-font flex-1 overflow-y-auto px-5 py-3 md:px-6 md:py-4',
-          isEmpty && (isWindows ? 'subtle-scrollbar-win' : 'subtle-scrollbar'),
+          scrollChromeClass,
         )}
       >
         {isEmpty ? (
@@ -222,8 +225,8 @@ export function Chat() {
           </div>
         ) : (
           <div className="app-chat-workbench flex min-h-full flex-col">
-            <div className="app-chat-thread-stage flex min-h-full flex-1 flex-col justify-end px-1 py-4 md:px-2 md:py-5">
-              <div ref={contentRef} className="flex flex-col">
+            <div className="app-chat-thread-stage flex min-h-full flex-1 flex-col justify-end">
+              <div ref={contentRef} className="app-chat-thread-canvas flex flex-col">
                 {renderedMessages.map(({ message, idx, showAvatar, isClusteredWithPrevious }, visibleIndex) => (
                   <div
                     key={message.id || `msg-${idx}`}
@@ -559,14 +562,14 @@ function TypingIndicator({
   showAvatar: boolean;
 }) {
   return (
-    <div className="chat-im-font flex gap-2.5">
+    <div className="app-chat-typing-row chat-im-font">
       {showAvatar ? (
         <AgentAvatar label={avatar.label} style={avatar.style} className="mt-1 h-9 w-9" textClassName="text-sm" />
       ) : (
         <div aria-hidden="true" className="mt-1 h-9 w-9 shrink-0" />
       )}
-      <div className="app-chat-runtime-pill w-fit rounded-[14px] px-3 py-2 text-foreground">
-        <div className="flex gap-1">
+      <div className="app-chat-typing-bubble" role="status" aria-live="polite">
+        <div className="app-chat-typing-indicator" aria-hidden="true">
           <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
           <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
           <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
@@ -593,14 +596,14 @@ function ActivityIndicator({
   const { t } = useTranslation('chat');
   void phase;
   return (
-    <div className="chat-im-font flex gap-2.5">
+    <div className="app-chat-typing-row chat-im-font">
       {showAvatar ? (
         <AgentAvatar label={avatar.label} style={avatar.style} className="mt-1 h-9 w-9" textClassName="text-sm" />
       ) : (
         <div aria-hidden="true" className="mt-1 h-9 w-9 shrink-0" />
       )}
-      <div className="app-chat-runtime-pill w-fit rounded-[14px] px-3 py-2 text-foreground">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <div className="app-chat-typing-bubble" role="status" aria-live="polite">
+        <div className="app-chat-typing-status">
           <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
           <span>{t('message.toolProcessing')}</span>
         </div>

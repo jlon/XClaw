@@ -42,7 +42,12 @@
         "showInFolder": "フォルダで表示",
         "openFile": "ファイルを開く",
         "image": "画像",
-        "file": "ファイル"
+        "file": "ファイル",
+        "feedbackHelpful": "役に立った",
+        "feedbackNotHelpful": "役に立たない",
+        "feedbackPanelTitle": "フィードバックありがとうございます",
+        "feedbackPlaceholder": "どこが良くなかったかを教えてください",
+        "feedbackSubmit": "送信"
     },
     "composer": {
         "attachFiles": "ファイルを添付",

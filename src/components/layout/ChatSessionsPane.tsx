@@ -89,14 +89,21 @@ export function ChatSessionsPane() {
 
   useEffect(() => {
     if (!workspaceMenuOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setWorkspaceMenuOpen(false);
+      }
+    };
     const handlePointerDown = (event: MouseEvent) => {
       const target = event.target as Node;
       if (!workspaceMenuRef.current?.contains(target)) {
         setWorkspaceMenuOpen(false);
       }
     };
+    document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('mousedown', handlePointerDown);
     return () => {
+      document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('mousedown', handlePointerDown);
     };
   }, [workspaceMenuOpen]);
@@ -354,19 +361,19 @@ export function ChatSessionsPane() {
         )}
       </div>
 
-      <div className="border-t border-[#f0f0f0] px-2 py-2.5">
-        <div className="space-y-1.5">
-          <div ref={workspaceMenuRef} className="relative">
+      <div className="border-t border-[#f0f0f0] px-2 py-2">
+        <div className="flex items-center gap-1.5">
+          <div ref={workspaceMenuRef} className="relative min-w-0 flex-1">
             <button
               type="button"
-              className="app-chat-session-footer-action flex w-full items-center gap-2 rounded-full px-3 py-2 text-left text-[13px] text-[#4b5563] transition-[background-color,color] duration-150 hover:text-[#1f2937]"
+              className="app-chat-session-footer-action flex h-8 w-full items-center gap-2.5 rounded-[10px] px-3 text-left text-[12.5px] text-[#4b5563] transition-[background-color,color] duration-150 hover:text-[#1f2937]"
               onClick={() => setWorkspaceMenuOpen((open) => !open)}
             >
-              <LayoutGrid className="h-[15px] w-[15px] shrink-0" strokeWidth={1.9} />
+              <LayoutGrid className="h-[14px] w-[14px] shrink-0" strokeWidth={1.9} />
               <span className="truncate">{t('chat:sessionPane.workspaceLauncher')}</span>
             </button>
             {workspaceMenuOpen ? (
-              <div className="absolute bottom-[calc(100%+8px)] left-0 z-30 min-w-[180px] rounded-[14px] border border-[#ececec] bg-white p-1.5 shadow-[0_12px_32px_rgba(15,23,42,0.08)]">
+              <div className="absolute bottom-[calc(100%+8px)] left-0 z-30 w-[188px] rounded-[15px] border border-[#ececee] bg-white p-1.5 shadow-[0_10px_24px_rgba(15,23,42,0.08)]">
                 <div className="space-y-0.5">
                   {workspaceItems.map((item) => {
                     const Icon = item.icon;
@@ -374,7 +381,7 @@ export function ChatSessionsPane() {
                       <button
                         key={item.to}
                         type="button"
-                        className="flex w-full items-center gap-2.5 rounded-[10px] px-2.5 py-2 text-left text-[12.5px] text-foreground/82 transition-[background-color,color] duration-150 hover:bg-[#f5f5f5] hover:text-foreground"
+                        className="app-chat-session-workspace-item flex h-8 w-full items-center gap-2.5 rounded-[10px] px-2.5 text-left text-[12.5px] text-[#333] transition-[background-color,color] duration-150 hover:text-[#1f2937]"
                         onClick={() => {
                           setWorkspaceMenuOpen(false);
                           navigate(item.to);
@@ -385,9 +392,10 @@ export function ChatSessionsPane() {
                       </button>
                     );
                   })}
+                  <div className="my-1 border-t border-[#f0f0f0]" />
                   <button
                     type="button"
-                    className="flex w-full items-center gap-2.5 rounded-[10px] px-2.5 py-2 text-left text-[12.5px] text-foreground/82 transition-[background-color,color] duration-150 hover:bg-[#f5f5f5] hover:text-foreground"
+                    className="app-chat-session-workspace-item flex h-8 w-full items-center gap-2.5 rounded-[10px] px-2.5 text-left text-[12.5px] text-[#4b5563] transition-[background-color,color] duration-150 hover:text-[#1f2937]"
                     onClick={() => {
                       setWorkspaceMenuOpen(false);
                       void openDevConsole();
@@ -403,11 +411,12 @@ export function ChatSessionsPane() {
 
           <button
             type="button"
-            className="app-chat-session-footer-action flex w-full items-center gap-2 rounded-full px-3 py-2 text-left text-[13px] text-[#4b5563] transition-[background-color,color] duration-150 hover:text-[#1f2937]"
+            aria-label={t('common:sidebar.settings')}
+            title={t('common:sidebar.settings')}
+            className="app-chat-session-utility-button flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] text-[#70757d] transition-[background-color,color,border-color,box-shadow] duration-150 hover:text-[#1f2937] focus-visible:outline-none"
             onClick={() => navigate('/settings')}
           >
-            <Settings className="h-[15px] w-[15px] shrink-0" strokeWidth={1.9} />
-            <span className="truncate">{t('common:sidebar.settings')}</span>
+            <Settings className="h-[14px] w-[14px]" strokeWidth={1.9} />
           </button>
         </div>
       </div>

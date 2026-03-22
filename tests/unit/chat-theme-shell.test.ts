@@ -60,8 +60,8 @@ describe('chat desktop shell theme', () => {
     expect(inputSource).toContain('app-chat-composer-footer');
     expect(themeSource).toContain('.app-chat-composer-editor');
     expect(themeSource).toContain('.app-chat-composer-footer');
-    expect(inputSource).toContain("min-h-[82px]");
-    expect(inputSource).toContain("min-h-[68px]");
+    expect(inputSource).toContain("min-h-[74px]");
+    expect(inputSource).toContain("min-h-[60px]");
     expect(inputSource).not.toContain("'h-[52px] w-[52px]");
     expect(inputSource).toContain('absolute inset-x-4 bottom-3.5');
     expect(inputSource).toContain('app-chat-composer-tool-button');
@@ -145,17 +145,24 @@ describe('chat desktop shell theme', () => {
     const themeSource = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
 
     expect(pageSource).toContain('app-chat-thread-stage');
+    expect(pageSource).toContain('app-chat-thread-canvas');
     expect(messageSource).toContain('app-chat-bubble-assistant');
     expect(messageSource).toContain('app-chat-bubble-user');
     expect(messageSource).toContain('app-chat-thinking-card');
     expect(messageSource).toContain('app-chat-tool-card');
     expect(messageSource).toContain('app-chat-file-card');
+    expect(messageSource).toContain('app-chat-feedback');
     expect(themeSource).toContain('.app-chat-thread-stage');
+    expect(themeSource).toContain('.app-chat-thread-canvas');
+    expect(themeSource).toContain('.app-chat-thread-canvas {\n  display: flex;\n  min-height: 100%;\n  width: 100%;\n  max-width: 1000px;\n  margin: 0 auto;\n  padding: 24px 24px 8px;');
     expect(themeSource).toContain('.app-chat-bubble-assistant');
     expect(themeSource).toContain('.app-chat-bubble-user');
     expect(themeSource).toContain('.app-chat-thinking-card');
     expect(themeSource).toContain('.app-chat-tool-card');
     expect(themeSource).toContain('.app-chat-file-card');
+    expect(themeSource).toContain('.app-chat-feedback');
+    expect(themeSource).toContain('.app-chat-feedback-actions');
+    expect(themeSource).toContain('.app-chat-feedback-button');
   });
 
   it('keeps assistant messages document-like while user replies stay softly tinted', () => {
@@ -164,16 +171,19 @@ describe('chat desktop shell theme', () => {
 
     expect(messageSource).toContain("data-testid={isUser ? 'chat-user-bubble' : 'chat-assistant-bubble'}");
     expect(themeSource).toContain('.app-chat-bubble-assistant {\n  background: transparent;');
-    expect(themeSource).toContain('.app-chat-bubble-user {\n  background:\n    linear-gradient(180deg, hsl(var(--primary) / 0.082) 0%, hsl(var(--primary) / 0.06) 100%);');
-    expect(themeSource).toContain('.app-chat-message-column--user {\n  align-items: flex-end;\n  margin-inline-start: auto;\n  max-width: min(78%, 31rem);');
+    expect(themeSource).toContain('.app-chat-bubble-user {\n  background: hsl(var(--primary) / 0.085);');
+    expect(themeSource).toContain('.app-chat-message-column--assistant {\n  align-items: flex-start;\n  max-width: min(70%, 44rem);');
+    expect(themeSource).toContain('.app-chat-message-column--user {\n  align-items: flex-end;\n  margin-inline-start: auto;\n  max-width: min(70%, 34rem);');
+    expect(messageSource).toContain("? 'app-chat-bubble-user rounded-[12px] rounded-br-[4px] border px-4 py-3'");
+    expect(messageSource).toContain(": 'app-chat-bubble-assistant rounded-[12px] rounded-bl-[4px] px-0 py-0 text-foreground'");
   });
 
-  it('keeps runtime typing pills separate from tool status rails so loading bubbles stay visually complete', () => {
+  it('keeps runtime typing bubbles separate from tool status rails so loading rows stay visually complete', () => {
     const pageSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/index.tsx'), 'utf8');
     const themeSource = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
 
-    expect(pageSource).toContain('app-chat-runtime-pill');
-    expect(themeSource).toContain('.app-chat-runtime-pill');
+    expect(pageSource).toContain('app-chat-typing-bubble');
+    expect(themeSource).toContain('.app-chat-typing-bubble');
     expect(pageSource).not.toContain('app-chat-tool-status w-fit rounded-[14px] px-3 py-2 text-foreground');
   });
 
@@ -192,6 +202,7 @@ describe('chat desktop shell theme', () => {
     const pageSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/index.tsx'), 'utf8');
 
     expect(messageSource).toContain('app-chat-message-column');
+    expect(messageSource).toContain('app-chat-message-primary');
     expect(messageSource).toContain('app-chat-message-secondary');
     expect(messageSource).not.toContain("max-w-[70%] md:max-w-[62%]");
     expect(messageSource).not.toContain("max-w-[min(76%,40rem)]");
@@ -199,7 +210,51 @@ describe('chat desktop shell theme', () => {
     expect(pageSource).toContain('isClusteredWithPrevious');
     expect(pageSource).toContain('nextAssistantSpacingClass');
     expect(themeSource).toContain('.app-chat-message-column');
+    expect(themeSource).toContain('.app-chat-message-primary');
     expect(themeSource).toContain('.app-chat-message-secondary');
+  });
+
+  it('keeps chat media on QClaw-style natural previews instead of forcing square thumbnails', () => {
+    const messageSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/ChatMessage.tsx'), 'utf8');
+
+    expect(messageSource).toContain("group/img app-chat-media-card relative max-h-[200px] max-w-[200px] cursor-zoom-in overflow-hidden rounded-[8px]");
+    expect(messageSource).toContain("className=\"block max-h-[200px] max-w-[200px] object-cover\"");
+    expect(messageSource).not.toContain("group/img app-chat-media-card relative h-32 w-32");
+  });
+
+  it('keeps assistant feedback controls aligned with QClaw desktop-im affordance sizing', () => {
+    const messageSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/ChatMessage.tsx'), 'utf8');
+    const themeSource = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
+    const zhLocale = readFileSync(resolve(process.cwd(), 'src/i18n/locales/zh/chat.json'), 'utf8');
+
+    expect(messageSource).toContain("t('message.feedbackHelpful')");
+    expect(messageSource).toContain("t('message.feedbackNotHelpful')");
+    expect(messageSource).toContain("t('message.feedbackPanelTitle')");
+    expect(messageSource).toContain("t('message.feedbackPlaceholder')");
+    expect(messageSource).toContain("t('message.feedbackSubmit')");
+    expect(themeSource).toContain('.app-chat-feedback {\n  display: flex;\n  width: 100%;\n  max-width: 500px;');
+    expect(themeSource).toContain('.app-chat-feedback-actions {\n  display: flex;\n  align-items: center;\n  gap: 4px;');
+    expect(themeSource).toContain('.app-chat-feedback-button {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  width: 28px;\n  height: 28px;');
+    expect(themeSource).toContain('.app-chat-feedback-panel {\n  margin-top: 8px;\n  padding: 12px 16px;');
+    expect(themeSource).toContain('.app-chat-feedback-input-row {\n  display: flex;\n  align-items: center;\n  gap: 10px;\n  margin-top: 8px;');
+    expect(themeSource).toContain('.app-chat-feedback-submit {\n  flex-shrink: 0;\n  padding: 8px 28px;');
+    expect(zhLocale).toContain('"feedbackHelpful"');
+    expect(zhLocale).toContain('"feedbackNotHelpful"');
+    expect(zhLocale).toContain('"feedbackPanelTitle"');
+    expect(zhLocale).toContain('"feedbackPlaceholder"');
+    expect(zhLocale).toContain('"feedbackSubmit"');
+  });
+
+  it('keeps fallback typing and tool-processing indicators on assistant message rows instead of toolbar pills', () => {
+    const pageSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/index.tsx'), 'utf8');
+    const themeSource = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
+
+    expect(pageSource).toContain('app-chat-typing-row');
+    expect(pageSource).toContain('app-chat-typing-bubble');
+    expect(themeSource).toContain('.app-chat-typing-bubble');
+    expect(themeSource).toContain('.app-chat-typing-indicator');
+    expect(themeSource).toContain('.app-chat-typing-status');
+    expect(pageSource).not.toContain('app-chat-runtime-pill w-fit rounded-[14px] px-3 py-2 text-foreground');
   });
 
   it('isolates heavy chat secondary blocks and code blocks with content visibility hints', () => {

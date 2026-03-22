@@ -42,7 +42,12 @@
         "showInFolder": "在文件夹中显示",
         "openFile": "打开文件",
         "image": "图片",
-        "file": "文件"
+        "file": "文件",
+        "feedbackHelpful": "有帮助",
+        "feedbackNotHelpful": "没帮助",
+        "feedbackPanelTitle": "感谢你的反馈",
+        "feedbackPlaceholder": "补充一下哪里不够好",
+        "feedbackSubmit": "提交"
     },
     "composer": {
         "attachFiles": "添加文件",

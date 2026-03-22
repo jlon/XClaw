@@ -42,7 +42,12 @@
         "showInFolder": "Show in folder",
         "openFile": "Open file",
         "image": "Image",
-        "file": "File"
+        "file": "File",
+        "feedbackHelpful": "Helpful",
+        "feedbackNotHelpful": "Not helpful",
+        "feedbackPanelTitle": "Thanks for the feedback",
+        "feedbackPlaceholder": "Tell us what was not helpful",
+        "feedbackSubmit": "Submit"
     },
     "composer": {
         "attachFiles": "Attach files",
