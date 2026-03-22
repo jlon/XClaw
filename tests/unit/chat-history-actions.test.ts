@@ -6,6 +6,7 @@ const clearHistoryPoll = vi.fn();
 const enrichWithCachedImages = vi.fn((messages) => messages);
 const enrichWithToolResultFiles = vi.fn((messages) => messages);
 const getMessageText = vi.fn((content: unknown) => typeof content === 'string' ? content : '');
+const getSessionLabelText = vi.fn((content: unknown) => typeof content === 'string' ? content : '');
 const hasNonToolAssistantContent = vi.fn((message: { content?: unknown } | undefined) => {
   if (!message) return false;
   return typeof message.content === 'string' ? message.content.trim().length > 0 : true;
@@ -27,6 +28,7 @@ vi.mock('@/stores/chat/helpers', () => ({
   enrichWithCachedImages: (...args: unknown[]) => enrichWithCachedImages(...args),
   enrichWithToolResultFiles: (...args: unknown[]) => enrichWithToolResultFiles(...args),
   getMessageText: (...args: unknown[]) => getMessageText(...args),
+  getSessionLabelText: (...args: unknown[]) => getSessionLabelText(...args),
   hasNonToolAssistantContent: (...args: unknown[]) => hasNonToolAssistantContent(...args),
   isToolResultRole: (...args: unknown[]) => isToolResultRole(...args),
   loadMissingPreviews: (...args: unknown[]) => loadMissingPreviews(...args),
@@ -127,5 +129,73 @@ describe('chat history actions', () => {
     expect(hostApiFetchMock).not.toHaveBeenCalled();
     expect(h.read().messages).toEqual([]);
     expect(h.read().loading).toBe(false);
+  });
+
+  it('uses the first user message as the label for main sessions too', async () => {
+    const { createHistoryActions } = await import('@/stores/chat/history-actions');
+    const h = makeHarness({
+      currentSessionKey: 'agent:main:main',
+    });
+    const actions = createHistoryActions(h.set as never, h.get as never);
+
+    invokeIpcMock.mockResolvedValueOnce({
+      success: true,
+      result: {
+        messages: [
+          {
+            id: 'user-1',
+            role: 'user',
+            content: '帮我把桌面文件整理一下',
+            timestamp: 1773281731495,
+          },
+          {
+            id: 'assistant-1',
+            role: 'assistant',
+            content: '先从下载目录开始。',
+            timestamp: 1773281732751,
+          },
+        ],
+      },
+    });
+
+    await actions.loadHistory();
+
+    expect(h.read().sessionLabels['agent:main:main']).toBe('帮我把桌面文件整理一下');
+    expect(h.read().sessionLastActivity['agent:main:main']).toBe(1773281732751);
+  });
+
+  it('sanitizes session labels when history hydrates from transport-prefixed user messages', async () => {
+    const { createHistoryActions } = await import('@/stores/chat/history-actions');
+    const h = makeHarness({
+      currentSessionKey: 'agent:main:session-older',
+    });
+    const actions = createHistoryActions(h.set as never, h.get as never);
+
+    getSessionLabelText.mockImplementationOnce((content: unknown) =>
+      typeof content === 'string' ? content.replace(/^\[WhatsApp 2026-03-22 10:00\]\s*/, '') : '',
+    );
+    invokeIpcMock.mockResolvedValueOnce({
+      success: true,
+      result: {
+        messages: [
+          {
+            id: 'user-1',
+            role: 'user',
+            content: '[WhatsApp 2026-03-22 10:00] 你好',
+            timestamp: 1773281731495,
+          },
+          {
+            id: 'assistant-1',
+            role: 'assistant',
+            content: '收到',
+            timestamp: 1773281732751,
+          },
+        ],
+      },
+    });
+
+    await actions.loadHistory();
+
+    expect(h.read().sessionLabels['agent:main:session-older']).toBe('你好');
   });
 });

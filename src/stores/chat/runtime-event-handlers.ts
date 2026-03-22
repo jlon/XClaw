@@ -15,8 +15,30 @@ import {
   setErrorRecoveryTimer,
   upsertToolStatuses,
 } from './helpers';
+import { scheduleQueuedRuntimeCommandFlush } from './runtime-send-actions';
 import type { AttachedFileMeta, RawMessage } from './types';
 import type { ChatGet, ChatSet } from './store-api';
+
+function buildToolUseSnapshotMessage(
+  message: RawMessage | null,
+  fallbackId: string,
+): RawMessage | null {
+  if (!message) return null;
+  const content = Array.isArray(message.content) ? message.content : null;
+  if (!content) return null;
+  const snapshotContent = content.filter((block) => {
+    if (!block || typeof block !== 'object') return false;
+    const type = 'type' in block ? block.type : undefined;
+    return type === 'thinking' || type === 'tool_use' || type === 'toolCall';
+  });
+  if (snapshotContent.length === 0) return null;
+  return {
+    ...message,
+    role: 'assistant',
+    id: fallbackId,
+    content: snapshotContent,
+  };
+}
 
 export function handleRuntimeEventState(
   set: ChatSet,
@@ -91,28 +113,12 @@ export function handleRuntimeEventState(
                 }
               }
               set((s) => {
-                // Snapshot the current streaming assistant message (thinking + tool_use) into
-                // messages[] before clearing it. The Gateway does NOT send separate 'final'
-                // events for intermediate tool-use turns — it only sends deltas and then the
-                // tool result. Without snapshotting here, the intermediate thinking+tool steps
-                // would be overwritten by the next turn's deltas and never appear in the UI.
                 const currentStream = s.streamingMessage as RawMessage | null;
-                const snapshotMsgs: RawMessage[] = [];
-                if (currentStream) {
-                  const streamRole = currentStream.role;
-                  if (streamRole === 'assistant' || streamRole === undefined) {
-                    // Use message's own id if available, otherwise derive a stable one from runId
-                    const snapId = currentStream.id
-                      || `${runId || 'run'}-turn-${s.messages.length}`;
-                    if (!s.messages.some(m => m.id === snapId)) {
-                      snapshotMsgs.push({
-                        ...(currentStream as RawMessage),
-                        role: 'assistant',
-                        id: snapId,
-                      });
-                    }
-                  }
-                }
+                const snapId = currentStream?.id || `${runId || 'run'}-turn-${s.messages.length}`;
+                const snapshot = buildToolUseSnapshotMessage(currentStream, snapId);
+                const snapshotMsgs = snapshot && !s.messages.some(m => m.id === snapshot.id)
+                  ? [snapshot]
+                  : [];
                 return {
                   messages: snapshotMsgs.length > 0 ? [...s.messages, ...snapshotMsgs] : s.messages,
                   streamingText: '',
@@ -186,6 +192,7 @@ export function handleRuntimeEventState(
             // tool-use turns (thinking + tool blocks) from the Gateway's authoritative record.
             if (hasOutput && !toolOnly) {
               clearHistoryPoll();
+              scheduleQueuedRuntimeCommandFlush(set, get);
               void get().loadHistory(true);
             }
           } else {
@@ -241,6 +248,7 @@ export function handleRuntimeEventState(
                   activeRunId: null,
                   lastUserMessageAt: null,
                 });
+                scheduleQueuedRuntimeCommandFlush(set, get);
                 // One final history reload in case the Gateway completed in the
                 // background and we just missed the event.
                 state.loadHistory(true);
@@ -249,6 +257,7 @@ export function handleRuntimeEventState(
           } else {
             clearHistoryPoll();
             set({ sending: false, activeRunId: null, lastUserMessageAt: null });
+            scheduleQueuedRuntimeCommandFlush(set, get);
           }
           break;
         }
@@ -265,6 +274,7 @@ export function handleRuntimeEventState(
             lastUserMessageAt: null,
             pendingToolImages: [],
           });
+          scheduleQueuedRuntimeCommandFlush(set, get);
           break;
         }
         default: {

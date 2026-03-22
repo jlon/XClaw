@@ -27,6 +27,18 @@ describe('chat session list helpers', () => {
     });
   });
 
+  it('treats branded main-session display names as fallback metadata instead of conversation titles', () => {
+    const session: ChatSession = {
+      key: 'agent:main:main',
+      displayName: 'XClaw',
+    };
+
+    expect(deriveSessionListTitle(session, undefined, 'New Chat')).toEqual({
+      title: 'New Chat',
+      usedFallbackTitle: true,
+    });
+  });
+
   it('hides empty main placeholders and subagent transcripts from the session list', () => {
     expect(
       shouldHideSessionFromList(

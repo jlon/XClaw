@@ -8,9 +8,6 @@ const isMainSessionKey = (sessionKey: string) => sessionKey.endsWith(':main');
 const isInternalSessionKey = (sessionKey: string) =>
   sessionKey.includes(':subagent:') || sessionKey.includes(':cron:');
 
-const isGenericMainDisplayName = (value: string, session: ChatSession) =>
-  isMainSessionKey(session.key) && ['main', 'main agent'].includes(value.toLowerCase());
-
 const isOpaqueSessionTitle = (value: string, session: ChatSession) =>
   value === session.key || value.startsWith('agent:') || OPAQUE_SESSION_ID_RE.test(value);
 
@@ -19,11 +16,15 @@ export function deriveSessionListTitle(
   sessionLabel: string | undefined,
   untitledLabel: string,
 ): { title: string; usedFallbackTitle: boolean } {
-  const candidates = [sessionLabel, session.label, session.displayName];
-  for (const candidate of candidates) {
-    const normalized = normalize(candidate);
+  const candidates = [
+    { value: sessionLabel, source: 'sessionLabel' as const },
+    { value: session.label, source: 'label' as const },
+    { value: session.displayName, source: 'displayName' as const },
+  ];
+  for (const { value, source } of candidates) {
+    const normalized = normalize(value);
     if (!normalized) continue;
-    if (isGenericMainDisplayName(normalized, session)) continue;
+    if (source === 'displayName' && isMainSessionKey(session.key)) continue;
     if (isOpaqueSessionTitle(normalized, session)) continue;
     return {
       title: normalized,

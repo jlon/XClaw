@@ -43,6 +43,21 @@ vi.mock('react-i18next', () => ({
 }));
 
 describe('ChatMessage', () => {
+  it('does not render system/runtime messages as normal chat bubbles', () => {
+    const systemMessage: RawMessage = {
+      role: 'system',
+      content: 'Exec approval allow-once submitted for 08d6b8cd.',
+      timestamp: 1710000000,
+    };
+
+    const { container, queryByText } = render(
+      <ChatMessage message={systemMessage} showThinking={false} />,
+    );
+
+    expect(queryByText('Exec approval allow-once submitted for 08d6b8cd.')).not.toBeInTheDocument();
+    expect(container).toBeEmptyDOMElement();
+  });
+
   it('renders user and assistant replies on dedicated desktop-im primary shells', () => {
     const userMessage: RawMessage = {
       role: 'user',

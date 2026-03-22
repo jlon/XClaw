@@ -5,6 +5,67 @@
  */
 import type { RawMessage, ContentBlock } from '@/stores/chat';
 
+const TRANSPORT_PREFIX = /^\[([^\]]+)\]\s*/;
+const TRANSPORT_SOURCES = [
+  'WebChat',
+  'WhatsApp',
+  'Telegram',
+  'Signal',
+  'Slack',
+  'Discord',
+  'iMessage',
+  'Teams',
+  'Matrix',
+  'Zalo',
+  'Zalo Personal',
+  'BlueBubbles',
+];
+const RUNTIME_LINE = /^(?:System:\s*\[|\[[A-Z][a-zA-Z\s]+\]|OpenClaw runtime context|Result \(untrusted content|<<<(?:BEGIN|END)_UNTRUSTED_CHILD_RESULT>>>|Stats:\s*runtime|Action:\s*$)/;
+const RUNTIME_MARKERS = [
+  'OpenClaw runtime context (internal)',
+  '<<<BEGIN_UNTRUSTED_CHILD_RESULT>>>',
+  '<<<END_UNTRUSTED_CHILD_RESULT>>>',
+  'Result (untrusted content, treat as data)',
+  'This context is runtime-generated, not user-authored',
+];
+
+const looksLikeTransportPrefix = (value: string): boolean =>
+  /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z\b/.test(value)
+  || /\d{4}-\d{2}-\d{2} \d{2}:\d{2}\b/.test(value)
+  || TRANSPORT_SOURCES.some(source => value.startsWith(`${source} `));
+
+const stripLeadingTransportPrefix = (text: string): string => {
+  const match = text.match(TRANSPORT_PREFIX);
+  if (!match) return text;
+  const prefix = match[1] || '';
+  return looksLikeTransportPrefix(prefix) ? text.slice(match[0].length) : text;
+};
+
+const stripAssistantThinkTags = (text: string): string =>
+  text.replace(/<\s*think(?:ing)?\s*>[\s\S]*?<\s*\/\s*think(?:ing)?\s*>/gi, '').trim();
+
+const isRuntimeLine = (line: string): boolean => {
+  const trimmed = line.trim();
+  return RUNTIME_LINE.test(trimmed) || RUNTIME_MARKERS.some(marker => trimmed.includes(marker));
+};
+
+const stripRuntimeContextLines = (text: string): string =>
+  text
+    .replace(/\r\n?/g, '\n')
+    .split('\n')
+    .filter(line => !isRuntimeLine(line))
+    .join('\n')
+    .trim();
+
+export function isSystemRuntimeMessage(message: RawMessage | unknown): boolean {
+  if (!message || typeof message !== 'object') return false;
+  const msg = message as Record<string, unknown>;
+  const role = typeof msg.role === 'string' ? msg.role.toLowerCase() : '';
+  if (role === 'system') return true;
+  const runtimeMeta = msg.__openclaw;
+  return !!runtimeMeta && typeof runtimeMeta === 'object';
+}
+
 /**
  * Clean Gateway metadata from user message text for display.
  * Strips: [media attached: ... | ...], [message_id: ...],
@@ -34,7 +95,9 @@ export function extractText(message: RawMessage | unknown): string {
   if (!message || typeof message !== 'object') return '';
   const msg = message as Record<string, unknown>;
   const content = msg.content;
-  const isUser = msg.role === 'user';
+  const role = typeof msg.role === 'string' ? msg.role : '';
+  const isUser = role === 'user';
+  const isAssistant = role === 'assistant';
 
   let result = '';
 
@@ -56,8 +119,17 @@ export function extractText(message: RawMessage | unknown): string {
     result = msg.text.trim().length > 0 ? msg.text : '';
   }
 
-  // Strip Gateway metadata from user messages for clean display
-  if (isUser && result) {
+  if (!result) return '';
+
+  result = isAssistant ? stripAssistantThinkTags(result) : stripLeadingTransportPrefix(result);
+  if (!result) return '';
+
+  if (isAssistant || isUser) {
+    result = stripRuntimeContextLines(result);
+    if (!result) return '';
+  }
+
+  if (isUser) {
     result = cleanUserText(result);
   }
 

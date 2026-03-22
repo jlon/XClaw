@@ -332,6 +332,44 @@ describe('ChatInput agent targeting', () => {
     randomSpy.mockRestore();
   });
 
+  it('opens a slash command menu and filters commands as the user types', async () => {
+    render(<ChatInput onSend={vi.fn()} />);
+
+    const textbox = screen.getByRole('textbox');
+    fireEvent.change(textbox, { target: { value: '/' } });
+
+    expect(await screen.findByText('/new')).toBeInTheDocument();
+    expect(screen.getByText('/help')).toBeInTheDocument();
+    expect(screen.getByTestId('slash-command-icon-new')).toBeInTheDocument();
+    expect(screen.getByText('4 options')).toBeInTheDocument();
+    expect(screen.getAllByText('instant').length).toBeGreaterThan(0);
+
+    fireEvent.change(textbox, { target: { value: '/th' } });
+
+    expect(await screen.findByText('/think')).toBeInTheDocument();
+    expect(screen.queryByText('/new')).not.toBeInTheDocument();
+  });
+
+  it('transitions into slash arg mode and executes the selected fixed option', async () => {
+    const onSend = vi.fn();
+
+    render(<ChatInput onSend={onSend} />);
+
+    const textbox = screen.getByRole('textbox');
+    fireEvent.change(textbox, { target: { value: '/th' } });
+    fireEvent.keyDown(textbox, { key: 'Enter' });
+
+    await waitFor(() => {
+      expect(textbox).toHaveValue('/think ');
+    });
+
+    expect(screen.getByText('high')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('high'));
+
+    expect(onSend).toHaveBeenCalledWith('/think high', undefined, null);
+  });
+
   it('prefers OpenClaw key refs when provided by models.list', async () => {
     gatewayRpcMock.mockResolvedValue({
       models: [

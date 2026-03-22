@@ -44,7 +44,7 @@ async function run() {
     const buildExitCode = await new Promise((resolve) => {
       const buildProcess = spawn(
         pnpmBin,
-        ['run', 'build:vite'],
+        ['exec', 'vite', 'build', '--config', 'vite.e2e.config.ts'],
         {
           cwd: repoRoot,
           env: process.env,

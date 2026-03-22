@@ -100,11 +100,13 @@ Complete the entire setup—from installation to your first AI interaction—thr
 ### 💬 Intelligent Chat Interface
 Communicate with AI agents through a modern chat experience. Support for multiple conversation contexts, message history, rich content rendering with Markdown, and direct `@agent` routing in the main composer for multi-agent setups.
 The composer also lets you switch the current session model directly through OpenClaw's built-in per-session model override flow, without changing your persistent provider settings.
+The chat workbench now also includes a QClaw-style local slash-command router and inline slash menu. `/new` and `/reset` are intercepted locally but still reuse the shared Gateway send path, while `/model`, `/compact`, `/agents`, `/focus`, `/export`, and `/usage` stay on the local renderer side instead of being sent as ordinary chat turns. `/usage` now renders the active session's token summary inline, while `/focus` and `/export` stay as desktop-side actions.
 When you target another agent with `@agent`, XClaw switches into that agent's own conversation context directly instead of relaying through the default agent. Agent workspaces stay separate by default, and stronger isolation depends on OpenClaw sandbox settings.
 
 ### 📡 Multi-Channel Management
 Configure and monitor multiple AI channels simultaneously. Each channel operates independently, allowing you to run specialized agents for different tasks.
 Each channel now supports multiple accounts, per-account agent binding, and switching the channel default account directly from the Channels page.
+XClaw now also bundles the official WeChat channel plugin, so WeChat accounts can be added and re-bound through GUI QR login without running `npx` or `openclaw` commands manually. The Channels workbench keeps the real WeChat account ID read-only, exposes QR re-login directly, and adds a health guard that warns about session-expiry risk instead of sending any automatic keep-alive traffic.
 
 ### ⏰ Cron-Based Automation
 Schedule AI tasks to run automatically. Define triggers, set intervals, and let your AI agents work around the clock without manual intervention.

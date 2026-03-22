@@ -12,7 +12,9 @@ const {
 } = vi.hoisted(() => ({
   settingsState: {
     sidebarCollapsed: false,
+    chatFocusMode: false,
     setSidebarCollapsed: vi.fn(),
+    setChatFocusMode: vi.fn(),
   },
   chatState: {
     sessions: [] as Array<Record<string, unknown>>,
@@ -134,7 +136,9 @@ describe('chat layout', () => {
   beforeEach(() => {
     window.electron.platform = 'darwin';
     settingsState.sidebarCollapsed = false;
+    settingsState.chatFocusMode = false;
     settingsState.setSidebarCollapsed = vi.fn();
+    settingsState.setChatFocusMode = vi.fn();
     chatState.sessions = [
       {
         key: 'agent:main:thread-1',
@@ -199,6 +203,24 @@ describe('chat layout', () => {
     expect(screen.getByTestId('chat-sessions-scroll-area')).toHaveClass('subtle-scrollbar');
     expect(screen.getByTestId('chat-sessions-scroll-area')).not.toHaveClass('subtle-scrollbar-win');
     expect(screen.queryByText(/\d{1,2}:\d{2}/)).not.toBeInTheDocument();
+  });
+
+  it('hides the chat sessions pane when chat focus mode is active', () => {
+    settingsState.chatFocusMode = true;
+
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <Routes>
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<div>Chat body</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByText('Design review')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('chat-sessions-scroll-area')).not.toBeInTheDocument();
+    expect(screen.getByText('Chat body')).toBeInTheDocument();
   });
 
   it('only shows an inline agent suffix when duplicate labels need disambiguation', () => {

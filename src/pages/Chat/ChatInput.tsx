@@ -7,7 +7,35 @@
  * are sent with the message (no base64 over WebSocket).
  */
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { SendHorizontal, Square, X, Paperclip, FileText, Film, Music, FileArchive, File, Loader2, AtSign, Box, Check, Search, ChevronDown } from 'lucide-react';
+import {
+  SendHorizontal,
+  Square,
+  X,
+  Paperclip,
+  FileText,
+  Film,
+  Music,
+  FileArchive,
+  File,
+  Loader2,
+  AtSign,
+  Box,
+  Check,
+  Search,
+  ChevronDown,
+  Plus,
+  RotateCcw,
+  Trash2,
+  Eye,
+  Brain,
+  TerminalSquare,
+  BookOpen,
+  BarChart3,
+  Download,
+  Monitor,
+  Zap,
+  type LucideIcon,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { hostApiFetch } from '@/lib/host-api';
 import { invokeIpc } from '@/lib/api-client';
@@ -18,6 +46,13 @@ import { useChatStore } from '@/stores/chat';
 import { getProviderAccountRuntimeKey } from '@/lib/provider-accounts';
 import type { AgentSummary } from '@/types/agent';
 import { useTranslation } from 'react-i18next';
+import {
+  CATEGORY_LABELS,
+  getSlashCommandCompletions,
+  SLASH_COMMANDS,
+  type SlashCommandDef,
+  type SlashCommandIcon,
+} from '@/stores/chat/slash-commands';
 import { resolveGatewayUi } from './gateway-ui';
 import type { ProviderAccount } from '@/lib/providers';
 
@@ -55,6 +90,26 @@ interface ChatModelOption {
   providerLabel?: string;
 }
 
+type SlashMenuMode = 'command' | 'args';
+
+const slashCommandIconMap: Record<SlashCommandIcon, LucideIcon> = {
+  plus: Plus,
+  refresh: RotateCcw,
+  loader: Loader2,
+  stop: Square,
+  trash: Trash2,
+  eye: Eye,
+  brain: Brain,
+  terminal: TerminalSquare,
+  zap: Zap,
+  book: BookOpen,
+  barChart: BarChart3,
+  download: Download,
+  monitor: Monitor,
+  x: X,
+  send: SendHorizontal,
+};
+
 // ── Helpers ──────────────────────────────────────────────────────
 
 function pickRandomIdlePrompt(prompts: string[], currentPrompt?: string | null): string {
@@ -82,6 +137,21 @@ function FileIcon({ mimeType, className }: { mimeType: string; className?: strin
   if (mimeType.includes('zip') || mimeType.includes('compressed') || mimeType.includes('archive') || mimeType.includes('tar') || mimeType.includes('rar') || mimeType.includes('7z')) return <FileArchive className={className} />;
   if (mimeType === 'application/pdf') return <FileText className={className} />;
   return <File className={className} />;
+}
+
+function SlashCommandGlyph({ icon, name }: { icon?: SlashCommandIcon; name: string }) {
+  if (!icon) {
+    return null;
+  }
+  const Icon = slashCommandIconMap[icon];
+  return (
+    <span
+      data-testid={`slash-command-icon-${name}`}
+      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--foreground)/0.06)] text-foreground/72"
+    >
+      <Icon className="h-3.5 w-3.5" />
+    </span>
+  );
 }
 
 function normalizeChatModelOption(
@@ -231,6 +301,12 @@ export function ChatInput({
   const [modelsLoadError, setModelsLoadError] = useState<string | null>(null);
   const [switchingModel, setSwitchingModel] = useState(false);
   const [idlePrompt, setIdlePrompt] = useState('');
+  const [slashMenuOpen, setSlashMenuOpen] = useState(false);
+  const [slashMenuItems, setSlashMenuItems] = useState<SlashCommandDef[]>([]);
+  const [slashMenuIndex, setSlashMenuIndex] = useState(0);
+  const [slashMenuMode, setSlashMenuMode] = useState<SlashMenuMode>('command');
+  const [slashMenuCommand, setSlashMenuCommand] = useState<SlashCommandDef | null>(null);
+  const [slashMenuArgItems, setSlashMenuArgItems] = useState<string[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
   const modelPickerRef = useRef<HTMLDivElement>(null);
@@ -306,6 +382,18 @@ export function ChatInput({
       ? translated.filter((prompt): prompt is string => typeof prompt === 'string' && prompt.trim().length > 0)
       : [];
   }, [t]);
+  const groupedSlashMenuItems = useMemo(() => {
+    return slashMenuItems.reduce<Array<{ category: string; items: SlashCommandDef[] }>>((groups, command) => {
+      const category = command.category ?? 'session';
+      const lastGroup = groups.at(-1);
+      if (!lastGroup || lastGroup.category !== category) {
+        groups.push({ category, items: [command] });
+        return groups;
+      }
+      lastGroup.items.push(command);
+      return groups;
+    }, []);
+  }, [slashMenuItems]);
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -579,11 +667,117 @@ export function ChatInput({
   const canStop = sending && !disabled && !!onStop;
   const gatewayUi = resolveGatewayUi(gatewayStatus.state);
 
+  const resetSlashMenu = useCallback(() => {
+    setSlashMenuMode('command');
+    setSlashMenuCommand(null);
+    setSlashMenuArgItems([]);
+    setSlashMenuItems([]);
+    setSlashMenuIndex(0);
+  }, []);
+
+  const closeSlashMenu = useCallback(() => {
+    setSlashMenuOpen(false);
+    resetSlashMenu();
+  }, [resetSlashMenu]);
+
+  const updateSlashMenu = useCallback((value: string) => {
+    const argMatch = value.match(/^\/(\S+)\s(.*)$/u);
+    if (argMatch) {
+      const commandName = argMatch[1]?.toLowerCase() ?? '';
+      const argFilter = argMatch[2]?.toLowerCase() ?? '';
+      const command = SLASH_COMMANDS.find((entry) => entry.name === commandName);
+      if (command?.argOptions?.length) {
+        const filtered = argFilter
+          ? command.argOptions.filter((option) => option.toLowerCase().startsWith(argFilter))
+          : command.argOptions;
+        if (filtered.length > 0) {
+          setSlashMenuMode('args');
+          setSlashMenuCommand(command);
+          setSlashMenuArgItems(filtered);
+          setSlashMenuItems([]);
+          setSlashMenuIndex(0);
+          setSlashMenuOpen(true);
+          return;
+        }
+      }
+      closeSlashMenu();
+      return;
+    }
+
+    const commandMatch = value.match(/^\/(\S*)$/u);
+    if (commandMatch) {
+      const items = getSlashCommandCompletions(commandMatch[1] ?? '');
+      setSlashMenuItems(items);
+      setSlashMenuMode('command');
+      setSlashMenuCommand(null);
+      setSlashMenuArgItems([]);
+      setSlashMenuIndex(0);
+      setSlashMenuOpen(items.length > 0);
+      return;
+    }
+
+    closeSlashMenu();
+  }, [closeSlashMenu]);
+
+  const clearComposer = useCallback(() => {
+    setInput('');
+    setAttachments([]);
+    setTargetAgentId(null);
+    setPickerOpen(false);
+    setSlashMenuOpen(false);
+    resetSlashMenu();
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
+  }, [resetSlashMenu]);
+
+  const dispatchMessage = useCallback((textToSend: string, attachmentsToSend?: FileAttachment[]) => {
+    onSend(textToSend, attachmentsToSend?.length ? attachmentsToSend : undefined, targetAgentId);
+    clearComposer();
+  }, [clearComposer, onSend, targetAgentId]);
+
+  const selectSlashArg = useCallback((arg: string, execute: boolean) => {
+    const commandName = slashMenuCommand?.name ?? '';
+    if (!commandName) {
+      closeSlashMenu();
+      return;
+    }
+    const nextValue = `/${commandName} ${arg}`;
+    setInput(nextValue);
+    closeSlashMenu();
+    if (execute) {
+      dispatchMessage(nextValue);
+    } else {
+      requestAnimationFrame(() => textareaRef.current?.focus());
+    }
+  }, [closeSlashMenu, dispatchMessage, slashMenuCommand]);
+
+  const selectSlashCommand = useCallback((command: SlashCommandDef, executeDirect: boolean) => {
+    if (command.argOptions?.length) {
+      const nextValue = `/${command.name} `;
+      setInput(nextValue);
+      setSlashMenuMode('args');
+      setSlashMenuCommand(command);
+      setSlashMenuArgItems(command.argOptions);
+      setSlashMenuItems([]);
+      setSlashMenuIndex(0);
+      setSlashMenuOpen(true);
+      requestAnimationFrame(() => textareaRef.current?.focus());
+      return;
+    }
+    const nextValue = command.args ? `/${command.name} ` : `/${command.name}`;
+    setInput(nextValue);
+    closeSlashMenu();
+    if (executeDirect && command.executeLocal && !command.args) {
+      dispatchMessage(nextValue);
+      return;
+    }
+    requestAnimationFrame(() => textareaRef.current?.focus());
+  }, [closeSlashMenu, dispatchMessage]);
+
   const handleSend = useCallback(() => {
     if (!canSend) return;
     const readyAttachments = attachments.filter(a => a.status === 'ready');
-    // Capture values before clearing — clear input immediately for snappy UX,
-    // but keep attachments available for the async send
     const textToSend = input.trim();
     const attachmentsToSend = readyAttachments.length > 0 ? readyAttachments : undefined;
     console.log(`[handleSend] text="${textToSend.substring(0, 50)}", attachments=${attachments.length}, ready=${readyAttachments.length}, sending=${!!attachmentsToSend}`);
@@ -593,15 +787,8 @@ export function ChatInput({
         stagedPath: a.stagedPath, status: a.status, hasPreview: !!a.preview,
       })));
     }
-    setInput('');
-    setAttachments([]);
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-    }
-    onSend(textToSend, attachmentsToSend, targetAgentId);
-    setTargetAgentId(null);
-    setPickerOpen(false);
-  }, [input, attachments, canSend, onSend, targetAgentId]);
+    dispatchMessage(textToSend, attachmentsToSend);
+  }, [attachments, canSend, dispatchMessage, input]);
 
   const handleStop = useCallback(() => {
     if (!canStop) return;
@@ -617,6 +804,56 @@ export function ChatInput({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      if (slashMenuOpen && slashMenuMode === 'args' && slashMenuArgItems.length > 0) {
+        const itemCount = slashMenuArgItems.length;
+        switch (e.key) {
+          case 'ArrowDown':
+            e.preventDefault();
+            setSlashMenuIndex((currentIndex) => (currentIndex + 1) % itemCount);
+            return;
+          case 'ArrowUp':
+            e.preventDefault();
+            setSlashMenuIndex((currentIndex) => (currentIndex - 1 + itemCount) % itemCount);
+            return;
+          case 'Tab':
+            e.preventDefault();
+            selectSlashArg(slashMenuArgItems[slashMenuIndex] ?? slashMenuArgItems[0] ?? '', false);
+            return;
+          case 'Enter':
+            e.preventDefault();
+            selectSlashArg(slashMenuArgItems[slashMenuIndex] ?? slashMenuArgItems[0] ?? '', true);
+            return;
+          case 'Escape':
+            e.preventDefault();
+            closeSlashMenu();
+            return;
+        }
+      }
+      if (slashMenuOpen && slashMenuMode === 'command' && slashMenuItems.length > 0) {
+        const itemCount = slashMenuItems.length;
+        switch (e.key) {
+          case 'ArrowDown':
+            e.preventDefault();
+            setSlashMenuIndex((currentIndex) => (currentIndex + 1) % itemCount);
+            return;
+          case 'ArrowUp':
+            e.preventDefault();
+            setSlashMenuIndex((currentIndex) => (currentIndex - 1 + itemCount) % itemCount);
+            return;
+          case 'Tab':
+            e.preventDefault();
+            selectSlashCommand(slashMenuItems[slashMenuIndex] ?? slashMenuItems[0]!, false);
+            return;
+          case 'Enter':
+            e.preventDefault();
+            selectSlashCommand(slashMenuItems[slashMenuIndex] ?? slashMenuItems[0]!, true);
+            return;
+          case 'Escape':
+            e.preventDefault();
+            closeSlashMenu();
+            return;
+        }
+      }
       if (e.key === 'Backspace' && !input && targetAgentId) {
         setTargetAgentId(null);
         return;
@@ -630,7 +867,7 @@ export function ChatInput({
         handleSend();
       }
     },
-    [handleSend, input, targetAgentId],
+    [closeSlashMenu, handleSend, input, selectSlashArg, selectSlashCommand, slashMenuArgItems, slashMenuIndex, slashMenuItems, slashMenuMode, slashMenuOpen, targetAgentId],
   );
 
   // Handle paste (Ctrl/Cmd+V with files)
@@ -731,7 +968,11 @@ export function ChatInput({
             <textarea
               ref={textareaRef}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => {
+                const nextValue = e.target.value;
+                setInput(nextValue);
+                updateSlashMenu(nextValue);
+              }}
               onKeyDown={handleKeyDown}
               onCompositionStart={() => {
                 isComposingRef.current = true;
@@ -751,6 +992,103 @@ export function ChatInput({
               rows={1}
             />
           </div>
+
+          {slashMenuOpen && (
+            <div className="pointer-events-auto absolute bottom-full left-4 z-20 mb-3 w-[min(100%-2rem,24rem)] overflow-hidden rounded-[16px] border border-[hsl(var(--border-subtle)/0.9)] bg-[hsl(var(--surface-elevated)/0.98)] shadow-[0_20px_48px_hsl(var(--foreground)/0.12)] backdrop-blur-xl">
+              {slashMenuMode === 'args' && slashMenuCommand && slashMenuArgItems.length > 0 ? (
+                <div className="p-2">
+                  <div className="px-3 py-2 text-[11px] font-medium text-muted-foreground/80">
+                    /{slashMenuCommand.name} {slashMenuCommand.description}
+                  </div>
+                  <div className="space-y-1">
+                    {slashMenuArgItems.map((arg, index) => (
+                      <button
+                        key={arg}
+                        type="button"
+                        onMouseEnter={() => setSlashMenuIndex(index)}
+                        onClick={() => selectSlashArg(arg, true)}
+                        className={cn(
+                          'flex w-full items-center justify-between gap-3 rounded-[12px] px-3 py-2.5 text-left transition-colors',
+                          index === slashMenuIndex
+                            ? 'bg-[hsl(var(--foreground)/0.06)] text-foreground'
+                            : 'text-foreground/88 hover:bg-[hsl(var(--foreground)/0.032)]',
+                        )}
+                      >
+                        <div className="flex min-w-0 items-center gap-3">
+                          <SlashCommandGlyph icon={slashMenuCommand.icon} name={slashMenuCommand.name} />
+                          <span className="text-[13px] font-medium">{arg}</span>
+                        </div>
+                        <span className="text-[11px] text-muted-foreground/72">/{slashMenuCommand.name} {arg}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2 px-3 pb-1 pt-2 text-[10px] text-muted-foreground/70">
+                    <span>↑↓ navigate</span>
+                    <span>Tab fill</span>
+                    <span>Enter run</span>
+                    <span>Esc close</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-2">
+                  {groupedSlashMenuItems.map((group) => (
+                    <div key={group.category} className="pb-1 last:pb-0">
+                      <div className="px-3 py-2 text-[11px] font-medium text-muted-foreground/80">
+                        {CATEGORY_LABELS[group.category as keyof typeof CATEGORY_LABELS]}
+                      </div>
+                      <div className="space-y-1">
+                        {group.items.map((command) => {
+                          const globalIndex = slashMenuItems.indexOf(command);
+                          return (
+                            <button
+                              key={command.name}
+                              type="button"
+                              onMouseEnter={() => setSlashMenuIndex(globalIndex)}
+                              onClick={() => selectSlashCommand(command, true)}
+                              className={cn(
+                                'flex w-full items-center justify-between gap-3 rounded-[12px] px-3 py-2.5 text-left transition-colors',
+                                globalIndex === slashMenuIndex
+                                  ? 'bg-[hsl(var(--foreground)/0.06)] text-foreground'
+                                  : 'text-foreground/88 hover:bg-[hsl(var(--foreground)/0.032)]',
+                              )}
+                            >
+                              <div className="flex min-w-0 items-center gap-3">
+                                <SlashCommandGlyph icon={command.icon} name={command.name} />
+                                <span className="min-w-0">
+                                  <span className="block text-[13px] font-medium">/{command.name}</span>
+                                  <span className="block text-[11px] text-muted-foreground/72">{command.description}</span>
+                                </span>
+                              </div>
+                              <div className="shrink-0 text-right">
+                                {command.args ? (
+                                  <span className="block text-[10px] text-muted-foreground/68">{command.args}</span>
+                                ) : null}
+                                {command.argOptions?.length ? (
+                                  <span className="mt-1 inline-flex rounded-full bg-[hsl(var(--foreground)/0.05)] px-2 py-0.5 text-[10px] text-muted-foreground/78">
+                                    {command.argOptions.length} options
+                                  </span>
+                                ) : command.executeLocal && !command.args ? (
+                                  <span className="mt-1 inline-flex rounded-full bg-[hsl(var(--foreground)/0.05)] px-2 py-0.5 text-[10px] text-muted-foreground/78">
+                                    instant
+                                  </span>
+                                ) : null}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                  <div className="flex items-center gap-2 px-3 pb-1 pt-2 text-[10px] text-muted-foreground/70">
+                    <span>↑↓ navigate</span>
+                    <span>Tab fill</span>
+                    <span>Enter select</span>
+                    <span>Esc close</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="app-chat-composer-footer absolute inset-x-4 bottom-3.5 pointer-events-none">
             <div className="app-chat-composer-tools pointer-events-auto">

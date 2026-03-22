@@ -22,6 +22,21 @@ let _historyPollTimer: ReturnType<typeof setTimeout> | null = null;
 // error (e.g. "terminated"), it may retry internally and recover. We wait
 // before committing the error to give the recovery path a chance.
 let _errorRecoveryTimer: ReturnType<typeof setTimeout> | null = null;
+const SESSION_LABEL_PREFIX = /^\[([^\]]+)\]\s*/;
+const SESSION_LABEL_TRANSPORT_SOURCES = [
+  'WebChat',
+  'WhatsApp',
+  'Telegram',
+  'Signal',
+  'Slack',
+  'Discord',
+  'iMessage',
+  'Teams',
+  'Matrix',
+  'Zalo',
+  'Zalo Personal',
+  'BlueBubbles',
+];
 
 function clearErrorRecoveryTimer(): void {
   if (_errorRecoveryTimer) {
@@ -85,6 +100,34 @@ function getMessageText(content: unknown): string {
       .join('\n');
   }
   return '';
+}
+
+function looksLikeSessionLabelPrefix(value: string): boolean {
+  return /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z\b/.test(value)
+    || /\d{4}-\d{2}-\d{2} \d{2}:\d{2}\b/.test(value)
+    || SESSION_LABEL_TRANSPORT_SOURCES.some((source) => value.startsWith(`${source} `));
+}
+
+function stripSessionLabelPrefix(text: string): string {
+  const match = text.match(SESSION_LABEL_PREFIX);
+  if (!match) return text;
+  const prefix = match[1] || '';
+  return looksLikeSessionLabelPrefix(prefix) ? text.slice(match[0].length) : text;
+}
+
+function getSessionLabelText(content: unknown): string {
+  const text = getMessageText(content).trim();
+  if (!text) return '';
+
+  return stripSessionLabelPrefix(
+    text
+      .replace(/\s*\[media attached:[^\]]*\]/g, '')
+      .replace(/\s*\[message_id:\s*[^\]]+\]/g, '')
+      .replace(/^Conversation info\s*\([^)]*\):\s*```[a-z]*\n[\s\S]*?```\s*/i, '')
+      .replace(/^Conversation info\s*\([^)]*\):\s*\{[\s\S]*?\}\s*/i, '')
+      .replace(/^\[(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+[^\]]+\]\s*/i, '')
+      .trim(),
+  ).trim();
 }
 
 /** Extract media file refs from [media attached: <path> (<mime>) | ...] patterns */
@@ -820,6 +863,7 @@ export {
   clearHistoryPoll,
   extractImagesAsAttachedFiles,
   getMessageText,
+  getSessionLabelText,
   extractMediaRefs,
   extractRawFilePaths,
   makeAttachedFile,

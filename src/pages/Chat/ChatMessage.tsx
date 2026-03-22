@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { invokeIpc } from '@/lib/api-client';
 import type { RawMessage, AttachedFileMeta } from '@/stores/chat';
-import { extractText, extractThinking, extractImages, extractToolUse, formatTimestamp } from './message-utils';
+import { extractText, extractThinking, extractImages, extractToolUse, formatTimestamp, isSystemRuntimeMessage } from './message-utils';
 import { useTranslation } from 'react-i18next';
 
 interface ChatMessageProps {
@@ -56,6 +56,7 @@ export const ChatMessage = memo(function ChatMessage({
   const isUser = message.role === 'user';
   const role = typeof message.role === 'string' ? message.role.toLowerCase() : '';
   const isToolResult = role === 'toolresult' || role === 'tool_result';
+  const isSystemRuntime = isSystemRuntimeMessage(message);
   const text = extractText(message);
   const hasText = text.trim().length > 0;
   const thinking = extractThinking(message);
@@ -69,7 +70,7 @@ export const ChatMessage = memo(function ChatMessage({
   const [feedback, setFeedback] = useState<'helpful' | 'not_helpful' | null>(null);
 
   // Never render tool result messages in chat UI
-  if (isToolResult) return null;
+  if (isToolResult || isSystemRuntime) return null;
 
   const hasStreamingToolStatus = isStreaming && streamingTools.length > 0;
   if (!hasText && !visibleThinking && images.length === 0 && visibleTools.length === 0 && attachedFiles.length === 0 && !hasStreamingToolStatus) return null;

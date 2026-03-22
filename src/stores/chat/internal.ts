@@ -21,6 +21,7 @@ export const initialChatState: Pick<
   | 'currentAgentId'
   | 'sessionLabels'
   | 'sessionLastActivity'
+  | 'pendingSlashAction'
   | 'showThinking'
   | 'thinkingLevel'
 > = {
@@ -42,6 +43,7 @@ export const initialChatState: Pick<
   currentAgentId: 'main',
   sessionLabels: {},
   sessionLastActivity: {},
+  pendingSlashAction: null,
 
   showThinking: true,
   thinkingLevel: null,

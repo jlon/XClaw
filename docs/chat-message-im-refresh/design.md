@@ -22,6 +22,9 @@
 5. `.message-images { gap: 8px; margin-bottom: 8px; }`
 6. `.streaming-indicator { padding: 12px 20px; border-radius: 12px 12px 12px 4px; width: fit-content; }`
 7. `.messages-area { padding: 24px 24px 8px; max-width: 1000px; margin: 0 auto; width: 100%; }`
+8. `.message-feedback { display: flex; flex-direction: column; align-items: flex-start; margin-top: 8px; width: 100%; max-width: 500px; }`
+9. `.feedback-panel { margin-top: 8px; padding: 12px 16px; border-radius: 12px; }`
+10. `.feedback-input-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }`
 
 ## XClaw 当前问题
 
@@ -76,10 +79,18 @@
 
 1. 参考 QClaw 的 `.message-feedback / .feedback-actions / .feedback-btn`
 2. 在助手正文下方补一条轻量反馈 rail
-3. 当前只做本地交互态，不接入后端反馈提交，避免引入假流程面板
+3. `not helpful` 展开轻量 panel，包含标题、关闭动作、输入框与提交按钮
+4. 当前只做本地交互态，不接入后端反馈提交链路
+
+### 8. typing / processing 与滚动壳层补齐
+
+1. fallback typing 与 tool processing 不再复用旧的 runtime pill
+2. 两者统一收成助手消息行下的独立 bubble，参数跟随 QClaw `.streaming-indicator`
+3. 消息态滚动壳层在 mac 使用 `workspace-page-scroll-default`，在 Windows 使用 `workspace-page-scroll-win`
+4. 欢迎态继续保留隐藏式 subtle scrollbar，避免把桌面 IM 消息滚动语义带进空态
 
 ## 非目标
 
 1. 不对齐像素办公室模式
-2. 不引入 QClaw 的点赞/点踩反馈功能
+2. 不接入真实反馈提交后端
 3. 不重写消息分组算法

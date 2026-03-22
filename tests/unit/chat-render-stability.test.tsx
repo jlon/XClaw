@@ -1,12 +1,14 @@
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { Chat } from '@/pages/Chat';
 
 const {
   chatState,
   gatewayState,
   agentsState,
+  settingsState,
   scrollRefs,
   chatMessageRenderSpy,
 } = vi.hoisted(() => ({
@@ -35,6 +37,10 @@ const {
     agents: [] as Array<Record<string, unknown>>,
     fetchAgents: vi.fn(),
   },
+  settingsState: {
+    chatFocusMode: false,
+    setChatFocusMode: vi.fn(),
+  },
   scrollRefs: {
     scrollRef: { current: null as HTMLDivElement | null },
     contentRef: { current: null as HTMLDivElement | null },
@@ -52,6 +58,10 @@ vi.mock('@/stores/gateway', () => ({
 
 vi.mock('@/stores/agents', () => ({
   useAgentsStore: (selector: (state: typeof agentsState) => unknown) => selector(agentsState),
+}));
+
+vi.mock('@/stores/settings', () => ({
+  useSettingsStore: (selector: (state: typeof settingsState) => unknown) => selector(settingsState),
 }));
 
 vi.mock('@/hooks/use-stick-to-bottom-instant', () => ({
@@ -172,12 +182,22 @@ describe('chat render stability', () => {
     scrollRefs.contentRef.current = null;
   });
 
+  const renderChat = () => render(
+    <MemoryRouter>
+      <Chat />
+    </MemoryRouter>,
+  );
+
   it('keeps existing message rows memo-stable across parent rerenders with unchanged state', () => {
-    const { rerender } = render(<Chat />);
+    const { rerender } = renderChat();
 
     expect(chatMessageRenderSpy).toHaveBeenCalledTimes(1);
 
-    rerender(<Chat />);
+    rerender(
+      <MemoryRouter>
+        <Chat />
+      </MemoryRouter>,
+    );
 
     expect(chatMessageRenderSpy).toHaveBeenCalledTimes(1);
   });
@@ -185,7 +205,7 @@ describe('chat render stability', () => {
   it('renders the welcome shell without the legacy main agent heading when the chat is empty', () => {
     chatState.messages = [];
 
-    const { container, queryByText, getByText } = render(<Chat />);
+    const { container, queryByText, getByText } = renderChat();
     const scrollShell = container.querySelector('.app-chat-shell > .chat-im-font');
 
     expect(queryByText('Main Agent')).not.toBeInTheDocument();
@@ -203,21 +223,46 @@ describe('chat render stability', () => {
     chatState.messages = [];
     chatState.loading = true;
 
-    const { queryByTestId, queryByText } = render(<Chat />);
+    const { queryByTestId, queryByText } = renderChat();
 
     expect(queryByTestId('chat-welcome-hero')).not.toBeInTheDocument();
     expect(queryByText('Start the work')).not.toBeInTheDocument();
   });
 
+  it('filters system/runtime messages out of the visible chat transcript', () => {
+    chatState.messages = [
+      {
+        id: 'sys-1',
+        role: 'system',
+        content: 'Exec approval allow-once submitted for 08d6b8cd.',
+        timestamp: 1710000000,
+      },
+      {
+        id: 'm1',
+        role: 'assistant',
+        content: '正常助手回复',
+        timestamp: 1710000100,
+      },
+    ];
+
+    renderChat();
+
+    expect(chatMessageRenderSpy).toHaveBeenCalledTimes(1);
+  });
+
   it('uses desktop scrollbars for populated chat threads and subtle scrollbars only for the welcome shell', () => {
-    const { container, rerender } = render(<Chat />);
+    const { container, rerender } = renderChat();
     const populatedScrollShell = container.querySelector('.app-chat-shell > .chat-im-font');
 
     expect(populatedScrollShell).toHaveClass('workspace-page-scroll-default');
     expect(populatedScrollShell).not.toHaveClass('subtle-scrollbar');
 
     chatState.messages = [];
-    rerender(<Chat />);
+    rerender(
+      <MemoryRouter>
+        <Chat />
+      </MemoryRouter>,
+    );
 
     const emptyScrollShell = container.querySelector('.app-chat-shell > .chat-im-font');
     expect(emptyScrollShell).toHaveClass('subtle-scrollbar');

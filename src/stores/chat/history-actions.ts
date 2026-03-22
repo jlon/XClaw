@@ -4,7 +4,7 @@ import {
   clearHistoryPoll,
   enrichWithCachedImages,
   enrichWithToolResultFiles,
-  getMessageText,
+  getSessionLabelText,
   hasNonToolAssistantContent,
   isToolResultRole,
   loadMissingPreviews,
@@ -66,20 +66,14 @@ export function createHistoryActions(
 
         set({ messages: finalMessages, thinkingLevel, loading: false });
 
-        // Extract first user message text as a session label for display in the toolbar.
-        // Skip main sessions (key ends with ":main") — they rely on the Gateway-provided
-        // displayName (e.g. the configured agent name "XClaw") instead.
-        const isMainSession = currentSessionKey.endsWith(':main');
-        if (!isMainSession) {
-          const firstUserMsg = finalMessages.find((m) => m.role === 'user');
-          if (firstUserMsg) {
-            const labelText = getMessageText(firstUserMsg.content).trim();
-            if (labelText) {
-              const truncated = labelText.length > 50 ? `${labelText.slice(0, 50)}…` : labelText;
-              set((s) => ({
-                sessionLabels: { ...s.sessionLabels, [currentSessionKey]: truncated },
-              }));
-            }
+        const firstUserMsg = finalMessages.find((m) => m.role === 'user');
+        if (firstUserMsg) {
+          const labelText = getSessionLabelText(firstUserMsg.content);
+          if (labelText) {
+            const truncated = labelText.length > 50 ? `${labelText.slice(0, 50)}…` : labelText;
+            set((s) => ({
+              sessionLabels: { ...s.sessionLabels, [currentSessionKey]: truncated },
+            }));
           }
         }
 

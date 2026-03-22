@@ -199,11 +199,11 @@ export function ChatSessionsPane() {
   };
 
   return (
-    <aside className="flex w-[250px] shrink-0 flex-col bg-transparent">
-      <div className="px-3 pb-2 pt-2.5">
-        <div className="flex min-h-8 items-center gap-1.5">
+    <aside className="flex w-[250px] shrink-0 flex-col bg-transparent [font-family:var(--font-ui)]">
+      <div className="px-3 pb-2 pt-3">
+        <div className="flex min-h-9 items-center gap-1.5">
           {searchOpen || searchQuery ? (
-            <div className="app-chat-session-control app-chat-session-control--search relative flex h-8 min-w-0 flex-1 items-center rounded-full px-4 transition-[background-color,border-color,box-shadow] duration-150">
+            <div className="app-chat-session-control app-chat-session-control--search relative flex h-9 min-w-0 flex-1 items-center rounded-full px-4 transition-[background-color,border-color,box-shadow] duration-150">
               <Search aria-hidden="true" className="pointer-events-none h-[14px] w-[14px] shrink-0 text-[#9ca3af]" />
               <input
                 ref={searchInputRef}
@@ -221,14 +221,14 @@ export function ChatSessionsPane() {
                     setSearchOpen(false);
                   }
                 }}
-                className="h-full min-w-0 flex-1 bg-transparent pl-2 pr-0 text-[13.5px] font-normal text-[#333] outline-none placeholder:text-[#bbb]"
+                className="h-full min-w-0 flex-1 bg-transparent pl-2 pr-0 text-[14px] font-normal leading-5 text-[#333] outline-none placeholder:text-[#bbb]"
               />
             </div>
           ) : (
             <button
               type="button"
               aria-label={t('chat:sessionPane.searchLabel')}
-              className="app-chat-session-control app-chat-session-control--search flex h-8 min-w-0 flex-1 items-center gap-2 rounded-full px-4 text-left text-[13.5px] font-normal text-[#bbb] transition-[background-color,color,border-color,box-shadow] duration-150 focus-visible:outline-none"
+              className="app-chat-session-control app-chat-session-control--search flex h-9 min-w-0 flex-1 items-center gap-2 rounded-full px-4 text-left text-[14px] font-normal leading-5 text-[#bbb] transition-[background-color,color,border-color,box-shadow] duration-150 focus-visible:outline-none"
               onClick={() => setSearchOpen(true)}
             >
               <Search aria-hidden="true" className="h-[14px] w-[14px] shrink-0 text-[#9ca3af]" />
@@ -290,7 +290,7 @@ export function ChatSessionsPane() {
           sessionBuckets.map((bucket) => (
             bucket.sessions.length > 0 ? (
               <div key={bucket.key} className="pt-1 first:pt-0">
-                <div className="px-3 pb-1 text-[12px] font-normal tracking-normal text-[#999]">
+                <div className="px-3 pb-1 text-[12px] font-normal leading-4 tracking-normal text-[#999]">
                   {bucket.label}
                 </div>
                 <div className="space-y-1">
@@ -317,13 +317,13 @@ export function ChatSessionsPane() {
                             navigate('/');
                           }}
                           className={cn(
-                            'app-chat-session-row flex h-10 w-full items-center rounded-full px-3 pr-8 text-left transition-[background-color,color,border-color,box-shadow] duration-150 focus-visible:outline-none',
+                            'app-chat-session-row flex h-10 w-full items-center rounded-full px-4 pr-8 text-left transition-[background-color,color,border-color,box-shadow] duration-150 focus-visible:outline-none',
                             isCurrent
                               ? 'app-chat-session-row--active text-foreground'
                               : 'text-[#222]',
                           )}
                         >
-                          <div className="min-w-0 flex-1 truncate text-[13.5px] font-normal leading-5 tracking-normal">
+                          <div className="min-w-0 flex-1 truncate text-[14px] font-normal leading-5 tracking-normal text-[#333]">
                             <span className="truncate text-[#333]">{title}</span>
                           </div>
                         </button>
@@ -366,7 +366,7 @@ export function ChatSessionsPane() {
           <div ref={workspaceMenuRef} className="relative min-w-0 flex-1">
             <button
               type="button"
-              className="app-chat-session-footer-action flex h-8 w-full items-center gap-2.5 rounded-[10px] px-3 text-left text-[12.5px] text-[#4b5563] transition-[background-color,color] duration-150 hover:text-[#1f2937]"
+              className="app-chat-session-footer-action flex h-8 w-full items-center gap-2.5 rounded-[10px] px-3 text-left text-[13px] font-normal leading-5 text-[#4b5563] transition-[background-color,color] duration-150 hover:text-[#1f2937]"
               onClick={() => setWorkspaceMenuOpen((open) => !open)}
             >
               <LayoutGrid className="h-[14px] w-[14px] shrink-0" strokeWidth={1.9} />

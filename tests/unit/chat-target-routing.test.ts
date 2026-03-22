@@ -26,6 +26,34 @@ vi.mock('@/lib/host-api', () => ({
   hostApiFetch: (...args: unknown[]) => hostApiFetchMock(...args),
 }));
 
+async function loadChatStoreWithBaseState() {
+  const { useChatStore } = await import('@/stores/chat');
+
+  useChatStore.setState({
+    currentSessionKey: 'agent:main:main',
+    currentAgentId: 'main',
+    sessions: [{ key: 'agent:main:main', displayName: 'XClaw', model: 'moonshot/kimi-k2.5' }],
+    messages: [],
+    sessionLabels: {},
+    sessionLastActivity: {},
+    sending: false,
+    activeRunId: null,
+    streamingText: '',
+    streamingMessage: null,
+    streamingTools: [],
+    pendingFinal: false,
+    lastUserMessageAt: null,
+    pendingToolImages: [],
+    error: null,
+    loading: false,
+    thinkingLevel: null,
+    showThinking: true,
+    pendingSlashAction: null,
+  });
+
+  return useChatStore;
+}
+
 describe('chat target routing', () => {
   beforeEach(() => {
     vi.resetModules();
@@ -66,6 +94,15 @@ describe('chat target routing', () => {
       if (method === 'chat.send') {
         return { runId: 'run-text' };
       }
+      if (method === 'exec.approval.resolve') {
+        return { ok: true };
+      }
+      if (method === 'sessions.reset') {
+        return { ok: true, key: String(params?.key ?? '') };
+      }
+      if (method === 'sessions.compact') {
+        return { ok: true, compacted: true };
+      }
       if (method === 'sessions.patch') {
         const rawModel = params?.model ? String(params.model) : 'moonshot/kimi-k2.5';
         const [modelProvider, ...modelRest] = rawModel.split('/');
@@ -78,11 +115,50 @@ describe('chat target routing', () => {
           },
         };
       }
+      if (method === 'models.list') {
+        return {
+          models: [
+            { provider: 'moonshot', id: 'kimi-k2.5', name: 'Kimi K2.5' },
+            { provider: 'openai', id: 'gpt-5.2', name: 'GPT-5.2' },
+          ],
+        };
+      }
+      if (method === 'agents.list') {
+        return {
+          defaultId: 'main',
+          agents: [
+            { id: 'main', name: 'Main Agent' },
+            { id: 'research', name: 'Research Agent' },
+          ],
+        };
+      }
       if (method === 'chat.abort') {
         return { ok: true };
       }
       if (method === 'sessions.list') {
-        return { sessions: [] };
+        return {
+          sessions: [
+            {
+              key: 'agent:main:main',
+              modelProvider: 'moonshot',
+              model: 'kimi-k2.5',
+              thinkingLevel: 'medium',
+              verboseLevel: 'off',
+              fastMode: false,
+              inputTokens: 100,
+              outputTokens: 20,
+              totalTokens: 120,
+            },
+            {
+              key: 'agent:main:main:subagent:worker-a',
+              spawnedBy: 'agent:main:main',
+            },
+            {
+              key: 'agent:main:main:subagent:worker-b',
+              spawnedBy: 'agent:main:main',
+            },
+          ],
+        };
       }
       throw new Error(`Unexpected gateway RPC: ${method}`);
     });
@@ -198,6 +274,381 @@ describe('chat target routing', () => {
     expect(payload.sessionKey).toBe('agent:research:desk');
     expect(payload.message).toBe('Process the attached file(s).');
     expect(payload.media[0]?.filePath).toBe('/tmp/design.png');
+  });
+
+  it('uses the first main-session user message as the session title immediately', async () => {
+    const { useChatStore } = await import('@/stores/chat');
+
+    useChatStore.setState({
+      currentSessionKey: 'agent:main:main',
+      currentAgentId: 'main',
+      sessions: [{ key: 'agent:main:main', displayName: 'XClaw' }],
+      messages: [],
+      sessionLabels: {},
+      sessionLastActivity: {},
+      sending: false,
+      activeRunId: null,
+      streamingText: '',
+      streamingMessage: null,
+      streamingTools: [],
+      pendingFinal: false,
+      lastUserMessageAt: null,
+      pendingToolImages: [],
+      error: null,
+      loading: false,
+      thinkingLevel: null,
+      showThinking: true,
+    });
+
+    await useChatStore.getState().sendMessage('你好', undefined, undefined);
+
+    expect(useChatStore.getState().sessionLabels['agent:main:main']).toBe('你好');
+  });
+
+  it('sanitizes background-loaded session labels in the main store session list path', async () => {
+    const useChatStore = await loadChatStoreWithBaseState();
+
+    gatewayRpcMock.mockImplementation(async (method: string, params?: Record<string, unknown>) => {
+      if (method === 'sessions.list') {
+        return {
+          sessions: [
+            {
+              key: 'agent:main:main',
+              displayName: 'XClaw',
+              updatedAt: 1763800000000,
+            },
+            {
+              key: 'agent:main:session-older',
+              label: '历史会话',
+              updatedAt: 1763700000000,
+            },
+          ],
+        };
+      }
+      if (method === 'chat.history') {
+        if (params?.sessionKey === 'agent:main:session-older') {
+          return {
+            messages: [
+              {
+                role: 'user',
+                content: '[WhatsApp 2026-03-22 10:00] 你好',
+                timestamp: 1763700000,
+                id: 'user-older-1',
+              },
+            ],
+          };
+        }
+        return { messages: [] };
+      }
+      return { ok: true };
+    });
+
+    await useChatStore.getState().loadSessions();
+
+    await vi.waitFor(() => {
+      expect(useChatStore.getState().sessionLabels['agent:main:session-older']).toBe('你好');
+    });
+  });
+
+  it('routes /approve through exec.approval.resolve instead of chat.send', async () => {
+    const useChatStore = await loadChatStoreWithBaseState();
+
+    await useChatStore.getState().sendMessage('/approve 08d6b8cd allow-once');
+
+    expect(gatewayRpcMock).toHaveBeenCalledWith('exec.approval.resolve', {
+      id: '08d6b8cd',
+      decision: 'allow-once',
+    });
+    expect(
+      gatewayRpcMock.mock.calls.find(([method]) => method === 'chat.send'),
+    ).toBeUndefined();
+    expect(useChatStore.getState().messages).toEqual([
+      {
+        role: 'assistant',
+        content: 'Exec approval allow-once submitted for 08d6b8cd.',
+        timestamp: expect.any(Number),
+        id: expect.any(String),
+      },
+    ]);
+  });
+
+  it('returns a local usage hint for malformed approval commands instead of sending them to the model', async () => {
+    const useChatStore = await loadChatStoreWithBaseState();
+
+    await useChatStore.getState().sendMessage('/aprove 08d6b8cd');
+
+    expect(
+      gatewayRpcMock.mock.calls.find(([method]) => method === 'chat.send'),
+    ).toBeUndefined();
+    expect(useChatStore.getState().messages).toEqual([
+      {
+        role: 'assistant',
+        content: 'Usage: /approve <id> allow-once|allow-always|deny',
+        timestamp: expect.any(Number),
+        id: expect.any(String),
+      },
+    ]);
+  });
+
+  it('shows the gateway approval error inline when approval submission fails', async () => {
+    const useChatStore = await loadChatStoreWithBaseState();
+
+    gatewayRpcMock.mockImplementationOnce(async (method: string) => {
+      if (method === 'exec.approval.resolve') {
+        throw new Error('unknown or expired approval id');
+      }
+      return { ok: true };
+    });
+
+    await useChatStore.getState().sendMessage('/approve 08d6b8cd allow-once');
+
+    expect(useChatStore.getState().messages).toEqual([
+      {
+        role: 'assistant',
+        content: 'Failed to submit approval: Error: unknown or expired approval id',
+        timestamp: expect.any(Number),
+        id: expect.any(String),
+      },
+    ]);
+    expect(useChatStore.getState().sending).toBe(false);
+  });
+
+  it('shows slash command help locally instead of sending it to chat.send', async () => {
+    const useChatStore = await loadChatStoreWithBaseState();
+
+    await useChatStore.getState().sendMessage('/help');
+
+    expect(gatewayRpcMock.mock.calls.find(([method]) => method === 'chat.send')).toBeUndefined();
+    expect(useChatStore.getState().messages.at(-1)?.content).toContain('**Available Commands**');
+    expect(useChatStore.getState().messages.at(-1)?.content).toContain('/model <name>');
+    expect(useChatStore.getState().messages.at(-1)?.content).toContain('/steer <id> <msg>');
+  });
+
+  it('routes /model locally through sessions.patch instead of chat.send', async () => {
+    const useChatStore = await loadChatStoreWithBaseState();
+
+    await useChatStore.getState().sendMessage('/model openai/gpt-5.2');
+
+    expect(gatewayRpcMock).toHaveBeenCalledWith('sessions.patch', {
+      key: 'agent:main:main',
+      model: 'openai/gpt-5.2',
+    });
+    expect(gatewayRpcMock.mock.calls.find(([method]) => method === 'chat.send')).toBeUndefined();
+    expect(useChatStore.getState().sessions[0]?.model).toBe('openai/gpt-5.2');
+  });
+
+  it('routes /think, /verbose, and /fast locally through sessions.patch', async () => {
+    const useChatStore = await loadChatStoreWithBaseState();
+
+    await useChatStore.getState().sendMessage('/think high');
+    await useChatStore.getState().sendMessage('/verbose full');
+    await useChatStore.getState().sendMessage('/fast on');
+
+    expect(gatewayRpcMock).toHaveBeenCalledWith('sessions.patch', {
+      key: 'agent:main:main',
+      thinkingLevel: 'high',
+    });
+    expect(gatewayRpcMock).toHaveBeenCalledWith('sessions.patch', {
+      key: 'agent:main:main',
+      verboseLevel: 'full',
+    });
+    expect(gatewayRpcMock).toHaveBeenCalledWith('sessions.patch', {
+      key: 'agent:main:main',
+      fastMode: true,
+    });
+    expect(gatewayRpcMock.mock.calls.find(([method]) => method === 'chat.send')).toBeUndefined();
+  });
+
+  it('routes /compact locally through sessions.compact', async () => {
+    const useChatStore = await loadChatStoreWithBaseState();
+
+    await useChatStore.getState().sendMessage('/compact');
+
+    expect(gatewayRpcMock).toHaveBeenCalledWith('sessions.compact', {
+      key: 'agent:main:main',
+    });
+    expect(gatewayRpcMock.mock.calls.find(([method]) => method === 'chat.send')).toBeUndefined();
+    expect(useChatStore.getState().messages.at(-1)?.content).toBe('Context compacted successfully.');
+  });
+
+  it('lists agents locally through agents.list', async () => {
+    const useChatStore = await loadChatStoreWithBaseState();
+
+    await useChatStore.getState().sendMessage('/agents');
+
+    expect(gatewayRpcMock).toHaveBeenCalledWith('agents.list', {});
+    expect(gatewayRpcMock.mock.calls.find(([method]) => method === 'chat.send')).toBeUndefined();
+    expect(useChatStore.getState().messages.at(-1)?.content).toContain('**Agents**');
+    expect(useChatStore.getState().messages.at(-1)?.content).toContain('`research`');
+  });
+
+  it('aborts subagents locally for /kill all', async () => {
+    const useChatStore = await loadChatStoreWithBaseState();
+
+    await useChatStore.getState().sendMessage('/kill all');
+
+    expect(gatewayRpcMock).toHaveBeenCalledWith('sessions.list', {});
+    expect(gatewayRpcMock).toHaveBeenCalledWith('chat.abort', {
+      sessionKey: 'agent:main:main:subagent:worker-a',
+    });
+    expect(gatewayRpcMock).toHaveBeenCalledWith('chat.abort', {
+      sessionKey: 'agent:main:main:subagent:worker-b',
+    });
+    expect(gatewayRpcMock.mock.calls.find(([method]) => method === 'chat.send')).toBeUndefined();
+    expect(useChatStore.getState().messages.at(-1)?.content).toBe('Aborted 2 sub-agent sessions.');
+  });
+
+  it('routes /new through chat.send with the literal slash command payload', async () => {
+    const useChatStore = await loadChatStoreWithBaseState();
+
+    await useChatStore.getState().sendMessage('/new');
+
+    expect(gatewayRpcMock).toHaveBeenCalledWith(
+      'chat.send',
+      expect.objectContaining({
+        sessionKey: 'agent:main:main',
+        message: '/new',
+        deliver: false,
+      }),
+      120000,
+    );
+    expect(gatewayRpcMock.mock.calls.find(([method]) => method === 'sessions.reset')).toBeUndefined();
+    expect(useChatStore.getState().messages.at(-1)?.content).toBe('/new');
+  });
+
+  it('routes /reset through chat.send and keeps /clear local', async () => {
+    const useChatStore = await loadChatStoreWithBaseState();
+
+    useChatStore.setState({
+      messages: [{ role: 'assistant', content: 'Old answer', timestamp: Date.now() / 1000 }],
+    });
+
+    await useChatStore.getState().sendMessage('/reset');
+    await useChatStore.getState().sendMessage('/clear');
+
+    expect(gatewayRpcMock).toHaveBeenCalledWith(
+      'chat.send',
+      expect.objectContaining({
+        sessionKey: 'agent:main:main',
+        message: '/reset',
+        deliver: false,
+      }),
+      120000,
+    );
+
+    useChatStore.setState({
+      sending: false,
+      activeRunId: null,
+    });
+
+    await useChatStore.getState().sendMessage('/clear');
+
+    expect(gatewayRpcMock).toHaveBeenCalledWith('sessions.reset', { key: 'agent:main:main' });
+    expect(gatewayRpcMock.mock.calls.filter(([method]) => method === 'sessions.reset')).toHaveLength(1);
+  });
+
+  it('queues queueable local slash commands while busy and flushes them after the run completes', async () => {
+    const useChatStore = await loadChatStoreWithBaseState();
+
+    useChatStore.setState({
+      sending: true,
+      activeRunId: 'run-busy',
+      messages: [
+        { role: 'user', content: 'Process this', timestamp: Date.now() / 1000, id: 'user-1' },
+      ],
+    });
+
+    await useChatStore.getState().sendMessage('/compact');
+
+    expect(gatewayRpcMock.mock.calls.find(([method]) => method === 'sessions.compact')).toBeUndefined();
+    expect(gatewayRpcMock.mock.calls.find(([method]) => method === 'chat.send')).toBeUndefined();
+
+    useChatStore.getState().handleChatEvent({
+      runId: 'run-busy',
+      state: 'final',
+      message: {
+        role: 'assistant',
+        content: 'Done',
+        timestamp: Date.now() / 1000,
+        id: 'assistant-final-1',
+      },
+    });
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(gatewayRpcMock).toHaveBeenCalledWith('sessions.compact', {
+      key: 'agent:main:main',
+    });
+  });
+
+  it('executes /focus immediately while busy instead of queueing it', async () => {
+    const useChatStore = await loadChatStoreWithBaseState();
+
+    useChatStore.setState({
+      sending: true,
+      activeRunId: 'run-busy',
+    });
+
+    await useChatStore.getState().sendMessage('/focus');
+
+    expect(useChatStore.getState().pendingSlashAction?.kind).toBe('toggle-focus');
+    expect(gatewayRpcMock.mock.calls.find(([method]) => method === 'chat.send')).toBeUndefined();
+    expect(gatewayRpcMock.mock.calls.find(([method]) => method === 'sessions.compact')).toBeUndefined();
+  });
+
+  it('routes /stop and stop aliases through chat.abort instead of chat.send', async () => {
+    const useChatStore = await loadChatStoreWithBaseState();
+
+    await useChatStore.getState().sendMessage('/stop');
+    await useChatStore.getState().sendMessage('stop');
+
+    expect(gatewayRpcMock).toHaveBeenCalledWith('chat.abort', { sessionKey: 'agent:main:main' });
+    expect(gatewayRpcMock.mock.calls.filter(([method]) => method === 'chat.abort')).toHaveLength(2);
+    expect(gatewayRpcMock.mock.calls.find(([method]) => method === 'chat.send')).toBeUndefined();
+  });
+
+  it('keeps agent slash commands routed through chat.send', async () => {
+    const useChatStore = await loadChatStoreWithBaseState();
+
+    await useChatStore.getState().sendMessage('/status');
+
+    expect(gatewayRpcMock).toHaveBeenCalledWith(
+      'chat.send',
+      expect.objectContaining({
+        sessionKey: 'agent:main:main',
+        message: '/status',
+      }),
+      120000,
+    );
+  });
+
+  it('records pending UI slash actions for /focus and /export only', async () => {
+    const useChatStore = await loadChatStoreWithBaseState();
+
+    await useChatStore.getState().sendMessage('/focus');
+    expect(useChatStore.getState().pendingSlashAction?.kind).toBe('toggle-focus');
+
+    useChatStore.setState({ pendingSlashAction: null });
+
+    await useChatStore.getState().sendMessage('/export');
+    expect(useChatStore.getState().pendingSlashAction?.kind).toBe('export');
+
+    expect(gatewayRpcMock.mock.calls.find(([method]) => method === 'chat.send')).toBeUndefined();
+  });
+
+  it('renders /usage locally instead of bouncing through a page navigation action', async () => {
+    const useChatStore = await loadChatStoreWithBaseState();
+
+    await useChatStore.getState().sendMessage('/usage');
+
+    expect(useChatStore.getState().pendingSlashAction).toBeNull();
+    expect(gatewayRpcMock).toHaveBeenCalledWith('sessions.list', {});
+    expect(useChatStore.getState().messages.at(-1)?.content).toContain('**Session Usage**');
+    expect(useChatStore.getState().messages.at(-1)?.content).toContain('Input: **100** tokens');
+    expect(useChatStore.getState().messages.at(-1)?.content).toContain('Output: **20** tokens');
+    expect(useChatStore.getState().messages.at(-1)?.content).toContain('Total: **120** tokens');
+    expect(gatewayRpcMock.mock.calls.find(([method]) => method === 'chat.send')).toBeUndefined();
   });
 
   it('patches the current session model through sessions.patch', async () => {

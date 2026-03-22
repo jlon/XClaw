@@ -10,18 +10,22 @@ import { AgentAvatar } from '@/components/chat/AgentAvatar';
 import { useChatStore, type RawMessage } from '@/stores/chat';
 import { useGatewayStore } from '@/stores/gateway';
 import { useAgentsStore } from '@/stores/agents';
+import { useSettingsStore } from '@/stores/settings';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
-import { extractImages, extractText, extractThinking, extractToolUse } from './message-utils';
+import { extractImages, extractText, extractThinking, extractToolUse, isSystemRuntimeMessage } from './message-utils';
 import { useTranslation } from 'react-i18next';
 import { getSessionAvatar } from '@/lib/chat-avatar';
 import { cn } from '@/lib/utils';
 import { useStickToBottomInstant } from '@/hooks/use-stick-to-bottom-instant';
 import { useMinLoading } from '@/hooks/use-min-loading';
 import { XClawWelcomeWordmark } from '@/components/common/XClawWelcomeWordmark';
+import { hostApiFetch } from '@/lib/host-api';
+import { buildChatExportFileName, buildChatMarkdown } from './export-markdown';
 
 const messageVisualRole = (message: RawMessage, showThinking: boolean): 'assistant' | 'user' | null => {
+  if (isSystemRuntimeMessage(message)) return null;
   const role = typeof message.role === 'string' ? message.role.toLowerCase() : '';
   if (role === 'toolresult' || role === 'tool_result') return null;
   const hasText = extractText(message).trim().length > 0;
@@ -64,8 +68,11 @@ export function Chat() {
   const sendMessage = useChatStore((s) => s.sendMessage);
   const abortRun = useChatStore((s) => s.abortRun);
   const clearError = useChatStore((s) => s.clearError);
+  const pendingSlashAction = useChatStore((s) => ('pendingSlashAction' in s ? s.pendingSlashAction : null));
   const agents = useAgentsStore((s) => s.agents);
   const fetchAgents = useAgentsStore((s) => s.fetchAgents);
+  const chatFocusMode = useSettingsStore((s) => ('chatFocusMode' in s ? s.chatFocusMode : false));
+  const setChatFocusMode = useSettingsStore((s) => ('setChatFocusMode' in s ? s.setChatFocusMode : (() => undefined)));
 
   const cleanupEmptySession = useChatStore((s) => s.cleanupEmptySession);
 
@@ -203,6 +210,43 @@ export function Chat() {
   const scrollChromeClass = isEmpty
     ? (isWindows ? 'subtle-scrollbar-win' : 'subtle-scrollbar')
     : (isWindows ? 'workspace-page-scroll-win' : 'workspace-page-scroll-default');
+
+  useEffect(() => {
+    if (!pendingSlashAction) return;
+
+    useChatStore.setState({ pendingSlashAction: null });
+
+    if (pendingSlashAction.kind === 'toggle-focus') {
+      setChatFocusMode(!chatFocusMode);
+      return;
+    }
+
+    if (pendingSlashAction.kind === 'export') {
+      const title = currentSessionLabel || currentAgentName || 'Chat';
+      const markdown = buildChatMarkdown({
+        title,
+        assistantName: assistantAvatar.label,
+        messages,
+      });
+      void hostApiFetch('/api/files/save-text', {
+        method: 'POST',
+        body: JSON.stringify({
+          defaultFileName: buildChatExportFileName(title),
+          content: markdown,
+        }),
+      }).catch((error) => {
+        useChatStore.setState({ error: String(error) });
+      });
+    }
+  }, [
+    assistantAvatar.label,
+    chatFocusMode,
+    currentAgentName,
+    currentSessionLabel,
+    messages,
+    pendingSlashAction,
+    setChatFocusMode,
+  ]);
 
   return (
     <div className={cn('app-chat-shell relative flex h-full flex-col transition-colors duration-500')}>

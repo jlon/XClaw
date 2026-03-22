@@ -1,5 +1,5 @@
 import { invokeIpc } from '@/lib/api-client';
-import { getCanonicalPrefixFromSessions, getMessageText, toMs } from './helpers';
+import { getCanonicalPrefixFromSessions, getSessionLabelText, toMs } from './helpers';
 import { normalizeLoadedSessions } from './session-list-normalization';
 import { DEFAULT_CANONICAL_PREFIX, DEFAULT_SESSION_KEY, type ChatSession, type RawMessage } from './types';
 import type { ChatGet, ChatSet, SessionHistoryActions } from './store-api';
@@ -96,9 +96,9 @@ export function createSessionActions(
             get().loadHistory();
           }
 
-          // Background: fetch first user message for every non-main session to populate labels upfront.
+          // Background: fetch first user message for every visible session to populate labels upfront.
           // Uses a small limit so it's cheap; runs in parallel and doesn't block anything.
-          const sessionsToLabel = sessionsWithCurrent.filter((s) => !s.key.endsWith(':main'));
+          const sessionsToLabel = sessionsWithCurrent;
           if (sessionsToLabel.length > 0) {
             void Promise.all(
               sessionsToLabel.map(async (session) => {
@@ -115,7 +115,7 @@ export function createSessionActions(
                   set((s) => {
                     const next: Partial<typeof s> = {};
                     if (firstUser) {
-                      const labelText = getMessageText(firstUser.content).trim();
+                      const labelText = getSessionLabelText(firstUser.content);
                       if (labelText) {
                         const truncated = labelText.length > 50 ? `${labelText.slice(0, 50)}…` : labelText;
                         next.sessionLabels = { ...s.sessionLabels, [session.key]: truncated };

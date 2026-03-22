@@ -6,7 +6,17 @@ const collectToolUpdates = vi.fn(() => []);
 const extractImagesAsAttachedFiles = vi.fn(() => []);
 const extractMediaRefs = vi.fn(() => []);
 const extractRawFilePaths = vi.fn(() => []);
-const getMessageText = vi.fn(() => '');
+const getMessageText = vi.fn((content: unknown) => {
+  if (typeof content === 'string') return content;
+  if (Array.isArray(content)) {
+    return content
+      .filter((block): block is { type?: string; text?: string } => !!block && typeof block === 'object')
+      .filter((block) => block.type === 'text' && typeof block.text === 'string')
+      .map((block) => block.text)
+      .join('\n');
+  }
+  return '';
+});
 const getToolCallFilePath = vi.fn(() => undefined);
 const hasErrorRecoveryTimer = vi.fn(() => false);
 const hasNonToolAssistantContent = vi.fn(() => true);
@@ -128,6 +138,45 @@ describe('chat runtime event handlers', () => {
     expect(h.read().loadHistory).toHaveBeenCalledTimes(1);
   });
 
+  it('does not snapshot assistant text from a tool-use turn when the later final answer repeats it', async () => {
+    const { handleRuntimeEventState } = await import('@/stores/chat/runtime-event-handlers');
+    const h = makeHarness({
+      sending: true,
+      activeRunId: 'run-4',
+      streamingMessage: {
+        role: 'assistant',
+        content: [
+          { type: 'tool_use', id: 'tool-1', name: 'read' },
+          { type: 'text', text: 'I cannot see your desktop directly.' },
+        ],
+      },
+    });
+
+    handleRuntimeEventState(
+      h.set as never,
+      h.get as never,
+      { message: { role: 'toolresult', toolCallId: 'tool-1', content: [] } },
+      'final',
+      'run-4',
+    );
+
+    handleRuntimeEventState(
+      h.set as never,
+      h.get as never,
+      { message: { role: 'assistant', content: 'I cannot see your desktop directly.' } },
+      'final',
+      'run-4',
+    );
+
+    const next = h.read();
+    const assistantTexts = next.messages
+      .filter((message) => message.role === 'assistant')
+      .map((message) => getMessageText(message.content))
+      .filter(Boolean);
+
+    expect(assistantTexts).toEqual(['I cannot see your desktop directly.']);
+  });
+
   it('handles error event and finalizes immediately when not sending', async () => {
     const { handleRuntimeEventState } = await import('@/stores/chat/runtime-event-handlers');
     const h = makeHarness({ sending: false, activeRunId: 'r1', lastUserMessageAt: 123 });
@@ -163,4 +212,3 @@ describe('chat runtime event handlers', () => {
     expect(next.pendingToolImages).toEqual([]);
   });
 });
-

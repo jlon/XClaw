@@ -196,5 +196,31 @@ export async function handleFileRoutes(
     return true;
   }
 
+  if (url.pathname === '/api/files/save-text' && req.method === 'POST') {
+    try {
+      const body = await parseJsonBody<{
+        content: string;
+        defaultFileName: string;
+      }>(req);
+      const result = await dialog.showSaveDialog({
+        defaultPath: join(homedir(), 'Downloads', body.defaultFileName),
+        filters: [
+          { name: 'Markdown', extensions: ['md', 'markdown', 'txt'] },
+          { name: 'All Files', extensions: ['*'] },
+        ],
+      });
+      if (result.canceled || !result.filePath) {
+        sendJson(res, 200, { success: false });
+        return true;
+      }
+      const fsP = await import('node:fs/promises');
+      await fsP.writeFile(result.filePath, body.content, 'utf8');
+      sendJson(res, 200, { success: true, savedPath: result.filePath });
+    } catch (error) {
+      sendJson(res, 500, { success: false, error: String(error) });
+    }
+    return true;
+  }
+
   return false;
 }

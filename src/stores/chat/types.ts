@@ -47,6 +47,11 @@ export interface ChatSession {
   updatedAt?: number;
 }
 
+export interface PendingSlashAction {
+  kind: 'toggle-focus' | 'export';
+  token: string;
+}
+
 export interface ToolStatus {
   id?: string;
   toolCallId?: string;
@@ -82,6 +87,7 @@ export interface ChatState {
   sessionLabels: Record<string, string>;
   /** Last message timestamp (ms) per session key, used for sorting */
   sessionLastActivity: Record<string, number>;
+  pendingSlashAction: PendingSlashAction | null;
 
   // Thinking
   showThinking: boolean;

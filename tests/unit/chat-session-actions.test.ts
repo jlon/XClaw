@@ -249,4 +249,58 @@ describe('chat session actions', () => {
     expect(h.read().currentSessionKey).toBe('agent:research:session-1773273600000');
     expect(h.read().sessions.some((session) => session.key === 'agent:research:session-1773273600000')).toBe(true);
   });
+
+  it('hydrates main-session labels from the first user message during session refresh', async () => {
+    const { createSessionActions } = await import('@/stores/chat/session-actions');
+    const h = makeHarness({
+      currentSessionKey: 'agent:main:main',
+      sessions: [],
+    });
+    const actions = createSessionActions(h.set as never, h.get as never);
+
+    invokeIpcMock.mockImplementation(async (_channel: string, method: string, params?: Record<string, unknown>) => {
+      if (method === 'sessions.list') {
+        return {
+          success: true,
+          result: {
+            sessions: [
+              {
+                key: 'agent:main:main',
+                displayName: 'XClaw',
+                updatedAt: 1773281700000,
+              },
+            ],
+          },
+        };
+      }
+      if (method === 'chat.history') {
+        expect(params).toEqual({ sessionKey: 'agent:main:main', limit: 1000 });
+        return {
+          success: true,
+          result: {
+            messages: [
+              {
+                role: 'user',
+                content: '[WhatsApp 2026-03-22 10:00] 你好',
+                timestamp: 1773281700000,
+              },
+              {
+                role: 'assistant',
+                content: '我在。',
+                timestamp: 1773281710000,
+              },
+            ],
+          },
+        };
+      }
+      return { success: true };
+    });
+
+    await actions.loadSessions();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(h.read().sessionLabels['agent:main:main']).toBe('你好');
+    expect(h.read().sessionLastActivity['agent:main:main']).toBe(1773281710000);
+  });
 });

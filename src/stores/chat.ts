@@ -8,6 +8,8 @@ import { hostApiFetch } from '@/lib/host-api';
 import { useGatewayStore } from './gateway';
 import { useAgentsStore } from './agents';
 import { buildCronSessionHistoryPath, isCronSessionKey } from './chat/cron-session-utils';
+import { executeLocalChatCommand } from './chat/local-command-router';
+import { enqueueLocalChatCommand, flushQueuedLocalChatCommands } from './chat/local-command-queue';
 import { normalizeLoadedSessions } from './chat/session-list-normalization';
 
 // ── Types ────────────────────────────────────────────────────────
@@ -61,6 +63,11 @@ export interface ChatSession {
   updatedAt?: number;
 }
 
+export interface PendingSlashAction {
+  kind: 'toggle-focus' | 'export';
+  token: string;
+}
+
 export interface ToolStatus {
   id?: string;
   toolCallId?: string;
@@ -96,6 +103,7 @@ interface ChatState {
   sessionLabels: Record<string, string>;
   /** Last message timestamp (ms) per session key, used for sorting */
   sessionLastActivity: Record<string, number>;
+  pendingSlashAction: PendingSlashAction | null;
 
   // Thinking
   showThinking: boolean;
@@ -206,6 +214,27 @@ function isDuplicateChatEvent(eventState: string, event: Record<string, unknown>
   return false;
 }
 
+function buildToolUseSnapshotMessage(
+  message: RawMessage | null,
+  fallbackId: string,
+): RawMessage | null {
+  if (!message) return null;
+  const content = Array.isArray(message.content) ? message.content : null;
+  if (!content) return null;
+  const snapshotContent = content.filter((block) => {
+    if (!block || typeof block !== 'object') return false;
+    const type = 'type' in block ? block.type : undefined;
+    return type === 'thinking' || type === 'tool_use' || type === 'toolCall';
+  });
+  if (snapshotContent.length === 0) return null;
+  return {
+    ...message,
+    role: 'assistant',
+    id: fallbackId,
+    content: snapshotContent,
+  };
+}
+
 const DEFAULT_CANONICAL_PREFIX = 'agent:main';
 const DEFAULT_SESSION_KEY = `${DEFAULT_CANONICAL_PREFIX}:main`;
 
@@ -241,6 +270,21 @@ function saveImageCache(cache: Map<string, AttachedFileMeta>): void {
 }
 
 const _imageCache = loadImageCache();
+const SESSION_LABEL_PREFIX = /^\[([^\]]+)\]\s*/;
+const SESSION_LABEL_TRANSPORT_SOURCES = [
+  'WebChat',
+  'WhatsApp',
+  'Telegram',
+  'Signal',
+  'Slack',
+  'Discord',
+  'iMessage',
+  'Teams',
+  'Matrix',
+  'Zalo',
+  'Zalo Personal',
+  'BlueBubbles',
+];
 
 /** Extract plain text from message content (string or content blocks) */
 function getMessageText(content: unknown): string {
@@ -252,6 +296,34 @@ function getMessageText(content: unknown): string {
       .join('\n');
   }
   return '';
+}
+
+function looksLikeSessionLabelPrefix(value: string): boolean {
+  return /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z\b/.test(value)
+    || /\d{4}-\d{2}-\d{2} \d{2}:\d{2}\b/.test(value)
+    || SESSION_LABEL_TRANSPORT_SOURCES.some((source) => value.startsWith(`${source} `));
+}
+
+function stripSessionLabelPrefix(text: string): string {
+  const match = text.match(SESSION_LABEL_PREFIX);
+  if (!match) return text;
+  const prefix = match[1] || '';
+  return looksLikeSessionLabelPrefix(prefix) ? text.slice(match[0].length) : text;
+}
+
+function getSessionLabelText(content: unknown): string {
+  const text = getMessageText(content).trim();
+  if (!text) return '';
+
+  return stripSessionLabelPrefix(
+    text
+      .replace(/\s*\[media attached:[^\]]*\]/g, '')
+      .replace(/\s*\[message_id:\s*[^\]]+\]/g, '')
+      .replace(/^Conversation info\s*\([^)]*\):\s*```[a-z]*\n[\s\S]*?```\s*/i, '')
+      .replace(/^Conversation info\s*\([^)]*\):\s*\{[\s\S]*?\}\s*/i, '')
+      .replace(/^\[(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+[^\]]+\]\s*/i, '')
+      .trim(),
+  ).trim();
 }
 
 /** Extract media file refs from [media attached: <path> (<mime>) | ...] patterns */
@@ -845,6 +917,221 @@ function buildSessionSwitchPatch(
   };
 }
 
+type ComposerAttachment = Array<{
+  fileName: string;
+  mimeType: string;
+  fileSize: number;
+  stagedPath: string;
+  preview: string | null;
+}>;
+
+async function sendGatewayChatMessage(
+  set: (
+    partial: Partial<ChatState> | ((state: ChatState) => Partial<ChatState>),
+    replace?: false,
+  ) => void,
+  get: () => ChatState,
+  text: string,
+  attachments?: ComposerAttachment,
+  targetAgentId?: string | null,
+): Promise<void> {
+  const trimmed = text.trim();
+  if (!trimmed && (!attachments || attachments.length === 0)) {
+    return;
+  }
+
+  const targetSessionKey = resolveMainSessionKeyForAgent(targetAgentId) ?? get().currentSessionKey;
+
+  if (targetSessionKey !== get().currentSessionKey) {
+    set((state) => buildSessionSwitchPatch(state, targetSessionKey));
+    await get().loadHistory(true);
+  }
+
+  const currentSessionKey = targetSessionKey;
+  const nowMs = Date.now();
+  const userMsg: RawMessage = {
+    role: 'user',
+    content: trimmed || (attachments?.length ? '(file attached)' : ''),
+    timestamp: nowMs / 1000,
+    id: crypto.randomUUID(),
+    _attachedFiles: attachments?.map((attachment) => ({
+      fileName: attachment.fileName,
+      mimeType: attachment.mimeType,
+      fileSize: attachment.fileSize,
+      preview: attachment.preview,
+      filePath: attachment.stagedPath,
+    })),
+  };
+
+  set((state) => ({
+    messages: [...state.messages, userMsg],
+    sending: true,
+    error: null,
+    streamingText: '',
+    streamingMessage: null,
+    streamingTools: [],
+    pendingFinal: false,
+    lastUserMessageAt: nowMs,
+  }));
+
+  const { sessionLabels, messages } = get();
+  const isFirstMessage = !messages.slice(0, -1).some((message) => message.role === 'user');
+  if (isFirstMessage && !sessionLabels[currentSessionKey] && trimmed) {
+    const truncated = trimmed.length > 50 ? `${trimmed.slice(0, 50)}…` : trimmed;
+    set((state) => ({ sessionLabels: { ...state.sessionLabels, [currentSessionKey]: truncated } }));
+  }
+
+  set((state) => ({ sessionLastActivity: { ...state.sessionLastActivity, [currentSessionKey]: nowMs } }));
+
+  _lastChatEventAt = Date.now();
+  clearHistoryPoll();
+  clearErrorRecoveryTimer();
+
+  const POLL_START_DELAY = 3_000;
+  const POLL_INTERVAL = 4_000;
+  const pollHistory = () => {
+    const state = get();
+    if (!state.sending) {
+      clearHistoryPoll();
+      return;
+    }
+    if (state.streamingMessage) {
+      _historyPollTimer = setTimeout(pollHistory, POLL_INTERVAL);
+      return;
+    }
+    if (Date.now() - _lastChatEventAt < HISTORY_POLL_SILENCE_WINDOW_MS) {
+      _historyPollTimer = setTimeout(pollHistory, POLL_INTERVAL);
+      return;
+    }
+    state.loadHistory(true);
+    _historyPollTimer = setTimeout(pollHistory, POLL_INTERVAL);
+  };
+  _historyPollTimer = setTimeout(pollHistory, POLL_START_DELAY);
+
+  const SAFETY_TIMEOUT_MS = 90_000;
+  const checkStuck = () => {
+    const state = get();
+    if (!state.sending) return;
+    if (state.streamingMessage || state.streamingText) return;
+    if (state.pendingFinal) {
+      setTimeout(checkStuck, 10_000);
+      return;
+    }
+    if (Date.now() - _lastChatEventAt < SAFETY_TIMEOUT_MS) {
+      setTimeout(checkStuck, 10_000);
+      return;
+    }
+    clearHistoryPoll();
+    set({
+      error: 'No response received from the model. The provider may be unavailable or the API key may have insufficient quota. Please check your provider settings.',
+      sending: false,
+      activeRunId: null,
+      lastUserMessageAt: null,
+    });
+  };
+  setTimeout(checkStuck, 30_000);
+
+  try {
+    const idempotencyKey = crypto.randomUUID();
+    const hasMedia = Boolean(attachments && attachments.length > 0);
+    if (hasMedia) {
+      console.log('[sendMessage] Media paths:', attachments!.map((attachment) => attachment.stagedPath));
+      for (const attachment of attachments ?? []) {
+        _imageCache.set(attachment.stagedPath, {
+          fileName: attachment.fileName,
+          mimeType: attachment.mimeType,
+          fileSize: attachment.fileSize,
+          preview: attachment.preview,
+        });
+      }
+      saveImageCache(_imageCache);
+    }
+
+    let result: { success: boolean; result?: { runId?: string }; error?: string };
+    const CHAT_SEND_TIMEOUT_MS = 120_000;
+
+    if (hasMedia) {
+      result = await hostApiFetch<{ success: boolean; result?: { runId?: string }; error?: string }>(
+        '/api/chat/send-with-media',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            sessionKey: currentSessionKey,
+            message: trimmed || 'Process the attached file(s).',
+            deliver: false,
+            idempotencyKey,
+            media: attachments!.map((attachment) => ({
+              filePath: attachment.stagedPath,
+              mimeType: attachment.mimeType,
+              fileName: attachment.fileName,
+            })),
+          }),
+        },
+      );
+    } else {
+      const rpcResult = await useGatewayStore.getState().rpc<{ runId?: string }>(
+        'chat.send',
+        {
+          sessionKey: currentSessionKey,
+          message: trimmed,
+          deliver: false,
+          idempotencyKey,
+        },
+        CHAT_SEND_TIMEOUT_MS,
+      );
+      result = { success: true, result: rpcResult };
+    }
+
+    console.log(`[sendMessage] RPC result: success=${result.success}, runId=${result.result?.runId || 'none'}`);
+
+    if (!result.success) {
+      clearHistoryPoll();
+      set({ error: result.error || 'Failed to send message', sending: false });
+      scheduleQueuedLocalCommandFlush(set, get);
+      return;
+    }
+    if (result.result?.runId) {
+      set({ activeRunId: result.result.runId });
+    }
+  } catch (error) {
+    clearHistoryPoll();
+    set({ error: String(error), sending: false });
+    scheduleQueuedLocalCommandFlush(set, get);
+  }
+}
+
+async function flushQueuedLocalCommands(
+  set: (
+    partial: Partial<ChatState> | ((state: ChatState) => Partial<ChatState>),
+    replace?: false,
+  ) => void,
+  get: () => ChatState,
+): Promise<void> {
+  await flushQueuedLocalChatCommands(get, async (text, targetAgentId) => {
+    const handled = await executeLocalChatCommand(text, set, get, targetAgentId, {
+      allowQueue: false,
+      isBusy: false,
+      dispatchGatewaySlashCommand: (commandText, commandTargetAgentId) =>
+        sendGatewayChatMessage(set, get, commandText, undefined, commandTargetAgentId),
+    });
+    if (!handled) {
+      await sendGatewayChatMessage(set, get, text, undefined, targetAgentId);
+    }
+  });
+}
+
+function scheduleQueuedLocalCommandFlush(
+  set: (
+    partial: Partial<ChatState> | ((state: ChatState) => Partial<ChatState>),
+    replace?: false,
+  ) => void,
+  get: () => ChatState,
+): void {
+  queueMicrotask(() => {
+    void flushQueuedLocalCommands(set, get);
+  });
+}
+
 function getCanonicalPrefixFromSessionKey(sessionKey: string): string | null {
   if (!sessionKey.startsWith('agent:')) return null;
   const parts = sessionKey.split(':');
@@ -1121,6 +1408,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   currentAgentId: 'main',
   sessionLabels: {},
   sessionLastActivity: {},
+  pendingSlashAction: null,
 
   showThinking: true,
   thinkingLevel: null,
@@ -1177,9 +1465,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
             void get().loadHistory();
           }
 
-          // Background: fetch first user message for every non-main session to populate labels upfront.
+          // Background: fetch first user message for every visible session to populate labels upfront.
           // Uses a small limit so it's cheap; runs in parallel and doesn't block anything.
-          const sessionsToLabel = sessionsWithCurrent.filter((s) => !s.key.endsWith(':main'));
+          const sessionsToLabel = sessionsWithCurrent;
           if (sessionsToLabel.length > 0) {
             void Promise.all(
               sessionsToLabel.map(async (session) => {
@@ -1194,7 +1482,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
                   set((s) => {
                     const next: Partial<typeof s> = {};
                     if (firstUser) {
-                      const labelText = getMessageText(firstUser.content).trim();
+                      const labelText = getSessionLabelText(firstUser.content);
                       if (labelText) {
                         const truncated = labelText.length > 50 ? `${labelText.slice(0, 50)}…` : labelText;
                         next.sessionLabels = { ...s.sessionLabels, [session.key]: truncated };
@@ -1427,20 +1715,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
       set({ messages: finalMessages, thinkingLevel, loading: false });
 
-      // Extract first user message text as a session label for display in the toolbar.
-      // Skip main sessions (key ends with ":main") — they rely on the Gateway-provided
-      // displayName (e.g. the configured agent name "XClaw") instead.
-      const isMainSession = currentSessionKey.endsWith(':main');
-      if (!isMainSession) {
-        const firstUserMsg = finalMessages.find((m) => m.role === 'user');
-        if (firstUserMsg) {
-          const labelText = getMessageText(firstUserMsg.content).trim();
-          if (labelText) {
-            const truncated = labelText.length > 50 ? `${labelText.slice(0, 50)}…` : labelText;
-            set((s) => ({
-              sessionLabels: { ...s.sessionLabels, [currentSessionKey]: truncated },
-            }));
-          }
+      const firstUserMsg = finalMessages.find((m) => m.role === 'user');
+      if (firstUserMsg) {
+        const labelText = getSessionLabelText(firstUserMsg.content);
+        if (labelText) {
+          const truncated = labelText.length > 50 ? `${labelText.slice(0, 50)}…` : labelText;
+          set((s) => ({
+            sessionLabels: { ...s.sessionLabels, [currentSessionKey]: truncated },
+          }));
         }
       }
 
@@ -1499,6 +1781,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         if (recentAssistant) {
           clearHistoryPoll();
           set({ sending: false, activeRunId: null, pendingFinal: false });
+          scheduleQueuedLocalCommandFlush(set, get);
         }
       }
       };
@@ -1562,172 +1845,20 @@ export const useChatStore = create<ChatState>((set, get) => ({
   ) => {
     const trimmed = text.trim();
     if (!trimmed && (!attachments || attachments.length === 0)) return;
-
-    const targetSessionKey = resolveMainSessionKeyForAgent(targetAgentId) ?? get().currentSessionKey;
-
-    if (targetSessionKey !== get().currentSessionKey) {
-      set((s) => buildSessionSwitchPatch(s, targetSessionKey));
-      await get().loadHistory(true);
+    if (
+      !attachments?.length
+      && await executeLocalChatCommand(trimmed, set, get, targetAgentId, {
+        isBusy: get().sending || Boolean(get().activeRunId),
+        queueLocalCommand: (queuedText, queuedTargetAgentId) =>
+          enqueueLocalChatCommand(get, { text: queuedText, targetAgentId: queuedTargetAgentId }),
+        dispatchGatewaySlashCommand: (commandText, commandTargetAgentId) =>
+          sendGatewayChatMessage(set, get, commandText, undefined, commandTargetAgentId),
+      })
+    ) {
+      return;
     }
 
-    const currentSessionKey = targetSessionKey;
-
-    // Add user message optimistically (with local file metadata for UI display)
-    const nowMs = Date.now();
-    const userMsg: RawMessage = {
-      role: 'user',
-      content: trimmed || (attachments?.length ? '(file attached)' : ''),
-      timestamp: nowMs / 1000,
-      id: crypto.randomUUID(),
-      _attachedFiles: attachments?.map(a => ({
-        fileName: a.fileName,
-        mimeType: a.mimeType,
-        fileSize: a.fileSize,
-        preview: a.preview,
-        filePath: a.stagedPath,
-      })),
-    };
-    set((s) => ({
-      messages: [...s.messages, userMsg],
-      sending: true,
-      error: null,
-      streamingText: '',
-      streamingMessage: null,
-      streamingTools: [],
-      pendingFinal: false,
-      lastUserMessageAt: nowMs,
-    }));
-
-    // Update session label with first user message text as soon as it's sent
-    const { sessionLabels, messages } = get();
-    const isFirstMessage = !messages.slice(0, -1).some((m) => m.role === 'user');
-    if (!currentSessionKey.endsWith(':main') && isFirstMessage && !sessionLabels[currentSessionKey] && trimmed) {
-      const truncated = trimmed.length > 50 ? `${trimmed.slice(0, 50)}…` : trimmed;
-      set((s) => ({ sessionLabels: { ...s.sessionLabels, [currentSessionKey]: truncated } }));
-    }
-
-    // Mark this session as most recently active
-    set((s) => ({ sessionLastActivity: { ...s.sessionLastActivity, [currentSessionKey]: nowMs } }));
-
-    // Start the history poll and safety timeout IMMEDIATELY (before the
-    // RPC await) because the gateway's chat.send RPC may block until the
-    // entire agentic conversation finishes — the poll must run in parallel.
-    _lastChatEventAt = Date.now();
-    clearHistoryPoll();
-    clearErrorRecoveryTimer();
-
-    const POLL_START_DELAY = 3_000;
-    const POLL_INTERVAL = 4_000;
-    const pollHistory = () => {
-      const state = get();
-      if (!state.sending) { clearHistoryPoll(); return; }
-      if (state.streamingMessage) {
-        _historyPollTimer = setTimeout(pollHistory, POLL_INTERVAL);
-        return;
-      }
-      if (Date.now() - _lastChatEventAt < HISTORY_POLL_SILENCE_WINDOW_MS) {
-        _historyPollTimer = setTimeout(pollHistory, POLL_INTERVAL);
-        return;
-      }
-      state.loadHistory(true);
-      _historyPollTimer = setTimeout(pollHistory, POLL_INTERVAL);
-    };
-    _historyPollTimer = setTimeout(pollHistory, POLL_START_DELAY);
-
-    const SAFETY_TIMEOUT_MS = 90_000;
-    const checkStuck = () => {
-      const state = get();
-      if (!state.sending) return;
-      if (state.streamingMessage || state.streamingText) return;
-      if (state.pendingFinal) {
-        setTimeout(checkStuck, 10_000);
-        return;
-      }
-      if (Date.now() - _lastChatEventAt < SAFETY_TIMEOUT_MS) {
-        setTimeout(checkStuck, 10_000);
-        return;
-      }
-      clearHistoryPoll();
-      set({
-        error: 'No response received from the model. The provider may be unavailable or the API key may have insufficient quota. Please check your provider settings.',
-        sending: false,
-        activeRunId: null,
-        lastUserMessageAt: null,
-      });
-    };
-    setTimeout(checkStuck, 30_000);
-
-    try {
-      const idempotencyKey = crypto.randomUUID();
-      const hasMedia = attachments && attachments.length > 0;
-      if (hasMedia) {
-        console.log('[sendMessage] Media paths:', attachments!.map(a => a.stagedPath));
-      }
-
-      // Cache image attachments BEFORE the IPC call to avoid race condition:
-      // history may reload (via Gateway event) before the RPC returns.
-      // Keyed by staged file path which appears in [media attached: <path> ...].
-      if (hasMedia && attachments) {
-        for (const a of attachments) {
-          _imageCache.set(a.stagedPath, {
-            fileName: a.fileName,
-            mimeType: a.mimeType,
-            fileSize: a.fileSize,
-            preview: a.preview,
-          });
-        }
-        saveImageCache(_imageCache);
-      }
-
-      let result: { success: boolean; result?: { runId?: string }; error?: string };
-
-      // Longer timeout for chat sends to tolerate high-latency networks (avoids connect error)
-      const CHAT_SEND_TIMEOUT_MS = 120_000;
-
-      if (hasMedia) {
-        result = await hostApiFetch<{ success: boolean; result?: { runId?: string }; error?: string }>(
-          '/api/chat/send-with-media',
-          {
-            method: 'POST',
-            body: JSON.stringify({
-              sessionKey: currentSessionKey,
-              message: trimmed || 'Process the attached file(s).',
-              deliver: false,
-              idempotencyKey,
-              media: attachments.map((a) => ({
-                filePath: a.stagedPath,
-                mimeType: a.mimeType,
-                fileName: a.fileName,
-              })),
-            }),
-          },
-        );
-      } else {
-        const rpcResult = await useGatewayStore.getState().rpc<{ runId?: string }>(
-          'chat.send',
-          {
-            sessionKey: currentSessionKey,
-            message: trimmed,
-            deliver: false,
-            idempotencyKey,
-          },
-          CHAT_SEND_TIMEOUT_MS,
-        );
-        result = { success: true, result: rpcResult };
-      }
-
-      console.log(`[sendMessage] RPC result: success=${result.success}, runId=${result.result?.runId || 'none'}`);
-
-      if (!result.success) {
-        clearHistoryPoll();
-        set({ error: result.error || 'Failed to send message', sending: false });
-      } else if (result.result?.runId) {
-        set({ activeRunId: result.result.runId });
-      }
-    } catch (err) {
-      clearHistoryPoll();
-      set({ error: String(err), sending: false });
-    }
+    await sendGatewayChatMessage(set, get, text, attachments, targetAgentId);
   },
 
   // ── Abort active run ──
@@ -1861,28 +1992,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
               }
             }
             set((s) => {
-              // Snapshot the current streaming assistant message (thinking + tool_use) into
-              // messages[] before clearing it. The Gateway does NOT send separate 'final'
-              // events for intermediate tool-use turns — it only sends deltas and then the
-              // tool result. Without snapshotting here, the intermediate thinking+tool steps
-              // would be overwritten by the next turn's deltas and never appear in the UI.
               const currentStream = s.streamingMessage as RawMessage | null;
-              const snapshotMsgs: RawMessage[] = [];
-              if (currentStream) {
-                const streamRole = currentStream.role;
-                if (streamRole === 'assistant' || streamRole === undefined) {
-                  // Use message's own id if available, otherwise derive a stable one from runId
-                  const snapId = currentStream.id
-                    || `${runId || 'run'}-turn-${s.messages.length}`;
-                  if (!s.messages.some(m => m.id === snapId)) {
-                    snapshotMsgs.push({
-                      ...(currentStream as RawMessage),
-                      role: 'assistant',
-                      id: snapId,
-                    });
-                  }
-                }
-              }
+              const snapId = currentStream?.id || `${runId || 'run'}-turn-${s.messages.length}`;
+              const snapshot = buildToolUseSnapshotMessage(currentStream, snapId);
+              const snapshotMsgs = snapshot && !s.messages.some(m => m.id === snapshot.id)
+                ? [snapshot]
+                : [];
               return {
                 messages: snapshotMsgs.length > 0 ? [...s.messages, ...snapshotMsgs] : s.messages,
                 streamingText: '',
@@ -1956,6 +2071,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
           // tool-use turns (thinking + tool blocks) from the Gateway's authoritative record.
           if (hasOutput && !toolOnly) {
             clearHistoryPoll();
+            scheduleQueuedLocalCommandFlush(set, get);
             void get().loadHistory(true);
           }
         } else {
@@ -2011,6 +2127,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
                 activeRunId: null,
                 lastUserMessageAt: null,
               });
+              scheduleQueuedLocalCommandFlush(set, get);
               // One final history reload in case the Gateway completed in the
               // background and we just missed the event.
               state.loadHistory(true);
@@ -2019,6 +2136,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         } else {
           clearHistoryPoll();
           set({ sending: false, activeRunId: null, lastUserMessageAt: null });
+          scheduleQueuedLocalCommandFlush(set, get);
         }
         break;
       }
@@ -2035,6 +2153,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
           lastUserMessageAt: null,
           pendingToolImages: [],
         });
+        scheduleQueuedLocalCommandFlush(set, get);
         break;
       }
       default: {
