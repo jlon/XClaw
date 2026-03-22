@@ -13,6 +13,8 @@
 - [x] 为主视觉增加低频伪 3D special-idle
 - [x] 删除标题下额外说明句，只保留一行副标题
 - [x] 继续精修四张卡的桌面化节奏与插画分化
+- [x] 将欢迎头字标从粗描边 helper 重构为独立品牌组件
+- [x] 将欢迎头字标从手工 `SVG` 骨架切换为 `mask` 资产
 - [x] 同步 `zh / en / ja` 欢迎态国际化资源
 - [x] 跑通欢迎态定向测试与 ESLint
 - [ ] 全量类型检查待工作区现存错误清理后补跑
@@ -57,6 +59,6 @@
 ### 任务 6：验证
 
 - [x] `pnpm exec vitest run tests/unit/chat-render-stability.test.tsx tests/unit/chat-humanized-actions.test.tsx tests/unit/chat-theme-shell.test.ts --reporter=dot`
-- [x] `pnpm exec eslint src/pages/Chat/index.tsx tests/unit/chat-render-stability.test.tsx tests/unit/chat-humanized-actions.test.tsx tests/unit/chat-theme-shell.test.ts --max-warnings=0`
+- [x] `pnpm exec eslint src/pages/Chat/index.tsx src/components/common/XClawWelcomeWordmark.tsx tests/unit/chat-render-stability.test.tsx tests/unit/chat-humanized-actions.test.tsx tests/unit/chat-theme-shell.test.ts --max-warnings=0`
 - [x] `pnpm run typecheck`
 - [ ] 手工桌面窗口 smoke

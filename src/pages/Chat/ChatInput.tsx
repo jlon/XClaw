@@ -57,6 +57,17 @@ interface ChatModelOption {
 
 // ── Helpers ──────────────────────────────────────────────────────
 
+function pickRandomIdlePrompt(prompts: string[], currentPrompt?: string | null): string {
+  if (!prompts.length) {
+    return '';
+  }
+  if (!currentPrompt || prompts.length === 1) {
+    return prompts[Math.floor(Math.random() * prompts.length)] ?? prompts[0] ?? '';
+  }
+  const nextPrompts = prompts.filter((prompt) => prompt !== currentPrompt);
+  return nextPrompts[Math.floor(Math.random() * nextPrompts.length)] ?? prompts[0] ?? '';
+}
+
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -219,6 +230,7 @@ export function ChatInput({
   const [modelsLoading, setModelsLoading] = useState(false);
   const [modelsLoadError, setModelsLoadError] = useState<string | null>(null);
   const [switchingModel, setSwitchingModel] = useState(false);
+  const [idlePrompt, setIdlePrompt] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
   const modelPickerRef = useRef<HTMLDivElement>(null);
@@ -287,7 +299,13 @@ export function ChatInput({
   const currentModelLabel = selectedModel
     ? getModelLabel(selectedModel)
     : (currentAgent?.modelDisplay || currentModelId || t('composer.modelPickerDefault'));
-  const composerTextareaMinHeight = isEmpty ? 82 : 68;
+  const composerTextareaMinHeight = isEmpty ? 74 : 60;
+  const idlePrompts = useMemo(() => {
+    const translated = t('composer.idlePrompts', { returnObjects: true });
+    return Array.isArray(translated)
+      ? translated.filter((prompt): prompt is string => typeof prompt === 'string' && prompt.trim().length > 0)
+      : [];
+  }, [t]);
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -317,6 +335,14 @@ export function ChatInput({
       textareaRef.current.setSelectionRange(caret, caret);
     });
   }, [draftSeed, draftSeedVersion]);
+
+  useEffect(() => {
+    if (!isEmpty || disabled || input || !idlePrompts.length) {
+      setIdlePrompt('');
+      return;
+    }
+    setIdlePrompt((currentPrompt) => currentPrompt || pickRandomIdlePrompt(idlePrompts));
+  }, [disabled, idlePrompts, input, isEmpty]);
 
   useEffect(() => {
     if (!targetAgentId) return;
@@ -582,6 +608,13 @@ export function ChatInput({
     onStop?.();
   }, [canStop, onStop]);
 
+  const rotateIdlePrompt = useCallback(() => {
+    if (!isEmpty || disabled || input || !idlePrompts.length) {
+      return;
+    }
+    setIdlePrompt((currentPrompt) => pickRandomIdlePrompt(idlePrompts, currentPrompt));
+  }, [disabled, idlePrompts, input, isEmpty]);
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === 'Backspace' && !input && targetAgentId) {
@@ -623,6 +656,9 @@ export function ChatInput({
 
   // Handle drag & drop
   const [dragOver, setDragOver] = useState(false);
+  const resolvedPlaceholder = !disabled && !input && isEmpty && idlePrompt
+    ? idlePrompt
+    : (disabled && gatewayUi.placeholderKey ? t(gatewayUi.placeholderKey) : '');
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -651,7 +687,7 @@ export function ChatInput({
   return (
     <div
       className={cn(
-        'chat-im-font app-chat-workbench relative px-4 pb-6 transition-all duration-300',
+        'chat-im-font app-chat-workbench relative px-5 pb-5 transition-all duration-300 md:px-6',
         isEmpty ? 'pt-5' : 'pt-4',
       )}
       onDragOver={handleDragOver}
@@ -690,7 +726,7 @@ export function ChatInput({
         )}
 
         {/* Input Row */}
-        <div className={cn('app-chat-composer-dock relative rounded-[14px] px-3 py-2.5 transition-all', dragOver ? 'border-primary/30 ring-2 ring-primary/12' : '')}>
+        <div className={cn('app-chat-composer-dock relative rounded-[16px] px-4 py-2.5 transition-all', dragOver ? 'border-primary/30 ring-2 ring-primary/12' : '')}>
           <div className="app-chat-composer-editor">
             <textarea
               ref={textareaRef}
@@ -704,18 +740,19 @@ export function ChatInput({
                 isComposingRef.current = false;
               }}
               onPaste={handlePaste}
-              placeholder={disabled && gatewayUi.placeholderKey ? t(gatewayUi.placeholderKey) : ''}
+              onClick={rotateIdlePrompt}
+              placeholder={resolvedPlaceholder}
               disabled={disabled}
               className={cn(
-                'w-full max-h-[180px] resize-none border-0 bg-transparent px-0 py-0 text-[15px] leading-[1.6] text-foreground outline-none placeholder:text-muted-foreground/60',
-                isEmpty ? 'min-h-[82px]' : 'min-h-[68px]',
+                'w-full max-h-[180px] resize-none border-0 bg-transparent px-0 py-0 text-[15px] leading-[1.6] text-foreground outline-none placeholder:text-[#c8c8c8] dark:placeholder:text-[hsl(var(--foreground)/0.32)]',
+                isEmpty ? 'min-h-[74px]' : 'min-h-[60px]',
               )}
               style={!input ? { height: `${composerTextareaMinHeight}px` } : undefined}
               rows={1}
             />
           </div>
 
-          <div className="app-chat-composer-footer absolute inset-x-3.5 bottom-3 pointer-events-none">
+          <div className="app-chat-composer-footer absolute inset-x-4 bottom-3.5 pointer-events-none">
             <div className="app-chat-composer-tools pointer-events-auto">
               <Button
                 variant="ghost"
@@ -893,7 +930,7 @@ export function ChatInput({
                 sending
                   ? 'border border-[hsl(var(--border-subtle)/0.62)] bg-[hsl(var(--surface-elevated)/0.96)] text-foreground hover:bg-[hsl(var(--foreground)/0.04)]'
                   : canSend
-                    ? 'bg-primary text-primary-foreground shadow-none hover:bg-primary/90'
+                    ? 'bg-[hsl(var(--foreground)/0.9)] text-[hsl(var(--background))] shadow-[0_10px_18px_hsl(var(--foreground)/0.14)] hover:bg-[hsl(var(--foreground)/0.96)]'
                     : 'bg-transparent text-muted-foreground/45 hover:bg-transparent'
               }`}
               variant="ghost"
@@ -902,7 +939,7 @@ export function ChatInput({
               {sending ? (
                 <Square className="h-4 w-4" fill="currentColor" />
               ) : (
-                <SendHorizontal className="h-[18px] w-[18px]" strokeWidth={2} />
+                <SendHorizontal className="h-[18px] w-[18px] -rotate-90" strokeWidth={2} />
               )}
             </Button>
           </div>
@@ -940,7 +977,7 @@ function AttachmentPreview({
   const isImage = attachment.mimeType.startsWith('image/') && attachment.preview;
 
   return (
-    <div className="relative group rounded-lg overflow-hidden border border-border">
+    <div className="group relative overflow-hidden rounded-[12px] border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.96)] shadow-[0_4px_12px_hsl(var(--foreground)/0.025)]">
       {isImage ? (
         // Image thumbnail
         <div className="w-16 h-16">
@@ -952,7 +989,7 @@ function AttachmentPreview({
         </div>
       ) : (
         // Generic file card
-        <div className="app-pane-surface flex max-w-[200px] items-center gap-2 rounded-[9px] px-3 py-2">
+        <div className="flex max-w-[200px] items-center gap-2 rounded-[11px] px-3 py-2.5">
           <FileIcon mimeType={attachment.mimeType} className="h-5 w-5 shrink-0 text-muted-foreground" />
           <div className="min-w-0 overflow-hidden">
             <p className="text-xs font-medium truncate">{attachment.fileName}</p>
@@ -1002,8 +1039,10 @@ function AgentPickerItem({
       type="button"
       onClick={onSelect}
       className={cn(
-        'flex w-full flex-col items-start rounded-[10px] px-3 py-2 text-left transition-colors',
-        selected ? 'bg-[hsl(var(--foreground)/0.055)] text-foreground' : 'hover:bg-[hsl(var(--foreground)/0.04)]'
+        'flex w-full flex-col items-start rounded-[11px] border px-3 py-2.5 text-left transition-[background-color,border-color,box-shadow]',
+        selected
+          ? 'border-[hsl(var(--border-subtle)/1)] bg-[hsl(var(--surface-elevated)/1)] text-foreground shadow-[0_4px_12px_hsl(var(--foreground)/0.03)]'
+          : 'border-transparent hover:border-[hsl(var(--border-subtle)/0.72)] hover:bg-[hsl(var(--foreground)/0.032)]'
       )}
     >
       <span className="text-[13px] font-medium text-foreground">{agent.name}</span>
@@ -1030,10 +1069,10 @@ function ModelPickerItem({
       type="button"
       onClick={onSelect}
       className={cn(
-        'flex w-full items-start justify-between gap-3 rounded-[10px] px-3 py-2 text-left transition-[background-color,color]',
+        'flex w-full items-start justify-between gap-3 rounded-[11px] border px-3 py-2.5 text-left transition-[background-color,color,border-color,box-shadow]',
         selected
-          ? 'bg-[hsl(var(--foreground)/0.055)] text-foreground'
-          : 'hover:bg-[hsl(var(--foreground)/0.04)]'
+          ? 'border-[hsl(var(--border-subtle)/1)] bg-[hsl(var(--surface-elevated)/1)] text-foreground shadow-[0_4px_12px_hsl(var(--foreground)/0.03)]'
+          : 'border-transparent hover:border-[hsl(var(--border-subtle)/0.72)] hover:bg-[hsl(var(--foreground)/0.032)]'
       )}
     >
       <span className="min-w-0">

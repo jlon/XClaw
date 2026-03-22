@@ -8,6 +8,7 @@ import { hostApiFetch } from '@/lib/host-api';
 import { useGatewayStore } from './gateway';
 import { useAgentsStore } from './agents';
 import { buildCronSessionHistoryPath, isCronSessionKey } from './chat/cron-session-utils';
+import { normalizeLoadedSessions } from './chat/session-list-normalization';
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -103,7 +104,7 @@ interface ChatState {
   // Actions
   loadSessions: () => Promise<void>;
   switchSession: (key: string) => void;
-  newSession: () => void;
+  newSession: (agentId?: string | null) => void;
   deleteSession: (key: string) => Promise<void>;
   cleanupEmptySession: () => void;
   loadHistory: (quiet?: boolean) => Promise<void>;
@@ -1148,57 +1149,19 @@ export const useChatStore = create<ChatState>((set, get) => ({
             thinkingLevel: s.thinkingLevel ? String(s.thinkingLevel) : undefined,
             model: normalizeSessionModelRef(s.model, s.modelProvider),
             updatedAt: parseSessionUpdatedAtMs(s.updatedAt),
-          })).filter((s: ChatSession) => s.key);
-
-          const canonicalBySuffix = new Map<string, string>();
-          for (const session of sessions) {
-            if (!session.key.startsWith('agent:')) continue;
-            const parts = session.key.split(':');
-            if (parts.length < 3) continue;
-            const suffix = parts.slice(2).join(':');
-            if (suffix && !canonicalBySuffix.has(suffix)) {
-              canonicalBySuffix.set(suffix, session.key);
-            }
-          }
-
-          // Deduplicate: if both short and canonical existed, keep canonical only
-          const seen = new Set<string>();
-          const dedupedSessions = sessions.filter((s) => {
-            if (!s.key.startsWith('agent:') && canonicalBySuffix.has(s.key)) return false;
-            if (seen.has(s.key)) return false;
-            seen.add(s.key);
-            return true;
-          });
+          }));
 
           const { currentSessionKey, sessions: localSessions } = get();
-          let nextSessionKey = currentSessionKey || DEFAULT_SESSION_KEY;
-          if (!nextSessionKey.startsWith('agent:')) {
-            const canonicalMatch = canonicalBySuffix.get(nextSessionKey);
-            if (canonicalMatch) {
-              nextSessionKey = canonicalMatch;
-            }
-          }
-          if (!dedupedSessions.find((s) => s.key === nextSessionKey) && dedupedSessions.length > 0) {
-            // Preserve only locally-created pending sessions. On initial boot the
-            // default ghost key (`agent:main:main`) should yield to real history.
-            const hasLocalPendingSession = localSessions.some((session) => session.key === nextSessionKey);
-            if (!hasLocalPendingSession) {
-              nextSessionKey = dedupedSessions[0].key;
-            }
-          }
-
-          const sessionsWithCurrent = !dedupedSessions.find((s) => s.key === nextSessionKey) && nextSessionKey
-            ? [
-              ...dedupedSessions,
-              { key: nextSessionKey, displayName: nextSessionKey },
-            ]
-            : dedupedSessions;
-
-          const discoveredActivity = Object.fromEntries(
-            sessionsWithCurrent
-              .filter((session) => typeof session.updatedAt === 'number' && Number.isFinite(session.updatedAt))
-              .map((session) => [session.key, session.updatedAt!]),
-          );
+          const {
+            sessions: sessionsWithCurrent,
+            nextSessionKey,
+            discoveredActivity,
+          } = normalizeLoadedSessions({
+            sessions,
+            currentSessionKey,
+            localSessions,
+            defaultSessionKey: DEFAULT_SESSION_KEY,
+          });
 
           set((state) => ({
             sessions: sessionsWithCurrent,
@@ -1335,7 +1298,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   // ── New session ──
 
-  newSession: () => {
+  newSession: (agentId?: string | null) => {
     // Generate a new unique session key and switch to it.
     // NOTE: We intentionally do NOT call sessions.reset on the old session.
     // sessions.reset archives (renames) the session JSONL file, making old
@@ -1346,10 +1309,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
       && messages.length === 0
       && !sessionLastActivity[currentSessionKey]
       && !sessionLabels[currentSessionKey];
-    const prefix = getCanonicalPrefixFromSessionKey(currentSessionKey)
-      ?? getCanonicalPrefixFromSessions(sessions)
-      ?? DEFAULT_CANONICAL_PREFIX;
-    const newKey = `${prefix}:session-${Date.now()}`;
+    const nowMs = Date.now();
+    const prefix = agentId
+      ? `agent:${normalizeAgentId(agentId)}`
+      : getCanonicalPrefixFromSessionKey(currentSessionKey)
+        ?? getCanonicalPrefixFromSessions(sessions)
+        ?? DEFAULT_CANONICAL_PREFIX;
+    const newKey = `${prefix}:session-${nowMs}`;
     const newSessionEntry: ChatSession = { key: newKey, displayName: newKey };
     set((s) => ({
       currentSessionKey: newKey,
@@ -1362,8 +1328,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
         ? Object.fromEntries(Object.entries(s.sessionLabels).filter(([k]) => k !== currentSessionKey))
         : s.sessionLabels,
       sessionLastActivity: leavingEmpty
-        ? Object.fromEntries(Object.entries(s.sessionLastActivity).filter(([k]) => k !== currentSessionKey))
-        : s.sessionLastActivity,
+        ? {
+            ...Object.fromEntries(Object.entries(s.sessionLastActivity).filter(([k]) => k !== currentSessionKey)),
+            [newKey]: nowMs,
+          }
+        : { ...s.sessionLastActivity, [newKey]: nowMs },
       messages: [],
       streamingText: '',
       streamingMessage: null,

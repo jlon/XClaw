@@ -19,6 +19,7 @@ import { getSessionAvatar } from '@/lib/chat-avatar';
 import { cn } from '@/lib/utils';
 import { useStickToBottomInstant } from '@/hooks/use-stick-to-bottom-instant';
 import { useMinLoading } from '@/hooks/use-min-loading';
+import { XClawWelcomeWordmark } from '@/components/common/XClawWelcomeWordmark';
 
 const messageVisualRole = (message: RawMessage, showThinking: boolean): 'assistant' | 'user' | null => {
   const role = typeof message.role === 'string' ? message.role.toLowerCase() : '';
@@ -44,6 +45,7 @@ const welcomeCardClassNames = {
 
 export function Chat() {
   const { t } = useTranslation('chat');
+  const isWindows = window.electron?.platform === 'win32';
   const gatewayStatus = useGatewayStore((s) => s.status);
   const isGatewayRunning = gatewayStatus.state === 'running';
 
@@ -71,6 +73,7 @@ export function Chat() {
   const [hasPendingLatest, setHasPendingLatest] = useState(false);
   const [draftSeed, setDraftSeed] = useState('');
   const [draftSeedVersion, setDraftSeedVersion] = useState(0);
+  const isHistoryLoading = loading && messages.length === 0;
   const minLoading = useMinLoading(loading && messages.length > 0);
   const { contentRef, scrollRef } = useStickToBottomInstant(currentSessionKey);
   const isNearBottomRef = useRef(true);
@@ -160,7 +163,7 @@ export function Chat() {
     }
   }, [scrollRef]);
 
-  const isEmpty = messages.length === 0 && !sending;
+  const isEmpty = messages.length === 0 && !sending && !loading;
 
   useEffect(() => {
     const scrollElement = scrollRef.current;
@@ -200,7 +203,13 @@ export function Chat() {
 
   return (
     <div className={cn('app-chat-shell relative flex h-full flex-col transition-colors duration-500')}>
-      <div ref={scrollRef} className="chat-im-font flex-1 overflow-y-auto px-5 py-3 md:px-6 md:py-4">
+      <div
+        ref={scrollRef}
+        className={cn(
+          'chat-im-font flex-1 overflow-y-auto px-5 py-3 md:px-6 md:py-4',
+          isEmpty && (isWindows ? 'subtle-scrollbar-win' : 'subtle-scrollbar'),
+        )}
+      >
         {isEmpty ? (
           <div ref={contentRef} className="app-chat-workbench space-y-5">
             <WelcomeScreen
@@ -212,8 +221,8 @@ export function Chat() {
             />
           </div>
         ) : (
-          <div className="app-chat-workbench">
-            <div className="app-chat-thread-stage px-1 py-4 md:px-2 md:py-5">
+          <div className="app-chat-workbench flex min-h-full flex-col">
+            <div className="app-chat-thread-stage flex min-h-full flex-1 flex-col justify-end px-1 py-4 md:px-2 md:py-5">
               <div ref={contentRef} className="flex flex-col">
                 {renderedMessages.map(({ message, idx, showAvatar, isClusteredWithPrevious }, visibleIndex) => (
                   <div
@@ -306,7 +315,7 @@ export function Chat() {
       />
 
       {/* Transparent loading overlay */}
-      {minLoading && !sending && (
+      {(minLoading || isHistoryLoading) && !sending && (
         <div className="absolute inset-0 z-50 flex items-center justify-center rounded-xl bg-background/18 pointer-events-auto">
           <div className="rounded-[12px] border border-border/65 bg-[hsl(var(--surface-elevated)/0.98)] p-2.5 shadow-none">
             <LoadingSpinner size="md" />
@@ -416,32 +425,6 @@ function WelcomeScreen({
         </div>
       </div>
     </div>
-  );
-}
-
-function XClawWelcomeWordmark() {
-  return (
-    <svg
-      viewBox="0 0 222 62"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="app-chat-welcome-wordmark-svg"
-    >
-      <g
-        className="app-chat-welcome-wordmark-stroke"
-        stroke="currentColor"
-        strokeWidth="8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M18 12L42 50" />
-        <path d="M42 12L18 50" />
-        <path d="M94 20C88 13.5 79.5 10 69 10C50 10 38 18.5 38 31C38 43.5 50 52 69 52C79.5 52 88 48.5 94 42" />
-        <path d="M110 12V50" />
-        <path d="M147 35C147 45 139.25 52 128.5 52C117.75 52 110 45 110 35C110 25 117.75 18 128.5 18C139.25 18 147 25 147 35V50" />
-        <path d="M164 20L173 50L184 30L195 50L204 20" />
-      </g>
-    </svg>
   );
 }
 

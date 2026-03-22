@@ -77,6 +77,7 @@
 - 已确认此前“`SF Pro Text / SF Pro Display` 双栈更接近 QClaw”的判断不成立，并已回收为和 `QClaw` 全局 `body` 一致的单一系统 sans 栈
 - 已将聊天导航继续从“网页式列表栏”推进到更接近 `QClaw` 的 source list：本地 pane 标题退出、列表默认单行、聊天列表默认不再显示身份章、只在同名会话时以内联后缀补最小 Agent 区分
 - 已将 `body / titlebar / sidebar / workspace / setup shell` 的浅色基底继续压平到单一冷中性 substrate，弱化整页渐变、blur 和浮层感
+- 已修正聊天路由顶部分界语法：`TitleBar` 不再为聊天页单独绘制横向底部分割，避免标题栏与聊天导航壳层叠出网页式横切线
 - 已将浅色 substrate 从偏蓝冷灰进一步拉回更接近 `QClaw` 的中性灰阶，`background / chrome / surface / border` 已开始使用更接近 `#fafafa / #f5f5f5 / #f0f0f0 / #e5e5e7` 的事实落点
 - 已将聊天左侧 rail 与会话列表重新拉回同一套桌面导航壳层：rail 更窄、更平，聊天搜索更像轻筛选器，会话行更接近 source list row 而不是网页卡片
 - 已将 `WorkspacePageShell` 从“页中大卡片”进一步压回贴窗体的 pane 容器：外层大圆角、整块边框和半透明背景继续退出，工作区默认回到更像 desktop pane 的中性基底
@@ -101,6 +102,17 @@
 - 已继续把 `ChannelConfigModal` 的 modal 阴影、圆角、头部、频道选择区、帮助说明块、验证结果块和 footer 动作收成更像桌面 utility dialog 的语法
 - 已继续清理 `Setup / Chat` 里残留的网页式 utility 语法：provider 选择器和 OAuth 审批面板退出 `2xl` 大圆角与 glow，聊天 loading shell、附件移除按钮和文件 hover 退出网页 accent/浮层语法
 - 已对 `Settings / Providers / Channels / ChannelConfigModal / Chat / Setup / Agents / Skills / Cron` 这轮残留热点做了一次聚合核验，确认没有因为继续去网页感而打破主流程
+- 已确认当前聊天主界面的“扁平、发虚、不高清”不是缺少装饰，而是前一轮把桌面层级压得过头；本轮开始按 `QClaw substrate, XClaw accent` 重新拉开 `sidebar / source list / workspace / composer` 四层
+- 已将聊天侧栏与会话列表从“更素的网页列表”纠偏回 desktop source list：搜索 trigger 重新做成白底胶囊、会话行恢复 `40px` 级行高与更明确的 hover/active 体块、rail 和 toolbar button 恢复轻阴影与边界
+- 已将聊天输入 dock 与主工作区恢复到更像桌面产品的层级：输入坞站、工具按钮、回到底部按钮和用户气泡都重新引入克制的高亮、阴影和边界，不再是一整屏同一平面
+- 已继续将聊天主工作区和输入区的“高清感”补回：picker panel、search wrapper、message stage、附件卡、图片卡和过程轨 toggle 全部退出发白发虚的同平面语法，恢复更清晰的边界、体块和局部对比
+- 已继续将聊天输入 dock 的精度拉回 `QClaw` 的桌面语法：发送按钮改回更稳的深色 CTA，picker item/附件卡/运行态 pill 恢复统一的白底体块和轻阴影，不再像低对比网页控件
+- 已继续补聊天正文的清晰度：用户气泡、代码块、附件卡、时间/复制元信息不再发灰发虚，正文和次级信息的对比重新拉开
+- 已继续补聊天正文内部的局部精度：过程轨 toggle、内联代码、代码块和次级元信息恢复更清晰的边界、灰阶和焦点反馈，避免阅读区像一层模糊文稿
+- 已根据 `QClaw` 真实源码把聊天层级再次校正成“source list 更简、workspace 有轻白洗、composer 最强” 的桌面语法：搜索与会话行回到更干净的白底/浅灰 active 节奏，输入坞站收紧内部空白并重新成为主控件，避免把所有区域一起做平
+- 已进一步确认“网页感”在聊天页的最大根因是双层导航而不是配色：`QClaw` 聊天页左侧本就是单层 `ChatSidebar`，`XClaw` 已开始将聊天路由从“全局 rail + 会话列表”收回单层 sidebar 结构
+- 已继续纠偏聊天侧栏里“去网页感去过头”的问题：保留单层 sidebar 和 merged row 的 `XClaw` 特色，但把搜索 trigger、utility 新建按钮和 active row 的局部对比、边界与焦点语法重新拉回 `QClaw` 的桌面控件区间
+- 已开始把“高清感”从聊天侧栏扩展到主工作区：聊天画布、输入 dock、picker panel、回到底部按钮和正文/元信息对比已经从“发虚的浅层”纠正为更清晰的桌面层级，避免左侧对齐后右侧仍像低对比网页
 
 ## 完成判断
 

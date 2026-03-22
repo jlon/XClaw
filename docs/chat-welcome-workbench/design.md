@@ -65,6 +65,7 @@
 品牌标题继续服从全局字体体系，但字形来源必须回到 `QClaw` 真源码里的系统 sans 栈，而不是继续伪造 `SF Pro Display` 式展示字栈。
 同时已确认 `QClaw` 欢迎头本体是 `logo` 图片加一行副标题，不存在可直接复用的文字标题字体文件，因此这里只能对齐全局字栈、字重与字距语义，不能把品牌图误当字体来追。
 因此欢迎头最终不再使用普通文本标题，而是切换为单独的 `XClaw` 字标组件；页面里只保留隐藏 `h1` 负责语义和可访问性。
+字标组件也不能继续沿用早期那套粗糙的手写 `SVG` 骨架，而要改成品牌资产逻辑：`Claw` 部分直接以 `QClaw` 欢迎头参考图中的真实几何为基底，`X` 单独按同一重量和圆角语义重做，最后输出为可跟随主题色的 `mask` 资产。
 
 ### 主视觉
 
@@ -108,10 +109,13 @@
 欢迎区文案切换为带一点亲近感、但仍然像桌面工作台的表达：
 
 1. 标题：`XClaw`
-2. 副标题：`小助手已就位，你开口，我开工`
+2. 副标题：`小助手已就位，你开口，我开工，给你无限可能`
 3. 不再保留额外欢迎说明句
 4. 标题继续使用全局标题语义 token，但其实际值与 `QClaw` 真源码里的系统 sans 栈保持一致，不再保留 `SF Pro Display` 预设
 5. 视觉层改为独立 `XClaw` 字标，而不是继续把 `XClaw` 作为普通文字直接渲染
+6. 字标本体拆出单独组件文件，避免继续内联在聊天页里手工描路径，降低后续维护时再次退回粗糙字形的风险
+7. 字标渲染方式改为 `PNG mask + currentColor`，保留桌面主题适配能力，不把欢迎头锁死成单色位图
+8. 字标资产边界必须按可见像素紧裁，标题容器宽度使用 `min(100%, clamp(...))` 规则，保证窗口缩放、页面放大和窄宽度下都维持视觉居中
 
 ### 四张工作模式卡
 
@@ -157,11 +161,12 @@
 ## 影响范围
 
 1. [src/pages/Chat/index.tsx](/Users/jianglong/workspace/XClaw/src/pages/Chat/index.tsx)
-2. [src/styles/globals.css](/Users/jianglong/workspace/XClaw/src/styles/globals.css)
-3. [src/i18n/locales/zh/chat.json](/Users/jianglong/workspace/XClaw/src/i18n/locales/zh/chat.json)
-4. [src/i18n/locales/en/chat.json](/Users/jianglong/workspace/XClaw/src/i18n/locales/en/chat.json)
-5. [src/i18n/locales/ja/chat.json](/Users/jianglong/workspace/XClaw/src/i18n/locales/ja/chat.json)
-6. 欢迎态相关定向测试
+2. [src/components/common/XClawWelcomeWordmark.tsx](/Users/jianglong/workspace/XClaw/src/components/common/XClawWelcomeWordmark.tsx)
+3. [src/styles/globals.css](/Users/jianglong/workspace/XClaw/src/styles/globals.css)
+4. [src/i18n/locales/zh/chat.json](/Users/jianglong/workspace/XClaw/src/i18n/locales/zh/chat.json)
+5. [src/i18n/locales/en/chat.json](/Users/jianglong/workspace/XClaw/src/i18n/locales/en/chat.json)
+6. [src/i18n/locales/ja/chat.json](/Users/jianglong/workspace/XClaw/src/i18n/locales/ja/chat.json)
+7. 欢迎态相关定向测试
 
 ## 验收标准
 
@@ -176,3 +181,4 @@
 9. 欢迎态继续服从聊天页现有桌面壳层和宽度节奏。
 10. 标题下不再出现额外说明句，只保留一行副标题。
 11. `接上能力` 的底部插画语义必须明显区别于 `直接开工`，不能看起来像同一套托盘资产换色。
+12. 欢迎头字标必须退出旧的粗描边骨架，收成独立组件和 `mask` 品牌资产结构。

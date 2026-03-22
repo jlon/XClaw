@@ -323,7 +323,7 @@ function MessageMetaBar({ text, timestamp, align }: { text: string; timestamp?: 
   return (
     <div
       className={cn(
-        'app-chat-hoverbar inline-flex items-center gap-1.5 px-0.5 py-0.5 opacity-25 transition-opacity duration-200 select-none group-hover:opacity-100 group-focus-within:opacity-100',
+        'app-chat-hoverbar inline-flex items-center gap-1.5 px-0.5 py-0.5 opacity-35 transition-opacity duration-200 select-none group-hover:opacity-100 group-focus-within:opacity-100',
         align === 'end' ? 'self-end justify-end' : 'self-start justify-start',
       )}
     >
@@ -360,7 +360,7 @@ function MessageBubble({
       className={cn(
         'relative max-w-full text-[15px] leading-[1.62]',
         isUser
-          ? 'app-chat-bubble-user rounded-[18px] rounded-br-[6px] border px-4 py-2.5'
+          ? 'app-chat-bubble-user rounded-[18px] rounded-br-[6px] border px-4.5 py-3'
           : 'app-chat-bubble-assistant rounded-[18px] rounded-tl-[6px] px-0 py-0 text-foreground',
       )}
       data-testid={isUser ? 'chat-user-bubble' : 'chat-assistant-bubble'}
@@ -369,7 +369,7 @@ function MessageBubble({
         <p className="whitespace-pre-wrap break-words text-[15px] leading-[1.62]">{text}</p>
       ) : (
         <div className={cn(
-          'prose prose-sm dark:prose-invert max-w-none break-words text-[15px] leading-[1.62] prose-p:my-2 prose-ul:my-2.5 prose-ol:my-2.5 prose-li:my-1 prose-pre:my-2.5 prose-headings:mb-2 prose-headings:mt-4',
+          'prose prose-sm dark:prose-invert max-w-none break-words text-[15px] leading-[1.62] text-foreground/94 prose-p:my-2 prose-ul:my-2.5 prose-ol:my-2.5 prose-li:my-1 prose-pre:my-2.5 prose-headings:mb-2 prose-headings:mt-4',
           isStreaming && 'app-chat-streaming-content',
         )}>
           <ReactMarkdown
@@ -474,7 +474,7 @@ function FileCard({ file }: { file: AttachedFileMeta }) {
   return (
     <div
       className={cn(
-        'app-chat-file-card flex max-w-[220px] items-center gap-2 rounded-[9px] px-2.5 py-1.5',
+        'app-chat-file-card flex max-w-[220px] items-center gap-2 rounded-[11px] px-3 py-2',
         file.filePath && 'cursor-pointer transition-colors hover:bg-[hsl(var(--foreground)/0.045)]'
       )}
       onClick={handleOpen}

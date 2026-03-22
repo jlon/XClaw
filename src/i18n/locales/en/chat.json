@@ -3,7 +3,7 @@
     "gatewayRequired": "The OpenClaw Gateway needs to be running to use chat. It will start automatically, or you can start it from Settings.",
     "welcome": {
         "title": "XClaw",
-        "subtitle": "Your sidekick is ready. You ask, I start.",
+        "subtitle": "Your sidekick is ready. You ask, I start. Endless possibilities await.",
         "description": "",
         "executionKicker": "Current desk",
         "execution": "Start the work",
@@ -63,6 +63,18 @@
         "modelPickerLoadFailed": "Failed to load models",
         "gatewayDisconnectedPlaceholder": "Gateway not connected...",
         "gatewayConnectingPlaceholder": "Connecting to gateway...",
+        "idlePrompts": [
+            "What are we tackling this time?",
+            "Which task should I handle first today?",
+            "Hand me the next thing to do.",
+            "I'm ready. Just say the word.",
+            "Where should we start this round?",
+            "New task? Send it over.",
+            "Files, ideas, and to-dos can all land here.",
+            "What's this desktop working on first today?",
+            "Once you're ready, I'll start moving it forward.",
+            "What do you want me to pick up this time?"
+        ],
         "send": "Send",
         "stop": "Stop",
         "gatewayConnectedHint": "Connected",
@@ -83,6 +95,9 @@
     "sessionPane": {
         "searchLabel": "Search chats",
         "searchPlaceholder": "Search",
+        "newAgentTitle": "Start with agent",
+        "currentAgent": "Current",
+        "workspaceLauncher": "Workspace",
         "emptySearch": "No matching chats",
         "empty": "No chats yet",
         "emptyHint": "Start a new conversation and it will show up here."

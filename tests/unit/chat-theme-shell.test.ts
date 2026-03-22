@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 describe('chat desktop shell theme', () => {
   it('marks chat page with a dedicated desktop workspace shell and branded welcome hero', () => {
     const source = readFileSync(resolve(process.cwd(), 'src/pages/Chat/index.tsx'), 'utf8');
+    const wordmarkSource = readFileSync(resolve(process.cwd(), 'src/components/common/XClawWelcomeWordmark.tsx'), 'utf8');
 
     expect(source).toContain('app-chat-shell');
     expect(source).toContain('app-chat-welcome-hero');
@@ -12,6 +13,8 @@ describe('chat desktop shell theme', () => {
     expect(source).toContain('app-chat-welcome-logo-shell');
     expect(source).toContain('XClawWelcomeWordmark');
     expect(source).toContain('data-testid="chat-welcome-wordmark"');
+    expect(wordmarkSource).toContain('xclaw-wordmark-mask.png');
+    expect(wordmarkSource).toContain('app-chat-welcome-wordmark-mark');
     expect(source).toContain('app-chat-welcome-tagline');
     expect(source).toContain('app-chat-welcome-actions');
     expect(source).toContain('app-chat-welcome-card');
@@ -60,7 +63,7 @@ describe('chat desktop shell theme', () => {
     expect(inputSource).toContain("min-h-[82px]");
     expect(inputSource).toContain("min-h-[68px]");
     expect(inputSource).not.toContain("'h-[52px] w-[52px]");
-    expect(inputSource).toContain('absolute inset-x-3.5 bottom-3');
+    expect(inputSource).toContain('absolute inset-x-4 bottom-3.5');
     expect(inputSource).toContain('app-chat-composer-tool-button');
     expect(inputSource).toContain('app-chat-picker-surface');
     expect(inputSource).toContain('app-chat-picker-search-input');
@@ -80,8 +83,8 @@ describe('chat desktop shell theme', () => {
     expect(source).toContain('.app-chat-welcome-stage');
     expect(source).toContain('.app-chat-welcome-logo-shell');
     expect(source).toContain('.app-chat-welcome-title');
-    expect(source).toContain('.app-chat-welcome-wordmark-svg');
-    expect(source).toContain('.app-chat-welcome-wordmark-stroke');
+    expect(source).toContain('.app-chat-welcome-wordmark-mark');
+    expect(source).toContain('width: min(100%, clamp(10rem, 18vw, 12.2rem));');
     expect(source).toContain('.app-chat-welcome-tagline');
     expect(source).toContain('.app-chat-welcome-actions');
     expect(source).toContain('.app-chat-welcome-card');
@@ -127,6 +130,13 @@ describe('chat desktop shell theme', () => {
     expect(source).toContain('.app-chat-composer-editor');
     expect(source).toContain('.app-chat-composer-footer');
     expect(source).toContain('.app-chat-connection-indicator');
+    expect(source).toContain('-webkit-mask:');
+    expect(source).toContain('mask:');
+    expect(source).toContain('aspect-ratio: 255 / 84;');
+    expect(source).not.toContain('.app-chat-welcome-wordmark-svg');
+    expect(source).not.toContain('.app-chat-welcome-wordmark-primary');
+    expect(source).not.toContain('.app-chat-welcome-wordmark-highlight');
+    expect(source).not.toContain('.app-chat-welcome-wordmark-stroke');
   });
 
   it('moves the message plane onto dedicated desktop-grade thread and bubble surfaces', () => {
@@ -154,7 +164,7 @@ describe('chat desktop shell theme', () => {
 
     expect(messageSource).toContain("data-testid={isUser ? 'chat-user-bubble' : 'chat-assistant-bubble'}");
     expect(themeSource).toContain('.app-chat-bubble-assistant {\n  background: transparent;');
-    expect(themeSource).toContain('.app-chat-bubble-user {\n  background: hsl(var(--primary) / 0.055);');
+    expect(themeSource).toContain('.app-chat-bubble-user {\n  background:\n    linear-gradient(180deg, hsl(var(--primary) / 0.082) 0%, hsl(var(--primary) / 0.06) 100%);');
     expect(themeSource).toContain('.app-chat-message-column--user {\n  align-items: flex-end;\n  margin-inline-start: auto;\n  max-width: min(78%, 31rem);');
   });
 

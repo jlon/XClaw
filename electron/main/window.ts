@@ -12,8 +12,8 @@ interface WindowState {
   isMaximized: boolean;
 }
 
-export const DEFAULT_MAIN_WINDOW_WIDTH = 1400;
-export const DEFAULT_MAIN_WINDOW_HEIGHT = 820;
+export const DEFAULT_MAIN_WINDOW_WIDTH = 1200;
+export const DEFAULT_MAIN_WINDOW_HEIGHT = 800;
 export const DEFAULT_MAIN_WINDOW_MIN_WIDTH = 1100;
 export const DEFAULT_MAIN_WINDOW_MIN_HEIGHT = 640;
 

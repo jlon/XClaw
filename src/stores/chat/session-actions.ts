@@ -1,5 +1,6 @@
 import { invokeIpc } from '@/lib/api-client';
 import { getCanonicalPrefixFromSessions, getMessageText, toMs } from './helpers';
+import { normalizeLoadedSessions } from './session-list-normalization';
 import { DEFAULT_CANONICAL_PREFIX, DEFAULT_SESSION_KEY, type ChatSession, type RawMessage } from './types';
 import type { ChatGet, ChatSet, SessionHistoryActions } from './store-api';
 
@@ -7,6 +8,28 @@ function getAgentIdFromSessionKey(sessionKey: string): string {
   if (!sessionKey.startsWith('agent:')) return 'main';
   const [, agentId] = sessionKey.split(':');
   return agentId || 'main';
+}
+
+function getCanonicalPrefixFromSessionKey(sessionKey: string): string | null {
+  if (!sessionKey.startsWith('agent:')) return null;
+  const parts = sessionKey.split(':');
+  if (parts.length < 2) return null;
+  return `${parts[0]}:${parts[1]}`;
+}
+
+function normalizeAgentId(value: string | undefined | null): string {
+  return (value ?? '').trim().toLowerCase() || 'main';
+}
+
+function ensureSessionEntry(sessions: ChatSession[], sessionKey: string): ChatSession[] {
+  if (sessions.some((session) => session.key === sessionKey)) {
+    return sessions;
+  }
+  return [...sessions, { key: sessionKey, displayName: sessionKey }];
+}
+
+function clearSessionEntryFromMap<T extends Record<string, unknown>>(entries: T, sessionKey: string): T {
+  return Object.fromEntries(Object.entries(entries).filter(([key]) => key !== sessionKey)) as T;
 }
 
 function parseSessionUpdatedAtMs(value: unknown): number | undefined {
@@ -45,56 +68,19 @@ export function createSessionActions(
             thinkingLevel: s.thinkingLevel ? String(s.thinkingLevel) : undefined,
             model: s.model ? String(s.model) : undefined,
             updatedAt: parseSessionUpdatedAtMs(s.updatedAt),
-          })).filter((s: ChatSession) => s.key);
+          }));
 
-          const canonicalBySuffix = new Map<string, string>();
-          for (const session of sessions) {
-            if (!session.key.startsWith('agent:')) continue;
-            const parts = session.key.split(':');
-            if (parts.length < 3) continue;
-            const suffix = parts.slice(2).join(':');
-            if (suffix && !canonicalBySuffix.has(suffix)) {
-              canonicalBySuffix.set(suffix, session.key);
-            }
-          }
-
-          // Deduplicate: if both short and canonical existed, keep canonical only
-          const seen = new Set<string>();
-          const dedupedSessions = sessions.filter((s) => {
-            if (!s.key.startsWith('agent:') && canonicalBySuffix.has(s.key)) return false;
-            if (seen.has(s.key)) return false;
-            seen.add(s.key);
-            return true;
+          const { currentSessionKey, sessions: localSessions } = get();
+          const {
+            sessions: sessionsWithCurrent,
+            nextSessionKey,
+            discoveredActivity,
+          } = normalizeLoadedSessions({
+            sessions,
+            currentSessionKey,
+            localSessions,
+            defaultSessionKey: DEFAULT_SESSION_KEY,
           });
-
-          const { currentSessionKey } = get();
-          let nextSessionKey = currentSessionKey || DEFAULT_SESSION_KEY;
-          if (!nextSessionKey.startsWith('agent:')) {
-            const canonicalMatch = canonicalBySuffix.get(nextSessionKey);
-            if (canonicalMatch) {
-              nextSessionKey = canonicalMatch;
-            }
-          }
-          if (!dedupedSessions.find((s) => s.key === nextSessionKey) && dedupedSessions.length > 0) {
-            // Current session not found in the backend list
-            const isNewEmptySession = get().messages.length === 0;
-            if (!isNewEmptySession) {
-              nextSessionKey = dedupedSessions[0].key;
-            }
-          }
-
-          const sessionsWithCurrent = !dedupedSessions.find((s) => s.key === nextSessionKey) && nextSessionKey
-            ? [
-              ...dedupedSessions,
-              { key: nextSessionKey, displayName: nextSessionKey },
-            ]
-            : dedupedSessions;
-
-          const discoveredActivity = Object.fromEntries(
-            sessionsWithCurrent
-              .filter((session) => typeof session.updatedAt === 'number' && Number.isFinite(session.updatedAt))
-              .map((session) => [session.key, session.updatedAt!]),
-          );
 
           set((state) => ({
             sessions: sessionsWithCurrent,
@@ -153,7 +139,10 @@ export function createSessionActions(
     // ── Switch session ──
 
     switchSession: (key: string) => {
-      const { currentSessionKey, messages, sessionLastActivity, sessionLabels } = get();
+      const { currentSessionKey, messages, sessions, sessionLastActivity, sessionLabels } = get();
+      if (key === currentSessionKey) {
+        return;
+      }
       // 仅将没有任何历史记录且无活动时间的会话视为空会话。
       // 单纯依赖 messages.length 是不可靠的，因为 switchSession 会在真正调用 loadHistory 前抢先清空当前 messages，
       // 造成竞争条件，使得带有真实历史的会话被判定为空并从侧边栏移除。
@@ -161,9 +150,13 @@ export function createSessionActions(
         && messages.length === 0
         && !sessionLastActivity[currentSessionKey]
         && !sessionLabels[currentSessionKey];
+      const nextSessions = leavingEmpty
+        ? sessions.filter((session) => session.key !== currentSessionKey)
+        : sessions;
       set((s) => ({
         currentSessionKey: key,
         currentAgentId: getAgentIdFromSessionKey(key),
+        sessions: ensureSessionEntry(nextSessions, key),
         messages: [],
         streamingText: '',
         streamingMessage: null,
@@ -173,15 +166,12 @@ export function createSessionActions(
         pendingFinal: false,
         lastUserMessageAt: null,
         pendingToolImages: [],
-        ...(leavingEmpty ? {
-          sessions: s.sessions.filter((s) => s.key !== currentSessionKey),
-          sessionLabels: Object.fromEntries(
-            Object.entries(s.sessionLabels).filter(([k]) => k !== currentSessionKey),
-          ),
-          sessionLastActivity: Object.fromEntries(
-            Object.entries(s.sessionLastActivity).filter(([k]) => k !== currentSessionKey),
-          ),
-        } : {}),
+        sessionLabels: leavingEmpty
+          ? clearSessionEntryFromMap(s.sessionLabels, currentSessionKey)
+          : s.sessionLabels,
+        sessionLastActivity: leavingEmpty
+          ? clearSessionEntryFromMap(s.sessionLastActivity, currentSessionKey)
+          : s.sessionLastActivity,
       }));
       get().loadHistory();
     },
@@ -247,7 +237,7 @@ export function createSessionActions(
 
     // ── New session ──
 
-    newSession: () => {
+    newSession: (agentId?: string | null) => {
       // Generate a new unique session key and switch to it.
       // NOTE: We intentionally do NOT call sessions.reset on the old session.
       // sessions.reset archives (renames) the session JSONL file, making old
@@ -258,8 +248,13 @@ export function createSessionActions(
         && messages.length === 0
         && !sessionLastActivity[currentSessionKey]
         && !sessionLabels[currentSessionKey];
-      const prefix = getCanonicalPrefixFromSessions(get().sessions) ?? DEFAULT_CANONICAL_PREFIX;
-      const newKey = `${prefix}:session-${Date.now()}`;
+      const nowMs = Date.now();
+      const prefix = agentId
+        ? `agent:${normalizeAgentId(agentId)}`
+        : getCanonicalPrefixFromSessionKey(currentSessionKey)
+          ?? getCanonicalPrefixFromSessions(get().sessions)
+          ?? DEFAULT_CANONICAL_PREFIX;
+      const newKey = `${prefix}:session-${nowMs}`;
       const newSessionEntry: ChatSession = { key: newKey, displayName: newKey };
       set((s) => ({
         currentSessionKey: newKey,
@@ -272,8 +267,11 @@ export function createSessionActions(
           ? Object.fromEntries(Object.entries(s.sessionLabels).filter(([k]) => k !== currentSessionKey))
           : s.sessionLabels,
         sessionLastActivity: leavingEmpty
-          ? Object.fromEntries(Object.entries(s.sessionLastActivity).filter(([k]) => k !== currentSessionKey))
-          : s.sessionLastActivity,
+          ? {
+              ...Object.fromEntries(Object.entries(s.sessionLastActivity).filter(([k]) => k !== currentSessionKey)),
+              [newKey]: nowMs,
+            }
+          : { ...s.sessionLastActivity, [newKey]: nowMs },
         messages: [],
         streamingText: '',
         streamingMessage: null,

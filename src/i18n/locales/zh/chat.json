@@ -3,7 +3,7 @@
     "gatewayRequired": "OpenClaw 网关需要运行才能使用聊天。它将自动启动，或者您可以从设置中启动。",
     "welcome": {
         "title": "XClaw",
-        "subtitle": "小助手已就位，你开口，我开工",
+        "subtitle": "小助手已就位，你开口，我开工，给你无限可能",
         "description": "",
         "executionKicker": "当前桌面",
         "execution": "直接开工",
@@ -63,6 +63,18 @@
         "modelPickerLoadFailed": "加载模型失败",
         "gatewayDisconnectedPlaceholder": "网关未连接...",
         "gatewayConnectingPlaceholder": "正在连接网关...",
+        "idlePrompts": [
+            "这次又是什么任务呢？",
+            "今天先让我处理哪一件？",
+            "把要做的事交给我吧",
+            "我已经就位，等你发话",
+            "这回先从哪一步开始？",
+            "有新任务了？直接告诉我",
+            "文件、想法、待办，都可以丢过来",
+            "今天这张桌面先忙什么？",
+            "想好了就说，我开始推进",
+            "这次准备让我接哪项活？"
+        ],
         "send": "发送",
         "stop": "停止",
         "gatewayConnectedHint": "已连接",
@@ -83,7 +95,10 @@
     "sessionPane": {
         "searchLabel": "搜索聊天",
         "searchPlaceholder": "搜索",
-        "emptySearch": "没有匹配的聊天",
+    "newAgentTitle": "与哪个 Agent 开始",
+    "currentAgent": "当前",
+    "workspaceLauncher": "工作台",
+    "emptySearch": "没有匹配的聊天",
         "empty": "还没有聊天",
         "emptyHint": "新建一个对话后，会话列表会出现在这里。"
     }

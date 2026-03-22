@@ -20,15 +20,27 @@ function resolvePlatform() {
 export function TitleBar() {
   const location = useLocation();
   const platform = resolvePlatform();
-  const isChatRoute = location.pathname === '/';
+  const isChatRoute = location.pathname === '/' || location.pathname.startsWith('/new');
   const hasDesktopBridge = !!window.electron?.ipcRenderer;
 
   if (!hasDesktopBridge) {
-    return <div className="desktop-app-titlebar desktop-app-titlebar--browser h-9 shrink-0 border-b border-border/70" />;
+    return (
+      <div
+        className={
+          isChatRoute
+            ? 'desktop-app-titlebar desktop-app-titlebar--browser desktop-app-titlebar--chat h-9 shrink-0'
+            : 'desktop-app-titlebar desktop-app-titlebar--browser h-9 shrink-0 border-b border-border/70'
+        }
+      />
+    );
   }
 
   if (platform === 'darwin') {
-    return isChatRoute ? <MacChatTitleBar /> : <div className="drag-region desktop-app-titlebar desktop-app-titlebar--mac h-9 shrink-0 border-b border-border/70" />;
+    return isChatRoute ? (
+      <MacChatTitleBar />
+    ) : (
+      <div className="drag-region desktop-app-titlebar desktop-app-titlebar--mac h-9 shrink-0 border-b border-border/70" />
+    );
   }
 
   return <WindowsTitleBar isChatRoute={isChatRoute} />;
@@ -36,7 +48,7 @@ export function TitleBar() {
 
 function MacChatTitleBar() {
   return (
-    <div className="drag-region desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--mac flex h-9 shrink-0 items-center justify-end border-b border-border/70 pl-20 pr-2.5">
+    <div className="drag-region desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--mac flex h-9 shrink-0 items-center justify-end pl-20 pr-2.5">
       <div className="no-drag shrink-0">
         <ChatToolbar compact />
       </div>
@@ -70,7 +82,7 @@ function WindowsTitleBar({ isChatRoute }: { isChatRoute: boolean }) {
   };
 
   return (
-    <div className="drag-region desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--win flex h-9 shrink-0 items-center justify-between border-b border-border/70 pl-2">
+    <div className="drag-region desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--win flex h-9 shrink-0 items-center justify-between pl-2">
       <div className="min-w-0 flex-1" />
       <div className="no-drag flex h-full items-center">
         {isChatRoute ? (

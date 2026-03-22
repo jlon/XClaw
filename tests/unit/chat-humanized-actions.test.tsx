@@ -110,7 +110,7 @@ vi.mock('react-i18next', () => ({
         case 'welcome.title':
           return 'XClaw';
         case 'welcome.subtitle':
-          return 'Your sidekick is ready. You ask, I start.';
+          return 'Your sidekick is ready. You ask, I start. Endless possibilities await.';
         case 'welcome.description':
           return '';
         case 'welcome.executionKicker':
@@ -258,7 +258,7 @@ describe('chat humanized actions', () => {
 
     expect(screen.getByText('XClaw')).toBeInTheDocument();
     expect(screen.queryByText('Main Agent')).not.toBeInTheDocument();
-    expect(screen.getByText('Your sidekick is ready. You ask, I start.')).toBeInTheDocument();
+    expect(screen.getByText('Your sidekick is ready. You ask, I start. Endless possibilities await.')).toBeInTheDocument();
     expect(screen.queryByText('Tasks, files, to-dos, and stray ideas can all land here. I do more than answer questions. I take the work, break it down, and keep it moving.')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Start the work/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Keep it going/i })).toBeInTheDocument();

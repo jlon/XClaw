@@ -71,20 +71,20 @@ function NavItem({ to, icon, label, collapsed }: NavItemProps) {
         aria-label={collapsed ? label : undefined}
         className={({ isActive }) =>
           cn(
-            'flex w-full items-center rounded-[12px] px-2.5 py-2 text-[13px] font-medium transition-[background-color,color,padding,gap] duration-200 ease-out',
-            'text-foreground/74',
+            'flex w-full items-center rounded-[10px] border border-transparent px-2.5 py-2 text-[13px] font-medium transition-[background-color,color,border-color,box-shadow,padding,gap] duration-200 ease-out',
+            'text-foreground/68',
             collapsed
-              ? 'mx-auto h-[34px] w-[34px] justify-center gap-0 px-0 hover:bg-[hsl(var(--foreground)/0.045)] hover:text-foreground'
-              : 'gap-2 hover:bg-[hsl(var(--foreground)/0.035)]',
+              ? 'mx-auto h-8 w-8 justify-center gap-0 px-0 hover:border-transparent hover:bg-[hsl(var(--surface-hover)/0.96)] hover:text-foreground hover:shadow-none'
+              : 'gap-2 hover:border-transparent hover:bg-[hsl(var(--surface-hover)/0.96)] hover:text-foreground hover:shadow-none',
             isActive
-              ? 'bg-[hsl(var(--foreground)/0.055)] text-foreground'
+              ? 'border-transparent bg-[hsl(var(--foreground)/0.07)] text-foreground shadow-none'
               : '',
           )
         }
       >
         {({ isActive }) => (
           <>
-            <div className={cn('flex shrink-0 items-center justify-center', isActive ? 'text-foreground' : 'text-muted-foreground')}>
+            <div className={cn('flex shrink-0 items-center justify-center', isActive ? 'text-foreground' : 'text-muted-foreground/82')}>
               {icon}
             </div>
             <span
@@ -137,15 +137,15 @@ export function Sidebar({ railOnly = false, className }: SidebarProps) {
   return (
     <aside
       className={cn(
-        'desktop-app-sidebar desktop-app-sidebar-surface flex shrink-0 flex-col overflow-hidden border-r border-border/70 transition-[width,background-color,border-color] duration-300 ease-out',
+        'desktop-app-sidebar desktop-app-sidebar-surface flex shrink-0 flex-col overflow-hidden border-r border-border/55 transition-[width,background-color,border-color] duration-300 ease-out',
         railOnly ? 'desktop-app-sidebar-rail' : 'desktop-app-sidebar-panel',
-        collapsed ? 'w-12' : 'w-56',
+        collapsed ? 'w-11' : 'w-56',
         className,
       )}
     >
-      <div className={cn('px-2 pb-2', collapsed ? 'pt-2.5' : 'pt-3')}>
+      <div className={cn('px-2 pb-2', collapsed ? 'pt-2' : 'pt-3')}>
         <div className={cn('flex items-center overflow-hidden transition-[padding,gap,justify-content] duration-300 ease-out', collapsed ? 'justify-center px-0' : 'gap-2 px-2')}>
-          <img src={logoSvg} alt="XClaw" className={cn('sidebar-brand-mark w-auto shrink-0', collapsed ? 'h-[16px]' : 'h-[18px]')} />
+          <img src={logoSvg} alt="XClaw" className={cn('sidebar-brand-mark w-auto shrink-0', collapsed ? 'h-[15px]' : 'h-[18px]')} />
           <span
             data-testid="sidebar-brand-wordmark"
             aria-hidden={collapsed}
@@ -162,7 +162,7 @@ export function Sidebar({ railOnly = false, className }: SidebarProps) {
           <div className={cn('mt-2 flex', collapsed ? 'justify-center' : 'justify-end px-1')}>
             <button
               type="button"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] text-muted-foreground transition-colors hover:bg-[hsl(var(--foreground)/0.05)] hover:text-foreground"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border border-transparent text-muted-foreground transition-[background-color,color,border-color,box-shadow] hover:border-transparent hover:bg-[hsl(var(--surface-hover)/0.96)] hover:text-foreground hover:shadow-none"
               onClick={() => {
                 setSidebarCollapsed(!sidebarCollapsed);
               }}
@@ -178,13 +178,13 @@ export function Sidebar({ railOnly = false, className }: SidebarProps) {
         ) : null}
       </div>
 
-      <nav className="flex flex-col gap-1 px-2">
+      <nav className="flex flex-col gap-0.5 px-1.5">
         {navItems.map((item) => (
           <NavItem key={item.to} {...item} collapsed={collapsed} />
         ))}
       </nav>
 
-      <div className="mt-auto p-2">
+      <div className="mt-auto p-1.5">
         <NavItem
           to="/settings"
           icon={<SettingsIcon className="h-[18px] w-[18px]" strokeWidth={2} />}
@@ -197,11 +197,11 @@ export function Sidebar({ railOnly = false, className }: SidebarProps) {
             type="button"
             aria-label={collapsed ? t('sidebar.openClawPage') : undefined}
             className={cn(
-              'mt-1 flex h-auto w-full items-center rounded-[10px] px-2.5 py-2 text-[13px] font-medium transition-[background-color,color,padding,gap] duration-200 ease-out',
-              'text-foreground/74',
+              'mt-1 flex h-auto w-full items-center rounded-[10px] border border-transparent px-2.5 py-2 text-[13px] font-medium transition-[background-color,color,border-color,box-shadow,padding,gap] duration-200 ease-out',
+              'text-foreground/64',
               collapsed
-                ? 'mx-auto h-9 w-9 justify-center gap-0 px-0 hover:bg-[hsl(var(--foreground)/0.05)] hover:text-foreground'
-                : 'justify-start gap-2 hover:bg-[hsl(var(--foreground)/0.04)]',
+                ? 'mx-auto h-8 w-8 justify-center gap-0 px-0 hover:border-transparent hover:bg-[hsl(var(--surface-hover)/0.96)] hover:text-foreground hover:shadow-none'
+                : 'justify-start gap-2 hover:border-transparent hover:bg-[hsl(var(--surface-hover)/0.96)] hover:text-foreground hover:shadow-none',
             )}
             onClick={openDevConsole}
           >

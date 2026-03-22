@@ -3,7 +3,7 @@
     "gatewayRequired": "チャットを利用するには OpenClaw ゲートウェイが実行されている必要があります。自動的に起動するか、設定から起動できます。",
     "welcome": {
         "title": "XClaw",
-        "subtitle": "小さな相棒は待機中。声をかければ、すぐ動きます。",
+        "subtitle": "小さな相棒は待機中。声をかければ、すぐ動きます。無限の可能性を、ここから。",
         "description": "",
         "executionKicker": "このデスク",
         "execution": "すぐ着手",
@@ -63,6 +63,18 @@
         "modelPickerLoadFailed": "モデルの読み込みに失敗しました",
         "gatewayDisconnectedPlaceholder": "ゲートウェイ未接続...",
         "gatewayConnectingPlaceholder": "ゲートウェイに接続中...",
+        "idlePrompts": [
+            "今回はどんな仕事ですか？",
+            "今日はどれから片づけましょうか？",
+            "次のやることをこちらに渡してください。",
+            "準備できています。声をかけてください。",
+            "今回はどこから始めましょうか？",
+            "新しいタスクですか？そのまま送ってください。",
+            "ファイルもアイデアも ToDo もここに置けます。",
+            "今日はこのデスクトップで何から進めますか？",
+            "決まったら言ってください。こちらで前に進めます。",
+            "今回はどの仕事を引き受けましょうか？"
+        ],
         "send": "送信",
         "stop": "停止",
         "gatewayConnectedHint": "接続済み",
@@ -83,6 +95,9 @@
     "sessionPane": {
         "searchLabel": "チャットを検索",
         "searchPlaceholder": "検索",
+        "newAgentTitle": "どの Agent で始めるか",
+        "currentAgent": "現在",
+        "workspaceLauncher": "ワークスペース",
         "emptySearch": "一致するチャットはありません",
         "empty": "まだチャットがありません",
         "emptyHint": "新しい会話を始めると、ここに表示されます。"

@@ -40,7 +40,7 @@ vi.mock('@/lib/api-client', () => ({
   invokeIpc: vi.fn(),
 }));
 
-function translate(key: string, vars?: Record<string, unknown>): string {
+function translate(key: string, vars?: Record<string, unknown>): string | string[] {
   switch (key) {
     case 'composer.attachFiles':
       return 'Attach files';
@@ -80,6 +80,19 @@ function translate(key: string, vars?: Record<string, unknown>): string {
       return `gateway ${String(vars?.state ?? '')} | port: ${String(vars?.port ?? '')} ${String(vars?.pid ?? '')}`.trim();
     case 'composer.retryFailedAttachments':
       return 'Retry failed attachments';
+    case 'composer.idlePrompts':
+      return [
+        '这次又是什么任务呢？',
+        '今天先让我处理哪一件？',
+        '把要做的事交给我吧',
+        '我已经就位，等你发话',
+        '这回先从哪一步开始？',
+        '有新任务了？直接告诉我',
+        '文件、想法、待办，都可以丢过来',
+        '今天这张桌面先忙什么？',
+        '想好了就说，我开始推进',
+        '这次准备让我接哪项活？',
+      ];
     default:
       return key;
   }
@@ -295,6 +308,28 @@ describe('ChatInput agent targeting', () => {
       expect(screen.getByRole('textbox')).toHaveValue('Help me handle a concrete task:');
     });
     expect(onSend).not.toHaveBeenCalled();
+  });
+
+  it('rotates the send icon vertically and rotates the empty-state helper prompt on click', async () => {
+    const randomSpy = vi.spyOn(Math, 'random');
+    randomSpy.mockReturnValueOnce(0).mockReturnValueOnce(0.36);
+
+    render(<ChatInput onSend={vi.fn()} isEmpty />);
+
+    const textbox = screen.getByRole('textbox');
+    expect(textbox).toHaveAttribute('placeholder', '这次又是什么任务呢？');
+
+    fireEvent.click(textbox);
+
+    await waitFor(() => {
+      expect(textbox).toHaveAttribute('placeholder', '这回先从哪一步开始？');
+    });
+
+    const sendButton = screen.getByTitle('Send');
+    const sendIcon = sendButton.querySelector('svg');
+    expect(sendIcon).toHaveClass('-rotate-90');
+
+    randomSpy.mockRestore();
   });
 
   it('prefers OpenClaw key refs when provided by models.list', async () => {

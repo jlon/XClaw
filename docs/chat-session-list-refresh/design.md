@@ -26,6 +26,9 @@
 - 分组更粗：`今天 / 本周 / 本月 / 更早`
 - 搜索入口更克制，整体更像轻筛选 trigger，而不是大输入框
 - 默认行只有一行文字，更多区分信息只在必要时才补出来
+- 底层仍然是 `sessions.list`，但会明确过滤 `global / unknown / subagent`
+- 运行时 `sessions.list` 实际还会返回 `cron` 与 `subagent` 内部会话，主聊天 state 不能原样吞下这些内部会话
+- 标题优先级是 `label > displayName > session-key fallback`
 
 ### 不直接照抄的点
 
@@ -41,6 +44,7 @@
 - 降低列表项信息密度，让主次关系更清楚
 - 保持与 `global-theme-refresh` 的浅色/深色主题一致
 - 不破坏现有搜索、切换、新建、删除等行为
+- 新建会话必须走聊天路由里的真实 `/new` 流程，并允许在多 Agent 场景下先选 Agent
 
 ## 非目标
 
@@ -50,6 +54,15 @@
 - 不重做聊天正文与输入区结构
 
 ## 设计结论
+
+### 0. 产品定位纠偏
+
+- XClaw 当前的问题不是“拿了 agent 列表”，而是“真实会话列表被展示成了 agent-first 的列表”
+- 会话轨的产品定位应当是“最近聊过什么”，不是“我有哪些 Agent”
+- 会话标题永远优先于 Agent 身份
+- Agent 身份只在重名消歧或缺标题兜底时才出现
+- 空的 `:main` 占位会话和 `:subagent:` 转录不应该进入主会话轨
+- `:cron:` 运行会话和 `:subagent:` 内部转录都不应该进入主聊天 state；否则首屏选中、排序和列表语义都会被内部会话污染
 
 ### 1. 侧栏结构
 
@@ -106,6 +119,14 @@
 - 图标、占位文字和边框都进一步弱化
 - 不增加额外按钮或高级筛选
 
+### 7. 新建会话流
+
+- `+` 不是本地直接改 store 的假入口，而是进入聊天路由中的真实 `/new`
+- 单 Agent 场景下，`+` 直接进入 `/new`
+- 多 Agent 场景下，`+` 先弹出轻量 Agent 选择，再进入 `/new/:agentId`
+- 新建成功后立即返回主聊天路由，并把新会话排到顶部
+- 新会话默认按会话视角创建，不再让用户感知成“给某个 Agent 建一个主线程”
+
 ### 6. 明确保留 XClaw 更好的部分
 
 - 保留侧栏内搜索，不改成独立弹层
@@ -114,11 +135,17 @@
 
 ## 涉及文件
 
+- `src/lib/chat-session-list.ts`
+- `src/stores/chat.ts`
+- `src/stores/chat/session-actions.ts`
 - `src/components/layout/ChatSessionsPane.tsx`
 - `src/styles/globals.css`
 - `src/i18n/locales/zh/chat.json`
 - `src/i18n/locales/en/chat.json`
 - `src/i18n/locales/ja/chat.json`
+- `tests/unit/chat-session-list.test.ts`
+- `tests/unit/chat-session-actions.test.ts`
+- `tests/unit/chat-target-routing.test.ts`
 - `tests/unit/chat-layout.test.tsx`
 
 ## 风险

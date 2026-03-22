@@ -98,7 +98,7 @@ vi.mock('react-i18next', () => ({
         case 'welcome.title':
           return 'XClaw';
         case 'welcome.subtitle':
-          return 'Your sidekick is ready. You ask, I start.';
+          return 'Your sidekick is ready. You ask, I start. Endless possibilities await.';
         case 'welcome.description':
           return '';
         case 'welcome.executionKicker':
@@ -185,15 +185,27 @@ describe('chat render stability', () => {
   it('renders the welcome shell without the legacy main agent heading when the chat is empty', () => {
     chatState.messages = [];
 
-    const { queryByText, getByText } = render(<Chat />);
+    const { container, queryByText, getByText } = render(<Chat />);
+    const scrollShell = container.querySelector('.app-chat-shell > .chat-im-font');
 
     expect(queryByText('Main Agent')).not.toBeInTheDocument();
     expect(getByText('XClaw')).toBeInTheDocument();
-    expect(getByText('Your sidekick is ready. You ask, I start.')).toBeInTheDocument();
+    expect(getByText('Your sidekick is ready. You ask, I start. Endless possibilities await.')).toBeInTheDocument();
     expect(queryByText('Tasks, files, to-dos, and stray ideas can all land here. I do more than answer questions. I take the work, break it down, and keep it moving.')).not.toBeInTheDocument();
     expect(getByText('Start the work')).toBeInTheDocument();
     expect(getByText('Keep it going')).toBeInTheDocument();
     expect(getByText('Split the job')).toBeInTheDocument();
     expect(getByText('Plug in more')).toBeInTheDocument();
+    expect(scrollShell).toHaveClass('subtle-scrollbar');
+  });
+
+  it('does not fall back to the welcome shell while an existing session history is loading', () => {
+    chatState.messages = [];
+    chatState.loading = true;
+
+    const { queryByTestId, queryByText } = render(<Chat />);
+
+    expect(queryByTestId('chat-welcome-hero')).not.toBeInTheDocument();
+    expect(queryByText('Start the work')).not.toBeInTheDocument();
   });
 });

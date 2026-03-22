@@ -5,7 +5,7 @@ import { TitleBar } from './TitleBar';
 
 export function MainLayout() {
   const location = useLocation();
-  const isChatRoute = location.pathname === '/';
+  const isChatRoute = location.pathname === '/' || location.pathname.startsWith('/new');
 
   return (
     <div className="desktop-app-shell flex h-screen flex-col overflow-hidden bg-background text-foreground">
@@ -13,11 +13,6 @@ export function MainLayout() {
       <div className="desktop-app-shell-body flex flex-1 min-h-0 overflow-hidden">
         {isChatRoute ? (
           <div className="desktop-app-chat-nav-shell flex min-h-0 shrink-0">
-            <Sidebar
-              key="chat-sidebar"
-              railOnly
-              className="desktop-app-shell-sidebar desktop-app-shell-sidebar--rail !border-r-0 !shadow-none"
-            />
             <ChatSessionsPane />
           </div>
         ) : (

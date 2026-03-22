@@ -36,6 +36,7 @@
 10. 样式源码包含更精细的桌面卡片节奏：`1.18rem` 面板间距、`1.15rem` 圆角、`12rem` 卡高、`6rem` 插画层高度。
 11. 欢迎标题继续使用全局标题语义 token，但底层字体值必须和解包后的 `QClaw` 源码一致，不再保留 `SF Pro Display` 式假设。
 12. 欢迎头视觉层应改为独立字标组件，页面里只保留隐藏的 `h1` 语义文本。
+13. 字标样式源码应升级为 `mask` 品牌资产结构，不能回退到单层粗描边骨架。
 
 ## 手工验证清单
 
@@ -55,15 +56,19 @@
 15. 观察品牌区，确认字标下只保留一行副标题，没有额外解释句。
 16. 观察卡片留白，确认品牌区到卡片区之间有明确呼吸感，但首屏高度仍然紧凑。
 17. 观察字标，确认它已经退出普通文本渲染语义，视觉上更接近 `QClaw` 的品牌头结构。
-18. 在浅色与深色主题下各检查一次，确认没有破坏既有桌面层级。
-19. 在真实桌面窗口下观察一次，确认页面看起来是应用内页，而不是宣传页。
+18. 观察字标，确认它不再是粗糙的手绘描边骨架，而是更稳定、干净的品牌图式字形。
+19. 观察字标，确认 `X` 和 `Claw` 看起来像同一家族，而不是“单独一个 X + 另一套字”。
+20. 在浅色与深色主题下各检查一次，确认没有破坏既有桌面层级。
+21. 在真实桌面窗口下观察一次，确认页面看起来是应用内页，而不是宣传页。
+22. 放大缩小页面或调整窗口宽度时，确认字标仍然保持视觉居中，不会因为素材透明留白或旧比例写死而偏向一侧。
 
 ## 已执行命令
 
 ### 定向测试
 
 ```bash
-pnpm exec vitest run tests/unit/chat-render-stability.test.tsx tests/unit/chat-humanized-actions.test.tsx tests/unit/chat-theme-shell.test.ts --reporter=dot
+pnpm exec vitest run tests/unit/chat-theme-shell.test.ts -t "marks chat page with a dedicated desktop workspace shell and branded welcome hero" --reporter=dot
+pnpm exec vitest run tests/unit/chat-theme-shell.test.ts -t "defines dedicated chat shell classes in the global theme layer" --reporter=dot
 ```
 
 结果：通过
@@ -71,7 +76,7 @@ pnpm exec vitest run tests/unit/chat-render-stability.test.tsx tests/unit/chat-h
 ### 静态检查
 
 ```bash
-pnpm exec eslint src/pages/Chat/index.tsx tests/unit/chat-render-stability.test.tsx tests/unit/chat-humanized-actions.test.tsx tests/unit/chat-theme-shell.test.ts --max-warnings=0
+pnpm exec eslint src/components/common/XClawWelcomeWordmark.tsx tests/unit/chat-theme-shell.test.ts --max-warnings=0
 ```
 
 结果：通过

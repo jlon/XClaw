@@ -279,4 +279,123 @@ describe('chat target routing', () => {
 
     expect(useChatStore.getState().sessions[0]?.model).toBe('openai/gpt-5.4');
   });
+
+  it('filters internal cron and subagent sessions before selecting the active chat session', async () => {
+    const { useChatStore } = await import('@/stores/chat');
+
+    gatewayRpcMock.mockImplementationOnce(async (method: string) => {
+      if (method === 'sessions.list') {
+        return {
+          sessions: [
+            {
+              key: 'agent:main:cron:job-1:run:abc',
+              updatedAt: Date.parse('2026-03-11T11:59:00Z'),
+            },
+            {
+              key: 'agent:main:subagent:worker-1',
+              updatedAt: Date.parse('2026-03-11T11:58:00Z'),
+            },
+            {
+              key: 'agent:main:telegram:direct:12345',
+              label: '客户跟进',
+              updatedAt: Date.parse('2026-03-11T11:57:00Z'),
+            },
+          ],
+        };
+      }
+      throw new Error(`Unexpected gateway RPC: ${method}`);
+    });
+
+    useChatStore.setState({
+      currentSessionKey: 'agent:main:main',
+      currentAgentId: 'main',
+      sessions: [],
+      messages: [],
+      sessionLabels: {},
+      sessionLastActivity: {},
+      sending: false,
+      activeRunId: null,
+      streamingText: '',
+      streamingMessage: null,
+      streamingTools: [],
+      pendingFinal: false,
+      lastUserMessageAt: null,
+      pendingToolImages: [],
+      error: null,
+      loading: false,
+      thinkingLevel: null,
+      showThinking: true,
+    });
+
+    await useChatStore.getState().loadSessions();
+
+    const state = useChatStore.getState();
+    expect(state.sessions.map((session) => session.key)).toEqual(['agent:main:telegram:direct:12345']);
+    expect(state.currentSessionKey).toBe('agent:main:telegram:direct:12345');
+    expect(state.sessionLastActivity['agent:main:telegram:direct:12345']).toBe(Date.parse('2026-03-11T11:57:00Z'));
+  });
+
+  it('creates a newest session for the requested agent in the real chat store', async () => {
+    const { useChatStore } = await import('@/stores/chat');
+    const nowMs = Date.now();
+
+    useChatStore.setState({
+      currentSessionKey: 'agent:main:main',
+      currentAgentId: 'main',
+      sessions: [{ key: 'agent:main:main' }],
+      messages: [],
+      sessionLabels: {},
+      sessionLastActivity: {},
+      sending: false,
+      activeRunId: null,
+      streamingText: '',
+      streamingMessage: null,
+      streamingTools: [],
+      pendingFinal: false,
+      lastUserMessageAt: null,
+      pendingToolImages: [],
+      error: null,
+      loading: false,
+      thinkingLevel: null,
+      showThinking: true,
+    });
+
+    useChatStore.getState().newSession('research');
+
+    expect(useChatStore.getState().currentSessionKey).toBe(`agent:research:session-${nowMs}`);
+    expect(useChatStore.getState().currentAgentId).toBe('research');
+    expect(useChatStore.getState().sessionLastActivity[`agent:research:session-${nowMs}`]).toBe(nowMs);
+  });
+
+  it('keeps the current session agent when creating a new chat without an explicit agent', async () => {
+    const { useChatStore } = await import('@/stores/chat');
+    const nowMs = Date.now();
+
+    useChatStore.setState({
+      currentSessionKey: 'agent:research:desk',
+      currentAgentId: 'research',
+      sessions: [{ key: 'agent:research:desk' }],
+      messages: [],
+      sessionLabels: {},
+      sessionLastActivity: {},
+      sending: false,
+      activeRunId: null,
+      streamingText: '',
+      streamingMessage: null,
+      streamingTools: [],
+      pendingFinal: false,
+      lastUserMessageAt: null,
+      pendingToolImages: [],
+      error: null,
+      loading: false,
+      thinkingLevel: null,
+      showThinking: true,
+    });
+
+    useChatStore.getState().newSession();
+
+    expect(useChatStore.getState().currentSessionKey).toBe(`agent:research:session-${nowMs}`);
+    expect(useChatStore.getState().currentAgentId).toBe('research');
+    expect(useChatStore.getState().sessionLastActivity[`agent:research:session-${nowMs}`]).toBe(nowMs);
+  });
 });
