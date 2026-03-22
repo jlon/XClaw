@@ -28,6 +28,14 @@ describe('workspace page layout', () => {
     expect(source).toContain('desktop-app-titlebar');
     expect(source).toContain('desktop-app-titlebar--mac');
     expect(source).toContain('desktop-app-titlebar--win');
+    expect(source).not.toContain('border-b border-border/70');
+  });
+
+  it('keeps the title bar chrome line-free across workspace pages', () => {
+    const source = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
+
+    expect(source).toContain('.desktop-app-titlebar {');
+    expect(source).toContain('box-shadow: none;');
   });
 
   it('marks workspace frame, shell, and scroll area with shared desktop classes', () => {

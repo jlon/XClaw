@@ -5,8 +5,9 @@
 @layer base {
   :root {
     color-scheme: light;
-    --font-ui: "Source Han Sans CN", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    --font-display: "Source Han Sans CN", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+    --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+    --font-sidebar: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
     --background: 0 0% 99.1%;
     --foreground: 215 12% 14%;
     --card: 0 0% 99.85%;
@@ -238,9 +239,7 @@
 
 .desktop-app-titlebar {
   backdrop-filter: none;
-  box-shadow:
-    inset 0 -1px 0 hsl(var(--chrome-divider) / 0.72),
-    inset 0 1px 0 hsl(var(--surface-elevated) / 0.72);
+  box-shadow: none;
 }
 
 .desktop-app-titlebar--mac {
@@ -1332,6 +1331,27 @@
   color: hsl(var(--foreground) / 0.94);
 }
 
+.app-chat-toolbar-button--active {
+  background:
+    linear-gradient(180deg, hsl(var(--danger) / 0.1) 0%, hsl(var(--danger) / 0.07) 100%);
+  border-color: hsl(var(--danger) / 0.24);
+  box-shadow:
+    inset 0 1px 0 hsl(var(--background) / 0.72),
+    0 10px 22px hsl(var(--danger) / 0.08);
+  color: hsl(var(--danger));
+}
+
+.app-chat-toolbar-button--active:hover {
+  background:
+    linear-gradient(180deg, hsl(var(--danger) / 0.12) 0%, hsl(var(--danger) / 0.09) 100%);
+  border-color: hsl(var(--danger) / 0.3);
+  color: hsl(var(--danger));
+}
+
+.app-chat-toolbar-button[aria-pressed='true'] svg {
+  color: hsl(var(--danger));
+}
+
 .app-chat-composer-dock {
   background:
     linear-gradient(180deg, rgb(255 255 255 / 0.98) 0%, rgb(252 252 253 / 0.985) 100%);
@@ -1643,7 +1663,7 @@
 
 .app-chat-session-control {
   border: 1px solid transparent;
-  background: #f5f5f5;
+  background: #fff;
   box-shadow: none;
 }
 
@@ -1662,13 +1682,13 @@
 }
 
 .app-chat-session-control--search {
-  background: #f5f5f5;
+  background: #fff;
 }
 
 .app-chat-session-control--search:focus-within {
-  border-color: #e0e0e0;
+  border-color: #f0f0f0;
   background: #fff;
-  box-shadow: 0 1px 3px rgb(15 23 42 / 0.04);
+  box-shadow: none;
 }
 
 .app-chat-session-control--icon {
@@ -1686,17 +1706,15 @@
 }
 
 .app-chat-session-row:hover {
-  background: #f5f5f5;
+  background: #f0f0f0;
   border-color: transparent;
   box-shadow: none;
 }
 
 .app-chat-session-row--active {
-  border-color: #e7e7e7;
-  background: #efefef;
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.9),
-    0 1px 2px rgb(15 23 42 / 0.03);
+  border-color: transparent;
+  background: rgb(0 0 0 / 0.05);
+  box-shadow: none;
 }
 
 .app-chat-session-utility-button {

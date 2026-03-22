@@ -48,9 +48,12 @@ export function ChatToolbar({ compact = false }: { compact?: boolean }) {
             className={cn(
               'app-chat-toolbar-button rounded-[10px]',
               compact ? 'h-7 w-7' : 'h-8 w-8',
-              showThinking && 'bg-[hsl(var(--foreground)/0.075)] text-foreground',
+              showThinking && 'app-chat-toolbar-button--active',
             )}
             onClick={toggleThinking}
+            aria-pressed={showThinking}
+            aria-label={showThinking ? t('toolbar.hideThinking') : t('toolbar.showThinking')}
+            data-testid="chat-toolbar-thinking-toggle"
           >
             <Brain className={compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} />
           </Button>

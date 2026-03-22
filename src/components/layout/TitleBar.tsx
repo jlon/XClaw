@@ -29,7 +29,7 @@ export function TitleBar() {
         className={
           isChatRoute
             ? 'desktop-app-titlebar desktop-app-titlebar--browser desktop-app-titlebar--chat h-9 shrink-0'
-            : 'desktop-app-titlebar desktop-app-titlebar--browser h-9 shrink-0 border-b border-border/70'
+            : 'desktop-app-titlebar desktop-app-titlebar--browser h-9 shrink-0'
         }
       />
     );
@@ -39,7 +39,7 @@ export function TitleBar() {
     return isChatRoute ? (
       <MacChatTitleBar />
     ) : (
-      <div className="drag-region desktop-app-titlebar desktop-app-titlebar--mac h-9 shrink-0 border-b border-border/70" />
+      <div className="drag-region desktop-app-titlebar desktop-app-titlebar--mac h-9 shrink-0" />
     );
   }
 

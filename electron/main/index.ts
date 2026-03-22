@@ -161,6 +161,35 @@ function createWindow(): BrowserWindow {
     trafficLightPosition: isMac ? { x: 16, y: 16 } : undefined,
     frame: isMac,
     show: false,
+    backgroundColor: '#f8f8f9',
+  });
+
+  win.webContents.on('did-start-loading', () => {
+    logger.debug(`Main window started loading: ${win.webContents.getURL() || '(pending url)'}`);
+  });
+
+  win.webContents.on('dom-ready', () => {
+    logger.debug(`Main window DOM ready: ${win.webContents.getURL() || '(unknown url)'}`);
+  });
+
+  win.webContents.on('did-finish-load', () => {
+    logger.debug(`Main window finished loading: ${win.webContents.getURL() || '(unknown url)'}`);
+  });
+
+  win.webContents.on('did-fail-load', (_event, code, description, validatedURL, isMainFrame) => {
+    logger.error(
+      `Main window failed to load: code=${code} description=${description} url=${validatedURL} mainFrame=${String(isMainFrame)}`,
+    );
+  });
+
+  win.webContents.on('render-process-gone', (_event, details) => {
+    logger.error(`Main window renderer process gone: reason=${details.reason} exitCode=${details.exitCode}`);
+  });
+
+  win.webContents.on('console-message', (_event, level, message, line, sourceId) => {
+    if (level >= 2) {
+      logger.warn(`Renderer console[level=${level}] ${sourceId}:${line} ${message}`);
+    }
   });
 
   // Handle external links
@@ -172,7 +201,9 @@ function createWindow(): BrowserWindow {
   // Load the app
   if (process.env.VITE_DEV_SERVER_URL) {
     win.loadURL(process.env.VITE_DEV_SERVER_URL);
-    win.webContents.openDevTools();
+    if (process.env.XCLAW_OPEN_DEVTOOLS === '1') {
+      win.webContents.openDevTools({ mode: 'detach' });
+    }
   } else {
     win.loadFile(join(__dirname, '../../dist/index.html'));
   }
