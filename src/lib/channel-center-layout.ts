@@ -7,24 +7,25 @@ export const CHANNEL_CENTER_LAYOUT_MODES = {
 export type ChannelCenterLayoutMode =
   (typeof CHANNEL_CENTER_LAYOUT_MODES)[keyof typeof CHANNEL_CENTER_LAYOUT_MODES];
 
+export const CHANNEL_CENTER_BOARD_COLUMNS = [1, 2, 3, 4] as const;
+
+export type ChannelCenterBoardColumnCount = (typeof CHANNEL_CENTER_BOARD_COLUMNS)[number];
+
 export const CHANNEL_CENTER_BOARD_CARD_MIN_WIDTH = 264;
 
 export const CHANNEL_CENTER_BOARD_COLUMN_BREAKPOINTS = {
-  twoColumns: 640,
-  threeColumns: 960,
-  fourColumns: 1320,
-} as const;
+  1: 0,
+  2: 640,
+  3: 960,
+  4: 1320,
+} as const satisfies Record<ChannelCenterBoardColumnCount, number>;
 
 export const CHANNEL_CENTER_WORKBENCH_MIN_WIDTH = 1600;
 
-export const getChannelBoardColumnCount = (containerWidth: number): 1 | 2 | 3 | 4 =>
-  containerWidth >= CHANNEL_CENTER_BOARD_COLUMN_BREAKPOINTS.fourColumns
-    ? 4
-    : containerWidth >= CHANNEL_CENTER_BOARD_COLUMN_BREAKPOINTS.threeColumns
-      ? 3
-      : containerWidth >= CHANNEL_CENTER_BOARD_COLUMN_BREAKPOINTS.twoColumns
-        ? 2
-        : 1;
+const CHANNEL_CENTER_BOARD_COLUMNS_DESC = [...CHANNEL_CENTER_BOARD_COLUMNS].sort((left, right) => right - left);
+
+export const getChannelBoardColumnCount = (containerWidth: number): ChannelCenterBoardColumnCount =>
+  CHANNEL_CENTER_BOARD_COLUMNS_DESC.find((columnCount) => containerWidth >= CHANNEL_CENTER_BOARD_COLUMN_BREAKPOINTS[columnCount]) ?? 1;
 
 export const getChannelCenterLayoutMode = (
   containerWidth: number,
