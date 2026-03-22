@@ -1,12 +1,12 @@
-# 频道中心重构实施计划
+# 频道中心入口板重构实施计划
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 将频道页重构为统一三栏工作台，并基于 OpenClaw 真实配置契约接入首批已闭环字段。
+**Goal:** 将频道页默认模式从“默认两栏工作台”切换为“入口卡片板”，并在选中频道后进入聚焦编辑态，只有超宽工作区才升级为完整三栏，同时保持现有保存、验证、默认账号、绑定 Agent 与高级字段链路不回退。
 
-**Architecture:** 保留现有 host-api 与 `channel-config` 保存链路，先建立“字段 -> OpenClaw 路径 / 路由 / 回填方式”的契约表，再由 registry 驱动字段分层与可见性。默认账号、渠道启停和 Agent 绑定作为通用行为控件处理，不混入普通配置字段 schema；未证明可 round-trip 的结构化高级字段不进入 v1。
+**Architecture:** 保留现有 `host-api -> electron routes -> channel-config` 主链和 `editor-values` 回填链，不新造后端协议。前端新增一层纯布局契约，先用容器宽度和当前上下文计算 `board / focus / workbench` 三种模式，再拆出入口卡片板、聚焦编辑态和超宽三栏骨架，复用同一套账号列表与编辑器组件。
 
-**Tech Stack:** React 19、TypeScript、Vite、Electron、Vitest、ESLint、i18next、现有 host-api / channel-config 工具链
+**Tech Stack:** React 19、TypeScript、Vite、Electron、Vitest、Playwright、ESLint、i18next、现有 `host-api` / `channel-registry` / `channel-config` 工具链
 
 ---
 
@@ -14,308 +14,271 @@
 
 ### 预计新增
 
-- `src/lib/channel-registry.ts`
-- `src/components/channels/ChannelWorkbench.tsx`
-- `src/components/channels/ChannelTypeRail.tsx`
+- `src/lib/channel-center-layout.ts`
+- `src/components/channels/ChannelEntryBoard.tsx`
+- `src/components/channels/ChannelEntryCard.tsx`
+- `src/components/channels/ChannelFocusWorkspace.tsx`
 - `src/components/channels/ChannelAccountList.tsx`
 - `src/components/channels/ChannelConfigEditor.tsx`
-- `src/components/channels/ChannelFieldRenderer.tsx`
-- `src/components/channels/ChannelAdvancedSection.tsx`
-- `tests/unit/channel-registry.test.ts`
-- `tests/unit/channels-page.test.tsx`
+- `tests/unit/channel-center-layout.test.ts`
 
 ### 预计修改
 
 - `src/pages/Channels/index.tsx`
-- `src/components/channels/ChannelConfigModal.tsx`
-- `src/types/channel.ts`
-- `src/i18n/locales/zh/channels.json`
-- `src/i18n/locales/en/channels.json`
-- `src/i18n/locales/ja/channels.json`
-- `electron/utils/channel-config.ts`
-- `electron/api/routes/channels.ts`
-- `tests/unit/channel-config.test.ts`
+- `tests/unit/channels-page.test.tsx`
+- `tests/e2e/channels.spec.ts`
+- `docs/channel-center-redesign/progress.md`
+- `docs/channel-center-redesign/testing.md`
+- `docs/channel-center-redesign/issues.md`
 
-## Task 1：建立 OpenClaw 字段契约表
+## Task 1：锁定布局状态机与断点契约
 
 **Files:**
 
-- Create: `src/lib/channel-registry.ts`
+- Create: `src/lib/channel-center-layout.ts`
+- Test: `tests/unit/channel-center-layout.test.ts`
 - Modify: `docs/channel-center-redesign/design.md`
-- Test: `tests/unit/channel-registry.test.ts`
 
-- [ ] **Step 1: 写字段契约测试**
+- [ ] **Step 1: 写布局契约失败测试**
 
 覆盖：
 
-- 每个 v1 字段都声明真实 `storagePath` 或动作路由
-- 每个字段都声明 `readStrategy` 与 `writeStrategy`
-- 行为控件不会混入普通配置字段列表
+- `board` 模式下的 `1 / 2 / 3 / 4` 列卡片断点
+- 卡片最小可读宽度 `264px`
+- 没有选中上下文时，超宽也不自动跳入三栏
+- 已有选中上下文时，约 `1600px+` 才进入 `workbench`
+- 从宽到窄时优先退到 `focus`，不直接丢回 `board`
 
 - [ ] **Step 2: 运行测试确认失败**
 
-Run: `pnpm exec vitest run tests/unit/channel-registry.test.ts`
+Run: `pnpm exec vitest run tests/unit/channel-center-layout.test.ts`
 
-- [ ] **Step 3: 实现 registry 契约表**
+- [ ] **Step 3: 实现纯布局契约**
 
 要求：
 
-- 所有字段必须绑定真实 OpenClaw 配置路径或真实动作接口
-- 每个字段必须标注证据来源
-- 每个字段必须标注 `evidenceLevel`
-- 去掉没有证据的 v1 字段
+- 只做纯函数，不读 DOM，不耦合 React
+- 显式导出布局模式、列数和阈值常量
+- 不把断点散落到组件里硬编码
 
 - [ ] **Step 4: 再次运行测试确认通过**
 
-Run: `pnpm exec vitest run tests/unit/channel-registry.test.ts`
+Run: `pnpm exec vitest run tests/unit/channel-center-layout.test.ts`
 
 - [ ] **Step 5: 提交**
 
 ```bash
-git add src/lib/channel-registry.ts docs/channel-center-redesign/design.md tests/unit/channel-registry.test.ts
-git commit -m "feat: add channel field contract registry"
+git add src/lib/channel-center-layout.ts tests/unit/channel-center-layout.test.ts docs/channel-center-redesign/design.md
+git commit -m "feat: add channel center layout contract"
 ```
 
-## Task 2：重构字段模型
+## Task 2：把频道页首屏切到入口卡片板
 
 **Files:**
 
-- Modify: `src/types/channel.ts`
-- Test: `tests/unit/channel-registry.test.ts`
+- Create: `src/components/channels/ChannelEntryBoard.tsx`
+- Create: `src/components/channels/ChannelEntryCard.tsx`
+- Modify: `src/pages/Channels/index.tsx`
+- Test: `tests/unit/channels-page.test.tsx`
 
-- [ ] **Step 1: 写字段分层测试**
+- [ ] **Step 1: 写入口板失败测试**
 
 覆盖：
 
-- 每个重点渠道都有基础字段
-- 已闭环字段和待适配字段不会混用
-- 行为控件与普通字段彻底分离
+- 首次进入频道页时默认显示入口卡片板
+- 默认窗口下不自动钻进任一频道编辑态
+- 已配置和待添加分组同时存在
+- 单个频道卡片显示名称、品牌图标、主动作、摘要状态、呼吸灯
+- 点击卡片主动作后进入该频道
 
 - [ ] **Step 2: 运行测试确认失败**
 
-Run: `pnpm exec vitest run tests/unit/channel-registry.test.ts`
+Run: `pnpm exec vitest run tests/unit/channels-page.test.tsx -t "entry board|default board mode"`
 
-- [ ] **Step 3: 实现 registry 与类型升级**
+- [ ] **Step 3: 实现入口卡片板**
 
 要求：
 
-- `ChannelMeta` 支持分层字段模型
-- 展示元数据与编辑 schema 解耦
-- 字段元数据支持 `secret`、`options`、`visibleWhen`
-- 通用行为控件与普通配置字段分离建模
-- 只纳入已在契约表中批准的 v1 字段
-- `upstream-plugin-only` 字段不能进入 v1 渲染列表
+- 入口板由独立组件承载，不继续把卡片 UI 写回 `index.tsx`
+- 卡片摘要只显示聚合信息，不塞账号编辑细节
+- 已配置卡片主状态为 `已配置`
+- 未配置卡片显示最关键接入方式，例如 `二维码`、`令牌`、`Webhook`
+- 最右侧状态呼吸灯必须保留
 
 - [ ] **Step 4: 再次运行测试确认通过**
 
-Run: `pnpm exec vitest run tests/unit/channel-registry.test.ts`
+Run: `pnpm exec vitest run tests/unit/channels-page.test.tsx -t "entry board|default board mode"`
 
 - [ ] **Step 5: 提交**
 
 ```bash
-git add src/lib/channel-registry.ts src/types/channel.ts tests/unit/channel-registry.test.ts
-git commit -m "feat: add channel config registry"
+git add src/components/channels/ChannelEntryBoard.tsx src/components/channels/ChannelEntryCard.tsx src/pages/Channels/index.tsx tests/unit/channels-page.test.tsx
+git commit -m "feat: add channel entry board"
 ```
 
-## Task 3：搭建三栏工作台骨架
+## Task 3：抽出聚焦编辑态骨架
 
 **Files:**
 
-- Create: `src/components/channels/ChannelWorkbench.tsx`
-- Create: `src/components/channels/ChannelTypeRail.tsx`
+- Create: `src/components/channels/ChannelFocusWorkspace.tsx`
 - Create: `src/components/channels/ChannelAccountList.tsx`
-- Modify: `src/pages/Channels/index.tsx`
-- Test: `tests/unit/channels-page.test.tsx`
-
-- [ ] **Step 1: 写页面联动测试**
-
-覆盖：
-
-- 左栏选择渠道后，中栏和右栏联动
-- 中栏选择账号后，编辑器切换对象
-- 页面存在统一新增频道入口
-
-- [ ] **Step 2: 运行测试确认失败**
-
-Run: `pnpm exec vitest run tests/unit/channels-page.test.tsx`
-
-- [ ] **Step 3: 实现工作台骨架**
-
-要求：
-
-- 页面不再以 modal 为主路径
-- 左栏、中栏、右栏职责清晰
-- 保持现有状态拉取与 gateway 事件刷新
-
-- [ ] **Step 4: 再次运行测试确认通过**
-
-Run: `pnpm exec vitest run tests/unit/channels-page.test.tsx`
-
-- [ ] **Step 5: 提交**
-
-```bash
-git add src/pages/Channels/index.tsx src/components/channels/ChannelWorkbench.tsx src/components/channels/ChannelTypeRail.tsx src/components/channels/ChannelAccountList.tsx tests/unit/channels-page.test.tsx
-git commit -m "feat: add channel workbench layout"
-```
-
-## Task 4：实现右栏编辑器与通用字段渲染
-
-**Files:**
-
 - Create: `src/components/channels/ChannelConfigEditor.tsx`
-- Create: `src/components/channels/ChannelFieldRenderer.tsx`
-- Create: `src/components/channels/ChannelAdvancedSection.tsx`
 - Modify: `src/pages/Channels/index.tsx`
-- Modify: `src/i18n/locales/zh/channels.json`
-- Modify: `src/i18n/locales/en/channels.json`
-- Modify: `src/i18n/locales/ja/channels.json`
 - Test: `tests/unit/channels-page.test.tsx`
 
-- [ ] **Step 1: 补编辑器交互测试**
+- [ ] **Step 1: 写聚焦编辑态失败测试**
 
 覆盖：
 
-- 基础配置默认展开
-- 通用高级默认折叠并显示摘要
-- 专属高级按分组展开
+- 从入口板进入频道后显示“返回全部频道”
+- 左侧只显示当前频道的账号列表
+- 右侧继续显示基础配置、通用行为、高级分组
+- 未保存修改时切换账号仍会拦截
+- 新增账号后仍自动落到新账号
 
 - [ ] **Step 2: 运行测试确认失败**
 
-Run: `pnpm exec vitest run tests/unit/channels-page.test.tsx`
+Run: `pnpm exec vitest run tests/unit/channels-page.test.tsx -t "focus workspace|returns to board|unsaved changes"`
 
-- [ ] **Step 3: 实现编辑器**
+- [ ] **Step 3: 实现聚焦编辑态与组件抽取**
 
 要求：
 
-- 通用字段统一渲染
-- 高级区折叠
-- 策略字段带说明
-- 保存区固定在编辑器底部
-- 仅渲染契约表批准的已闭环字段
+- 先抽出当前 `index.tsx` 里的账号列表和编辑器，不改保存协议
+- `focus` 模式优先保证编辑区宽度，不继续保留全量频道导航
+- 复用现有 `channel-registry`、`editor-values`、默认账号、绑定 Agent 逻辑
+- 不因为抽组件而改坏微信、飞书、企微等已有专属流程
 
 - [ ] **Step 4: 再次运行测试确认通过**
 
-Run: `pnpm exec vitest run tests/unit/channels-page.test.tsx`
+Run: `pnpm exec vitest run tests/unit/channels-page.test.tsx -t "focus workspace|returns to board|unsaved changes"`
 
 - [ ] **Step 5: 提交**
 
 ```bash
-git add src/components/channels/ChannelConfigEditor.tsx src/components/channels/ChannelFieldRenderer.tsx src/components/channels/ChannelAdvancedSection.tsx src/pages/Channels/index.tsx src/i18n/locales/zh/channels.json src/i18n/locales/en/channels.json src/i18n/locales/ja/channels.json tests/unit/channels-page.test.tsx
-git commit -m "feat: add channel config editor"
+git add src/components/channels/ChannelFocusWorkspace.tsx src/components/channels/ChannelAccountList.tsx src/components/channels/ChannelConfigEditor.tsx src/pages/Channels/index.tsx tests/unit/channels-page.test.tsx
+git commit -m "feat: add channel focus workspace"
 ```
 
-## Task 5：接入保存、验证、默认账号、渠道启停与 Agent 绑定
+## Task 4：接入超宽三栏模式与上下文保留
 
 **Files:**
 
 - Modify: `src/pages/Channels/index.tsx`
-- Modify: `electron/api/routes/channels.ts`
-- Modify: `electron/utils/channel-config.ts`
-- Modify: `tests/unit/channel-config.test.ts`
+- Modify: `src/components/channels/ChannelFocusWorkspace.tsx`
 - Test: `tests/unit/channels-page.test.tsx`
+- Test: `tests/unit/channel-center-layout.test.ts`
 
-- [ ] **Step 1: 写保存链路回归测试**
+- [ ] **Step 1: 写超宽三栏失败测试**
 
 覆盖：
 
-- 保存配置后刷新回填正确
-- 渠道启停切换正确
-- 默认账号切换正确
-- Agent 绑定变更正确
-- 删除账号后选中态回退合理
+- 容器达到阈值且已有选中上下文时，页面切到 `workbench`
+- 入口板放大但无选中上下文时，仍停留在 `board`
+- 三栏收窄时先回到 `focus`
+- 缩放前的选中频道、选中账号和未保存输入不会丢失
 
 - [ ] **Step 2: 运行测试确认失败**
 
-Run: `pnpm exec vitest run tests/unit/channel-config.test.ts tests/unit/channels-page.test.tsx`
+Run: `pnpm exec vitest run tests/unit/channel-center-layout.test.ts tests/unit/channels-page.test.tsx -t "workbench mode|keeps context on resize"`
 
-- [ ] **Step 3: 接入工作台保存链**
+- [ ] **Step 3: 实现超宽三栏模式**
 
 要求：
 
-- 优先复用现有 API
-- 不新增大规模后端协议
-- 仅在必要处补最小辅助逻辑
-- 先接通字符串字段和现有特殊映射字段
-- 若某结构化高级字段需要暴露，必须先补 `channel-config.ts` round-trip 适配与测试
+- 容器宽度监听必须集中在页面层，不散落到各个子组件
+- 三栏只在 `channel rail + account list + editor` 三块都可读时出现
+- `board -> focus -> workbench` 和 `workbench -> focus` 切换都保留当前上下文
+- 不依赖窗口是否最大化，不依赖浏览器 zoom 推断布局
 
 - [ ] **Step 4: 再次运行测试确认通过**
 
-Run: `pnpm exec vitest run tests/unit/channel-config.test.ts tests/unit/channels-page.test.tsx`
+Run: `pnpm exec vitest run tests/unit/channel-center-layout.test.ts tests/unit/channels-page.test.tsx -t "workbench mode|keeps context on resize"`
 
 - [ ] **Step 5: 提交**
 
 ```bash
-git add src/pages/Channels/index.tsx electron/api/routes/channels.ts electron/utils/channel-config.ts tests/unit/channel-config.test.ts tests/unit/channels-page.test.tsx
-git commit -m "feat: wire channel workbench actions"
+git add src/pages/Channels/index.tsx src/components/channels/ChannelFocusWorkspace.tsx tests/unit/channel-center-layout.test.ts tests/unit/channels-page.test.tsx
+git commit -m "feat: add responsive channel center modes"
 ```
 
-## Task 6：将旧 modal 降级为兼容壳
+## Task 5：补齐端到端 smoke 与视觉回归约束
 
 **Files:**
 
-- Modify: `src/components/channels/ChannelConfigModal.tsx`
-- Modify: `src/pages/Channels/index.tsx`
-- Test: `tests/unit/channels-page.test.tsx`
-
-- [ ] **Step 1: 写兼容路径测试**
-
-覆盖：
-
-- 页面主流程不再主动打开 modal
-- 旧调用路径仍可渲染并完成基础保存
-
-- [ ] **Step 2: 运行测试确认失败**
-
-Run: `pnpm exec vitest run tests/unit/channels-page.test.tsx`
-
-- [ ] **Step 3: 收缩 modal 职责**
-
-要求：
-
-- 不再承担主页面新增 / 编辑
-- 保留特殊流程或兼容入口
-
-- [ ] **Step 4: 再次运行测试确认通过**
-
-Run: `pnpm exec vitest run tests/unit/channels-page.test.tsx`
-
-- [ ] **Step 5: 提交**
-
-```bash
-git add src/components/channels/ChannelConfigModal.tsx src/pages/Channels/index.tsx tests/unit/channels-page.test.tsx
-git commit -m "refactor: demote channel config modal"
-```
-
-## Task 7：完整验证与文档同步
-
-**Files:**
-
+- Modify: `tests/e2e/channels.spec.ts`
+- Modify: `tests/unit/channels-page.test.tsx`
 - Modify: `docs/channel-center-redesign/testing.md`
-- Modify: `docs/channel-center-redesign/issues.md`
-- Modify: `docs/channel-center-redesign/progress.md`
-- Modify: `README.md`
-- Modify: `README.zh-CN.md`
-- Modify: `README.ja-JP.md`
 
-- [ ] **Step 1: 跑完整验证**
+- [ ] **Step 1: 写端到端与视觉约束失败用例**
 
-Run:
+覆盖：
 
-- `pnpm exec eslint src/pages/Channels/index.tsx src/components/channels/*.tsx src/lib/channel-registry.ts src/types/channel.ts electron/api/routes/channels.ts electron/utils/channel-config.ts --max-warnings=0`
-- `pnpm run typecheck`
-- `pnpm exec vitest run tests/unit/channels-page.test.tsx tests/unit/channel-registry.test.ts tests/unit/channel-config.test.ts`
-- `pnpm run build:vite`
+- 默认窗口下看到入口卡片板
+- 默认窗口下稳定展示 `3-4` 张卡片并排，而不是一列长条
+- 点击卡片进入聚焦编辑态
+- 超宽时仅在已有上下文下展开三栏
+- 共享 Select、状态灯、返回入口板链路不回退
 
-- [ ] **Step 2: 更新文档**
+- [ ] **Step 2: 运行测试确认失败**
+
+Run: `pnpm exec vitest run tests/unit/channels-page.test.tsx`
+Run: `pnpm run test:e2e -- tests/e2e/channels.spec.ts`
+
+- [ ] **Step 3: 实现最小修正直到通过**
 
 要求：
 
-- 补实现结果、残余问题、验证证据
-- 如行为有变化，同步三份 README
+- 先改测试暴露的问题，再改实现，不一次性同时推太多视觉细节
+- Playwright 只锁高价值路径，不把像素级视觉判断塞进 smoke
+- 单测继续约束布局模式和关键文案，不靠截图回归
 
-- [ ] **Step 3: 提交**
+- [ ] **Step 4: 再次运行测试确认通过**
+
+Run: `pnpm exec vitest run tests/unit/channels-page.test.tsx`
+Run: `pnpm run test:e2e -- tests/e2e/channels.spec.ts`
+
+- [ ] **Step 5: 提交**
 
 ```bash
-git add docs/channel-center-redesign README.md README.zh-CN.md README.ja-JP.md
-git commit -m "docs: finalize channel center redesign"
+git add tests/unit/channels-page.test.tsx tests/e2e/channels.spec.ts docs/channel-center-redesign/testing.md
+git commit -m "test: cover channel center entry board flow"
+```
+
+## Task 6：收口验证与文档同步
+
+**Files:**
+
+- Modify: `docs/channel-center-redesign/progress.md`
+- Modify: `docs/channel-center-redesign/issues.md`
+- Modify: `docs/channel-center-redesign/testing.md`
+
+- [ ] **Step 1: 同步文档状态**
+
+要求：
+
+- `progress.md` 标记入口板、聚焦编辑态、三栏切换的真实落地状态
+- `issues.md` 关闭已解决的旧“两栏默认态”问题，补充剩余观察项
+- `testing.md` 记录实际跑过的命令与手工 smoke 结果
+
+- [ ] **Step 2: 运行完整验证**
+
+Run: `pnpm exec eslint src/pages/Channels/index.tsx src/components/channels/ChannelEntryBoard.tsx src/components/channels/ChannelEntryCard.tsx src/components/channels/ChannelFocusWorkspace.tsx src/components/channels/ChannelAccountList.tsx src/components/channels/ChannelConfigEditor.tsx src/lib/channel-center-layout.ts tests/unit/channel-center-layout.test.ts tests/unit/channels-page.test.tsx tests/e2e/channels.spec.ts --max-warnings=0`
+Run: `pnpm run typecheck`
+Run: `pnpm exec vitest run tests/unit/channel-center-layout.test.ts tests/unit/channels-page.test.tsx`
+Run: `pnpm run build:vite`
+Run: `pnpm run test:e2e -- tests/e2e/channels.spec.ts`
+
+- [ ] **Step 3: 记录验证结果**
+
+要求：
+
+- 只记录真实跑过的命令
+- 如果某项因为环境原因未跑，必须写明原因和风险
+
+- [ ] **Step 4: 提交**
+
+```bash
+git add docs/channel-center-redesign/progress.md docs/channel-center-redesign/issues.md docs/channel-center-redesign/testing.md src/pages/Channels/index.tsx src/components/channels/ChannelEntryBoard.tsx src/components/channels/ChannelEntryCard.tsx src/components/channels/ChannelFocusWorkspace.tsx src/components/channels/ChannelAccountList.tsx src/components/channels/ChannelConfigEditor.tsx src/lib/channel-center-layout.ts tests/unit/channel-center-layout.test.ts tests/unit/channels-page.test.tsx tests/e2e/channels.spec.ts
+git commit -m "feat: redesign channel center entry flow"
 ```
