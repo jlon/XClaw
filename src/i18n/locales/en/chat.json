@@ -27,6 +27,8 @@
         "refresh": "Refresh chat",
         "showThinking": "Show thinking",
         "hideThinking": "Hide thinking",
+        "hideSessionPane": "Hide sessions",
+        "showSessionPane": "Show sessions",
         "scrollToLatest": "Scroll to latest"
     },
     "header": {
@@ -48,6 +50,18 @@
         "feedbackPanelTitle": "Thanks for the feedback",
         "feedbackPlaceholder": "Tell us what was not helpful",
         "feedbackSubmit": "Submit"
+    },
+    "execApproval": {
+        "title": "Local exec approval needed",
+        "subtitle": "Decide on this command before {{remaining}}",
+        "queueCount": "{{count}} pending",
+        "commandLabel": "Pending command",
+        "cwdLabel": "Working directory",
+        "hostLabel": "Host",
+        "policyLabel": "Approval policy",
+        "deny": "Deny",
+        "allowAlways": "Allow always",
+        "allowOnce": "Allow once"
     },
     "composer": {
         "attachFiles": "Attach files",

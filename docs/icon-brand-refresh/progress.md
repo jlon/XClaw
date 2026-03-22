@@ -11,3 +11,12 @@
 - 已生成新的 `icon.png`、`icon.ico`、`icon.icns`、Linux 多尺寸 PNG、`tray-icon-Template.png`。
 - 已补齐 `public/favicon.svg`、`public/favicon.ico`、`public/favicon-32.png`、`public/apple-touch-icon.png`。
 - 已在 `index.html` 中接入 favicon 链路，并新增图标资产回归测试。
+
+## 2026-03-23
+
+- 将共享 `src/assets/logo.svg` 的眼位高光从青色调整为白色圆点。
+- 目标是提升聊天左栏、工作台侧栏等浅色背景下的小尺寸识别度，不改动龙虾主体轮廓和主渐变。
+- 已补充共享 logo 白色眼点的资产回归断言，防止后续被无意改回。
+- 将聊天栏、侧栏品牌位的 logo 显示从整图滤镜染色改为原色显示，避免白点和黑眼被一起染平。
+- 将品牌位图标高度小幅上调，配合更大的白色眼点提升可识别性。
+- 将 macOS 状态栏模板图改为带透明眼洞的单色龙虾，保证菜单栏里能看到两个黑色眼位。

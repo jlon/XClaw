@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Bot, Clock, Cpu, LayoutGrid, MessageCirclePlus, Network, Puzzle, Search, Settings, Terminal, Trash2 } from 'lucide-react';
+import { Bot, Clock, Cpu, LayoutGrid, Network, Puzzle, Search, Settings, Terminal, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getAgentIdFromSessionKey } from '@/lib/chat-avatar';
 import { deriveSessionListTitle, shouldHideSessionFromList } from '@/lib/chat-session-list';
@@ -10,6 +10,7 @@ import { useAgentsStore } from '@/stores/agents';
 import { useChatStore } from '@/stores/chat';
 import { useGatewayStore } from '@/stores/gateway';
 import { useTranslation } from 'react-i18next';
+import { AppBrandLockup } from './AppBrandLockup';
 
 type SessionBucketKey =
   | 'today'
@@ -65,7 +66,6 @@ export function ChatSessionsPane() {
   const isWindows = window.electron?.platform === 'win32';
   const sessions = useChatStore((s) => s.sessions);
   const currentSessionKey = useChatStore((s) => s.currentSessionKey);
-  const currentAgentId = useChatStore((s) => s.currentAgentId);
   const sessionLabels = useChatStore((s) => s.sessionLabels);
   const sessionLastActivity = useChatStore((s) => s.sessionLastActivity);
   const switchSession = useChatStore((s) => s.switchSession);
@@ -81,10 +81,8 @@ export function ChatSessionsPane() {
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
-  const [newMenuOpen, setNewMenuOpen] = useState(false);
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
-  const newMenuRef = useRef<HTMLDivElement | null>(null);
   const workspaceMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -98,20 +96,6 @@ export function ChatSessionsPane() {
     if (!searchOpen) return;
     searchInputRef.current?.focus();
   }, [searchOpen]);
-
-  useEffect(() => {
-    if (!newMenuOpen) return;
-    const handlePointerDown = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (!newMenuRef.current?.contains(target)) {
-        setNewMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handlePointerDown);
-    return () => {
-      document.removeEventListener('mousedown', handlePointerDown);
-    };
-  }, [newMenuOpen]);
 
   useEffect(() => {
     if (!workspaceMenuOpen) return;
@@ -156,12 +140,6 @@ export function ChatSessionsPane() {
     () => Object.fromEntries((agents ?? []).map((agent) => [agent.id, agent.name])),
     [agents],
   );
-  const orderedAgents = useMemo(() => {
-    const list = agents ?? [];
-    const current = list.find((agent) => agent.id === currentAgentId) ?? null;
-    const rest = list.filter((agent) => agent.id !== currentAgentId);
-    return current ? [current, ...rest] : rest;
-  }, [agents, currentAgentId]);
   const workspaceItems = useMemo(() => ([
     { to: '/models', label: t('common:sidebar.models'), icon: Cpu, tone: 'models' as const },
     { to: '/agents', label: t('common:sidebar.agents'), icon: Bot, tone: 'agents' as const },
@@ -205,14 +183,6 @@ export function ChatSessionsPane() {
   }
 
   const hasVisibleSessions = sessionBuckets.some((bucket) => bucket.sessions.length > 0);
-  const handleCreateNewChat = (agentId?: string | null) => {
-    setNewMenuOpen(false);
-    if (agentId && agentId !== currentAgentId) {
-      navigate(`/new/${agentId}`);
-      return;
-    }
-    navigate('/new');
-  };
   const openDevConsole = async () => {
     try {
       const result = await hostApiFetch<{ success: boolean; url?: string }>('/api/gateway/control-ui');
@@ -226,8 +196,11 @@ export function ChatSessionsPane() {
 
   return (
     <aside className="flex w-[250px] shrink-0 flex-col bg-transparent [font-family:var(--font-sidebar)]">
-      <div className="px-2 pb-2 pt-2">
-        <div className="flex min-h-9 items-center gap-2">
+      <div className="px-2 pb-2 pt-3">
+        <div className="pb-2">
+          <AppBrandLockup compact className="min-h-8" testIdPrefix="chat-sidebar-brand" />
+        </div>
+        <div className="flex min-h-9 items-center">
           {searchOpen || searchQuery ? (
             <div className="app-chat-session-control app-chat-session-control--search relative flex h-10 min-w-0 flex-1 items-center rounded-full px-4 transition-[background-color,border-color,box-shadow] duration-150">
               <SessionPaneToneIcon tone="search">
@@ -265,49 +238,6 @@ export function ChatSessionsPane() {
               <span className="truncate">{t('chat:sessionPane.searchPlaceholder')}</span>
             </button>
           )}
-          <div ref={newMenuRef} className="relative shrink-0">
-            <button
-              type="button"
-              aria-label={t('sidebar.newChat')}
-              title={t('sidebar.newChat')}
-              className="app-chat-session-utility-button flex h-8 w-8 items-center justify-center rounded-full text-[#70757d] transition-[background-color,color,border-color,box-shadow] duration-150 hover:text-[#24292f] focus-visible:outline-none"
-              onClick={() => {
-                if (orderedAgents.length <= 1) {
-                  handleCreateNewChat(currentAgentId);
-                  return;
-                }
-                setNewMenuOpen((open) => !open);
-              }}
-            >
-              <SessionPaneToneIcon tone="new">
-                <MessageCirclePlus className="h-4 w-4" strokeWidth={1.85} />
-              </SessionPaneToneIcon>
-            </button>
-            {newMenuOpen ? (
-              <div className="absolute right-0 top-[calc(100%+6px)] z-30 min-w-[168px] rounded-[12px] border border-border/80 bg-[hsl(var(--surface-elevated)/0.995)] p-1 shadow-[0_10px_28px_rgba(15,23,42,0.08)]">
-                <div className="px-2 py-1 text-[10px] font-medium tracking-tight text-muted-foreground/56">
-                  {t('chat:sessionPane.newAgentTitle')}
-                </div>
-                <div className="space-y-0.5">
-                  {orderedAgents.map((agent) => (
-                    <button
-                      key={agent.id}
-                      type="button"
-                      className="flex w-full items-center justify-between rounded-[9px] px-2 py-1.5 text-left text-[12px] text-foreground/88 transition-[background-color,color] duration-150 hover:bg-[hsl(var(--foreground)/0.032)] hover:text-foreground"
-                      onClick={() => handleCreateNewChat(agent.id)}
-                    >
-                      <span className="truncate">{agent.name}</span>
-                      {agent.id === currentAgentId ? (
-                        <span className="ml-2 shrink-0 text-[10px] text-muted-foreground/52">
-                          {t('chat:sessionPane.currentAgent')}
-                        </span>
-                      ) : null}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-          </div>
         </div>
       </div>
 
@@ -334,7 +264,7 @@ export function ChatSessionsPane() {
                       sessionLabels[session.key],
                       untitledSessionLabel,
                     );
-                    const shouldShowAgentSuffix = usedFallbackTitle
+                    const shouldShowAgentSuffix = ((visibleLabelCounts[title] ?? 0) > 1 || usedFallbackTitle)
                       && agentName
                       && agentName !== title;
                     const isCurrent = currentSessionKey === session.key;

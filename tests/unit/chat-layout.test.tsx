@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { MainLayout } from '@/components/layout/MainLayout';
@@ -9,6 +9,7 @@ const {
   chatState,
   gatewayState,
   agentsState,
+  invokeIpcMock,
 } = vi.hoisted(() => ({
   settingsState: {
     sidebarCollapsed: false,
@@ -36,6 +37,7 @@ const {
     agents: [] as Array<Record<string, unknown>>,
     fetchAgents: vi.fn(),
   },
+  invokeIpcMock: vi.fn(),
 }));
 
 vi.mock('@/stores/settings', () => ({
@@ -63,12 +65,18 @@ vi.mock('@/components/ui/confirm-dialog', () => ({
   ConfirmDialog: () => null,
 }));
 
+vi.mock('@/components/ui/tooltip', () => ({
+  Tooltip: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  TooltipTrigger: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  TooltipContent: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
 vi.mock('@/lib/host-api', () => ({
   hostApiFetch: vi.fn(),
 }));
 
-vi.mock('@/components/layout/TitleBar', () => ({
-  TitleBar: () => <div data-testid="title-bar" />,
+vi.mock('@/lib/api-client', () => ({
+  invokeIpc: (...args: unknown[]) => invokeIpcMock(...args),
 }));
 
 function translate(key: string, vars?: Record<string, unknown>): string {
@@ -128,6 +136,14 @@ function translate(key: string, vars?: Record<string, unknown>): string {
       return 'Start with agent';
     case 'chat:sessionPane.currentAgent':
       return 'Current';
+    case 'toolbar.hideSessionPane':
+    case 'chat:toolbar.hideSessionPane':
+      return 'Hide sessions';
+    case 'toolbar.showSessionPane':
+    case 'chat:toolbar.showSessionPane':
+      return 'Show sessions';
+    case 'common:sidebar.newChat':
+      return 'New Chat';
     default:
       return key;
   }
@@ -144,8 +160,12 @@ describe('chat layout', () => {
     window.electron.platform = 'darwin';
     settingsState.sidebarCollapsed = false;
     settingsState.chatFocusMode = false;
-    settingsState.setSidebarCollapsed = vi.fn();
-    settingsState.setChatFocusMode = vi.fn();
+    settingsState.setSidebarCollapsed = vi.fn((value: boolean) => {
+      settingsState.sidebarCollapsed = value;
+    });
+    settingsState.setChatFocusMode = vi.fn((value: boolean) => {
+      settingsState.chatFocusMode = value;
+    });
     chatState.sessions = [
       {
         key: 'agent:main:thread-1',
@@ -184,6 +204,13 @@ describe('chat layout', () => {
       },
     ];
     agentsState.fetchAgents = vi.fn();
+    invokeIpcMock.mockReset();
+    invokeIpcMock.mockImplementation(async (channel: unknown) => {
+      if (channel === 'window:isMaximized') {
+        return false;
+      }
+      return undefined;
+    });
   });
 
   it('shows a dedicated chats pane on the chat route', () => {
@@ -197,12 +224,30 @@ describe('chat layout', () => {
       </MemoryRouter>,
     );
 
+    const brandLockup = screen.getByTestId('chat-sidebar-brand-lockup');
+    const searchTrigger = screen.getByRole('button', { name: 'Search chats' });
+    const brandMark = within(brandLockup).getByAltText('XClaw');
+
+    expect(screen.getByTestId('chat-sidebar-brand-wordmark')).toBeInTheDocument();
+    expect(brandLockup.compareDocumentPosition(searchTrigger) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(brandMark).toHaveClass('app-brand-mark');
+    expect(brandMark).not.toHaveClass('sidebar-brand-mark');
     expect(screen.getByText('Design review')).toBeInTheDocument();
     expect(screen.getByText('Launch draft')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Design review' })).toBeInTheDocument();
     expect(screen.queryByText('Main')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Search chats' })).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: 'New Chat' })).toHaveLength(1);
+    expect(screen.getByTestId('chat-titlebar-session-slot')).toHaveClass('w-[250px]');
+    expect(screen.getByTestId('chat-titlebar-session-slot')).toHaveClass('h-full');
+    expect(screen.getByTestId('chat-titlebar-session-slot')).toHaveClass('justify-end');
+    expect(screen.getByTestId('chat-session-header-controls-titlebar')).toHaveClass('h-full');
+    expect(screen.queryByTestId('chat-session-header-controls-pane')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Hide sessions' })).toHaveClass('app-desktop-sidebar-toggle', 'h-6', 'w-6', 'p-0', 'leading-none');
+    expect(screen.getByTestId('chat-new-chat-titlebar')).toHaveClass('h-6', 'w-6', 'p-0', 'leading-none');
+    expect(within(screen.getByTestId('chat-session-header-controls-titlebar')).getByTestId('qclaw-session-toggle-icon')).toBeInTheDocument();
+    expect(within(screen.getByTestId('chat-session-header-controls-titlebar')).getByTestId('qclaw-new-chat-icon')).toBeInTheDocument();
+    expect(within(screen.getByTestId('chat-session-header-controls-titlebar')).getByTestId('qclaw-session-toggle-icon')).toHaveClass('block');
+    expect(within(screen.getByTestId('chat-session-header-controls-titlebar')).getByTestId('qclaw-new-chat-icon')).toHaveClass('block');
     expect(screen.getByRole('button', { name: 'chat:sessionPane.workspaceLauncher' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Expand sidebar' })).not.toBeInTheDocument();
@@ -224,10 +269,10 @@ describe('chat layout', () => {
     );
 
     expect(screen.getByRole('button', { name: 'Search chats' }).querySelector('.app-chat-session-toned-icon--search')).not.toBeNull();
-    expect(screen.getAllByRole('button', { name: 'New Chat' })[0]?.querySelector('.app-chat-session-toned-icon--new')).not.toBeNull();
     expect(screen.getByRole('button', { name: 'chat:sessionPane.workspaceLauncher' }).querySelector('.app-chat-session-toned-icon--workspace')).not.toBeNull();
     expect(screen.getByRole('button', { name: 'Settings' }).querySelector('.app-chat-session-toned-icon--settings')).not.toBeNull();
     expect(screen.getByRole('button', { name: 'chat:sessionPane.workspaceLauncher' })).not.toHaveClass('text-[#b48745]');
+    expect(screen.getByTestId('chat-session-header-controls-titlebar')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'chat:sessionPane.workspaceLauncher' }));
 
@@ -254,7 +299,30 @@ describe('chat layout', () => {
 
     expect(screen.queryByText('Design review')).not.toBeInTheDocument();
     expect(screen.queryByTestId('chat-sessions-scroll-area')).not.toBeInTheDocument();
+    expect(screen.getByTestId('chat-titlebar-session-slot')).not.toHaveClass('w-[250px]');
+    expect(screen.getByTestId('chat-titlebar-session-slot')).toHaveClass('h-full');
+    expect(screen.getByTestId('chat-titlebar-session-slot')).toHaveClass('justify-start');
+    expect(screen.getByTestId('chat-session-header-controls-titlebar')).toHaveClass('h-full');
+    expect(within(screen.getByTestId('chat-session-header-controls-titlebar')).getByTestId('qclaw-session-toggle-icon')).toBeInTheDocument();
+    expect(within(screen.getByTestId('chat-session-header-controls-titlebar')).getByTestId('qclaw-new-chat-icon')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Show sessions' })).toHaveClass('app-desktop-sidebar-toggle', 'h-6', 'w-6', 'p-0', 'leading-none');
     expect(screen.getByText('Chat body')).toBeInTheDocument();
+  });
+
+  it('toggles chat focus mode from the titlebar session controls', () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <Routes>
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<div>Chat body</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Hide sessions' }));
+
+    expect(settingsState.setChatFocusMode).toHaveBeenCalledWith(true);
   });
 
   it('only shows an inline agent suffix when duplicate labels need disambiguation', () => {
@@ -345,6 +413,29 @@ describe('chat layout', () => {
     expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
   });
 
+  it('opens an agent chooser from the titlebar new chat button when multiple agents exist', () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <Routes>
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<div>Chat body</div>} />
+            <Route path="/new/:agentId" element={<div data-testid="new-route">New route</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByTestId('chat-new-chat-titlebar'));
+
+    expect(screen.getByText('Start with agent')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'MainCurrent' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Writer' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Writer' }));
+
+    expect(screen.getByTestId('new-route')).toBeInTheDocument();
+  });
+
   it('keeps the global sidebar free of session rows', () => {
     render(
       <MemoryRouter initialEntries={['/models']}>
@@ -355,10 +446,114 @@ describe('chat layout', () => {
     expect(screen.queryByText('Design review')).not.toBeInTheDocument();
   });
 
+  it('uses the shared titlebar sidebar toggle on workspace routes', () => {
+    render(
+      <MemoryRouter initialEntries={['/channels']}>
+        <Routes>
+          <Route element={<MainLayout />}>
+            <Route path="/channels" element={<div>Channels body</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByTestId('workspace-titlebar-sidebar-slot')).toHaveClass('w-56', 'justify-end');
+    expect(screen.getByTestId('workspace-sidebar-toggle-titlebar')).toHaveClass('app-desktop-sidebar-toggle');
+    expect(screen.queryByTestId('workspace-sidebar-toggle-inline')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Collapse sidebar' }));
+
+    expect(settingsState.setSidebarCollapsed).toHaveBeenCalledWith(true);
+  });
+
+  it('keeps the mac workspace toggle clear of traffic lights when the sidebar is collapsed', () => {
+    settingsState.sidebarCollapsed = true;
+
+    render(
+      <MemoryRouter initialEntries={['/channels']}>
+        <Routes>
+          <Route element={<MainLayout />}>
+            <Route path="/channels" element={<div>Channels body</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByTestId('workspace-titlebar-sidebar-slot')).not.toHaveClass('w-11');
+    expect(screen.getByTestId('workspace-titlebar-sidebar-slot')).toHaveClass('justify-start', 'pl-24');
+    expect(screen.getByTestId('workspace-sidebar-toggle-titlebar')).toHaveClass('app-desktop-sidebar-toggle');
+  });
+
+  it('keeps the Windows workspace toggle aligned to the expanded sidebar width', async () => {
+    window.electron.platform = 'win32';
+
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/channels']}>
+          <Routes>
+            <Route element={<MainLayout />}>
+              <Route path="/channels" element={<div>Channels body</div>} />
+            </Route>
+          </Routes>
+        </MemoryRouter>,
+      );
+    });
+
+    expect(screen.getByTestId('workspace-titlebar-sidebar-slot')).toHaveClass('w-56', 'justify-end');
+    expect(screen.getByTestId('workspace-titlebar-sidebar-slot')).not.toHaveClass('pl-24');
+    expect(screen.getByTestId('workspace-sidebar-toggle-titlebar')).toHaveClass('app-desktop-sidebar-toggle');
+  });
+
+  it('keeps the Windows workspace toggle centered inside the collapsed rail without mac inset', async () => {
+    window.electron.platform = 'win32';
+    settingsState.sidebarCollapsed = true;
+
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/channels']}>
+          <Routes>
+            <Route element={<MainLayout />}>
+              <Route path="/channels" element={<div>Channels body</div>} />
+            </Route>
+          </Routes>
+        </MemoryRouter>,
+      );
+    });
+
+    expect(screen.getByTestId('workspace-titlebar-sidebar-slot')).toHaveClass('w-11', 'justify-center');
+    expect(screen.getByTestId('workspace-titlebar-sidebar-slot')).not.toHaveClass('pl-24');
+    expect(screen.getByTestId('workspace-sidebar-toggle-titlebar')).toHaveClass('app-desktop-sidebar-toggle');
+  });
+
+  it('keeps the Windows chat toggle free of the mac traffic-light inset', async () => {
+    window.electron.platform = 'win32';
+    settingsState.chatFocusMode = true;
+
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/']}>
+          <Routes>
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<div>Chat body</div>} />
+            </Route>
+          </Routes>
+        </MemoryRouter>,
+      );
+    });
+
+    expect(screen.getByTestId('chat-titlebar-session-slot')).toHaveClass('justify-start', 'pl-1');
+    expect(screen.getByTestId('chat-titlebar-session-slot')).not.toHaveClass('pl-24');
+    expect(screen.getByRole('button', { name: 'Show sessions' })).toHaveClass('app-desktop-sidebar-toggle');
+  });
+
   it('keeps the global sidebar on the same font stack and applies toned navigation icons', () => {
     const { container } = render(
       <MemoryRouter initialEntries={['/channels']}>
-        <Sidebar />
+        <Routes>
+          <Route element={<MainLayout />}>
+            <Route path="/channels" element={<div>Channels body</div>} />
+          </Route>
+        </Routes>
       </MemoryRouter>,
     );
 
@@ -371,6 +566,8 @@ describe('chat layout', () => {
     expect(screen.getByRole('link', { name: 'Cron Tasks' }).querySelector('.app-sidebar-toned-icon--cron')).not.toBeNull();
     expect(screen.getByRole('link', { name: 'Settings' }).querySelector('.app-sidebar-toned-icon--settings')).not.toBeNull();
     expect(screen.getByRole('button', { name: 'OpenClaw Page' }).querySelector('.app-sidebar-toned-icon--terminal')).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'Collapse sidebar' })).toHaveClass('app-desktop-sidebar-toggle');
+    expect(screen.getByRole('button', { name: 'Collapse sidebar' }).querySelector('[data-testid="qclaw-session-toggle-icon"]')).not.toBeNull();
   });
 
   it('filters sessions from the local search box', () => {
@@ -413,29 +610,6 @@ describe('chat layout', () => {
     expect(screen.queryByText('Design review')).not.toBeInTheDocument();
     expect(screen.queryByText('Launch draft')).not.toBeInTheDocument();
     expect(screen.getByText('No matching chats')).toBeInTheDocument();
-  });
-
-  it('opens an agent chooser before creating a new chat when multiple agents exist', () => {
-    render(
-      <MemoryRouter initialEntries={['/']}>
-        <Routes>
-          <Route element={<MainLayout />}>
-            <Route path="/" element={<div>Chat body</div>} />
-            <Route path="/new/:agentId" element={<div data-testid="new-route">New route</div>} />
-          </Route>
-        </Routes>
-      </MemoryRouter>,
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: 'New Chat' }));
-
-    expect(screen.getByText('Start with agent')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'MainCurrent' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Writer' })).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Writer' }));
-
-    expect(screen.getByTestId('new-route')).toBeInTheDocument();
   });
 
   it('shows a friendly empty state when there are no sessions yet', () => {
@@ -505,18 +679,20 @@ describe('chat layout', () => {
     }
   });
 
-  it('uses a Windows-friendly scrollbar treatment on win32', () => {
+  it('uses a Windows-friendly scrollbar treatment on win32', async () => {
     window.electron.platform = 'win32';
 
-    render(
-      <MemoryRouter initialEntries={['/']}>
-        <Routes>
-          <Route element={<MainLayout />}>
-            <Route path="/" element={<div>Chat body</div>} />
-          </Route>
-        </Routes>
-      </MemoryRouter>,
-    );
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/']}>
+          <Routes>
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<div>Chat body</div>} />
+            </Route>
+          </Routes>
+        </MemoryRouter>,
+      );
+    });
 
     expect(screen.getByTestId('chat-sessions-scroll-area')).toHaveClass('subtle-scrollbar-win');
     expect(screen.getByTestId('chat-sessions-scroll-area')).not.toHaveClass('subtle-scrollbar');

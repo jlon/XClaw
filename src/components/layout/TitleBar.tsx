@@ -8,6 +8,9 @@ import { Minus, Square, X, Copy } from 'lucide-react';
 import { invokeIpc } from '@/lib/api-client';
 import { useLocation } from 'react-router-dom';
 import { ChatToolbar } from '@/pages/Chat/ChatToolbar';
+import { ChatSessionHeaderControls } from './ChatSessionHeaderControls';
+import { useSettingsStore } from '@/stores/settings';
+import { WorkspaceSidebarToggleButton } from './WorkspaceSidebarToggleButton';
 
 function resolvePlatform() {
   if (typeof window === 'undefined') {
@@ -21,7 +24,16 @@ export function TitleBar() {
   const location = useLocation();
   const platform = resolvePlatform();
   const isChatRoute = location.pathname === '/' || location.pathname.startsWith('/new');
+  const chatFocusMode = useSettingsStore((state) => ('chatFocusMode' in state ? state.chatFocusMode : false));
+  const sidebarCollapsed = useSettingsStore((state) => state.sidebarCollapsed);
+  const setSidebarCollapsed = useSettingsStore((state) => state.setSidebarCollapsed);
   const hasDesktopBridge = !!window.electron?.ipcRenderer;
+  const chatSidebarVisible = isChatRoute && !chatFocusMode;
+  const workspaceSidebarExpanded = !isChatRoute && !sidebarCollapsed;
+  const workspaceSidebarLabel = sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar';
+  const handleWorkspaceSidebarToggle = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
 
   if (!hasDesktopBridge) {
     return (
@@ -37,18 +49,41 @@ export function TitleBar() {
 
   if (platform === 'darwin') {
     return isChatRoute ? (
-      <MacChatTitleBar />
+      <MacChatTitleBar chatSidebarVisible={chatSidebarVisible} />
     ) : (
-      <div className="drag-region desktop-app-titlebar desktop-app-titlebar--mac h-9 shrink-0" />
+      <MacWorkspaceTitleBar
+        sidebarExpanded={workspaceSidebarExpanded}
+        sidebarLabel={workspaceSidebarLabel}
+        onToggleSidebar={handleWorkspaceSidebarToggle}
+      />
     );
   }
 
-  return <WindowsTitleBar isChatRoute={isChatRoute} />;
+  return (
+    <WindowsTitleBar
+      isChatRoute={isChatRoute}
+      chatSidebarVisible={chatSidebarVisible}
+      workspaceSidebarExpanded={workspaceSidebarExpanded}
+      workspaceSidebarLabel={workspaceSidebarLabel}
+      onToggleSidebar={handleWorkspaceSidebarToggle}
+    />
+  );
 }
 
-function MacChatTitleBar() {
+function MacChatTitleBar({ chatSidebarVisible }: { chatSidebarVisible: boolean }) {
   return (
-    <div className="drag-region desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--mac flex h-9 shrink-0 items-center justify-end pl-20 pr-2.5">
+    <div className="drag-region desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--mac flex h-9 shrink-0 items-center pr-2.5">
+      <div
+        data-testid="chat-titlebar-session-slot"
+        className={
+          chatSidebarVisible
+            ? 'no-drag flex h-full w-[250px] shrink-0 items-center justify-end pr-3'
+            : 'no-drag flex h-full w-auto shrink-0 items-center justify-start pl-24 pr-2'
+        }
+      >
+        <ChatSessionHeaderControls compact surface="titlebar" />
+      </div>
+      <div className="min-w-0 flex-1" />
       <div className="no-drag shrink-0">
         <ChatToolbar compact />
       </div>
@@ -56,7 +91,50 @@ function MacChatTitleBar() {
   );
 }
 
-function WindowsTitleBar({ isChatRoute }: { isChatRoute: boolean }) {
+function MacWorkspaceTitleBar({
+  sidebarExpanded,
+  sidebarLabel,
+  onToggleSidebar,
+}: {
+  sidebarExpanded: boolean;
+  sidebarLabel: string;
+  onToggleSidebar: () => void;
+}) {
+  return (
+    <div className="drag-region desktop-app-titlebar desktop-app-titlebar--mac flex h-9 shrink-0 items-center pr-2.5">
+      <div
+        data-testid="workspace-titlebar-sidebar-slot"
+        className={
+          sidebarExpanded
+            ? 'no-drag flex h-full w-56 shrink-0 items-center justify-end pr-3'
+            : 'no-drag flex h-full w-auto shrink-0 items-center justify-start pl-24 pr-2'
+        }
+      >
+        <WorkspaceSidebarToggleButton
+          aria-label={sidebarLabel}
+          title={sidebarLabel}
+          data-testid="workspace-sidebar-toggle-titlebar"
+          onClick={onToggleSidebar}
+        />
+      </div>
+      <div className="min-w-0 flex-1" />
+    </div>
+  );
+}
+
+function WindowsTitleBar({
+  isChatRoute,
+  chatSidebarVisible,
+  workspaceSidebarExpanded,
+  workspaceSidebarLabel,
+  onToggleSidebar,
+}: {
+  isChatRoute: boolean;
+  chatSidebarVisible: boolean;
+  workspaceSidebarExpanded: boolean;
+  workspaceSidebarLabel: string;
+  onToggleSidebar: () => void;
+}) {
   const [maximized, setMaximized] = useState(false);
 
   useEffect(() => {
@@ -82,7 +160,35 @@ function WindowsTitleBar({ isChatRoute }: { isChatRoute: boolean }) {
   };
 
   return (
-    <div className="drag-region desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--win flex h-9 shrink-0 items-center justify-between pl-2">
+    <div className="drag-region desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--win flex h-9 shrink-0 items-center pl-2">
+      {isChatRoute ? (
+        <div
+          data-testid="chat-titlebar-session-slot"
+          className={
+            chatSidebarVisible
+              ? 'no-drag flex h-full w-[250px] shrink-0 items-center justify-end pr-3'
+              : 'no-drag flex h-full w-auto shrink-0 items-center justify-start pl-1 pr-2'
+          }
+        >
+          <ChatSessionHeaderControls compact surface="titlebar" />
+        </div>
+      ) : (
+        <div
+          data-testid="workspace-titlebar-sidebar-slot"
+          className={
+            workspaceSidebarExpanded
+              ? 'no-drag flex h-full w-56 shrink-0 items-center justify-end pr-3'
+              : 'no-drag flex h-full w-11 shrink-0 items-center justify-center'
+          }
+        >
+          <WorkspaceSidebarToggleButton
+            aria-label={workspaceSidebarLabel}
+            title={workspaceSidebarLabel}
+            data-testid="workspace-sidebar-toggle-titlebar"
+            onClick={onToggleSidebar}
+          />
+        </div>
+      )}
       <div className="min-w-0 flex-1" />
       <div className="no-drag flex h-full items-center">
         {isChatRoute ? (

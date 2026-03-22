@@ -23,7 +23,7 @@ export function MainLayout() {
             className="desktop-app-shell-sidebar"
           />
         ) : null}
-        <main className={isChatRoute ? 'desktop-app-workspace flex-1 min-w-0 overflow-hidden px-0 py-0' : 'desktop-app-workspace flex-1 min-w-0 overflow-hidden px-3 py-4 xl:px-4'}>
+        <main className={isChatRoute ? 'desktop-app-workspace flex-1 min-w-0 overflow-hidden px-0 py-0' : 'desktop-app-workspace flex-1 min-w-0 overflow-hidden px-3 py-0 xl:px-4'}>
           <Outlet />
         </main>
       </div>

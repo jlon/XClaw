@@ -10,8 +10,6 @@ import {
   ExternalLink,
   MessageSquareText,
   Network,
-  PanelLeft,
-  PanelLeftClose,
   Puzzle,
   Settings as SettingsIcon,
   Terminal,
@@ -20,7 +18,7 @@ import { cn } from '@/lib/utils';
 import { useSettingsStore } from '@/stores/settings';
 import { hostApiFetch } from '@/lib/host-api';
 import { useTranslation } from 'react-i18next';
-import logoSvg from '@/assets/logo.svg';
+import { AppBrandLockup } from './AppBrandLockup';
 
 interface SidebarProps {
   railOnly?: boolean;
@@ -50,7 +48,7 @@ function SidebarToneIcon({
   children,
 }: {
   tone: SidebarTone;
-  children: React.ReactElement;
+  children: React.ReactNode;
 }) {
   return (
     <span className={cn('app-sidebar-toned-icon', `app-sidebar-toned-icon--${tone}`)}>
@@ -131,7 +129,6 @@ function NavItem({ to, icon, label, collapsed, tone }: NavItemProps) {
 
 export function Sidebar({ railOnly = false, className }: SidebarProps) {
   const sidebarCollapsed = useSettingsStore((state) => state.sidebarCollapsed);
-  const setSidebarCollapsed = useSettingsStore((state) => state.setSidebarCollapsed);
   const { t } = useTranslation('common');
   const collapsed = railOnly || sidebarCollapsed;
 
@@ -171,38 +168,7 @@ export function Sidebar({ railOnly = false, className }: SidebarProps) {
       )}
     >
       <div className={cn('px-2 pb-2', collapsed ? 'pt-2' : 'pt-3')}>
-        <div className={cn('flex items-center overflow-hidden transition-[padding,gap,justify-content] duration-300 ease-out', collapsed ? 'justify-center px-0' : 'gap-2 px-2')}>
-          <img src={logoSvg} alt="XClaw" className={cn('sidebar-brand-mark w-auto shrink-0', collapsed ? 'h-[15px]' : 'h-[18px]')} />
-          <span
-            data-testid="sidebar-brand-wordmark"
-            aria-hidden={collapsed}
-            className={cn(
-              'sidebar-brand-wordmark overflow-hidden whitespace-nowrap transition-[max-width,opacity,transform] duration-300 ease-out',
-              collapsed ? 'max-w-0 -translate-x-1.5 opacity-0 pointer-events-none' : 'max-w-[140px] translate-x-0 opacity-100',
-            )}
-          >
-            <span className="sidebar-brand-wordmark-initial">X</span>
-            <span className="sidebar-brand-wordmark-rest">Claw</span>
-          </span>
-        </div>
-        {!railOnly ? (
-          <div className={cn('mt-2 flex', collapsed ? 'justify-center' : 'justify-end px-1')}>
-            <button
-              type="button"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border border-transparent text-muted-foreground transition-[background-color,color,border-color,box-shadow] hover:border-transparent hover:bg-[hsl(var(--surface-hover)/0.96)] hover:text-foreground hover:shadow-none"
-              onClick={() => {
-                setSidebarCollapsed(!sidebarCollapsed);
-              }}
-              title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            >
-              {collapsed ? (
-                <PanelLeft className="h-[18px] w-[18px]" />
-              ) : (
-                <PanelLeftClose className="h-[18px] w-[18px]" />
-              )}
-            </button>
-          </div>
-        ) : null}
+        <AppBrandLockup collapsed={collapsed} testIdPrefix="sidebar-brand" />
       </div>
 
       <nav className="flex flex-col gap-0.5 px-1.5">

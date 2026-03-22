@@ -1,9 +1,12 @@
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { ChatToolbar } from '@/pages/Chat/ChatToolbar';
 import { useChatStore } from '@/stores/chat';
 import { useGatewayStore } from '@/stores/gateway';
+import { useAgentsStore } from '@/stores/agents';
+import { useSettingsStore } from '@/stores/settings';
 
 const { refreshMock } = vi.hoisted(() => ({
   refreshMock: vi.fn(),
@@ -17,6 +20,7 @@ vi.mock('@/stores/chat', async () => {
     loading: boolean;
     showThinking: boolean;
     toggleThinking: () => void;
+    currentAgentId: string;
   };
 
   const useChatStore = create<ChatToolbarStore>((set) => ({
@@ -24,9 +28,45 @@ vi.mock('@/stores/chat', async () => {
     loading: false,
     showThinking: false,
     toggleThinking: () => set((state) => ({ showThinking: !state.showThinking })),
+    currentAgentId: 'main',
   }));
 
   return { useChatStore };
+});
+
+vi.mock('@/stores/agents', async () => {
+  const { create } = await import('zustand');
+
+  type AgentsToolbarStore = {
+    agents: Array<{ id: string; name: string }>;
+    fetchAgents: () => void;
+  };
+
+  const useAgentsStore = create<AgentsToolbarStore>(() => ({
+    agents: [
+      { id: 'main', name: 'Main' },
+      { id: 'writer', name: 'Writer' },
+    ],
+    fetchAgents: vi.fn(),
+  }));
+
+  return { useAgentsStore };
+});
+
+vi.mock('@/stores/settings', async () => {
+  const { create } = await import('zustand');
+
+  type SettingsToolbarStore = {
+    chatFocusMode: boolean;
+    setChatFocusMode: (value: boolean) => void;
+  };
+
+  const useSettingsStore = create<SettingsToolbarStore>((set) => ({
+    chatFocusMode: false,
+    setChatFocusMode: (value) => set({ chatFocusMode: value }),
+  }));
+
+  return { useSettingsStore };
 });
 
 vi.mock('@/stores/gateway', async () => {
@@ -62,6 +102,19 @@ vi.mock('react-i18next', () => ({
           return 'Show thinking';
         case 'toolbar.hideThinking':
           return 'Hide thinking';
+        case 'toolbar.hideSessionPane':
+          return 'Hide sessions';
+        case 'toolbar.showSessionPane':
+          return 'Show sessions';
+        case 'sidebar.newChat':
+        case 'common:sidebar.newChat':
+          return 'New Chat';
+        case 'sessionPane.newAgentTitle':
+        case 'chat:sessionPane.newAgentTitle':
+          return 'Start with agent';
+        case 'sessionPane.currentAgent':
+        case 'chat:sessionPane.currentAgent':
+          return 'Current';
         case 'composer.gatewayConnectedHint':
           return 'Gateway connected';
         case 'composer.gatewayConnectingHint':
@@ -87,14 +140,30 @@ describe('ChatToolbar', () => {
       loading: false,
       showThinking: false,
       toggleThinking: () => useChatStore.setState((state) => ({ showThinking: !state.showThinking })),
+      currentAgentId: 'main',
     });
     useGatewayStore.setState({
       status: { state: 'running', port: 18789 },
     });
+    useAgentsStore.setState({
+      agents: [
+        { id: 'main', name: 'Main' },
+        { id: 'writer', name: 'Writer' },
+      ],
+      fetchAgents: vi.fn(),
+    });
+    useSettingsStore.setState({
+      chatFocusMode: false,
+      setChatFocusMode: (value) => useSettingsStore.setState({ chatFocusMode: value }),
+    });
   });
 
   it('toggles the thinking button pressed state and active class on click', () => {
-    render(<ChatToolbar compact />);
+    render(
+      <MemoryRouter>
+        <ChatToolbar compact />
+      </MemoryRouter>,
+    );
 
     const toggle = screen.getByTestId('chat-toolbar-thinking-toggle');
 
@@ -107,5 +176,16 @@ describe('ChatToolbar', () => {
     expect(toggle).toHaveAttribute('aria-pressed', 'true');
     expect(toggle).toHaveClass('app-chat-toolbar-button--active');
     expect(toggle).toHaveAttribute('aria-label', 'Hide thinking');
+  });
+
+  it('does not render session controls inside ChatToolbar', () => {
+    render(
+      <MemoryRouter>
+        <ChatToolbar compact />
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByTestId('chat-session-pane-toggle-toolbar')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('chat-new-chat-toolbar')).not.toBeInTheDocument();
   });
 });

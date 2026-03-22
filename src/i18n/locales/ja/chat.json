@@ -27,6 +27,8 @@
         "refresh": "チャットを更新",
         "showThinking": "思考を表示",
         "hideThinking": "思考を非表示",
+        "hideSessionPane": "セッション一覧を隠す",
+        "showSessionPane": "セッション一覧を表示",
         "scrollToLatest": "最新位置へ戻る"
     },
     "header": {
@@ -48,6 +50,18 @@
         "feedbackPanelTitle": "フィードバックありがとうございます",
         "feedbackPlaceholder": "どこが良くなかったかを教えてください",
         "feedbackSubmit": "送信"
+    },
+    "execApproval": {
+        "title": "ローカル実行の承認が必要です",
+        "subtitle": "{{remaining}} までにこのコマンドを判断してください",
+        "queueCount": "保留中 {{count}} 件",
+        "commandLabel": "実行待ちコマンド",
+        "cwdLabel": "作業ディレクトリ",
+        "hostLabel": "実行ホスト",
+        "policyLabel": "承認ポリシー",
+        "deny": "拒否",
+        "allowAlways": "常に許可",
+        "allowOnce": "今回のみ許可"
     },
     "composer": {
         "attachFiles": "ファイルを添付",

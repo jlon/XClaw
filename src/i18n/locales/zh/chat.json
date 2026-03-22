@@ -27,6 +27,8 @@
         "refresh": "刷新聊天",
         "showThinking": "显示思考过程",
         "hideThinking": "隐藏思考过程",
+        "hideSessionPane": "隐藏会话栏",
+        "showSessionPane": "显示会话栏",
         "scrollToLatest": "回到底部"
     },
     "header": {
@@ -48,6 +50,18 @@
         "feedbackPanelTitle": "感谢你的反馈",
         "feedbackPlaceholder": "补充一下哪里不够好",
         "feedbackSubmit": "提交"
+    },
+    "execApproval": {
+        "title": "需要本机执行授权",
+        "subtitle": "请在 {{remaining}} 前决定这条命令",
+        "queueCount": "还有 {{count}} 条待处理",
+        "commandLabel": "待执行命令",
+        "cwdLabel": "工作目录",
+        "hostLabel": "执行主机",
+        "policyLabel": "审批策略",
+        "deny": "拒绝",
+        "allowAlways": "长期允许",
+        "allowOnce": "仅这次允许"
     },
     "composer": {
         "attachFiles": "添加文件",

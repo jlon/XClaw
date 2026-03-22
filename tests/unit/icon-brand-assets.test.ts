@@ -57,4 +57,17 @@ describe('icon brand assets', () => {
     expect(icon32).toEqual({ width: 32, height: 32 });
     expect(icon64).toEqual({ width: 64, height: 64 });
   });
+
+  it('uses white eye highlights in the shared renderer logo', () => {
+    const rendererLogoSvg = readFileSync(resolve(rootDir, 'src/assets/logo.svg'), 'utf8');
+    expect(rendererLogoSvg).toContain('<circle cx="46" cy="34" r="4.5" fill="#ffffff"/>');
+    expect(rendererLogoSvg).toContain('<circle cx="76" cy="34" r="4.5" fill="#ffffff"/>');
+  });
+
+  it('keeps transparent eye cutouts in the mac tray template source', () => {
+    const traySvg = readFileSync(resolve(rootDir, 'resources/icons/tray-icon-template.svg'), 'utf8');
+    expect(traySvg).toContain('mask id="tray-lobster-mask"');
+    expect(traySvg).toContain('<circle cx="45" cy="35" r="5" fill="black"/>');
+    expect(traySvg).toContain('<circle cx="75" cy="35" r="5" fill="black"/>');
+  });
 });

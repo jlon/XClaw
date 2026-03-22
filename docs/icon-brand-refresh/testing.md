@@ -15,6 +15,16 @@
 - `pnpm exec eslint scripts/generate-icons.mjs tests/unit/icon-brand-assets.test.ts --max-warnings=0`
 - `pnpm run typecheck`
 
+## 2026-03-23 补充验证
+
+已执行：
+
+- `pnpm exec vitest run tests/unit/icon-brand-assets.test.ts --reporter=dot`
+- `pnpm exec vitest run tests/unit/chat-layout.test.tsx --reporter=dot`
+- `pnpm run icons`
+- `pnpm run build:vite`
+- `pnpm run typecheck`
+
 ## 关注点
 
 - `public/favicon.svg`、`public/favicon.ico`、`public/apple-touch-icon.png` 是否生成
@@ -24,6 +34,10 @@
 ## 结果
 
 - `pnpm run icons` 通过，`resources/icons/*` 与 `public/favicon*` 已生成
-- `tests/unit/icon-brand-assets.test.ts` 通过，`3 passed`
+- `tests/unit/icon-brand-assets.test.ts` 通过，已额外覆盖共享 `logo.svg` 的白色眼点断言
+- `tests/unit/icon-brand-assets.test.ts` 通过，已额外覆盖 macOS 托盘模板的透明眼洞断言
+- `tests/unit/chat-layout.test.tsx` 通过，已覆盖聊天左栏品牌位不再使用整图染色类
+- `pnpm run icons` 通过，`tray-icon-Template.png` 已按新模板重新生成
 - ESLint 通过
-- `pnpm run typecheck` 未全绿，但阻塞来自现存的 `src/pages/Channels/index.tsx` 与 `src/components/channels/ChannelAccountList.tsx` 无关错误，不是本次图标改造引入
+- `pnpm run build:vite` 通过
+- `pnpm run typecheck` 通过

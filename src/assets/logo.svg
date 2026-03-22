@@ -13,6 +13,6 @@
   <path d="M75 15 Q85 5 90 8" stroke="#ff6e67" stroke-width="3" stroke-linecap="round"/>
   <circle cx="45" cy="35" r="6" fill="#050810"/>
   <circle cx="75" cy="35" r="6" fill="#050810"/>
-  <circle cx="46" cy="34" r="2.5" fill="#00e5cc"/>
-  <circle cx="76" cy="34" r="2.5" fill="#00e5cc"/>
+  <circle cx="46" cy="34" r="4.5" fill="#ffffff"/>
+  <circle cx="76" cy="34" r="4.5" fill="#ffffff"/>
 </svg>
