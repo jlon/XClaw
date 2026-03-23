@@ -39,7 +39,7 @@
         "features": {
             "noCommand": "コマンドライン不要",
             "modernUI": "モダンで美しいインターフェース",
-            "bundles": "プリインストールされたスキルバンドル",
+            "bundles": "必要時に準備する拡張環境",
             "crossPlatform": "クロスプラットフォーム対応"
         }
     },
@@ -133,6 +133,7 @@
             "success": "Node.js は利用可能です",
             "error": "失敗",
             "gatewayRunning": "ポート {{port}} で実行中",
+            "gatewayStopped": "ゲートウェイは起動していません",
             "packageReady": "OpenClaw パッケージ準備完了",
             "packageReadyWithVersion": "OpenClaw パッケージ準備完了 v{{version}}",
             "packageMissingAt": "{{dir}} に OpenClaw パッケージが見つかりません",
@@ -146,7 +147,8 @@
         "summary": {
             "description": "モデル接続へ進む前に、ランタイムの準備状況を確認します。",
             "ready": "準備完了",
-            "attention": "対応が必要"
+            "attention": "未準備",
+            "gatewayStopped": "未起動"
         },
         "issue": {
             "title": "環境の問題が検出されました",
@@ -170,14 +172,10 @@
     "title": "モデルプロバイダーを接続",
     "description": "先にプロバイダーを選び、そのあと 1 つの接続方法だけを完了します。",
     "selectionTitle": "プロバイダー",
-    "selectionDescription": "この引導で使うモデルプロバイダーを選択します。",
-    "connectionTitle": "接続方法",
-    "connectionDescription": "現在のプロバイダーに必要な項目だけを表示します。",
     "authModeLabel": "接続方法",
     "oauthCardTitle": "ブラウザーでログイン",
     "oauthCardDescription": "このプロバイダーはブラウザー認証が推奨です。成功すると引導に自動で戻ります。",
     "apikeyCardTitle": "API キー",
-    "selectProviderHint": "先に左側で選び、その後に右側の接続を完了します。",
     "connectionIdle": "左側でモデルプロバイダーを選択すると続けられます。",
     "docsLink": "接続ドキュメントを見る",
     "oauthStart": "ブラウザーでログイン",
@@ -195,7 +193,6 @@
         "selectPlaceholder": "プロバイダーを選択...",
         "baseUrl": "ベース URL",
         "modelId": "モデル ID",
-        "modelIdDesc": "プロバイダーのモデル識別子（例：deepseek-ai/DeepSeek-V3）",
         "protocol": "プロトコル",
         "protocols": {
             "openaiCompletions": "OpenAI Completions",
@@ -249,7 +246,21 @@
         "running": "実行中",
         "footer": "設定でスキルをカスタマイズしたり、チャンネルを接続したりできます",
         "progress": "進捗",
-        "gatewayPendingHint": "ゲートウェイがまだ起動していない場合でも、アプリに入ったあと XClaw が引き続き起動処理を引き継ぎます。"
+        "gatewayPendingHint": "ゲートウェイがまだ起動していない場合でも、アプリに入ったあと XClaw が引き続き起動処理を引き継ぎます。",
+        "enhancements": {
+            "title": "任意の拡張環境",
+            "optionalBody": "この準備は XClaw への入場を妨げません。uv や Python 実行環境がこの端末に既にあればそのまま再利用し、必要になるまで後回しにもできます。",
+            "readyTitle": "拡張環境は利用可能です",
+            "readyBody": "再利用できるローカル環境が見つかりました。今はそのまま XClaw に入り、必要になった時だけ追加機能を整えられます。",
+            "prepareNow": "拡張環境を準備",
+            "preparing": "準備中...",
+            "prepareFailed": "拡張環境の準備に失敗しました",
+            "uvLabel": "uv 環境",
+            "pythonLabel": "Python 実行環境",
+            "checking": "確認中",
+            "reused": "再利用済み",
+            "notReady": "後で準備"
+        }
     },
     "nav": {
         "next": "次へ",
@@ -333,26 +344,5 @@
             "retry": "再試行"
         }
     },
-    "defaultSkills": {
-        "opencode": {
-            "name": "OpenCode",
-            "description": "AI コーディングアシスタントのバックエンド"
-        },
-        "python-env": {
-            "name": "Python 環境",
-            "description": "スキルのための Python ランタイム"
-        },
-        "code-assist": {
-            "name": "コードアシスト",
-            "description": "コードの分析と提案"
-        },
-        "file-tools": {
-            "name": "ファイルツール",
-            "description": "ファイルの操作と管理"
-        },
-        "terminal": {
-            "name": "ターミナル",
-            "description": "シェルコマンドの実行"
-        }
-    }
+    "defaultSkills": {}
 }

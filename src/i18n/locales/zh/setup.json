@@ -39,7 +39,7 @@
         "features": {
             "noCommand": "无需命令行",
             "modernUI": "现代美观的界面",
-            "bundles": "预装技能包",
+            "bundles": "按需增强能力",
             "crossPlatform": "跨平台支持"
         }
     },
@@ -76,7 +76,8 @@
         "preparation": {
             "title": "准备接管当前 OpenClaw 环境",
             "description": "先确认将导入的内容和潜在冲突，再执行真正的接管。",
-            "pendingHint": "点击“导入并继续”后，XClaw 才会开始真正的接管和导入。"
+            "pendingHint": "点击主按钮后，XClaw 才会开始真正的接管和导入。",
+            "providerReviewHint": "导入完成后会进入 Provider 复核页，确认冲突项和未自动确定的默认账户。"
         },
         "blockingTitle": "当前不能直接接管",
         "warningsTitle": "接管提醒",
@@ -133,6 +134,7 @@
             "success": "Node.js 可用",
             "error": "失败",
             "gatewayRunning": "运行在端口 {{port}}",
+            "gatewayStopped": "网关未启动",
             "packageReady": "OpenClaw 包已就绪",
             "packageReadyWithVersion": "OpenClaw 包已就绪 v{{version}}",
             "packageMissingAt": "未在 {{dir}} 找到 OpenClaw 包",
@@ -146,7 +148,8 @@
         "summary": {
             "description": "先确认运行环境是否就绪，再继续模型接入。",
             "ready": "已就绪",
-            "attention": "需要处理"
+            "attention": "未就绪",
+            "gatewayStopped": "未启动"
         },
         "issue": {
             "title": "检测到环境问题",
@@ -170,14 +173,10 @@
         "title": "连接模型提供商",
         "description": "先选择一个提供商，再完成一种接入方式。",
         "selectionTitle": "提供商",
-        "selectionDescription": "选择本轮引导要使用的模型提供商。",
-        "connectionTitle": "接入方式",
-        "connectionDescription": "只展示当前提供商需要的必要字段。",
         "authModeLabel": "接入方式",
         "oauthCardTitle": "浏览器登录",
         "oauthCardDescription": "当前提供商推荐使用浏览器授权。完成后会自动回到引导流程。",
         "apikeyCardTitle": "API 密钥",
-        "selectProviderHint": "先完成左侧选择，再处理右侧接入。",
         "connectionIdle": "先在左侧选择一个模型提供商。",
         "docsLink": "查看接入说明",
         "oauthStart": "浏览器登录",
@@ -195,7 +194,6 @@
         "selectPlaceholder": "选择提供商...",
         "baseUrl": "基础 URL",
         "modelId": "模型 ID",
-        "modelIdDesc": "提供商的模型标识符（例如 deepseek-ai/DeepSeek-V3）",
         "protocol": "协议",
         "protocols": {
             "openaiCompletions": "OpenAI Completions",
@@ -250,7 +248,21 @@
         "running": "运行中",
         "footer": "您可以在设置中自定义技能并连接渠道",
         "progress": "进度",
-        "gatewayPendingHint": "Gateway 尚未进入运行态时，进入应用后仍会继续接管启动。"
+        "gatewayPendingHint": "Gateway 尚未进入运行态时，进入应用后仍会继续接管启动。",
+        "enhancements": {
+            "title": "可选增强能力",
+            "optionalBody": "这一步不会阻塞进入 XClaw。若本机已有 uv 或 Python 运行时，会优先直接复用；否则你可以稍后再准备。",
+            "readyTitle": "增强能力已就绪",
+            "readyBody": "已检测到可复用的本机环境。你可以直接开始使用，需要时再补充更多能力。",
+            "prepareNow": "准备增强能力",
+            "preparing": "准备中...",
+            "prepareFailed": "增强能力准备失败",
+            "uvLabel": "uv 环境",
+            "pythonLabel": "Python 运行时",
+            "checking": "检查中",
+            "reused": "已复用",
+            "notReady": "稍后再准备"
+        }
     },
     "nav": {
         "next": "下一步",
@@ -285,7 +297,9 @@
         },
         "actions": {
             "takeoverImport": "导入并继续",
+            "takeoverImportAndReview": "导入并进入 Provider 复核",
             "reviewSummary": "查看摘要",
+            "providerReview": "前往 Provider 复核",
             "providerSubmit": "保存并继续"
         },
         "footer": {
@@ -334,26 +348,5 @@
             "retry": "重新检测"
         }
     },
-    "defaultSkills": {
-        "opencode": {
-            "name": "OpenCode",
-            "description": "AI 编程助手后端"
-        },
-        "python-env": {
-            "name": "Python 环境",
-            "description": "技能所需的 Python 运行时"
-        },
-        "code-assist": {
-            "name": "代码辅助",
-            "description": "代码分析与建议"
-        },
-        "file-tools": {
-            "name": "文件工具",
-            "description": "文件操作与管理"
-        },
-        "terminal": {
-            "name": "终端",
-            "description": "Shell 命令执行"
-        }
-    }
+    "defaultSkills": {}
 }

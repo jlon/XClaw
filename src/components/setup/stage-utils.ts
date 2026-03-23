@@ -38,10 +38,13 @@ export interface SetupPrimaryActionInput {
   providerConfigured?: boolean;
   providerCanSubmit?: boolean;
   takeoverImportComplete?: boolean;
+  takeoverNeedsProviderReview?: boolean;
   labels: {
     activate: string;
     takeoverImport: string;
+    takeoverImportAndReview: string;
     reviewSummary: string;
+    providerReview: string;
     providerSubmit: string;
     advance: string;
   };
@@ -59,6 +62,7 @@ export const resolveSetupPrimaryAction = ({
   providerConfigured = false,
   providerCanSubmit = false,
   takeoverImportComplete = false,
+  takeoverNeedsProviderReview = false,
   labels,
 }: SetupPrimaryActionInput): SetupPrimaryAction => {
   if (stage === 'complete' && phase === 'summary') {
@@ -68,7 +72,9 @@ export const resolveSetupPrimaryAction = ({
   if (stage === 'preparation' && mode === 'takeover') {
     return {
       intent: 'takeover-import',
-      label: takeoverImportComplete ? labels.reviewSummary : labels.takeoverImport,
+      label: takeoverImportComplete
+        ? (takeoverNeedsProviderReview ? labels.providerReview : labels.reviewSummary)
+        : (takeoverNeedsProviderReview ? labels.takeoverImportAndReview : labels.takeoverImport),
     };
   }
 

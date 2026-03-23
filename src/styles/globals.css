@@ -153,14 +153,16 @@
 
 .app-panel-surface-elevated {
   backdrop-filter: none;
-  background: hsl(var(--surface-elevated) / 0.99);
-  border: 1px solid hsl(var(--border-subtle) / 0.92);
-  box-shadow: 0 1px 4px hsl(var(--foreground) / 0.03);
+  background: hsl(var(--surface-elevated) / 1);
+  border: 1px solid hsl(var(--border-subtle) / 0.96);
+  box-shadow:
+    0 1px 2px hsl(var(--foreground) / 0.028),
+    0 10px 24px hsl(var(--foreground) / 0.022);
 }
 
 .app-field-surface {
-  background: hsl(var(--surface-base) / 0.995);
-  border: 1px solid hsl(var(--border-subtle) / 0.86);
+  background: hsl(var(--surface-base) / 1);
+  border: 1px solid hsl(var(--border-subtle) / 0.94);
   box-shadow: none;
 }
 
@@ -182,15 +184,15 @@
 }
 
 .app-insight-surface {
-  background: hsl(var(--surface-base) / 0.985);
-  border: 1px solid hsl(var(--border-subtle) / 0.86);
+  background: hsl(var(--surface-base) / 0.998);
+  border: 1px solid hsl(var(--border-subtle) / 0.9);
   box-shadow: none;
 }
 
 .app-pane-surface {
-  background: hsl(var(--surface-elevated) / 0.99);
-  border: 1px solid hsl(var(--border-subtle) / 0.82);
-  box-shadow: none;
+  background: hsl(var(--surface-elevated) / 0.998);
+  border: 1px solid hsl(var(--border-subtle) / 0.9);
+  box-shadow: 0 1px 2px hsl(var(--foreground) / 0.02);
 }
 
 .app-brand-glow {
@@ -320,27 +322,37 @@
 }
 
 .app-setup-shell {
-  background: hsl(var(--background));
+  background: linear-gradient(180deg, hsl(var(--background) / 1) 0%, hsl(var(--surface-panel) / 0.68) 100%);
 }
 
 .app-setup-rail {
   backdrop-filter: none;
-  background: hsl(var(--chrome));
+  background: hsl(var(--chrome) / 0.98);
 }
 
 .app-setup-content {
-  background: transparent;
+  background: linear-gradient(180deg, hsl(var(--surface-base) / 0.72) 0%, hsl(var(--surface-panel) / 0.42) 100%);
+}
+
+.app-setup-scrollbar-hidden {
+  scrollbar-width: none;
+}
+
+.app-setup-scrollbar-hidden::-webkit-scrollbar {
+  display: none;
 }
 
 .app-setup-footer {
   backdrop-filter: none;
-  background: hsl(var(--surface-elevated) / 0.98);
+  background: hsl(var(--surface-elevated) / 0.995);
 }
 
 .app-setup-hero {
-  border: 1px solid hsl(var(--border-subtle) / 0.92);
-  background: hsl(var(--surface-elevated) / 0.99);
-  box-shadow: 0 8px 24px hsl(var(--foreground) / 0.04);
+  border: 1px solid hsl(var(--border-subtle) / 0.96);
+  background: hsl(var(--surface-elevated) / 1);
+  box-shadow:
+    0 1px 2px hsl(var(--foreground) / 0.026),
+    0 14px 28px hsl(var(--foreground) / 0.022);
 }
 
 .app-setup-kicker {

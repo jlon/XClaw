@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react';
+import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import type { SetupStageStatus } from './types';
+import { setupRailItemVariants, setupStageContainerVariants } from './setup-motion';
 import logoSvg from '@/assets/logo.svg';
 
 export interface SetupStepRailItem {
@@ -38,9 +40,19 @@ export function SetupStepRail({ stages, className }: SetupStepRailProps) {
           <div className="mt-0.5 text-sm font-medium text-foreground">XClaw</div>
         </div>
       </div>
-      <ol className="mt-5 space-y-1.5">
+      <motion.ol
+        initial="hidden"
+        animate="visible"
+        variants={setupStageContainerVariants}
+        className="mt-5 space-y-1.5"
+      >
         {stages.map((stage, index) => (
-          <li key={stage.id}>
+          <motion.li
+            key={stage.id}
+            layout
+            variants={setupRailItemVariants}
+            animate={stage.status === 'current' ? 'active' : 'inactive'}
+          >
             <button
               type="button"
               disabled
@@ -66,9 +78,9 @@ export function SetupStepRail({ stages, className }: SetupStepRailProps) {
                 <span className="block text-sm font-medium leading-6">{stage.label}</span>
               </span>
             </button>
-          </li>
+          </motion.li>
         ))}
-      </ol>
+      </motion.ol>
     </nav>
   );
 }

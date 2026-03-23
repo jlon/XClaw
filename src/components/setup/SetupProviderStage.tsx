@@ -1,9 +1,11 @@
 import type { ReactNode } from 'react';
+import { motion } from 'framer-motion';
 import { Check, Eye, EyeOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { setupStageContainerVariants, setupStageItemVariants } from './setup-motion';
 
 export interface SetupProviderOption {
   id: string;
@@ -91,14 +93,19 @@ export function SetupProviderStage({
   const isConfigure = variant === 'configure';
 
   return (
-    <div className={cn('space-y-6', className)}>
-      <div className="space-y-2">
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={setupStageContainerVariants}
+      className={cn('space-y-6', className)}
+    >
+      <motion.div variants={setupStageItemVariants} className="space-y-2">
         <h2 className="text-xl font-semibold">{title}</h2>
         {description ? <p className="text-muted-foreground">{description}</p> : null}
-      </div>
+      </motion.div>
 
       {isConfigure && providerOptions?.length ? (
-        <div className="grid gap-3 md:grid-cols-2">
+        <motion.div variants={setupStageItemVariants} className="grid gap-3 md:grid-cols-2">
           {providerOptions.map((provider) => (
             <button
               key={provider.id}
@@ -132,11 +139,11 @@ export function SetupProviderStage({
               </div>
             </button>
           ))}
-        </div>
+        </motion.div>
       ) : null}
 
       {isConfigure && authModes?.length ? (
-        <div className="flex overflow-hidden rounded-2xl border border-border/70 text-sm">
+        <motion.div variants={setupStageItemVariants} className="flex overflow-hidden rounded-2xl border border-border/70 text-sm">
           {authModes.map((mode) => (
             <button
               key={mode.id}
@@ -154,11 +161,11 @@ export function SetupProviderStage({
               {mode.label}
             </button>
           ))}
-        </div>
+        </motion.div>
       ) : null}
 
       {isConfigure && fields?.length ? (
-        <div className="space-y-4">
+        <motion.div variants={setupStageItemVariants} className="space-y-4">
           {fields.map((field) => (
             <div key={field.id} className="space-y-2">
               <Label htmlFor={field.id}>{field.label}</Label>
@@ -188,56 +195,56 @@ export function SetupProviderStage({
               {field.error ? <div className="text-sm text-destructive">{field.error}</div> : null}
             </div>
           ))}
-        </div>
+        </motion.div>
       ) : null}
 
       {!isConfigure && reviewCards?.length ? (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <motion.div variants={setupStageItemVariants} className="grid gap-3 sm:grid-cols-2">
           {reviewCards.map(renderMetricCard)}
-        </div>
+        </motion.div>
       ) : null}
 
       {blockingIssues?.length ? (
-        <div className="rounded-2xl border border-red-500/20 bg-[hsl(var(--danger)/0.08)] p-4">
+        <motion.div variants={setupStageItemVariants} className="rounded-2xl border border-red-500/20 bg-[hsl(var(--danger)/0.08)] p-4">
           <div className="font-medium text-destructive">{t('provider.blockingTitle')}</div>
           <ul className="mt-3 list-disc space-y-1 pl-5 text-sm leading-6 text-destructive">
             {blockingIssues.map((issue, index) => (
               <li key={`${index}-${String(issue)}`}>{issue}</li>
             ))}
           </ul>
-        </div>
+        </motion.div>
       ) : null}
 
       {warnings?.length ? (
-        <div className="rounded-2xl border border-amber-500/20 bg-[hsl(var(--warning)/0.08)] p-4">
+        <motion.div variants={setupStageItemVariants} className="rounded-2xl border border-amber-500/20 bg-[hsl(var(--warning)/0.08)] p-4">
           <div className="font-medium text-amber-700 dark:text-amber-100">{warningsTitle ?? t('provider.warningsTitle')}</div>
           <ul className="mt-3 list-disc space-y-1 pl-5 text-sm leading-6 text-amber-800 dark:text-amber-50">
             {warnings.map((warning, index) => (
               <li key={`${index}-${String(warning)}`}>{warning}</li>
             ))}
           </ul>
-        </div>
+        </motion.div>
       ) : null}
 
       {statusPanel ? (
-        <div className="rounded-[18px] border border-primary/18 app-insight-surface p-4 text-sm leading-6 text-muted-foreground">
+        <motion.div variants={setupStageItemVariants} className="rounded-[18px] border border-primary/18 app-insight-surface p-4 text-sm leading-6 text-muted-foreground">
           {statusPanel}
-        </div>
+        </motion.div>
       ) : null}
 
       {validationMessage ? (
-        <div className="rounded-[18px] app-insight-surface p-4 text-sm leading-6 text-muted-foreground">
+        <motion.div variants={setupStageItemVariants} className="rounded-[18px] app-insight-surface p-4 text-sm leading-6 text-muted-foreground">
           {validationMessage}
-        </div>
+        </motion.div>
       ) : null}
 
       {footerNote ? (
-        <div className="rounded-[18px] app-insight-surface p-4 text-sm leading-6 text-muted-foreground">
+        <motion.div variants={setupStageItemVariants} className="rounded-[18px] app-insight-surface p-4 text-sm leading-6 text-muted-foreground">
           {footerNote}
-        </div>
+        </motion.div>
       ) : null}
 
       {children}
-    </div>
+    </motion.div>
   );
 }

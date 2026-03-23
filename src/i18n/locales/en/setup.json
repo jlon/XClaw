@@ -39,7 +39,7 @@
         "features": {
             "noCommand": "Zero command-line required",
             "modernUI": "Modern, beautiful interface",
-            "bundles": "Pre-installed skill bundles",
+            "bundles": "Optional environment enhancements",
             "crossPlatform": "Cross-platform support"
         }
     },
@@ -133,6 +133,7 @@
             "success": "Node.js is available",
             "error": "Failed",
             "gatewayRunning": "Running on port {{port}}",
+            "gatewayStopped": "Gateway is not running",
             "packageReady": "OpenClaw package ready",
             "packageReadyWithVersion": "OpenClaw package ready v{{version}}",
             "packageMissingAt": "OpenClaw package not found at {{dir}}",
@@ -146,7 +147,8 @@
         "summary": {
             "description": "Confirm the runtime is ready before moving on to provider access.",
             "ready": "Ready",
-            "attention": "Needs attention"
+            "attention": "Not ready",
+            "gatewayStopped": "Stopped"
         },
         "issue": {
             "title": "Environment issue detected",
@@ -170,14 +172,10 @@
     "title": "Connect a model provider",
     "description": "Choose one provider first, then complete a single access path.",
     "selectionTitle": "Provider",
-    "selectionDescription": "Pick the provider you want to use during setup.",
-    "connectionTitle": "Access method",
-    "connectionDescription": "Only the required fields for the current provider are shown.",
     "authModeLabel": "Access method",
     "oauthCardTitle": "Browser sign-in",
     "oauthCardDescription": "This provider is best connected through browser authorization. When it succeeds, setup continues automatically.",
     "apikeyCardTitle": "API key",
-    "selectProviderHint": "Choose on the left first, then finish access on the right.",
     "connectionIdle": "Choose a model provider on the left to continue.",
     "docsLink": "View provider docs",
     "oauthStart": "Sign in with browser",
@@ -195,7 +193,6 @@
         "selectPlaceholder": "Select a provider...",
         "baseUrl": "Base URL",
         "modelId": "Model ID",
-        "modelIdDesc": "The model identifier from your provider (e.g. deepseek-ai/DeepSeek-V3)",
         "protocol": "Protocol",
         "protocols": {
             "openaiCompletions": "OpenAI Completions",
@@ -249,7 +246,21 @@
         "running": "Running",
         "footer": "You can customize skills and connect channels in Settings",
         "progress": "Progress",
-        "gatewayPendingHint": "If the gateway is not running yet, XClaw will keep taking over the startup process after you enter the app."
+        "gatewayPendingHint": "If the gateway is not running yet, XClaw will keep taking over the startup process after you enter the app.",
+        "enhancements": {
+            "title": "Optional enhancements",
+            "optionalBody": "This does not block entering XClaw. If uv or a Python runtime already exists on this machine, XClaw reuses it; otherwise you can prepare it later when you actually need it.",
+            "readyTitle": "Enhancements are ready",
+            "readyBody": "A reusable local environment was found. You can enter XClaw now and prepare more capabilities later only when they matter.",
+            "prepareNow": "Prepare enhancements",
+            "preparing": "Preparing...",
+            "prepareFailed": "Failed to prepare enhancements",
+            "uvLabel": "uv environment",
+            "pythonLabel": "Python runtime",
+            "checking": "Checking",
+            "reused": "Reused",
+            "notReady": "Prepare later"
+        }
     },
     "nav": {
         "next": "Next",
@@ -333,26 +344,5 @@
             "retry": "Try again"
         }
     },
-    "defaultSkills": {
-        "opencode": {
-            "name": "OpenCode",
-            "description": "AI coding assistant backend"
-        },
-        "python-env": {
-            "name": "Python Environment",
-            "description": "Python runtime for skills"
-        },
-        "code-assist": {
-            "name": "Code Assist",
-            "description": "Code analysis and suggestions"
-        },
-        "file-tools": {
-            "name": "File Tools",
-            "description": "File operations and management"
-        },
-        "terminal": {
-            "name": "Terminal",
-            "description": "Shell command execution"
-        }
-    }
+    "defaultSkills": {}
 }

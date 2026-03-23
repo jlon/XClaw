@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 import { AlertCircle, CheckCircle2, ExternalLink, Loader2, RefreshCw, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ import { invokeIpc } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 import { useGatewayStore } from '@/stores/gateway';
 import type { SetupInspectionSummary, SetupMode, SetupPlanSummary, TakeoverImportSummary } from '@/lib/setup-takeover';
+import { setupStageContainerVariants, setupStageItemVariants } from './setup-motion';
 
 interface SetupPreparationStageProps {
   mode: SetupMode;
@@ -83,6 +85,7 @@ function TakeoverPreparationContent({
   const { t } = useTranslation('setup');
   const warnings = uniq([...(plan?.warnings ?? []), ...(inspection?.warnings ?? [])]);
   const blockingIssues = uniq([...(plan?.blockingIssues ?? []), ...(status?.blockingIssues ?? [])]);
+  const requiresProviderReview = Boolean(plan?.providerImport?.requiresReview);
   const summaryItems = [
     {
       label: t('takeover.summary.providers'),
@@ -102,62 +105,84 @@ function TakeoverPreparationContent({
       multiline: true,
     },
   ];
+  const workspaceSummary = summaryItems.find((item) => item.label === t('takeover.summary.workspace'));
+  const factItems = summaryItems.filter((item) => item.label !== t('takeover.summary.workspace'));
 
   return (
-    <div className="space-y-5">
-      <div className="space-y-2">
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={setupStageContainerVariants}
+      className="space-y-5"
+    >
+      <motion.div variants={setupStageItemVariants} className="space-y-2">
         <h2 className="text-xl font-semibold">{t('takeover.preparation.title')}</h2>
         <p className="text-muted-foreground">{t('takeover.preparation.description')}</p>
-      </div>
+      </motion.div>
 
-      <div className="rounded-[1.5rem] border border-border/70 app-insight-surface p-5">
-        <div className="grid gap-3 sm:grid-cols-2">
-          {summaryItems.map((item) => (
-            <div key={item.label} className="rounded-[1.1rem] border border-border/70 bg-[hsl(var(--surface-elevated)/0.82)] px-4 py-3">
-              <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground/90">{item.label}</div>
-              <div className={cn('mt-2 font-semibold text-foreground', item.multiline ? 'break-all text-sm leading-6' : 'text-lg')}>
-                {item.value}
+      <motion.div variants={setupStageItemVariants} className="app-pane-surface rounded-[1.55rem] p-5 xl:p-6">
+        <div className="space-y-4">
+          <div className="grid gap-3 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+            <div className="app-insight-surface rounded-[1.2rem] p-4">
+              <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground/70">{workspaceSummary?.label}</div>
+              <div className="mt-2 break-all text-sm font-medium leading-6 text-foreground">
+                {workspaceSummary?.value ?? '-'}
               </div>
             </div>
-          ))}
+            <div className="grid gap-3 grid-cols-3">
+              {factItems.map((item) => (
+                <div key={item.label} className="app-insight-surface rounded-[1.2rem] px-4 py-3">
+                  <div className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground/70">{item.label}</div>
+                  <div className="mt-2 text-xl font-semibold tracking-[-0.03em] text-foreground">{item.value}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {!submitting ? (
+            <div className="text-sm leading-6 text-muted-foreground">
+              {t('takeover.preparation.pendingHint')}
+            </div>
+          ) : null}
+
+          {!submitting && requiresProviderReview ? (
+            <div className="rounded-[1.1rem] border border-primary/14 bg-[hsl(var(--surface-base)/0.84)] px-4 py-3 text-sm leading-6 text-muted-foreground">
+              {t('takeover.preparation.providerReviewHint')}
+            </div>
+          ) : null}
         </div>
-        {!submitting ? (
-          <p className="mt-4 text-sm leading-6 text-muted-foreground">
-            {t('takeover.preparation.pendingHint')}
-          </p>
-        ) : null}
-      </div>
+      </motion.div>
 
       {blockingIssues.length ? (
-        <div className="rounded-[18px] border border-red-500/20 bg-[hsl(var(--danger)/0.08)] p-4">
+        <motion.div variants={setupStageItemVariants} className="rounded-[18px] border border-red-500/20 bg-[hsl(var(--danger)/0.08)] p-4">
           <div className="font-medium text-destructive">{t('takeover.blockingTitle')}</div>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-destructive">
             {blockingIssues.map((issue) => (
               <li key={issue}>{issue}</li>
             ))}
           </ul>
-        </div>
+        </motion.div>
       ) : null}
 
       {warnings.length ? (
-        <div className="rounded-[18px] border border-amber-500/20 bg-[hsl(var(--warning)/0.08)] p-4">
-          <div className="font-medium text-amber-700 dark:text-amber-100">{t('takeover.warningsTitle')}</div>
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-amber-800 dark:text-amber-50">
+        <motion.div variants={setupStageItemVariants} className="app-pane-surface rounded-[1.3rem] p-4">
+          <div className="font-medium text-foreground">{t('takeover.warningsTitle')}</div>
+          <ul className="mt-2 space-y-1 text-sm leading-6 text-muted-foreground">
             {warnings.map((warning) => (
-              <li key={warning}>{warning}</li>
+              <li key={warning}>• {warning}</li>
             ))}
           </ul>
-        </div>
+        </motion.div>
       ) : null}
 
       {status?.error ? (
-        <div className="rounded-[18px] border border-red-500/20 bg-[hsl(var(--danger)/0.08)] p-4 text-sm leading-6 text-destructive">
+        <motion.div variants={setupStageItemVariants} className="rounded-[18px] border border-red-500/20 bg-[hsl(var(--danger)/0.08)] p-4 text-sm leading-6 text-destructive">
           {status.error}
-        </div>
+        </motion.div>
       ) : null}
 
       {submitting ? (
-        <div className="rounded-[18px] border border-primary/18 app-insight-surface p-4">
+        <motion.div variants={setupStageItemVariants} className="rounded-[18px] border border-primary/18 app-insight-surface p-4">
           <div className="flex items-center gap-2 text-sm font-medium text-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
             {t('takeover.running')}
@@ -174,9 +199,9 @@ function TakeoverPreparationContent({
               ))}
             </ul>
           ) : null}
-        </div>
+        </motion.div>
       ) : null}
-    </div>
+    </motion.div>
   );
 }
 
@@ -218,6 +243,7 @@ function RuntimePreparationContent({
   const [logContent, setLogContent] = useState('');
   const [openclawDir, setOpenclawDir] = useState('');
   const gatewayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const gatewayAutoStartAttemptedRef = useRef(false);
 
   const runChecks = useCallback(async () => {
     setChecks({
@@ -281,6 +307,11 @@ function RuntimePreparationContent({
         ...prev,
         gateway: { status: 'success', message: t('runtime.status.gatewayRunning', { port: currentGateway.port }) },
       }));
+    } else if (currentGateway.state === 'stopped') {
+      setChecks((prev) => ({
+        ...prev,
+        gateway: { status: 'error', message: t('runtime.status.gatewayStopped') },
+      }));
     } else if (currentGateway.state === 'error') {
       setChecks((prev) => ({
         ...prev,
@@ -313,6 +344,11 @@ function RuntimePreparationContent({
       setChecks((prev) => ({
         ...prev,
         gateway: { status: 'success', message: t('runtime.status.gatewayRunning', { port: gatewayStatus.port }) },
+      }));
+    } else if (gatewayStatus.state === 'stopped') {
+      setChecks((prev) => ({
+        ...prev,
+        gateway: { status: 'error', message: t('runtime.status.gatewayStopped') },
       }));
     } else if (gatewayStatus.state === 'error') {
       setChecks((prev) => ({
@@ -361,13 +397,35 @@ function RuntimePreparationContent({
     };
   }, [gatewayStatus.state, t]);
 
-  const handleStartGateway = async () => {
+  const handleStartGateway = useCallback(async () => {
     setChecks((prev) => ({
       ...prev,
       gateway: { status: 'checking', message: t('runtime.status.gatewayStarting') },
     }));
     await startGateway();
-  };
+  }, [startGateway, t]);
+
+  useEffect(() => {
+    if (gatewayStatus.state === 'running' || gatewayStatus.state === 'starting' || gatewayStatus.state === 'reconnecting') {
+      gatewayAutoStartAttemptedRef.current = true;
+      return;
+    }
+
+    if (gatewayStatus.state !== 'stopped') {
+      return;
+    }
+
+    if (gatewayAutoStartAttemptedRef.current) {
+      return;
+    }
+
+    if (checks.nodejs.status !== 'success' || checks.openclaw.status !== 'success') {
+      return;
+    }
+
+    gatewayAutoStartAttemptedRef.current = true;
+    void handleStartGateway();
+  }, [checks.nodejs.status, checks.openclaw.status, gatewayStatus.state, handleStartGateway]);
 
   const handleShowLogs = async () => {
     try {
@@ -440,11 +498,17 @@ function RuntimePreparationContent({
     return 'text-amber-200';
   };
 
-  const readinessLabel = (status: 'checking' | 'success' | 'error') => {
+  const readinessLabel = (
+    key: 'nodejs' | 'openclaw' | 'gateway',
+    status: 'checking' | 'success' | 'error',
+  ) => {
     if (status === 'success') {
       return t('runtime.summary.ready');
     }
     if (status === 'error') {
+      if (key === 'gateway' && gatewayStatus.state === 'stopped') {
+        return t('runtime.summary.gatewayStopped');
+      }
       return t('runtime.summary.attention');
     }
     return t('runtime.status.checking');
@@ -474,35 +538,37 @@ function RuntimePreparationContent({
   return (
     <div className="space-y-5">
       {setupMode === 'fresh' ? (
-        <div className="space-y-4 rounded-[20px] app-insight-surface p-5">
+        <div className="app-pane-surface space-y-4 rounded-[1.55rem] p-5 xl:p-6">
           <div className="space-y-1">
             <h3 className="font-medium">{t('runtime.setup.title')}</h3>
             <p className="text-sm text-muted-foreground">{t('runtime.setup.description')}</p>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="setup-workspace-path">{t('runtime.setup.workspaceLabel')}</Label>
-            <Input
-              id="setup-workspace-path"
-              value={workspacePath}
-              onChange={(event) => onWorkspacePathChange(event.target.value)}
-              placeholder={t('runtime.setup.workspacePlaceholder')}
-            />
-            <p className="text-xs text-muted-foreground">{t('runtime.setup.workspaceHint')}</p>
-            {workspaceError ? <p className="text-xs text-red-400">{workspaceError}</p> : null}
-          </div>
+          <div className="grid gap-4 xl:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="setup-workspace-path">{t('runtime.setup.workspaceLabel')}</Label>
+              <Input
+                id="setup-workspace-path"
+                value={workspacePath}
+                onChange={(event) => onWorkspacePathChange(event.target.value)}
+                placeholder={t('runtime.setup.workspacePlaceholder')}
+              />
+              <p className="text-xs text-muted-foreground">{t('runtime.setup.workspaceHint')}</p>
+              {workspaceError ? <p className="text-xs text-red-400">{workspaceError}</p> : null}
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="setup-gateway-port">{t('runtime.setup.portLabel')}</Label>
-            <Input
-              id="setup-gateway-port"
-              inputMode="numeric"
-              value={gatewayPortInput}
-              onChange={(event) => onGatewayPortInputChange(event.target.value)}
-              placeholder="18789"
-            />
-            <p className="text-xs text-muted-foreground">{t('runtime.setup.portHint')}</p>
-            {gatewayPortError ? <p className="text-xs text-red-400">{gatewayPortError}</p> : null}
+            <div className="space-y-2">
+              <Label htmlFor="setup-gateway-port">{t('runtime.setup.portLabel')}</Label>
+              <Input
+                id="setup-gateway-port"
+                inputMode="numeric"
+                value={gatewayPortInput}
+                onChange={(event) => onGatewayPortInputChange(event.target.value)}
+                placeholder="18789"
+              />
+              <p className="text-xs text-muted-foreground">{t('runtime.setup.portHint')}</p>
+              {gatewayPortError ? <p className="text-xs text-red-400">{gatewayPortError}</p> : null}
+            </div>
           </div>
 
           {planLoading ? (
@@ -513,22 +579,22 @@ function RuntimePreparationContent({
           ) : null}
 
           {plan?.blockingIssues.length ? (
-            <div className="rounded-[18px] border border-red-500/20 bg-[hsl(var(--danger))/0.08] p-4">
-              <div className="font-medium text-red-700 dark:text-red-200">{t('runtime.setup.blockingTitle')}</div>
-              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-red-800 dark:text-red-100">
+            <div className="app-pane-surface rounded-[1.3rem] border-red-500/18 p-4">
+              <div className="font-medium text-foreground">{t('runtime.setup.blockingTitle')}</div>
+              <ul className="mt-2 space-y-1 text-sm leading-6 text-muted-foreground">
                 {plan.blockingIssues.map((issue) => (
-                  <li key={issue}>{issue}</li>
+                  <li key={issue}>• {issue}</li>
                 ))}
               </ul>
             </div>
           ) : null}
 
           {plan?.warnings.length ? (
-            <div className="rounded-[18px] border border-amber-500/20 bg-[hsl(var(--warning))/0.08] p-4">
-              <div className="font-medium text-amber-800 dark:text-amber-100">{t('runtime.setup.warningsTitle')}</div>
-              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-amber-900 dark:text-amber-50">
+            <div className="app-pane-surface rounded-[1.3rem] p-4">
+              <div className="font-medium text-foreground">{t('runtime.setup.warningsTitle')}</div>
+              <ul className="mt-2 space-y-1 text-sm leading-6 text-muted-foreground">
                 {plan.warnings.map((warning) => (
-                  <li key={warning}>{warning}</li>
+                  <li key={warning}>• {warning}</li>
                 ))}
               </ul>
             </div>
@@ -536,7 +602,7 @@ function RuntimePreparationContent({
         </div>
       ) : null}
 
-      <div className="space-y-3">
+      <div className="app-pane-surface space-y-4 rounded-[1.55rem] p-5 xl:p-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1">
             <h2 className="text-xl font-semibold">{t('runtime.title')}</h2>
@@ -545,18 +611,20 @@ function RuntimePreparationContent({
           <div className="rounded-[12px] border border-border/70 bg-background/70 px-3 py-1 text-xs font-medium text-muted-foreground">
             {checks.nodejs.status === 'success' && checks.openclaw.status === 'success' && (checks.gateway.status === 'success' || gatewayStatus.state === 'running')
               ? t('runtime.summary.ready')
-              : t('runtime.summary.attention')}
+              : gatewayStatus.state === 'stopped'
+                ? t('runtime.summary.gatewayStopped')
+                : t('runtime.summary.attention')}
           </div>
         </div>
         <div className="grid gap-3">
           {readinessSummary.map((item) => (
-            <div key={item.key} className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 rounded-[1.15rem] border border-border/70 app-field-surface px-4 py-3">
+            <div key={item.key} className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 rounded-[1.15rem] app-insight-surface px-4 py-3">
               <div className="min-w-0">
                 <div className="text-sm font-medium text-foreground">{item.label}</div>
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">{item.message}</p>
               </div>
               <div className={cn('mt-0.5 rounded-full border px-2.5 py-1 text-xs font-medium', readinessToneClass(item.status))}>
-                {readinessLabel(item.status)}
+                {readinessLabel(item.key, item.status)}
               </div>
             </div>
           ))}

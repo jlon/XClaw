@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react';
+import { motion } from 'framer-motion';
 import { AlertCircle, CheckCircle2, Loader2, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
+import { setupStageContainerVariants, setupStageItemVariants } from './setup-motion';
 
 export interface SetupCompleteSkill {
   id: string;
@@ -81,8 +83,13 @@ export function SetupCompleteStage({
   const isApplying = phase === 'applying';
 
   return (
-    <div className={cn('space-y-6', className)}>
-      <div className="space-y-2 text-center">
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={setupStageContainerVariants}
+      className={cn('space-y-6', className)}
+    >
+      <motion.div variants={setupStageItemVariants} className="space-y-2 text-center">
         <div className="flex justify-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-full border border-border/70 bg-[hsl(var(--surface-elevated)/0.95)] text-2xl">
             {isApplying ? '⚙️' : '🎉'}
@@ -90,10 +97,10 @@ export function SetupCompleteStage({
         </div>
         <h2 className="text-xl font-semibold">{title}</h2>
         {subtitle ? <p className="text-muted-foreground">{subtitle}</p> : null}
-      </div>
+      </motion.div>
 
       {isApplying && typeof progress === 'number' ? (
-        <div className="space-y-2">
+        <motion.div variants={setupStageItemVariants} className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">{progressLabel ?? t('complete.progress')}</span>
             <span className="text-primary">{progress}%</span>
@@ -101,11 +108,11 @@ export function SetupCompleteStage({
           <div className="h-2 overflow-hidden rounded-full bg-secondary">
             <div className="h-full rounded-full bg-primary transition-[width] duration-300" style={{ width: `${progress}%` }} />
           </div>
-        </div>
+        </motion.div>
       ) : null}
 
       {isApplying && skills?.length ? (
-        <div className="space-y-2">
+        <motion.div variants={setupStageItemVariants} className="space-y-2">
           {skills.map((skill) => (
             <div
               key={skill.id}
@@ -132,31 +139,31 @@ export function SetupCompleteStage({
               </span>
             </div>
           ))}
-        </div>
+        </motion.div>
       ) : null}
 
       {!isApplying && summaryCards?.length ? (
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <motion.div variants={setupStageItemVariants} className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {summaryCards.map(renderMetricCard)}
-        </div>
+        </motion.div>
       ) : null}
 
       {warningMessage ? (
-        <div className="rounded-2xl border border-red-500/20 bg-[hsl(var(--danger)/0.08)] p-4 text-sm leading-6 text-destructive">
+        <motion.div variants={setupStageItemVariants} className="rounded-2xl border border-red-500/20 bg-[hsl(var(--danger)/0.08)] p-4 text-sm leading-6 text-destructive">
           <div className="flex items-start gap-2">
             <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
             <div>{warningMessage}</div>
           </div>
-        </div>
+        </motion.div>
       ) : null}
 
       {footerNote ? (
-        <div className="rounded-[18px] app-insight-surface p-4 text-sm leading-6 text-muted-foreground">
+        <motion.div variants={setupStageItemVariants} className="rounded-[18px] app-insight-surface p-4 text-sm leading-6 text-muted-foreground">
           {footerNote}
-        </div>
+        </motion.div>
       ) : null}
 
       {children}
-    </div>
+    </motion.div>
   );
 }

@@ -3,6 +3,12 @@ import { hostApiFetch } from '@/lib/host-api';
 export type SetupMode = 'fresh' | 'takeover';
 
 export interface SetupInspectionSummary {
+  bootstrap?: {
+    setupComplete?: boolean;
+    source?: 'main-settings' | 'legacy-footprint' | 'pending';
+    readonly?: boolean;
+    shouldRunStartupSideEffects?: boolean;
+  };
   hasExistingOpenClaw: boolean;
   suggestedMode: SetupMode;
   gatewayPort?: number;

@@ -53,6 +53,7 @@
 19. `fresh` 工作区复用校验已改成文件系统语义：Win 与默认 mac 不再因大小写不同漏检同一路径
 20. inspection / takeover import 的 agent ID 合并已改成大小写不敏感去重，避免 `main / Main` 双计数
 21. 磁盘足迹探测已忽略 `desktop.ini / Thumbs.db / .DS_Store` 等元数据文件，避免 Windows/mac 假阳性
+22. `takeover` 准备页已从摘要卡墙收成“单一准备面 + 轻事实带”，`fresh` 准备页已从“表单块 + 状态块 + 诊断块”压成“配置主面 + 就绪主面”
 
 ## 最新验证
 

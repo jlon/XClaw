@@ -24,6 +24,7 @@ export function TitleBar() {
   const location = useLocation();
   const platform = resolvePlatform();
   const isChatRoute = location.pathname === '/' || location.pathname.startsWith('/new');
+  const isSetupRoute = location.pathname.startsWith('/setup');
   const chatFocusMode = useSettingsStore((state) => ('chatFocusMode' in state ? state.chatFocusMode : false));
   const sidebarCollapsed = useSettingsStore((state) => state.sidebarCollapsed);
   const setSidebarCollapsed = useSettingsStore((state) => state.setSidebarCollapsed);
@@ -50,6 +51,8 @@ export function TitleBar() {
   if (platform === 'darwin') {
     return isChatRoute ? (
       <MacChatTitleBar chatSidebarVisible={chatSidebarVisible} />
+    ) : isSetupRoute ? (
+      <MacSetupTitleBar />
     ) : (
       <MacWorkspaceTitleBar
         sidebarExpanded={workspaceSidebarExpanded}
@@ -62,6 +65,7 @@ export function TitleBar() {
   return (
     <WindowsTitleBar
       isChatRoute={isChatRoute}
+      isSetupRoute={isSetupRoute}
       chatSidebarVisible={chatSidebarVisible}
       workspaceSidebarExpanded={workspaceSidebarExpanded}
       workspaceSidebarLabel={workspaceSidebarLabel}
@@ -122,14 +126,20 @@ function MacWorkspaceTitleBar({
   );
 }
 
+function MacSetupTitleBar() {
+  return <div className="drag-region desktop-app-titlebar desktop-app-titlebar--mac flex h-9 shrink-0" />;
+}
+
 function WindowsTitleBar({
   isChatRoute,
+  isSetupRoute,
   chatSidebarVisible,
   workspaceSidebarExpanded,
   workspaceSidebarLabel,
   onToggleSidebar,
 }: {
   isChatRoute: boolean;
+  isSetupRoute: boolean;
   chatSidebarVisible: boolean;
   workspaceSidebarExpanded: boolean;
   workspaceSidebarLabel: string;
@@ -172,6 +182,8 @@ function WindowsTitleBar({
         >
           <ChatSessionHeaderControls compact surface="titlebar" />
         </div>
+      ) : isSetupRoute ? (
+        <div className="h-full w-0 shrink-0" />
       ) : (
         <div
           data-testid="workspace-titlebar-sidebar-slot"

@@ -127,17 +127,19 @@ export const useSettingsStore = create<SettingsState>()(
           const resolvedLanguage = settings.language
             ? resolveSupportedLanguage(settings.language)
             : undefined;
+          const setupComplete = settings.setupComplete === true;
           const gatewayDesiredState = resolveGatewayDesiredState(
             settings.gatewayDesiredState,
             settings.gatewayAutoStart,
           );
           const gatewayManagedMode = resolveGatewayManagedMode(
             settings.gatewayManagedMode,
-            settings.setupComplete,
+            setupComplete,
           );
           set((state) => ({
             ...state,
             ...settings,
+            setupComplete,
             gatewayDesiredState,
             gatewayManagedMode,
             gatewayAutoStart: gatewayDesiredState === 'running',
@@ -226,6 +228,19 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: 'XClaw-settings',
+      partialize: (state) => {
+        const { setupComplete, ...rest } = state;
+        void setupComplete;
+        return rest;
+      },
+      migrate: (persistedState) => {
+        if (!persistedState || typeof persistedState !== 'object') {
+          return persistedState;
+        }
+        const nextState = { ...(persistedState as Record<string, unknown>) };
+        delete nextState.setupComplete;
+        return nextState;
+      },
     }
   )
 );
