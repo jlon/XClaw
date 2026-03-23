@@ -29,6 +29,10 @@
       "local": "ローカル"
     },
     "sections": {
+      "basic": "基本情報",
+      "connection": "接続設定",
+      "credentials": "認証と検証",
+      "fallbackStrategy": "フォールバック戦略",
       "model": "モデル設定",
       "fallback": "フォールバック設定"
     },
@@ -121,8 +125,11 @@
     "description": "OpenClaw ゲートウェイ設定",
     "status": "ステータス",
     "port": "ポート",
+    "portDesc": "Host API と Gateway はこのローカルポートで連携します。",
     "logs": "ログ",
     "appLogs": "アプリケーションログ",
+    "logsRecent": "既定では最近 100 行のアプリケーションログを表示します。",
+    "logsCopied": "ログをコピーしました",
     "openFolder": "フォルダーを開く",
     "autoStart": "ゲートウェイ自動起動",
     "autoStartDesc": "XClaw 起動時にゲートウェイを自動起動",
@@ -171,6 +178,8 @@
       "check": "更新を確認"
     },
     "currentVersion": "現在のバージョン",
+    "releaseVersion": "バージョン {{version}}",
+    "progressComplete": "{{percent}}% 完了",
     "whatsNew": "更新内容：",
     "errorDetails": "エラー詳細：",
     "help": "自動アップデートが有効な場合、更新は自動的にダウンロードされインストールされます。"
@@ -239,6 +248,7 @@
     "doctorStdout": "標準出力",
     "doctorStderr": "標準エラー",
     "doctorOutputEmpty": "（空）",
+    "rawDoctorOutput": "生出力",
     "wsDiagnostic": "WS 診断モード",
     "wsDiagnosticDesc": "Gateway RPC デバッグのため一時的に WS/HTTP フォールバックを有効化します。",
     "wsDiagnosticEnabled": "WS 診断モードを有効化しました",
@@ -250,6 +260,7 @@
     "telemetryErrors": "エラー",
     "telemetrySlow": "遅延（>=800ms）",
     "telemetryEmpty": "テレメトリはまだありません",
+    "rawTelemetryEvents": "生イベント",
     "telemetryCopied": "テレメトリをコピーしました",
     "telemetryCleared": "テレメトリをクリアしました",
     "installCmd": "\"openclaw\" コマンドをインストール",

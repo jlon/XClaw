@@ -11,7 +11,43 @@
     "gatewayNotRunning": "ゲートウェイが停止中",
     "models": {
         "title": "モデル",
-        "subtitle": "AI プロバイダーを管理し、トークン使用量を監視します"
+        "subtitle": "AI プロバイダーを管理し、トークン使用量を監視します",
+        "kpis": {
+            "tokens": "期間トークン",
+            "cost": "期間コスト",
+            "providers": "アクティブなプロバイダー",
+            "models": "アクティブなモデル"
+        },
+  "allProviders": "すべてのプロバイダー",
+  "activeScope": "現在の範囲",
+  "providersTitle": "モデルプロバイダー",
+  "providersHint": "プロバイダーを選択すると設定に入り、下の使用量分析にも連動します。",
+  "providersEmptyTitle": "まだプロバイダーがありません",
+  "providersEmptyHint": "先にプロバイダーを追加すると、このワークベンチで設定入口と連動分析を表示できます。",
+  "windowTokens": "期間トークン",
+  "windowRequests": "リクエスト",
+  "defaultProvider": "デフォルト",
+  "globalScopeHint": "グローバル範囲",
+  "accounts": "アカウント",
+  "openProvider": "設定を開く",
+  "viewingProvider": "表示中",
+  "inspectorTitle": "プロバイダー詳細",
+  "inspectorDescription": "{{label}} の設定と使用量詳細",
+  "accountSwitchTitle": "アカウント",
+  "accountSwitchHint": "同じプロバイダー配下のアカウントはこの分析範囲を共有します。切り替えると右側の設定も更新されます。",
+  "editProvider": "{{label}} を編集",
+  "setDefaultProvider": "{{label}} をデフォルトに設定",
+  "deleteProvider": "{{label}} を削除",
+  "missingProviderScope": "{{provider}} は現在の設定に存在しません。先に追加または復元してください。",
+  "metrics": {
+            "tokens": "Tokens",
+            "cost": "Cost"
+        },
+        "breakdown": {
+            "provider": "プロバイダー別ランキング",
+            "model": "モデル別ランキング"
+        },
+        "costIncomplete": "コストデータが不完全です"
     },
     "quickActions": {
         "title": "クイックアクション",
@@ -36,6 +72,7 @@
         "description": "モデル/プロバイダー使用情報を含む、最近のアシスタント応答とツール結果を表示します。",
         "loading": "トークン使用履歴を読み込み中...",
         "empty": "トークン使用履歴はまだありません",
+        "groupByProvider": "プロバイダー別",
         "groupByModel": "モデル別",
         "groupByTime": "時間別",
         "last7Days": "7日",

@@ -1,4 +1,4 @@
-import { access, mkdir, readFile, rm, writeFile } from 'fs/promises';
+import { access, mkdir, readFile, rm, symlink, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -97,6 +97,58 @@ describe('agent config lifecycle', () => {
         expect.objectContaining({
           id: 'research',
           mainSessionKey: 'agent:research:desk',
+        }),
+      ]),
+    );
+  });
+
+  it('persists agent model overrides as object config and preserves existing fallbacks', async () => {
+    await writeOpenClawJson({
+      agents: {
+        defaults: {
+          model: {
+            primary: 'bailian/qwen3.5-plus',
+          },
+        },
+        list: [
+          {
+            id: 'main',
+            name: 'Main',
+            default: true,
+            model: {
+              primary: 'bailian/qwen3.5-plus',
+              fallbacks: ['bailian/glm-5'],
+            },
+          },
+        ],
+      },
+    });
+
+    const { updateAgentSettings } = await import('@electron/utils/agent-config');
+
+    const result = await updateAgentSettings('main', {
+      name: 'Main',
+      modelRef: 'openai/gpt-5.4',
+    });
+
+    const config = await readOpenClawJson();
+    const mainAgent = ((config.agents as { list: Array<{ id: string; model?: unknown }> }).list).find(
+      (agent) => agent.id === 'main',
+    );
+
+    expect(mainAgent?.model).toEqual({
+      primary: 'openai/gpt-5.4',
+      fallbacks: ['bailian/glm-5'],
+    });
+    expect(result.modelChanged).toBe(true);
+    expect(result.snapshot.agents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'main',
+          modelDisplay: 'gpt-5.4',
+          modelRef: 'openai/gpt-5.4',
+          defaultModelRef: 'bailian/qwen3.5-plus',
+          inheritedModel: false,
         }),
       ]),
     );
@@ -408,5 +460,47 @@ describe('agent config lifecycle', () => {
     const snapshot = await listAgentsSnapshot();
     expect(snapshot.channelAccountOwners['feishu:default']).toBeUndefined();
     expect(snapshot.channelAccountOwners['feishu:sales-bot']).toBe('main');
+  });
+
+  it('rejects workspace file creation for an unknown agent without creating a ghost workspace', async () => {
+    await writeOpenClawJson({
+      agents: {
+        list: [
+          { id: 'main', name: 'Main', default: true },
+        ],
+      },
+    });
+
+    const { createAgentWorkspaceFile } = await import('@electron/utils/agent-config');
+
+    await expect(createAgentWorkspaceFile('ghost', 'SOUL.md', '# ghost')).rejects.toThrow('Agent "ghost" not found');
+    await expect(access(join(testHome, '.openclaw', 'workspace-ghost'))).rejects.toThrow();
+  });
+
+  it('rejects workspace operations when the configured workspace root is a symlink', async () => {
+    const realWorkspaceDir = join(testHome, 'actual-workspace');
+    const symlinkWorkspaceDir = join(testHome, 'workspace-link');
+
+    await writeOpenClawJson({
+      agents: {
+        list: [
+          { id: 'main', name: 'Main', default: true },
+          {
+            id: 'symlinked',
+            name: 'Symlinked',
+            workspace: symlinkWorkspaceDir,
+            agentDir: '~/.openclaw/agents/symlinked/agent',
+          },
+        ],
+      },
+    });
+
+    await mkdir(realWorkspaceDir, { recursive: true });
+    await writeFile(join(realWorkspaceDir, 'SOUL.md'), '# soul', 'utf8');
+    await symlink(realWorkspaceDir, symlinkWorkspaceDir);
+
+    const { listAgentWorkspaceFiles } = await import('@electron/utils/agent-config');
+
+    await expect(listAgentWorkspaceFiles('symlinked')).rejects.toThrow(`Unsupported workspace root symlink: ${symlinkWorkspaceDir}`);
   });
 });

@@ -38,6 +38,16 @@
     "errors": {
         "requestTimeout": "本次请求已超时"
     },
+    "skillFlow": {
+        "skillsCenter": "技能中心",
+        "readyTitle": "{{name}} 的安装草案已就位",
+        "readyDescription": "确认后就从当前线程继续安装，需要时随时回到技能页。",
+        "sentTitle": "{{name}} 的安装草案已发到当前线程",
+        "sentDescription": "草案已经发到这条线程，处理完后仍可回到技能页继续筛选。",
+        "submittedTitle": "{{name}} 的安装请求已提交",
+        "submittedDescription": "安装完成后可回到技能页查看、启停或继续管理。",
+        "returnToSkills": "返回技能页"
+    },
     "message": {
         "thinking": "思考过程",
         "toolProcessing": "正在整理工具执行结果…",

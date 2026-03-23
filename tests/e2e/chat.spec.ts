@@ -304,3 +304,77 @@ test('chat slash menu runs local /usage inline on win32 without navigating away'
   await expect(page.getByText('Input: 100 tokens')).toBeVisible();
   await expect(page).not.toHaveURL(/#\/models$/);
 });
+
+test('skillhub send-to-chat keeps the current chat route and hydrates the deterministic install draft', async ({ page }) => {
+  await mockChatApp(page, {
+    theme: 'light',
+    sessions: [
+      {
+        key: 'agent:main:main',
+        label: '当前线程',
+        updatedAt: 1763800000000,
+      },
+    ],
+    histories: {
+      'agent:main:main': [
+        { role: 'user', content: '之前的对话', timestamp: 1763800000, id: 'user-main-1' },
+        { role: 'assistant', content: '好的，继续。', timestamp: 1763800001, id: 'assistant-main-1' },
+      ],
+    },
+  });
+
+  await page.route('http://127.0.0.1:3210/api/skills/catalog', async (route) => {
+    return jsonResponse(route, {
+      success: true,
+      skills: [],
+    });
+  });
+
+  await page.route('http://127.0.0.1:3210/api/skills/providers/skillhub/search', async (route) => {
+    return jsonResponse(route, {
+      success: true,
+      results: [
+        {
+          id: 'skillhub:github',
+          slug: 'github',
+          name: 'Github',
+          description: 'Interact with GitHub using the gh CLI.',
+          providerId: 'skillhub',
+          providerSkillId: 'github',
+          sourceLabel: 'SkillHub',
+          installCapability: {
+            providerId: 'skillhub',
+            executionKind: 'chat-prompt',
+          },
+          metadata: {
+            version: '1.0.0',
+            author: 'steipete',
+            downloads: 116473,
+            sourceUrl: 'https://skillhub.tencent.com/skills/github',
+          },
+        },
+      ],
+    });
+  });
+
+  await page.goto('/#/skills');
+
+  await page.getByRole('button', { name: '添加技能' }).click();
+  await page.getByRole('menuitem', { name: '从 SkillHub 搜索' }).click();
+  await expect(page.getByRole('dialog', { name: '从 SkillHub 搜索' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Github' })).toBeVisible();
+
+  await page.getByRole('button', { name: '发送到聊天' }).click();
+
+  await expect(page).toHaveURL(/#\/$/);
+  await expect(page.getByRole('textbox')).toHaveValue(
+    '请先检查是否已安装 SkillHub 商店，若未安装，请根据 https://skillhub-1388575217.cos.ap-guangzhou.myqcloud.com/install/skillhub.md 安装Skillhub商店，但是只安装CLI，然后安装github技能。若已安装，则直接安装github技能。',
+  );
+  await expect(page.getByRole('button', { name: '返回技能页' })).toBeVisible();
+
+  await page.getByRole('button', { name: '返回技能页' }).click();
+
+  await expect(page).toHaveURL(/#\/skills$/);
+  await expect(page.getByRole('dialog', { name: '从 SkillHub 搜索' })).toBeVisible();
+  await expect(page.getByRole('textbox', { name: '搜索技能目录' })).toHaveValue('');
+});

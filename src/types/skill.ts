@@ -21,8 +21,32 @@ export interface Skill {
   isBundled?: boolean;
   dependencies?: string[];
   source?: string;
+  provenance?: SkillProvenance;
+  displaySourceLabel?: string;
+  providerId?: SkillProviderId;
+  providerSkillId?: string;
+  installCapability?: SkillInstallCapability;
   baseDir?: string;
   filePath?: string;
+}
+
+export type SkillProvenance =
+  | 'xclaw-preinstalled'
+  | 'openclaw-managed'
+  | 'openclaw-workspace'
+  | 'openclaw-extra'
+  | 'agents-personal'
+  | 'agents-project'
+  | 'openclaw-bundled'
+  | 'unknown';
+
+export type SkillProviderId = 'clawhub' | 'skillhub';
+
+export type SkillInstallExecutionKind = 'host-install' | 'chat-prompt';
+
+export interface SkillInstallCapability {
+  providerId: SkillProviderId;
+  executionKind: SkillInstallExecutionKind;
 }
 
 /**
@@ -51,6 +75,45 @@ export interface MarketplaceSkill {
   author?: string;
   downloads?: number;
   stars?: number;
+}
+
+export interface SkillCatalogItem {
+  id: string;
+  providerId: SkillProviderId;
+  providerSkillId: string;
+  slug: string;
+  name: string;
+  description: string;
+  version?: string;
+  author?: string;
+  downloads?: number;
+  stars?: number;
+  sourceLabel?: string;
+  installCapability: SkillInstallCapability;
+  metadata?: Record<string, unknown>;
+}
+
+export interface SkillChatDraftContext {
+  localQuery?: string;
+  scrollTop?: number;
+  activeProvider?: SkillProviderId | null;
+  providerQuery?: string;
+}
+
+export interface SkillChatDraft {
+  id: string;
+  kind: 'create-skill' | 'github-import' | 'provider-install';
+  title: string;
+  message: string;
+  returnContext?: SkillChatDraftContext;
+  providerId?: SkillProviderId;
+  providerSkillId?: string;
+  slug?: string;
+  name?: string;
+  execution: {
+    kind: SkillInstallExecutionKind;
+    payload: Record<string, unknown>;
+  };
 }
 
 /**

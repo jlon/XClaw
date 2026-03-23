@@ -48,6 +48,14 @@ export function formatApprovalCommandReply(id: string, decision: ApprovalDecisio
   return `Exec approval ${decision} submitted for ${id}.`;
 }
 
+export function formatApprovalCommandSyncNote(id: string, decision: ApprovalDecision): string {
+  const statusLine = formatApprovalCommandReply(id, decision);
+  if (decision === 'deny') {
+    return `${statusLine}\n\nThe pending command remains blocked. Do not request approval again for this approval id unless a new id is generated.`;
+  }
+  return `${statusLine}\n\nThe pending command is now authorized and may continue asynchronously. Do not request approval again for this approval id unless a new id is generated.`;
+}
+
 export function getApprovalCommandUsageText(): string {
   return USAGE_TEXT;
 }

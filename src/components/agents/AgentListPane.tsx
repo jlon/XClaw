@@ -1,5 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { Plus, Search } from 'lucide-react';
+import { AgentAvatar } from '@/components/agents/AgentAvatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -106,13 +107,13 @@ export function AgentListPane({
   onCreateAgent,
   groupBy = defaultGroupBy,
   groupLabel = getDefaultGroupLabel,
-  searchPlaceholder = '搜索 Agent、模型、工作区',
-  createLabel = '新建 Agent',
+  searchPlaceholder = '搜索智能体、模型、工作区',
+  createLabel = '新建智能体',
   defaultGroupLabel = '默认',
   otherGroupLabel = '其他',
   defaultBadgeLabel = '默认',
   inheritedLabel = '继承',
-  unnamedLabel = '未命名 Agent',
+  unnamedLabel = '未命名智能体',
   emptyStateTitle,
   emptyStateDescription,
   className,
@@ -169,12 +170,12 @@ export function AgentListPane({
     onSearchValueChange?.(value);
   };
 
-  const emptyTitle = emptyStateTitle ?? (hasQuery ? '没有匹配的 Agent' : '还没有 Agent');
+  const emptyTitle = emptyStateTitle ?? (hasQuery ? '没有匹配的智能体' : '还没有智能体');
   const emptyDescription =
     emptyStateDescription ??
     (hasQuery
-      ? '换一个关键词，或者直接新建一个 Agent。'
-      : '你可以先新建一个 Agent，或者从市场安装一个现成模板。');
+      ? '换一个关键词，或者直接新建一个智能体。'
+      : '你可以先新建一个智能体，或者从市场安装一个现成模板。');
 
   return (
     <section
@@ -236,9 +237,7 @@ export function AgentListPane({
                             : 'border-transparent hover:border-border/55 hover:bg-[hsl(var(--surface-hover)/0.48)]',
                         )}
                       >
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] border border-border/60 bg-[hsl(var(--surface-panel)/0.94)] text-[13px] font-semibold text-foreground/74 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]">
-                          {agent.name.trim().charAt(0).toUpperCase() || 'A'}
-                        </div>
+                        <AgentAvatar agentId={agent.id} size={36} className="shrink-0" />
 
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">

@@ -38,6 +38,16 @@
     "errors": {
         "requestTimeout": "今回のリクエストはタイムアウトしました"
     },
+    "skillFlow": {
+        "skillsCenter": "スキルセンター",
+        "readyTitle": "{{name}} のインストール草案をこのスレッドに用意しました",
+        "readyDescription": "このスレッドで確認して進めつつ、必要なときはいつでもスキル画面へ戻れます。",
+        "sentTitle": "{{name}} の草案を現在のスレッドへ送信しました",
+        "sentDescription": "このスレッドで続けながら、必要なときはスキル画面へ戻って探し直せます。",
+        "submittedTitle": "{{name}} のインストール要求を送信しました",
+        "submittedDescription": "確認や有効化、管理を続けたいときはスキル画面へ戻れます。",
+        "returnToSkills": "スキルへ戻る"
+    },
     "message": {
         "thinking": "思考過程",
         "toolProcessing": "ツール実行結果を整理しています…",

@@ -11,7 +11,43 @@
     "gatewayNotRunning": "Gateway not running",
     "models": {
         "title": "Models",
-        "subtitle": "Manage your AI providers and monitor token usage."
+        "subtitle": "Manage your AI providers and monitor token usage.",
+        "kpis": {
+            "tokens": "Window tokens",
+            "cost": "Window cost",
+            "providers": "Active providers",
+            "models": "Active models"
+        },
+  "allProviders": "All providers",
+  "activeScope": "Active scope",
+  "providersTitle": "Model providers",
+  "providersHint": "Select a provider to open its configuration and filter the usage panes below.",
+  "providersEmptyTitle": "No providers yet",
+  "providersEmptyHint": "Add a provider first so this workbench can show configuration entry points and linked usage analysis.",
+  "windowTokens": "Window tokens",
+  "windowRequests": "Requests",
+  "defaultProvider": "Default",
+  "globalScopeHint": "Global scope",
+  "accounts": "accounts",
+  "openProvider": "Open config",
+  "viewingProvider": "Viewing",
+  "inspectorTitle": "Provider inspector",
+  "inspectorDescription": "Configuration and usage details for {{label}}",
+  "accountSwitchTitle": "Accounts",
+  "accountSwitchHint": "Accounts under the same provider share this analysis scope. Switching here updates the configuration panel.",
+  "editProvider": "Edit {{label}}",
+  "setDefaultProvider": "Set {{label}} as default",
+  "deleteProvider": "Delete {{label}}",
+  "missingProviderScope": "{{provider}} is no longer configured. Add or restore that provider first.",
+  "metrics": {
+            "tokens": "Tokens",
+            "cost": "Cost"
+        },
+        "breakdown": {
+            "provider": "Provider breakdown",
+            "model": "Model breakdown"
+        },
+        "costIncomplete": "Cost data is incomplete"
     },
     "quickActions": {
         "title": "Quick Actions",
@@ -36,6 +72,7 @@
         "description": "Recent assistant responses and tool results with model/provider usage data.",
         "loading": "Loading token usage history...",
         "empty": "No token usage history yet",
+        "groupByProvider": "By provider",
         "groupByModel": "By model",
         "groupByTime": "By time",
         "last7Days": "7 days",

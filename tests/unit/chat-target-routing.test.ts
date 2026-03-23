@@ -1,10 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { gatewayRpcMock, hostApiFetchMock, agentsState } = vi.hoisted(() => ({
+const { gatewayRpcMock, hostApiFetchMock, agentsState, gatewayStoreState } = vi.hoisted(() => ({
   gatewayRpcMock: vi.fn(),
   hostApiFetchMock: vi.fn(),
   agentsState: {
     agents: [] as Array<Record<string, unknown>>,
+  },
+  gatewayStoreState: {
+    execApprovalQueue: [] as Array<Record<string, unknown>>,
   },
 }));
 
@@ -12,7 +15,15 @@ vi.mock('@/stores/gateway', () => ({
   useGatewayStore: {
     getState: () => ({
       rpc: gatewayRpcMock,
+      execApprovalQueue: gatewayStoreState.execApprovalQueue,
     }),
+    setState: (updater: unknown) => {
+      const current = { execApprovalQueue: gatewayStoreState.execApprovalQueue };
+      const next = typeof updater === 'function'
+        ? (updater as (state: typeof current) => Partial<typeof current>)(current)
+        : (updater as Partial<typeof current>);
+      gatewayStoreState.execApprovalQueue = next.execApprovalQueue ?? gatewayStoreState.execApprovalQueue;
+    },
   },
 }));
 
@@ -87,6 +98,7 @@ describe('chat target routing', () => {
     ];
 
     gatewayRpcMock.mockReset();
+    gatewayStoreState.execApprovalQueue = [];
     gatewayRpcMock.mockImplementation(async (method: string, params?: Record<string, unknown>) => {
       if (method === 'chat.history') {
         return { messages: [] };
@@ -96,6 +108,9 @@ describe('chat target routing', () => {
       }
       if (method === 'exec.approval.resolve') {
         return { ok: true };
+      }
+      if (method === 'chat.inject') {
+        return { ok: true, messageId: 'inject-1' };
       }
       if (method === 'sessions.reset') {
         return { ok: true, key: String(params?.key ?? '') };
@@ -352,12 +367,28 @@ describe('chat target routing', () => {
 
   it('routes /approve through exec.approval.resolve instead of chat.send', async () => {
     const useChatStore = await loadChatStoreWithBaseState();
+    gatewayStoreState.execApprovalQueue = [
+      {
+        id: '08d6b8cd-1111-2222-3333-444444444444',
+        slug: '08d6b8cd',
+        createdAtMs: 10,
+        expiresAtMs: Date.now() + 60_000,
+        request: {
+          command: 'find ~/Downloads -type f',
+          sessionKey: 'agent:main:main',
+        },
+      },
+    ];
 
     await useChatStore.getState().sendMessage('/approve 08d6b8cd allow-once');
 
     expect(gatewayRpcMock).toHaveBeenCalledWith('exec.approval.resolve', {
-      id: '08d6b8cd',
+      id: '08d6b8cd-1111-2222-3333-444444444444',
       decision: 'allow-once',
+    });
+    expect(gatewayRpcMock).toHaveBeenCalledWith('chat.inject', {
+      sessionKey: 'agent:main:main',
+      message: 'Exec approval allow-once submitted for 08d6b8cd.\n\nThe pending command is now authorized and may continue asynchronously. Do not request approval again for this approval id unless a new id is generated.',
     });
     expect(
       gatewayRpcMock.mock.calls.find(([method]) => method === 'chat.send'),
@@ -411,6 +442,36 @@ describe('chat target routing', () => {
       },
     ]);
     expect(useChatStore.getState().sending).toBe(false);
+  });
+
+  it('falls back to the only pending approval in the current session when the typed slug is stale', async () => {
+    const useChatStore = await loadChatStoreWithBaseState();
+    gatewayStoreState.execApprovalQueue = [
+      {
+        id: '242f771b-1111-2222-3333-444444444444',
+        slug: '242f771b',
+        createdAtMs: 10,
+        expiresAtMs: Date.now() + 60_000,
+        request: {
+          command: 'find ~/Downloads -type f',
+          sessionKey: 'agent:main:main',
+        },
+      },
+    ];
+
+    await useChatStore.getState().sendMessage('/approve stale-slug allow-once');
+
+    expect(gatewayRpcMock).toHaveBeenCalledWith('exec.approval.resolve', {
+      id: '242f771b-1111-2222-3333-444444444444',
+      decision: 'allow-once',
+    });
+    expect(gatewayRpcMock).toHaveBeenCalledWith('chat.inject', {
+      sessionKey: 'agent:main:main',
+      message: 'Exec approval allow-once submitted for 242f771b.\n\nThe pending command is now authorized and may continue asynchronously. Do not request approval again for this approval id unless a new id is generated.',
+    });
+    expect(useChatStore.getState().messages.at(-1)?.content).toBe(
+      'Exec approval allow-once submitted for 242f771b.',
+    );
   });
 
   it('shows slash command help locally instead of sending it to chat.send', async () => {

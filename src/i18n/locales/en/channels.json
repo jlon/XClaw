@@ -1,6 +1,6 @@
 {
     "title": "Messaging Channels",
-    "subtitle": "Manage messaging channels, connected accounts, and the Agent that handles each account.",
+    "subtitle": "Manage channels, accounts, and the Agent that handles them.",
     "refresh": "Refresh",
     "addChannel": "Add Channel",
     "searchPlaceholder": "Search channels",
@@ -10,6 +10,7 @@
     "accountListSummary": "{{count}} connected accounts · default {{default}}",
     "stats": {
         "total": "Total Channels",
+        "configured": "Configured",
         "connected": "Connected",
         "disconnected": "Disconnected"
     },

@@ -113,6 +113,8 @@
 - 已进一步确认“网页感”在聊天页的最大根因是双层导航而不是配色：`QClaw` 聊天页左侧本就是单层 `ChatSidebar`，`XClaw` 已开始将聊天路由从“全局 rail + 会话列表”收回单层 sidebar 结构
 - 已继续纠偏聊天侧栏里“去网页感去过头”的问题：保留单层 sidebar 和 merged row 的 `XClaw` 特色，但把搜索 trigger、utility 新建按钮和 active row 的局部对比、边界与焦点语法重新拉回 `QClaw` 的桌面控件区间
 - 已开始把“高清感”从聊天侧栏扩展到主工作区：聊天画布、输入 dock、picker panel、回到底部按钮和正文/元信息对比已经从“发虚的浅层”纠正为更清晰的桌面层级，避免左侧对齐后右侧仍像低对比网页
+- 已修正 `Skills` 页浅色主题下启用开关仍使用硬黑渐变的问题：当前开启态已回到低饱和 accent 语义，不再偏离 `QClaw substrate, XClaw accent`
+- 已补齐 `Skills` 浅色主题启用开关的回归锁：开启态现在强制走 token 驱动的 accent 渐变，不允许再退回硬黑开关
 
 ## 完成判断
 

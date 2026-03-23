@@ -1,6 +1,6 @@
 {
-    "title": "技能",
-    "subtitle": "浏览和管理 AI 能力",
+    "title": "技能管理",
+    "subtitle": "为你的智能体提供预封装且可重复的最佳实践与工具",
     "refresh": "刷新",
     "openFolder": "打开技能文件夹",
     "gatewayWarning": "网关未运行。没有活跃的网关，无法加载技能。",
@@ -13,13 +13,77 @@
         "builtIn": "内置 ({{count}})",
         "marketplace": "市场 ({{count}})"
     },
-    "search": "搜索技能...",
+    "search": "搜索已经安装的技能",
+    "addSkill": "添加技能",
     "searchMarketplace": "搜索市场...",
     "searchButton": "搜索",
     "actions": {
         "enableVisible": "批量启用可见项",
         "disableVisible": "批量禁用可见项",
-        "installSkill": "安装技能"
+        "installSkill": "安装技能",
+        "more": "更多操作",
+        "viewDetails": "查看详情",
+        "openFolder": "打开目录",
+        "openReadme": "打开 README"
+    },
+    "addMenu": {
+        "importGithub": "从 GitHub 导入",
+        "searchClawHub": "从 ClawHub 搜索",
+        "searchSkillHub": "从 SkillHub 搜索"
+    },
+    "summary": {
+        "total": "{{count}} 个技能",
+        "enabled": "{{count}} 个已启用",
+        "preinstalled": "{{count}} 个内置技能"
+    },
+    "catalog": {
+        "descriptions": {
+            "agent-mbti": "AI 智能体人格分析与配置系统，用于快速建立一致的协作风格。",
+            "algorithmic-art": "基于 p5.js 的生成式艺术技能，可按种子与参数生成可重复的图形结果。",
+            "analytics-dashboard": "自动汇总业务指标与监控数据，帮助你快速搭建分析看板。",
+            "arxiv-reader": "面向 arXiv 论文的阅读与摘要技能，适合对话式提炼研究内容。",
+            "arxiv-watcher": "持续追踪 ArXiv 新论文，并整理成适合后续处理的观察清单。",
+            "brand-guidelines": "把品牌色、排版和规范整理成可复用的设计约束。",
+            "pdf": "从 PDF 中提取内容、表格与结构化文本，方便后续分析与整理。",
+            "xlsx": "读取与分析 Excel 工作簿、工作表和单元格数据，适合报表处理。",
+            "docx": "解析 Word 文档内容、标题结构与段落文本，方便重写与总结。",
+            "pptx": "读取演示文稿中的页面结构、标题与文本内容，用于快速提炼重点。",
+            "find-skills": "根据需求发现适合当前任务的技能，并给出可执行的安装建议。",
+            "self-improving-agent": "帮助智能体持续记录反馈、总结经验并改进后续执行方式。",
+            "tavily-search": "调用 Tavily 搜索获取网页信息，适合需要实时联网检索的任务。",
+            "brave-web-search": "使用 Brave 搜索进行网页检索，返回更适合代理处理的搜索结果。"
+        }
+    },
+    "card": {
+        "enabled": "已启用",
+        "disabled": "已停用",
+        "updating": "更新中"
+    },
+    "empty": {
+        "searchTitle": "没有找到匹配的技能",
+        "defaultTitle": "这里还没有技能",
+        "searchSubtitle": "换个关键词，或者从添加技能里搜索新的技能来源。",
+        "defaultSubtitle": "你可以从 GitHub 导入，或者从 ClawHub / SkillHub 搜索。"
+    },
+    "providerSearch": {
+        "subtitle": "选择技能后，发送到聊天继续安装。",
+        "visitCatalog": "访问 {{name}}",
+        "placeholder": "搜索技能目录",
+        "loading": "正在搜索技能目录…",
+        "emptyQuery": "没有找到匹配的技能",
+        "emptyDefault": "输入关键词，或者直接浏览推荐技能",
+        "emptyHint": "这里不会直接安装，只会把可靠草案送到聊天窗口继续处理。",
+        "openSource": "查看",
+        "sendToChat": "发送到聊天"
+    },
+    "githubImport": {
+        "title": "从 GitHub 导入",
+        "subtitle": "输入仓库地址后，把固定导入草案发送到聊天窗口继续处理。",
+        "repositoryLabel": "仓库地址",
+        "pathLabel": "仓库路径（可选）",
+        "refLabel": "分支或提交（可选）",
+        "sendToChat": "发送到聊天",
+        "validation": "请先输入 GitHub 仓库地址。"
     },
     "noSkills": "未找到技能",
     "noSkillsSearch": "尝试不同的搜索词",
@@ -59,6 +123,7 @@
     },
     "source": {
         "badge": {
+            "xclawPreinstalled": "内置技能",
             "bundled": "内置",
             "managed": "托管目录",
             "workspace": "工作区",

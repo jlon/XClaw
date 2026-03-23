@@ -18,8 +18,8 @@ export function NewChatRoute() {
     }
     handledCommandRef.current = nextCommandId;
     newSession(agentId ?? currentAgentId);
-    navigate('/', { replace: true });
-  }, [agentId, currentAgentId, location.key, navigate, newSession]);
+    navigate('/', { replace: true, state: location.state });
+  }, [agentId, currentAgentId, location.key, location.state, navigate, newSession]);
 
   return <Chat />;
 }

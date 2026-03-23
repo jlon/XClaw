@@ -3,6 +3,8 @@ export interface AgentSummary {
   name: string;
   isDefault: boolean;
   modelDisplay: string;
+  modelRef?: string | null;
+  defaultModelRef?: string | null;
   inheritedModel: boolean;
   workspace: string;
   agentDir: string;

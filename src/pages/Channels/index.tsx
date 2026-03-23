@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { RefreshCw, AlertCircle, Plus, Search } from 'lucide-react';
+import { RefreshCw, AlertCircle, Search, PlugZap, CheckCircle2, CircleOff, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,10 @@ import {
   WorkspacePageScrollArea,
   WorkspacePageShell,
 } from '@/components/layout/WorkspacePage';
+import { WorkbenchHeader } from '@/components/layout/WorkbenchHeader';
+import { WorkbenchHeaderActions } from '@/components/layout/WorkbenchHeaderActions';
+import { WorkbenchHeaderTitleBlock } from '@/components/layout/WorkbenchHeaderTitleBlock';
+import { WorkbenchSummaryStrip } from '@/components/layout/WorkbenchSummaryStrip';
 import { hostApiFetch } from '@/lib/host-api';
 import { subscribeHostEvent } from '@/lib/host-events';
 import { ChannelConfigModal } from '@/components/channels/ChannelConfigModal';
@@ -89,9 +93,6 @@ const railIconClass = 'flex h-9.5 w-9.5 shrink-0 items-center justify-center rou
 const railMetaBadgeClass = 'inline-flex shrink-0 items-center rounded-full border border-[hsl(var(--border-subtle)/0.6)] bg-[hsl(var(--foreground)/0.035)] px-1.75 py-0.5 text-[10px] font-medium leading-none text-foreground/62';
 const railStateBadgeClass = 'inline-flex shrink-0 items-center rounded-full border border-[hsl(var(--border-subtle)/0.54)] bg-[hsl(var(--surface-elevated)/0.98)] px-2 py-0.5 text-[10px] font-medium leading-none text-foreground/68';
 const sectionLabelClass = 'px-0.5 text-[10px] font-semibold uppercase tracking-[0.09em] text-muted-foreground/52';
-const headerTitleClass = 'text-[18px] font-semibold tracking-tight text-foreground md:text-[20px]';
-const headerSubtitleClass = 'mt-0.5 text-[11px] leading-5 text-foreground/54';
-
 function isRegistryChannelType(channelType: string): channelType is RegistryChannelType {
   return channelType in CHANNEL_FIELD_REGISTRY;
 }
@@ -554,6 +555,32 @@ export function Channels() {
   const effectiveGatewayState = runtimeGatewayState || gatewayStatus.state;
   const showGatewayStoppedBanner = layoutMode === 'board' && effectiveGatewayState !== 'running' && effectiveGatewayState !== 'starting';
   const showRuntimeWaitingBanner = !error && !runtimeAvailable && !showGatewayStoppedBanner;
+  const configuredChannelCount = channelGroups.length;
+  const connectedChannelCount = channelGroups.filter((group) => group.status === 'connected').length;
+  const disconnectedChannelCount = Math.max(configuredChannelCount - connectedChannelCount, 0);
+  const summaryItems = [
+    {
+      id: 'configured',
+      icon: <PlugZap className="h-3.5 w-3.5" />,
+      label: t('stats.configured'),
+      value: configuredChannelCount,
+      tone: 'neutral' as const,
+    },
+    {
+      id: 'connected',
+      icon: <CheckCircle2 className="h-3.5 w-3.5" />,
+      label: t('stats.connected'),
+      value: connectedChannelCount,
+      tone: 'success' as const,
+    },
+    {
+      id: 'disconnected',
+      icon: <CircleOff className="h-3.5 w-3.5" />,
+      label: t('stats.disconnected'),
+      value: disconnectedChannelCount,
+      tone: 'warning' as const,
+    },
+  ];
   const boardColumnCount = useMemo(
     () => getChannelBoardColumnCount(containerWidth),
     [containerWidth],
@@ -583,6 +610,8 @@ export function Channels() {
     () => (layoutMode === 'board' ? boardFilteredChannelTypes : railFilteredChannelTypes),
     [boardFilteredChannelTypes, layoutMode, railFilteredChannelTypes],
   );
+  const activeQuery = layoutMode === 'board' ? boardQuery : railQuery;
+  const setActiveQuery = layoutMode === 'board' ? setBoardQuery : setRailQuery;
   const configuredFilteredChannelTypes = useMemo(
     () => filteredChannelTypes.filter((type) => Boolean(groupedByType[type])),
     [filteredChannelTypes, groupedByType],
@@ -1158,30 +1187,49 @@ export function Channels() {
     <WorkspacePageFrame>
       <WorkspacePageShell
         data-testid="channels-shell"
-        className="max-w-[1680px]"
+        className="max-w-[1680px] app-channels-shell"
       >
-        <div className="mb-3.5 flex shrink-0 flex-col justify-between gap-2 md:flex-row md:items-center">
-          <div>
-            <h1 className={headerTitleClass}>
-              {t('title')}
-            </h1>
-            <p className={headerSubtitleClass}>
-              {t('subtitle')}
-            </p>
-          </div>
+        <WorkbenchHeader
+          className="app-channels-header"
+          titleBlock={(
+            <WorkbenchHeaderTitleBlock
+              title={t('title')}
+              subtitle={t('subtitle')}
+              className="app-channels-header-copy"
+            />
+          )}
+          summary={(
+            <div className="app-channels-header-toolbar">
+              <WorkbenchSummaryStrip items={summaryItems} className="app-channels-summary-strip" />
 
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={handleRefresh}
-              disabled={gatewayStatus.state !== 'running' || refreshing}
-              className="h-7 rounded-[10px] px-3 text-[11.5px] font-medium text-foreground/80 shadow-none transition-colors hover:text-foreground"
-            >
-              <RefreshCw className={cn('mr-2 h-3.5 w-3.5', refreshing && 'animate-spin')} />
-              {t('refresh')}
-            </Button>
-          </div>
-        </div>
+              {layoutMode === 'focus' ? null : (
+                <div className="app-channels-header-toolbar-rail">
+                  <div className="app-channels-header-search relative">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/68" />
+                    <Input
+                      value={activeQuery}
+                      onChange={(event) => setActiveQuery(event.target.value)}
+                      placeholder={t('searchPlaceholder')}
+                      className={cn(searchFieldClass, 'h-8 rounded-[12px]')}
+                    />
+                  </div>
+
+                  <WorkbenchHeaderActions className="app-channels-header-actions">
+                    <Button
+                      variant="outline"
+                      onClick={handleRefresh}
+                      disabled={gatewayStatus.state !== 'running' || refreshing}
+                      className="app-channels-header-refresh h-8 rounded-[12px] border-border/64 px-2.75 text-[11.5px] font-medium shadow-none transition-colors hover:bg-[hsl(var(--surface-hover)/0.52)] hover:text-foreground"
+                    >
+                      <RefreshCw className={cn('mr-2 h-3.5 w-3.5', refreshing && 'animate-spin')} />
+                      {t('refresh')}
+                    </Button>
+                  </WorkbenchHeaderActions>
+                </div>
+              )}
+            </div>
+          )}
+        />
 
         <WorkspacePageScrollArea data-testid="channels-scroll-area">
           {showGatewayStoppedBanner && (
@@ -1211,9 +1259,6 @@ export function Channels() {
           <div ref={contentRef} className="min-w-0">
             {layoutMode === 'board' ? (
               <ChannelEntryBoard
-                query={boardQuery}
-                queryPlaceholder={t('searchPlaceholder')}
-                onQueryChange={setBoardQuery}
                 sections={[
                   {
                     id: 'configured',
@@ -1256,8 +1301,8 @@ export function Channels() {
                       </div>
                       <Button
                         size="sm"
-                        variant="outline"
-                        className="h-8 rounded-[11px] px-2.5 text-[11.5px] text-foreground/78 shadow-none hover:text-foreground"
+                        variant="ghost"
+                        className="h-7.5 rounded-[10px] px-2.25 text-[11.5px] font-medium text-foreground/64 shadow-none transition-colors hover:bg-[hsl(var(--surface-hover)/0.42)] hover:text-foreground"
                         onClick={() => {
                           const nextChannel = unsupportedGroups[0] || allChannelTypes[0];
                           if (nextChannel) {
@@ -1265,22 +1310,12 @@ export function Channels() {
                           }
                         }}
                       >
-                        <Plus className="mr-1 h-3.5 w-3.5" />
+                        <Plus className="mr-1 h-3.25 w-3.25" />
                         {t('addChannel')}
                       </Button>
                     </div>
 
-                    <div className="relative mt-2.5">
-                      <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/68" />
-                      <Input
-                        value={railQuery}
-                        onChange={(event) => setRailQuery(event.target.value)}
-                        placeholder={t('searchPlaceholder')}
-                        className={searchFieldClass}
-                      />
-                    </div>
-
-                    <div className="mt-3 space-y-2.5">
+                    <div className="mt-2.5 space-y-2.5">
                       {configuredFilteredChannelTypes.length > 0 && (
                         <div className="space-y-1.5">
                           <p className={sectionLabelClass}>{t('configuredSection')}</p>

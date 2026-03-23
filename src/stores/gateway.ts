@@ -6,6 +6,13 @@ import { create } from 'zustand';
 import { hostApiFetch } from '@/lib/host-api';
 import { invokeIpc } from '@/lib/api-client';
 import { subscribeHostEvent } from '@/lib/host-events';
+import {
+  addExecApproval,
+  parseExecApprovalRequested,
+  parseExecApprovalResolved,
+  removeExecApproval,
+  type ExecApprovalRequest,
+} from '@/lib/exec-approval-queue';
 import type { GatewayStatus } from '../types/gateway';
 
 let gatewayInitPromise: Promise<void> | null = null;
@@ -28,6 +35,7 @@ interface GatewayState {
   health: GatewayHealth | null;
   isInitialized: boolean;
   lastError: string | null;
+  execApprovalQueue: ExecApprovalRequest[];
   init: () => Promise<void>;
   start: () => Promise<void>;
   stop: () => Promise<void>;
@@ -100,7 +108,31 @@ function maybeLoadHistory(
 
 function handleGatewayNotification(notification: { method?: string; params?: Record<string, unknown> } | undefined): void {
   const payload = notification;
-  if (!payload || payload.method !== 'agent' || !payload.params || typeof payload.params !== 'object') {
+  if (!payload || !payload.params || typeof payload.params !== 'object') {
+    return;
+  }
+
+  if (payload.method === 'exec.approval.requested') {
+    const requested = parseExecApprovalRequested(payload.params);
+    if (requested) {
+      useGatewayStore.setState((state) => ({
+        execApprovalQueue: addExecApproval(state.execApprovalQueue, requested),
+      }));
+    }
+    return;
+  }
+
+  if (payload.method === 'exec.approval.resolved') {
+    const resolved = parseExecApprovalResolved(payload.params);
+    if (resolved) {
+      useGatewayStore.setState((state) => ({
+        execApprovalQueue: removeExecApproval(state.execApprovalQueue, resolved.id),
+      }));
+    }
+    return;
+  }
+
+  if (payload.method !== 'agent') {
     return;
   }
 
@@ -230,6 +262,7 @@ export const useGatewayStore = create<GatewayState>((set, get) => ({
   health: null,
   isInitialized: false,
   lastError: null,
+  execApprovalQueue: [],
 
   init: async () => {
     if (get().isInitialized) return;

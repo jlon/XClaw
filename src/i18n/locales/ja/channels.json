@@ -1,6 +1,6 @@
 {
     "title": "メッセージングチャンネル",
-    "subtitle": "メッセージングチャンネル、接続済みアカウント、担当 Agent をまとめて管理します",
+    "subtitle": "チャンネル、アカウント、担当 Agent を管理します",
     "refresh": "更新",
     "addChannel": "チャンネルを追加",
     "searchPlaceholder": "チャンネルを検索",
@@ -10,6 +10,7 @@
     "accountListSummary": "接続済みアカウント {{count}} 件 · 既定は {{default}}",
     "stats": {
         "total": "全チャンネル",
+        "configured": "設定済み",
         "connected": "接続済み",
         "disconnected": "未接続"
     },

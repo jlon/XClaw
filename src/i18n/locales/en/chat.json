@@ -38,6 +38,16 @@
     "errors": {
         "requestTimeout": "This request timed out"
     },
+    "skillFlow": {
+        "skillsCenter": "Skills Center",
+        "readyTitle": "{{name}} is ready in this thread",
+        "readyDescription": "Confirm it here, then return to Skills whenever you need to keep browsing.",
+        "sentTitle": "{{name}} draft was sent to the current thread",
+        "sentDescription": "The draft is already in this thread, and you can still jump back to Skills after it runs.",
+        "submittedTitle": "{{name}} install request was submitted",
+        "submittedDescription": "Go back to Skills when you want to review, toggle, or keep managing it.",
+        "returnToSkills": "Back to Skills"
+    },
     "message": {
         "thinking": "Thinking",
         "toolProcessing": "Processing tool results…",

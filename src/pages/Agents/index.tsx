@@ -1,28 +1,33 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, Check, Plus, RefreshCw, Settings2, Trash2, X } from 'lucide-react';
+import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AlertCircle, ChevronDown, FolderUp, Plus, RefreshCw, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { AgentCardsPane } from '@/components/agents/AgentCardsPane';
+import { AgentLocalDetailPane } from '@/components/agents/AgentLocalDetailPane';
+import { AgentMarketCardsPane } from '@/components/agents/AgentMarketCardsPane';
+import { AgentMarketDetailPane } from '@/components/agents/AgentMarketDetailPane';
+import { AgentModeSwitch } from '@/components/agents/AgentModeSwitch';
+import type { AgentBrowseMode } from '@/components/agents/AgentModeSwitch';
+import { ChannelIcon } from '@/components/channels/ChannelIcon';
 import { WorkspacePageFrame, WorkspacePageLoading, WorkspacePageScrollArea, WorkspacePageShell } from '@/components/layout/WorkspacePage';
 import { useAgentsStore } from '@/stores/agents';
 import { useGatewayStore } from '@/stores/gateway';
 import { hostApiFetch } from '@/lib/host-api';
 import { subscribeHostEvent } from '@/lib/host-events';
-import { CHANNEL_ICONS, CHANNEL_NAMES, type ChannelType } from '@/types/channel';
+import { getModelOptionHint, getModelOptionLabel, normalizeModelOption, type ModelOption } from '@/lib/model-options';
+import { getProviderAccountRuntimeKey } from '@/lib/provider-accounts';
+import { CHANNEL_NAMES, type ChannelType } from '@/types/channel';
 import type { AgentSummary } from '@/types/agent';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import telegramIcon from '@/assets/channels/telegram.svg';
-import discordIcon from '@/assets/channels/discord.svg';
-import whatsappIcon from '@/assets/channels/whatsapp.svg';
-import dingtalkIcon from '@/assets/channels/dingtalk.svg';
-import feishuIcon from '@/assets/channels/feishu.svg';
-import wecomIcon from '@/assets/channels/wecom.svg';
-import qqIcon from '@/assets/channels/qq.svg';
+import type { AgentMarketCatalogItem } from '@/types/agent-market';
+import type { ProviderAccount } from '@/lib/providers';
 
 interface ChannelAccountItem {
   accountId: string;
@@ -41,16 +46,31 @@ interface ChannelGroupItem {
   accounts: ChannelAccountItem[];
 }
 
-const headerButtonClasses =
-  'h-8 rounded-[12px] px-3.5 text-[12.5px] font-medium shadow-none border-border/70 bg-transparent text-foreground/78 transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
+interface AgentWorkspaceFileItem {
+  relativePath: string;
+  displayName: string;
+  reserved: boolean;
+  editable: boolean;
+}
+
+interface AgentMarketCatalogResponse {
+  success: boolean;
+  version: number;
+  source: {
+    repo: string;
+    license: string;
+    catalogKind: string;
+    note: string;
+  };
+  items: AgentMarketCatalogItem[];
+}
+
 const fieldInputClasses =
   'h-[44px] rounded-xl text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30';
 const modalSurfaceClasses =
   'app-modal-surface w-full rounded-[20px]';
 const badgeClasses =
   'h-5 rounded-[10px] border border-border/70 bg-background/70 px-2 text-[10px] font-medium text-foreground/70 shadow-none';
-const panelCardClasses =
-  'group flex items-stretch gap-3 rounded-[13px] border border-transparent px-3 py-2.5 text-left transition-colors hover:border-border/60 hover:bg-[hsl(var(--surface-hover)/0.42)]';
 const modalTitleClasses =
   'text-[20px] md:text-[22px] font-semibold tracking-tight text-foreground';
 const modalDescriptionClasses =
@@ -59,9 +79,82 @@ const dialogIconButtonClasses =
   'h-8 w-8 rounded-[12px] border border-border/70 bg-transparent shadow-none text-muted-foreground transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
 const dialogActionButtonClasses =
   'h-9 rounded-[12px] px-4 text-[13px] font-medium shadow-none border-border/70 bg-transparent text-foreground/80 transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
+const browsePaneClasses =
+  'app-pane-surface min-h-[600px] rounded-[24px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.992)] p-4 shadow-[0_10px_24px_rgba(15,23,42,0.04),inset_0_1px_0_rgba(255,255,255,0.74)]';
+const detailWorkbenchClasses =
+  'app-pane-surface min-h-[600px] rounded-[24px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.995)] p-4 shadow-[0_14px_32px_rgba(15,23,42,0.05),inset_0_1px_0_rgba(255,255,255,0.78)]';
+const actionButtonClasses =
+  'h-9 rounded-[12px] border-border/70 bg-transparent px-3.5 text-[13px] font-medium text-foreground/76 shadow-none transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
+const pageHeaderClasses =
+  'mb-3 flex items-center justify-between gap-4';
+const pageTitleClasses =
+  'text-[19px] md:text-[20px] font-semibold leading-[1.05] tracking-tight text-foreground';
+type DetailTab = 'persona' | 'binding';
+
+function getAssignedChannels(
+  agentId: string,
+  channelGroups: ChannelGroupItem[],
+  t: (key: string, options?: Record<string, unknown>) => string,
+) {
+  return channelGroups.flatMap((group) =>
+    group.accounts
+      .filter((account) => account.agentId === agentId)
+      .map((account) => ({
+        channelType: group.channelType as ChannelType,
+        accountId: account.accountId,
+        name:
+          account.accountId === 'default'
+            ? t('settingsDialog.mainAccount')
+            : account.name || account.accountId,
+        error: account.lastError,
+      })),
+  );
+}
+
+function normalizeAgentQuery(value: string) {
+  return value.toLowerCase().normalize('NFKC').trim();
+}
+
+function getAgentSearchText(agent: AgentSummary) {
+  return [
+    agent.id,
+    agent.name,
+    agent.modelDisplay,
+    agent.workspace,
+    agent.agentDir,
+    agent.channelTypes.join(' '),
+  ]
+    .join(' ')
+    .toLowerCase();
+}
+
+function getPersistedAgentModelRef(agent: AgentSummary): string | null {
+  return agent.inheritedModel ? null : agent.modelRef ?? null;
+}
+
+function getMarketSearchText(item: AgentMarketCatalogItem) {
+  return [
+    item.id,
+    item.name,
+    item.role,
+    item.headline,
+    item.summary,
+    item.category,
+    item.installMode,
+    ...item.tags,
+    ...item.highlights,
+    ...item.detailSections.flatMap((section) => [section.title, section.body, ...section.items]),
+  ]
+    .join(' ')
+    .toLowerCase();
+}
 
 export function Agents() {
   const { t } = useTranslation('agents');
+  const resolveText = (key: string, fallback: string) => {
+    const value = t(key);
+    return value === key ? fallback : value;
+  };
   const gatewayStatus = useGatewayStore((state) => state.status);
   const lastGatewayStateRef = useRef(gatewayStatus.state);
   const {
@@ -75,8 +168,38 @@ export function Agents() {
   const [channelGroups, setChannelGroups] = useState<ChannelGroupItem[]>([]);
 
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [createMenuOpen, setCreateMenuOpen] = useState(false);
   const [activeAgentId, setActiveAgentId] = useState<string | null>(null);
+  const [settingsAgentId, setSettingsAgentId] = useState<string | null>(null);
   const [agentToDelete, setAgentToDelete] = useState<AgentSummary | null>(null);
+  const [browseMode, setBrowseMode] = useState<AgentBrowseMode>('agents');
+  const [detailTab, setDetailTab] = useState<DetailTab>('persona');
+  const [agentSearchValue, setAgentSearchValue] = useState('');
+  const [marketSearchValue, setMarketSearchValue] = useState('');
+  const [marketCategory, setMarketCategory] = useState('all');
+  const [selectedMarketItemId, setSelectedMarketItemId] = useState('');
+  const [marketItems, setMarketItems] = useState<AgentMarketCatalogItem[]>([]);
+  const [marketLoading, setMarketLoading] = useState(false);
+  const [_marketError, setMarketError] = useState<string | null>(null);
+  const [marketInstallName, setMarketInstallName] = useState('');
+  const [marketInstalling, setMarketInstalling] = useState(false);
+  const [workspaceFiles, setWorkspaceFiles] = useState<AgentWorkspaceFileItem[]>([]);
+  const [workspaceFilesLoading, setWorkspaceFilesLoading] = useState(false);
+  const [workspaceFilesError, setWorkspaceFilesError] = useState<string | null>(null);
+  const [selectedWorkspaceFilePath, setSelectedWorkspaceFilePath] = useState<string | null>(null);
+  const [workspaceEditorDialogOpen, setWorkspaceEditorDialogOpen] = useState(false);
+  const [workspaceFileContent, setWorkspaceFileContent] = useState('');
+  const [workspaceEditorValue, setWorkspaceEditorValue] = useState('');
+  const [workspaceDirty, setWorkspaceDirty] = useState(false);
+  const [workspaceSaving, setWorkspaceSaving] = useState(false);
+  const [workspacePendingSelection, setWorkspacePendingSelection] = useState<string | null>(null);
+  const [workspacePendingAgentId, setWorkspacePendingAgentId] = useState<string | null>(null);
+  const [workspacePendingDetailTab, setWorkspacePendingDetailTab] = useState<DetailTab | null>(null);
+  const [workspacePendingBrowseMode, setWorkspacePendingBrowseMode] = useState<AgentBrowseMode | null>(null);
+  const [workspacePendingRoute, setWorkspacePendingRoute] = useState<string | null>(null);
+  const [confirmDiscardChangesOpen, setConfirmDiscardChangesOpen] = useState(false);
+  const createMenuRef = useRef<HTMLDivElement | null>(null);
+  const marketSearchLabel = resolveText('workbench.browse.marketSearchPlaceholder', '搜索模板、角色或分类');
 
   const fetchChannelAccounts = useCallback(async () => {
     try {
@@ -87,8 +210,47 @@ export function Agents() {
     }
   }, []);
 
+  const loadWorkspaceFiles = useCallback(async (agentId: string) => {
+    setWorkspaceFilesLoading(true);
+    setWorkspaceFilesError(null);
+    try {
+      const response = await hostApiFetch<{ success: boolean; files: AgentWorkspaceFileItem[] }>(
+        `/api/agents/${encodeURIComponent(agentId)}/files?root=workspace`,
+      );
+      const nextFiles = response.files ?? [];
+      setWorkspaceFiles(nextFiles);
+      setSelectedWorkspaceFilePath((current) =>
+        nextFiles.find((file) => file.relativePath === current)?.relativePath ?? nextFiles[0]?.relativePath ?? null,
+      );
+    } catch (error) {
+      setWorkspaceFiles([]);
+      setSelectedWorkspaceFilePath(null);
+      setWorkspaceFileContent('');
+      setWorkspaceEditorValue('');
+      setWorkspaceFilesError(String(error));
+    } finally {
+      setWorkspaceFilesLoading(false);
+    }
+  }, []);
+
+  const loadMarketCatalog = useCallback(async () => {
+    setMarketLoading(true);
+    setMarketError(null);
+    try {
+      const response = await hostApiFetch<AgentMarketCatalogResponse>('/api/agent-market/catalog');
+      const nextItems = response.items ?? [];
+      setMarketItems(nextItems);
+      setSelectedMarketItemId((current) => nextItems.find((item) => item.id === current)?.id ?? nextItems[0]?.id ?? '');
+    } catch (error) {
+      setMarketItems([]);
+      setSelectedMarketItemId('');
+      setMarketError(String(error));
+    } finally {
+      setMarketLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void Promise.all([fetchAgents(), fetchChannelAccounts()]);
   }, [fetchAgents, fetchChannelAccounts]);
 
@@ -108,51 +270,380 @@ export function Agents() {
     lastGatewayStateRef.current = gatewayStatus.state;
 
     if (previousGatewayState !== 'running' && gatewayStatus.state === 'running') {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       void fetchChannelAccounts();
     }
   }, [fetchChannelAccounts, gatewayStatus.state]);
 
-  const activeAgent = useMemo(
-    () => agents.find((agent) => agent.id === activeAgentId) ?? null,
-    [activeAgentId, agents],
+  const resolvedActiveAgentId = activeAgentId && agents.some((agent) => agent.id === activeAgentId)
+    ? activeAgentId
+    : agents.find((agent) => agent.isDefault)?.id ?? agents[0]?.id ?? null;
+  const activeAgent = agents.find((agent) => agent.id === resolvedActiveAgentId) ?? null;
+  const resolvedMarketItemId = marketItems.some((item) => item.id === selectedMarketItemId)
+    ? selectedMarketItemId
+    : marketItems[0]?.id ?? '';
+  const selectedMarketItem = marketItems.find((item) => item.id === resolvedMarketItemId) ?? null;
+  const selectedWorkspaceFile = workspaceFiles.find((file) => file.relativePath === selectedWorkspaceFilePath) ?? null;
+  const activeAgentChannels = activeAgent ? getAssignedChannels(activeAgent.id, channelGroups, t) : [];
+  const workspaceHasUnsavedChanges =
+    browseMode === 'agents' && detailTab === 'persona' && Boolean(activeAgent) && Boolean(selectedWorkspaceFilePath) && workspaceDirty;
+  const normalizedAgentQuery = normalizeAgentQuery(agentSearchValue);
+  const normalizedMarketQuery = normalizeAgentQuery(marketSearchValue);
+  const marketCategoryStats = useMemo(() => {
+    const counts = new Map<string, { category: string; count: number; firstIndex: number }>();
+    marketItems.forEach((item, index) => {
+      const current = counts.get(item.category);
+      if (current) {
+        current.count += 1;
+        return;
+      }
+      counts.set(item.category, { category: item.category, count: 1, firstIndex: index });
+    });
+    return [...counts.values()].sort((left, right) =>
+      right.count - left.count || left.firstIndex - right.firstIndex,
+    );
+  }, [marketItems]);
+  const marketPrimaryCategories = useMemo(
+    () => marketCategoryStats.slice(0, 5).map((entry) => entry.category),
+    [marketCategoryStats],
   );
+  const marketSecondaryCategoryOptions = useMemo(
+    () =>
+      marketCategoryStats
+        .slice(5)
+        .map((entry) => ({ value: entry.category, label: `${entry.category} (${entry.count})` })),
+    [marketCategoryStats],
+  );
+  const filteredAgents = useMemo(
+    () => agents.filter((agent) => !normalizedAgentQuery || getAgentSearchText(agent).includes(normalizedAgentQuery)),
+    [agents, normalizedAgentQuery],
+  );
+  const filteredMarketItems = useMemo(
+    () =>
+      marketItems.filter(
+        (item) =>
+          (marketCategory === 'all' || item.category === marketCategory) &&
+          (!normalizedMarketQuery || getMarketSearchText(item).includes(normalizedMarketQuery)),
+      ),
+    [marketCategory, marketItems, normalizedMarketQuery],
+  );
+  useEffect(() => {
+    if (!createMenuOpen) {
+      return;
+    }
+    const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (!createMenuRef.current?.contains(target)) {
+        setCreateMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setCreateMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [createMenuOpen]);
+
+  useEffect(() => {
+    if (browseMode !== 'agents' || detailTab !== 'persona' || !activeAgent) {
+      return;
+    }
+
+    let cancelled = false;
+    const run = async () => {
+      try {
+        await loadWorkspaceFiles(activeAgent.id);
+        if (cancelled) {
+          return;
+        }
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
+        setWorkspaceFilesError(String(error));
+      }
+    };
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeAgent, browseMode, detailTab, loadWorkspaceFiles]);
+
+  useEffect(() => {
+    if (browseMode !== 'agents' || detailTab !== 'persona' || !activeAgent || !selectedWorkspaceFilePath) {
+      return;
+    }
+
+    let cancelled = false;
+    const run = async () => {
+      try {
+        const response = await hostApiFetch<{ success: boolean; content: string }>(
+          `/api/agents/${encodeURIComponent(activeAgent.id)}/files/content?root=workspace&relativePath=${encodeURIComponent(selectedWorkspaceFilePath)}`,
+        );
+        if (!cancelled) {
+          const nextContent = response.content ?? '';
+          setWorkspaceFileContent(nextContent);
+          setWorkspaceEditorValue(nextContent);
+          setWorkspaceDirty(false);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          const nextContent = String(error);
+          setWorkspaceFileContent(nextContent);
+          setWorkspaceEditorValue(nextContent);
+          setWorkspaceDirty(false);
+        }
+      }
+    };
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeAgent, browseMode, detailTab, selectedWorkspaceFilePath]);
+
+  useEffect(() => {
+    if (browseMode !== 'market' || marketItems.length > 0 || marketLoading) {
+      return;
+    }
+    void loadMarketCatalog();
+  }, [browseMode, loadMarketCatalog, marketItems.length, marketLoading]);
+
+  useEffect(() => {
+    if (!selectedMarketItem) {
+      setMarketInstallName('');
+      return;
+    }
+    setMarketInstallName((current) => current || selectedMarketItem.name || selectedMarketItem.id);
+  }, [selectedMarketItem]);
   const handleRefresh = () => {
     void Promise.all([fetchAgents(), fetchChannelAccounts()]);
   };
+
+  const resetPendingWorkspaceNavigation = useCallback(() => {
+    setWorkspacePendingSelection(null);
+    setWorkspacePendingAgentId(null);
+    setWorkspacePendingDetailTab(null);
+    setWorkspacePendingBrowseMode(null);
+    setWorkspacePendingRoute(null);
+  }, []);
+
+  const applyPendingWorkspaceNavigation = useCallback(() => {
+    if (workspacePendingBrowseMode) {
+      setBrowseMode(workspacePendingBrowseMode);
+    }
+    if (workspacePendingAgentId) {
+      setActiveAgentId(workspacePendingAgentId);
+      if (workspacePendingDetailTab) {
+        setDetailTab(workspacePendingDetailTab);
+      }
+    } else if (workspacePendingDetailTab) {
+      setDetailTab(workspacePendingDetailTab);
+    } else if (workspacePendingSelection !== null) {
+      setSelectedWorkspaceFilePath(workspacePendingSelection);
+    }
+    if (workspacePendingRoute) {
+      window.location.hash = workspacePendingRoute;
+    }
+    setWorkspaceDirty(false);
+    resetPendingWorkspaceNavigation();
+    setConfirmDiscardChangesOpen(false);
+  }, [
+    resetPendingWorkspaceNavigation,
+    workspacePendingAgentId,
+    workspacePendingBrowseMode,
+    workspacePendingDetailTab,
+    workspacePendingRoute,
+    workspacePendingSelection,
+  ]);
+
+  const requestDiscardChanges = useCallback((next: {
+    agentId?: string | null;
+    relativePath?: string | null;
+    detailTab?: DetailTab | null;
+    browseMode?: AgentBrowseMode | null;
+    route?: string | null;
+  }) => {
+    setWorkspacePendingAgentId(next.agentId ?? null);
+    setWorkspacePendingSelection(next.relativePath ?? null);
+    setWorkspacePendingDetailTab(next.detailTab ?? null);
+    setWorkspacePendingBrowseMode(next.browseMode ?? null);
+    setWorkspacePendingRoute(next.route ?? null);
+    setConfirmDiscardChangesOpen(true);
+  }, []);
+
+  const handleSelectAgent = useCallback((agent: AgentSummary) => {
+    if (workspaceHasUnsavedChanges) {
+      requestDiscardChanges({ agentId: agent.id, detailTab });
+      return;
+    }
+    setBrowseMode('agents');
+    setActiveAgentId(agent.id);
+  }, [detailTab, requestDiscardChanges, workspaceHasUnsavedChanges]);
+
+  const handleDetailTabChange = useCallback((nextTab: DetailTab) => {
+    if (nextTab === detailTab) {
+      return;
+    }
+    if (workspaceHasUnsavedChanges) {
+      requestDiscardChanges({ detailTab: nextTab });
+      return;
+    }
+    setDetailTab(nextTab);
+  }, [detailTab, requestDiscardChanges, workspaceHasUnsavedChanges]);
+
+  const handleBrowseModeChange = useCallback((nextMode: AgentBrowseMode) => {
+    if (nextMode === browseMode) {
+      return;
+    }
+    if (workspaceHasUnsavedChanges) {
+      requestDiscardChanges({ browseMode: nextMode });
+      return;
+    }
+    setBrowseMode(nextMode);
+  }, [browseMode, requestDiscardChanges, workspaceHasUnsavedChanges]);
+
+  const handleOpenWorkspaceEditor = useCallback((relativePath: string) => {
+    if (relativePath !== selectedWorkspaceFilePath && workspaceHasUnsavedChanges) {
+      requestDiscardChanges({ relativePath });
+      return;
+    }
+    if (relativePath !== selectedWorkspaceFilePath) {
+      setSelectedWorkspaceFilePath(relativePath);
+    }
+    setWorkspaceEditorDialogOpen(true);
+  }, [requestDiscardChanges, selectedWorkspaceFilePath, workspaceHasUnsavedChanges]);
+
+  const handleStartChat = useCallback((agentId: string) => {
+    const nextRoute = `#/new/${encodeURIComponent(agentId)}`;
+    if (workspaceHasUnsavedChanges) {
+      requestDiscardChanges({ route: nextRoute });
+      return;
+    }
+    window.location.hash = nextRoute;
+  }, [requestDiscardChanges, workspaceHasUnsavedChanges]);
+
+  const persistWorkspaceFile = useCallback(async () => {
+    if (!activeAgent || !selectedWorkspaceFilePath || !workspaceDirty) {
+      return true;
+    }
+    setWorkspaceSaving(true);
+    try {
+      await hostApiFetch<{ success: boolean }>(
+        `/api/agents/${encodeURIComponent(activeAgent.id)}/files/content`,
+        {
+          method: 'PUT',
+          body: JSON.stringify({
+            root: 'workspace',
+            relativePath: selectedWorkspaceFilePath,
+            content: workspaceEditorValue,
+          }),
+        },
+      );
+      setWorkspaceFileContent(workspaceEditorValue);
+      setWorkspaceDirty(false);
+      toast.success(t('toast.workspaceFileSaved'));
+      await loadWorkspaceFiles(activeAgent.id);
+      return true;
+    } catch (error) {
+      toast.error(t('toast.workspaceFileSaveFailed', { error: String(error) }));
+      return false;
+    } finally {
+      setWorkspaceSaving(false);
+    }
+  }, [activeAgent, loadWorkspaceFiles, selectedWorkspaceFilePath, t, workspaceDirty, workspaceEditorValue]);
+
+  const handleSaveWorkspaceFile = useCallback(async () => {
+    const saved = await persistWorkspaceFile();
+    if (saved) {
+      setWorkspaceEditorDialogOpen(false);
+    }
+  }, [persistWorkspaceFile]);
+
+  const handleCloseWorkspaceEditor = useCallback(() => {
+    setWorkspaceEditorValue(workspaceFileContent);
+    setWorkspaceDirty(false);
+    setWorkspaceEditorDialogOpen(false);
+  }, [workspaceFileContent]);
+
+  const handleSaveWorkspaceFileAndContinue = useCallback(async () => {
+    const saved = await persistWorkspaceFile();
+    if (saved) {
+      applyPendingWorkspaceNavigation();
+    }
+  }, [applyPendingWorkspaceNavigation, persistWorkspaceFile]);
+
+  const handleInstallFromMarket = useCallback(async () => {
+    if (!selectedMarketItem) {
+      return;
+    }
+    setMarketInstalling(true);
+    try {
+      const response = await hostApiFetch<{ success: boolean; createdAgentId: string }>(
+        '/api/agent-market/install',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            catalogItemId: selectedMarketItem.id,
+            name: marketInstallName.trim() || selectedMarketItem.name || selectedMarketItem.id,
+          }),
+        },
+      );
+      await fetchAgents();
+      setBrowseMode('agents');
+      setActiveAgentId(response.createdAgentId);
+      setDetailTab('persona');
+      setMarketInstallName('');
+      toast.success(t('toast.marketInstallSucceeded'));
+    } catch (error) {
+      toast.error(t('toast.marketInstallFailed', { error: String(error) }));
+    } finally {
+      setMarketInstalling(false);
+    }
+  }, [fetchAgents, marketInstallName, selectedMarketItem, t]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (browseMode !== 'agents' || detailTab !== 'persona' || !workspaceDirty || workspaceSaving) {
+        return;
+      }
+      if (!(event.metaKey || event.ctrlKey) || event.shiftKey || event.altKey) {
+        return;
+      }
+      if (event.key.toLowerCase() !== 's') {
+        return;
+      }
+      event.preventDefault();
+      void handleSaveWorkspaceFile();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [browseMode, detailTab, handleSaveWorkspaceFile, workspaceDirty, workspaceSaving]);
 
   if (loading) {
     return <WorkspacePageLoading />;
   }
 
   return (
-    <WorkspacePageFrame>
-      <WorkspacePageShell>
-        <div className="flex shrink-0 flex-col gap-4 mb-8 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-1.5">
-            <h1 className="text-[28px] md:text-[31px] text-foreground font-semibold tracking-tight">
-              {t('title')}
-            </h1>
-            <p className="max-w-2xl text-[13px] md:text-[14px] leading-[1.55] text-foreground/62 font-medium">
-              {t('subtitle')}
-            </p>
+      <WorkspacePageFrame>
+      <WorkspacePageShell style={{ paddingTop: '0.75rem', paddingBottom: '1rem' }}>
+        <div className={pageHeaderClasses}>
+          <div className="min-w-0 flex-1">
+            <h1 className={pageTitleClasses}>{t('workbench.title')}</h1>
           </div>
-          <div className="flex items-center gap-2.5 md:mt-1">
-            <Button
-              variant="outline"
-              onClick={handleRefresh}
-              className={headerButtonClasses}
-            >
-              <RefreshCw className="h-3.5 w-3.5 mr-2" />
-              {t('refresh')}
-            </Button>
-            <Button
-              onClick={() => setShowAddDialog(true)}
-              className="h-9 rounded-[12px] px-4 text-[13px] font-medium shadow-none"
-            >
-              <Plus className="h-3.5 w-3.5 mr-2" />
-              {t('addAgent')}
-            </Button>
+          <div className="flex shrink-0 items-center justify-end">
+            <AgentModeSwitch value={browseMode} onChange={handleBrowseModeChange} />
           </div>
         </div>
 
@@ -175,16 +666,200 @@ export function Agents() {
             </div>
           )}
 
-          <div className="space-y-2.5">
-            {agents.map((agent) => (
-              <AgentCard
-                key={agent.id}
-                agent={agent}
-                channelGroups={channelGroups}
-                onOpenSettings={() => setActiveAgentId(agent.id)}
-                onDelete={() => setAgentToDelete(agent)}
-              />
-            ))}
+          <div
+            data-testid="agents-workbench"
+            className={cn(
+              'grid min-h-[720px] gap-4',
+              browseMode === 'agents'
+                ? 'min-[980px]:grid-cols-[minmax(340px,0.84fr)_minmax(500px,1.16fr)] min-[1580px]:grid-cols-[minmax(360px,0.92fr)_minmax(540px,1.08fr)] min-[980px]:items-start'
+                : 'min-[980px]:grid-cols-[minmax(0,1.02fr)_minmax(420px,0.98fr)] min-[1500px]:grid-cols-[minmax(0,1.08fr)_560px] min-[980px]:items-start',
+            )}
+          >
+            <section
+              className={cn(
+                browsePaneClasses,
+                'flex min-h-0 flex-col',
+                browseMode === 'agents' && 'min-[980px]:min-w-0',
+              )}
+            >
+              <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+                {browseMode === 'agents' ? (
+                  <AgentCardsPane
+                    agents={filteredAgents}
+                    channelGroups={channelGroups}
+                    selectedAgentId={resolvedActiveAgentId}
+                    searchValue={agentSearchValue}
+                    onSearchValueChange={setAgentSearchValue}
+                    onSelectAgent={handleSelectAgent}
+                    onCreateAgent={() => setShowAddDialog(true)}
+                    onInstallFromMarket={() => handleBrowseModeChange('market')}
+                    actionButtonClassName={actionButtonClasses}
+                    badgeClassName={badgeClasses}
+                    toolbarSlot={
+                      <>
+                        <Button
+                          variant="outline"
+                          onClick={handleRefresh}
+                          className={actionButtonClasses}
+                        >
+                          <RefreshCw className="mr-2 h-3.5 w-3.5" />
+                          {t('refresh')}
+                        </Button>
+                        <CreateAgentLauncher
+                          open={createMenuOpen}
+                          menuRef={createMenuRef}
+                          triggerLabel={t('addAgent')}
+                          blankLabel={t('workbench.actions.createAgent')}
+                          marketLabel={t('workbench.actions.installFromMarket')}
+                          onToggle={() => setCreateMenuOpen((current) => !current)}
+                          onCreateBlank={() => {
+                            setCreateMenuOpen(false);
+                            setShowAddDialog(true);
+                          }}
+                          onInstallFromMarket={() => {
+                            setCreateMenuOpen(false);
+                            handleBrowseModeChange('market');
+                          }}
+                        />
+                      </>
+                    }
+                  />
+                ) : (
+                  <div className="space-y-4">
+                    <section className="sticky top-0 z-[1] rounded-[20px] border border-border/60 bg-[hsl(var(--surface-panel)/0.99)] px-4 py-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.52),0_12px_24px_rgba(15,23,42,0.03)] backdrop-blur-sm">
+                      <div className="flex flex-wrap items-center gap-2.5">
+                        <div className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-[14px] border border-border/65 bg-[hsl(var(--surface-elevated)/0.98)] px-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition-colors focus-within:border-ring/50 focus-within:bg-white">
+                          <Search className="h-4 w-4 shrink-0 text-foreground/34" />
+                          <Input
+                            value={marketSearchValue}
+                            onChange={(event) => setMarketSearchValue(event.target.value)}
+                            aria-label={marketSearchLabel}
+                            placeholder={marketSearchLabel}
+                            className="h-7 border-0 bg-transparent px-0 text-[13px] text-foreground shadow-none outline-none ring-0 ring-offset-0 placeholder:text-foreground/34 focus-visible:border-0 focus-visible:bg-transparent focus-visible:ring-0"
+                          />
+                        </div>
+                        <Button
+                          variant="outline"
+                          className={actionButtonClasses}
+                          onClick={() => void loadMarketCatalog()}
+                        >
+                          <RefreshCw className="mr-2 h-3.5 w-3.5" />
+                          {t('workbench.browse.refreshCatalog')}
+                        </Button>
+                      </div>
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setMarketCategory('all')}
+                          className={cn(
+                            'inline-flex h-7 items-center rounded-full border px-3 text-[11.5px] font-medium transition-colors',
+                            marketCategory === 'all'
+                              ? 'border-border/70 bg-[hsl(var(--surface-elevated)/0.98)] text-foreground'
+                              : 'border-border/55 bg-[hsl(var(--surface-panel)/0.86)] text-foreground/58 hover:text-foreground',
+                          )}
+                        >
+                          {t('workbench.market.categoryAll')}
+                        </button>
+                        {marketPrimaryCategories.map((category) => (
+                          <button
+                            key={category}
+                            type="button"
+                            onClick={() => setMarketCategory(category)}
+                            className={cn(
+                              'inline-flex h-7 items-center rounded-full border px-3 text-[11.5px] font-medium transition-colors',
+                              marketCategory === category
+                                ? 'border-border/70 bg-[hsl(var(--surface-elevated)/0.98)] text-foreground'
+                                : 'border-border/55 bg-[hsl(var(--surface-panel)/0.86)] text-foreground/58 hover:text-foreground',
+                            )}
+                          >
+                            {category}
+                          </button>
+                        ))}
+                        {marketSecondaryCategoryOptions.length > 0 ? (
+                          <Select
+                            aria-label={t('workbench.market.moreCategories')}
+                            value={marketPrimaryCategories.includes(marketCategory) ? '' : marketCategory}
+                            options={[
+                              { value: '', label: t('workbench.market.moreCategories') },
+                              ...marketSecondaryCategoryOptions,
+                            ]}
+                            onValueChange={(value) => {
+                              if (value) {
+                                setMarketCategory(value);
+                              }
+                            }}
+                            className="h-7 w-[148px] rounded-full border-border/55 bg-[hsl(var(--surface-panel)/0.86)] px-3 text-[11.5px] font-medium text-foreground/58 focus-visible:bg-[hsl(var(--surface-elevated)/0.98)]"
+                            contentClassName="min-w-[180px]"
+                          />
+                        ) : null}
+                      </div>
+                    </section>
+                    <AgentMarketCardsPane
+                      items={filteredMarketItems}
+                      selectedMarketItemId={resolvedMarketItemId}
+                      onSelectMarketItem={(item) => {
+                        setSelectedMarketItemId(item.id);
+                        setMarketInstallName(item.name || item.id);
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            </section>
+
+            <section
+              data-testid="agents-detail-workbench"
+              className={cn(
+                detailWorkbenchClasses,
+                'flex min-h-0 flex-col',
+                browseMode === 'agents' && 'min-[980px]:min-w-[460px]',
+              )}
+            >
+              {browseMode === 'agents' ? (
+                <>
+                  <AgentLocalDetailPane
+                    agent={activeAgent}
+                    activeChannels={activeAgentChannels}
+                    activeTab={detailTab}
+                    workspaceFiles={workspaceFiles}
+                    selectedWorkspaceFilePath={selectedWorkspaceFilePath}
+                    workspaceFilesLoading={workspaceFilesLoading}
+                    workspaceFilesError={workspaceFilesError}
+                    gatewayState={gatewayStatus.state}
+                    onTabChange={handleDetailTabChange}
+                    onCreateAgent={() => setShowAddDialog(true)}
+                    onInstallFromMarket={() => handleBrowseModeChange('market')}
+                    onEditAgent={() => {
+                      if (activeAgent) {
+                        setSettingsAgentId(activeAgent.id);
+                      }
+                    }}
+                    onDeleteAgent={() => {
+                      if (activeAgent) {
+                        setAgentToDelete(activeAgent);
+                      }
+                    }}
+                    onManageChannels={() => {
+                      window.location.hash = '#/channels';
+                    }}
+                    onStartChat={() => {
+                      if (activeAgent) {
+                        handleStartChat(activeAgent.id);
+                      }
+                    }}
+                    onEditWorkspaceFile={handleOpenWorkspaceEditor}
+                  />
+                </>
+              ) : (
+                  <AgentMarketDetailPane
+                  marketItem={selectedMarketItem}
+                  marketInstallName={marketInstallName}
+                  marketInstalling={marketInstalling}
+                  onInstall={() => void handleInstallFromMarket()}
+                  onInstallNameChange={setMarketInstallName}
+                />
+              )}
+            </section>
           </div>
         </WorkspacePageScrollArea>
       </WorkspacePageShell>
@@ -193,20 +868,25 @@ export function Agents() {
         <AddAgentDialog
           onClose={() => setShowAddDialog(false)}
           onCreate={async (name) => {
-            await createAgent(name);
+            const createdAgentId = await createAgent(name);
+            if (createdAgentId) {
+              setBrowseMode('agents');
+              setActiveAgentId(createdAgentId);
+              setDetailTab('persona');
+            }
             setShowAddDialog(false);
             toast.success(t('toast.agentCreated'));
           }}
         />
       )}
 
-      {activeAgent && (
+      {settingsAgentId && agents.find((agent) => agent.id === settingsAgentId) ? (
         <AgentSettingsModal
-          agent={activeAgent}
+          agent={agents.find((agent) => agent.id === settingsAgentId)!}
           channelGroups={channelGroups}
-          onClose={() => setActiveAgentId(null)}
+          onClose={() => setSettingsAgentId(null)}
         />
-      )}
+      ) : null}
 
       <ConfirmDialog
         open={!!agentToDelete}
@@ -221,8 +901,11 @@ export function Agents() {
             await deleteAgent(agentToDelete.id);
             const deletedId = agentToDelete.id;
             setAgentToDelete(null);
-            if (activeAgentId === deletedId) {
+            if (resolvedActiveAgentId === deletedId || activeAgentId === deletedId) {
               setActiveAgentId(null);
+            }
+            if (settingsAgentId === deletedId) {
+              setSettingsAgentId(null);
             }
             toast.success(t('toast.agentDeleted'));
           } catch (error) {
@@ -231,98 +914,86 @@ export function Agents() {
         }}
         onCancel={() => setAgentToDelete(null)}
       />
+
+      <WorkspaceDiscardDialog
+        open={confirmDiscardChangesOpen}
+        saving={workspaceSaving}
+        onCancel={() => {
+          setConfirmDiscardChangesOpen(false);
+          resetPendingWorkspaceNavigation();
+        }}
+        onDiscard={applyPendingWorkspaceNavigation}
+        onSaveAndContinue={() => void handleSaveWorkspaceFileAndContinue()}
+      />
+
+      {workspaceEditorDialogOpen && selectedWorkspaceFile ? (
+        <WorkspaceFileEditorDialog
+          title={selectedWorkspaceFile.displayName}
+          path={selectedWorkspaceFile.relativePath}
+          value={workspaceEditorValue}
+          dirty={workspaceDirty}
+          saving={workspaceSaving}
+          onChange={(value) => {
+            setWorkspaceEditorValue(value);
+            setWorkspaceDirty(value !== workspaceFileContent);
+          }}
+          onClose={handleCloseWorkspaceEditor}
+          onSave={() => void handleSaveWorkspaceFile()}
+        />
+      ) : null}
     </WorkspacePageFrame>
   );
 }
 
-function AgentCard({
-  agent,
-  channelGroups,
-  onOpenSettings,
-  onDelete,
+function CreateAgentLauncher({
+  open,
+  menuRef,
+  triggerLabel,
+  blankLabel,
+  marketLabel,
+  onToggle,
+  onCreateBlank,
+  onInstallFromMarket,
 }: {
-  agent: AgentSummary;
-  channelGroups: ChannelGroupItem[];
-  onOpenSettings: () => void;
-  onDelete: () => void;
+  open: boolean;
+  menuRef: RefObject<HTMLDivElement | null>;
+  triggerLabel: string;
+  blankLabel: string;
+  marketLabel: string;
+  onToggle: () => void;
+  onCreateBlank: () => void;
+  onInstallFromMarket: () => void;
 }) {
-  const { t } = useTranslation('agents');
-  const boundChannelAccounts = channelGroups.flatMap((group) =>
-    group.accounts
-      .filter((account) => account.agentId === agent.id)
-      .map((account) => {
-        const channelName = CHANNEL_NAMES[group.channelType as ChannelType] || group.channelType;
-        const accountLabel =
-          account.accountId === 'default'
-            ? t('settingsDialog.mainAccount')
-            : account.name || account.accountId;
-        return `${channelName} · ${accountLabel}`;
-      }),
-  );
-  const channelsText = boundChannelAccounts.length > 0
-    ? boundChannelAccounts.join(', ')
-    : t('none');
-  const agentInitial = agent.name.trim().charAt(0).toUpperCase() || 'A';
-
   return (
-    <div
-      className={cn(
-        panelCardClasses,
-        agent.isDefault && 'border-[hsl(var(--border-strong)/0.75)] bg-[hsl(var(--surface-panel)/0.9)]'
-      )}
-    >
-      <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border border-border/60 bg-[hsl(var(--surface-panel)/0.88)] text-[11px] font-semibold text-foreground/62 shadow-none">
-        {agentInitial}
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 min-w-0">
-              <h2 className="truncate text-[14.5px] font-semibold text-foreground">{agent.name}</h2>
-            </div>
-            <p className="mt-0.5 line-clamp-1 text-[12.5px] leading-[1.45] text-foreground/60">
-              {t('modelLine', {
-                model: agent.modelDisplay,
-                suffix: agent.inheritedModel ? ` (${t('inherited')})` : '',
-              })}
-            </p>
-          </div>
-          <div className="flex shrink-0 items-center gap-1.5 pt-0.5">
-            {agent.isDefault && (
-              <Badge
-                variant="secondary"
-                className={cn('flex items-center gap-1 px-2 py-0.5', badgeClasses, 'bg-[hsl(var(--surface-panel)/0.96)] text-foreground/76')}
-              >
-                <Check className="h-3 w-3" />
-                {t('defaultBadge')}
-              </Badge>
-            )}
-            {!agent.isDefault && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 rounded-[12px] text-muted-foreground/70 transition-all hover:bg-destructive/10 hover:text-destructive"
-                onClick={onDelete}
-                title={t('deleteAgent')}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 rounded-[12px] text-muted-foreground/70 transition-all hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground"
-              onClick={onOpenSettings}
-              title={t('settings')}
-            >
-              <Settings2 className="h-4 w-4" />
-            </Button>
-          </div>
+    <div ref={menuRef} className="relative">
+      <Button
+        onClick={onToggle}
+        className="h-9 rounded-[12px] px-4 text-[13px] font-medium shadow-none"
+      >
+        <Plus className="mr-2 h-3.5 w-3.5" />
+        {triggerLabel}
+        <ChevronDown className={cn('ml-2 h-3.5 w-3.5 transition-transform', open && 'rotate-180')} />
+      </Button>
+      {open ? (
+        <div className="absolute right-0 top-[calc(100%+8px)] z-20 min-w-[220px] rounded-[16px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.98)] p-2 shadow-[0_14px_40px_rgba(15,23,42,0.08)]">
+          <button
+            type="button"
+            onClick={onCreateBlank}
+            className="flex w-full items-center gap-2.5 rounded-[12px] px-3 py-2.5 text-left text-[13px] font-medium text-foreground/84 transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)]"
+          >
+            <Plus className="h-3.5 w-3.5 text-foreground/60" />
+            {blankLabel}
+          </button>
+          <button
+            type="button"
+            onClick={onInstallFromMarket}
+            className="mt-1 flex w-full items-center gap-2.5 rounded-[12px] px-3 py-2.5 text-left text-[13px] font-medium text-foreground/84 transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)]"
+          >
+            <FolderUp className="h-3.5 w-3.5 text-foreground/60" />
+            {marketLabel}
+          </button>
         </div>
-        <p className="text-[12.5px] leading-[1.45] text-foreground/56 line-clamp-1">
-          {t('channelsLine', { channels: channelsText })}
-        </p>
-      </div>
+      ) : null}
     </div>
   );
 }
@@ -331,24 +1002,129 @@ const inputClasses = fieldInputClasses;
 const labelClasses = 'text-[14px] font-semibold text-foreground/80';
 
 function ChannelLogo({ type }: { type: ChannelType }) {
-  switch (type) {
-    case 'telegram':
-      return <img src={telegramIcon} alt="Telegram" className="w-[20px] h-[20px] dark:invert" />;
-    case 'discord':
-      return <img src={discordIcon} alt="Discord" className="w-[20px] h-[20px] dark:invert" />;
-    case 'whatsapp':
-      return <img src={whatsappIcon} alt="WhatsApp" className="w-[20px] h-[20px] dark:invert" />;
-    case 'dingtalk':
-      return <img src={dingtalkIcon} alt="DingTalk" className="w-[20px] h-[20px] dark:invert" />;
-    case 'feishu':
-      return <img src={feishuIcon} alt="Feishu" className="w-[20px] h-[20px] dark:invert" />;
-    case 'wecom':
-      return <img src={wecomIcon} alt="WeCom" className="w-[20px] h-[20px] dark:invert" />;
-    case 'qqbot':
-      return <img src={qqIcon} alt="QQ" className="w-[20px] h-[20px] dark:invert" />;
-    default:
-      return <span className="text-[20px] leading-none">{CHANNEL_ICONS[type] || '💬'}</span>;
-  }
+  return <ChannelIcon type={type} size={20} />;
+}
+
+function WorkspaceFileEditorDialog({
+  title,
+  path,
+  value,
+  dirty,
+  saving,
+  onChange,
+  onClose,
+  onSave,
+}: {
+  title: string;
+  path: string;
+  value: string;
+  dirty: boolean;
+  saving: boolean;
+  onChange: (value: string) => void;
+  onClose: () => void;
+  onSave: () => void;
+}) {
+  const { t } = useTranslation('agents');
+
+  return (
+    <div className="app-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className={cn(modalSurfaceClasses, 'max-w-3xl overflow-hidden')}>
+        <div className="flex items-start justify-between gap-4 border-b border-border/70 px-6 py-5">
+          <div>
+            <h2 className={modalTitleClasses}>{t('workbench.persona.editorDialog.title')}</h2>
+            <p className={modalDescriptionClasses}>{title}</p>
+            <p className="mt-1 text-[11.5px] leading-[1.5] text-foreground/46">{path}</p>
+          </div>
+          <Button variant="ghost" size="icon" onClick={onClose} className={dialogIconButtonClasses}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="space-y-5 px-6 py-5">
+          <Textarea
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            placeholder={t('workbench.persona.noContent')}
+            className="min-h-[420px] resize-none rounded-[16px] border-border/55 bg-[hsl(var(--surface-elevated)/0.995)] px-3.5 py-3 text-[12.5px] leading-[1.75] text-foreground/84 shadow-[inset_0_1px_0_rgba(255,255,255,0.76)]"
+          />
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className={dialogActionButtonClasses}
+            >
+              {t('common:actions.cancel')}
+            </Button>
+            <Button
+              onClick={onSave}
+              disabled={saving || !dirty}
+              className="h-9 rounded-[12px] px-4 text-[13px] font-medium shadow-none"
+            >
+              {saving ? t('workbench.persona.saving') : t('workbench.persona.saveAction')}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WorkspaceDiscardDialog({
+  open,
+  saving,
+  onCancel,
+  onDiscard,
+  onSaveAndContinue,
+}: {
+  open: boolean;
+  saving: boolean;
+  onCancel: () => void;
+  onDiscard: () => void;
+  onSaveAndContinue: () => void;
+}) {
+  const { t } = useTranslation('agents');
+
+  if (!open) return null;
+
+  return (
+    <div className="app-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className={cn(modalSurfaceClasses, 'max-w-md overflow-hidden')}>
+        <div className="flex items-start justify-between gap-4 border-b border-border/70 px-6 py-5">
+          <div>
+            <h2 className={modalTitleClasses}>{t('workbench.persona.discardDialog.title')}</h2>
+            <p className={modalDescriptionClasses}>{t('workbench.persona.discardDialog.message')}</p>
+          </div>
+          <Button variant="ghost" size="icon" onClick={onCancel} className={dialogIconButtonClasses}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="flex justify-end gap-2 px-6 py-5">
+          <Button
+            variant="outline"
+            onClick={onCancel}
+            disabled={saving}
+            className={dialogActionButtonClasses}
+          >
+            {t('common:actions.cancel')}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={onDiscard}
+            disabled={saving}
+            className={cn(dialogActionButtonClasses, 'hover:bg-destructive/10 hover:text-destructive')}
+          >
+            {t('workbench.persona.discardDialog.confirm')}
+          </Button>
+          <Button
+            onClick={onSaveAndContinue}
+            disabled={saving}
+            className="h-9 rounded-[12px] px-4 text-[13px] font-medium shadow-none"
+          >
+            {saving ? t('workbench.persona.saving') : t('workbench.persona.discardDialog.saveAndContinue')}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function AddAgentDialog({
@@ -435,26 +1211,170 @@ function AgentSettingsModal({
   agent: AgentSummary;
   channelGroups: ChannelGroupItem[];
   onClose: () => void;
-  }) {
+}) {
   const { t } = useTranslation('agents');
+  const gatewayRpc = useGatewayStore((state) => state.rpc);
   const { updateAgent } = useAgentsStore();
   const [name, setName] = useState(agent.name);
-  const [savingName, setSavingName] = useState(false);
+  const [selectedModelRef, setSelectedModelRef] = useState<string | null>(getPersistedAgentModelRef(agent));
+  const [useDefaultModel, setUseDefaultModel] = useState(getPersistedAgentModelRef(agent) === null);
+  const [modelPickerOpen, setModelPickerOpen] = useState(false);
+  const [modelSearchValue, setModelSearchValue] = useState('');
+  const [models, setModels] = useState<ModelOption[]>([]);
+  const [modelsLoading, setModelsLoading] = useState(false);
+  const [modelsLoadError, setModelsLoadError] = useState<string | null>(null);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const modelPickerRef = useRef<HTMLDivElement | null>(null);
+  const persistedModelRef = getPersistedAgentModelRef(agent);
 
   useEffect(() => {
     setName(agent.name);
-  }, [agent.name]);
+    setSelectedModelRef(persistedModelRef);
+    setUseDefaultModel(persistedModelRef === null);
+    setModelPickerOpen(false);
+    setModelSearchValue('');
+  }, [agent.name, persistedModelRef]);
 
-  const handleSaveName = async () => {
-    if (!name.trim() || name.trim() === agent.name) return;
-    setSavingName(true);
+  useEffect(() => {
+    if (!modelPickerOpen) {
+      return;
+    }
+    const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (!modelPickerRef.current?.contains(target)) {
+        setModelPickerOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setModelPickerOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [modelPickerOpen]);
+
+  const loadModels = useCallback(async () => {
+    setModelsLoading(true);
+    setModelsLoadError(null);
     try {
-      await updateAgent(agent.id, name.trim());
-      toast.success(t('toast.agentUpdated'));
+      const [response, providerAccounts] = await Promise.all([
+        gatewayRpc<{ models?: unknown[] }>('models.list', {}),
+        hostApiFetch<ProviderAccount[]>('/api/provider-accounts').catch(() => []),
+      ]);
+      const providerLabelMap = new Map(
+        (providerAccounts ?? []).map((account) => [getProviderAccountRuntimeKey(account), account.label]),
+      );
+      const nextModels = Array.isArray(response?.models)
+        ? response.models
+            .map((model, index) => ({
+              model: normalizeModelOption(model, providerLabelMap),
+              index,
+            }))
+            .filter((entry): entry is { model: ModelOption; index: number } => Boolean(entry.model))
+            .sort((left, right) => left.index - right.index)
+            .map((entry) => entry.model)
+        : [];
+      setModels(nextModels);
+    } catch (error) {
+      setModelsLoadError(String(error));
+    } finally {
+      setModelsLoading(false);
+    }
+  }, [gatewayRpc]);
+
+  useEffect(() => {
+    if (!modelPickerOpen) {
+      return;
+    }
+    void loadModels();
+  }, [loadModels, modelPickerOpen]);
+
+  useEffect(() => {
+    if (modelPickerOpen) {
+      return;
+    }
+    setModelSearchValue('');
+  }, [modelPickerOpen]);
+
+  const selectedModel = useMemo(
+    () => models.find((model) => model.ref === selectedModelRef) ?? null,
+    [models, selectedModelRef],
+  );
+  const filteredModels = useMemo(() => {
+    const normalizedQuery = modelSearchValue.trim().toLowerCase();
+    if (!normalizedQuery) {
+      return models;
+    }
+    return models.filter((model) =>
+      [
+        getModelOptionLabel(model),
+        getModelOptionHint(model) ?? '',
+        model.ref,
+        model.modelId ?? '',
+        model.vendorId ?? '',
+      ]
+        .join(' ')
+        .toLowerCase()
+        .includes(normalizedQuery),
+    );
+  }, [modelSearchValue, models]);
+  const orderedModels = useMemo(() => {
+    if (!selectedModelRef) {
+      return filteredModels;
+    }
+    const currentIndex = filteredModels.findIndex((model) => model.ref === selectedModelRef);
+    if (currentIndex <= 0) {
+      return filteredModels;
+    }
+    const nextModels = [...filteredModels];
+    const [currentModel] = nextModels.splice(currentIndex, 1);
+    return currentModel ? [currentModel, ...nextModels] : filteredModels;
+  }, [filteredModels, selectedModelRef]);
+  const currentModelLabel = useMemo(() => {
+    if (useDefaultModel) {
+      return agent.modelDisplay;
+    }
+    if (selectedModel) {
+      return getModelOptionLabel(selectedModel);
+    }
+    if (selectedModelRef?.trim()) {
+      const parts = selectedModelRef.trim().split('/');
+      return parts[parts.length - 1] || selectedModelRef.trim();
+    }
+    return agent.modelDisplay;
+  }, [agent.modelDisplay, selectedModel, selectedModelRef, useDefaultModel]);
+  const currentModelHint = useMemo(() => {
+    if (useDefaultModel) {
+      return t('settingsDialog.useDefaultModelDescription');
+    }
+    return selectedModel ? getModelOptionHint(selectedModel) : selectedModelRef;
+  }, [selectedModel, selectedModelRef, t, useDefaultModel]);
+  const trimmedName = name.trim() || agent.name;
+  const nextModelRef = useDefaultModel ? null : (selectedModelRef?.trim() || null);
+  const hasChanges = trimmedName !== agent.name || nextModelRef !== persistedModelRef;
+
+  const handleSaveSettings = async () => {
+    if (!hasChanges) {
+      onClose();
+      return;
+    }
+    setSavingSettings(true);
+    try {
+      const result = await updateAgent(agent.id, {
+        name: trimmedName,
+        modelRef: nextModelRef,
+      });
+      toast.success(t(result.applyingRuntime ? 'toast.agentUpdatedApplying' : 'toast.agentUpdated'));
+      onClose();
     } catch (error) {
       toast.error(t('toast.agentUpdateFailed', { error: String(error) }));
     } finally {
-      setSavingName(false);
+      setSavingSettings(false);
     }
   };
 
@@ -497,29 +1417,13 @@ function AgentSettingsModal({
           <div className="space-y-4">
             <div className="space-y-2.5">
               <Label htmlFor="agent-settings-name" className={labelClasses}>{t('settingsDialog.nameLabel')}</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="agent-settings-name"
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  readOnly={agent.isDefault}
-                  className={inputClasses}
-                />
-                {!agent.isDefault && (
-                  <Button
-                    variant="outline"
-                    onClick={() => void handleSaveName()}
-                    disabled={savingName || !name.trim() || name.trim() === agent.name}
-                    className="h-[44px] rounded-[12px] border-border/70 bg-transparent px-4 text-[13px] font-medium text-foreground/80 shadow-none transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground"
-                  >
-                    {savingName ? (
-                      <RefreshCw className="h-4 w-4 animate-spin" />
-                    ) : (
-                      t('common:actions.save')
-                    )}
-                  </Button>
-                )}
-              </div>
+              <Input
+                id="agent-settings-name"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                readOnly={agent.isDefault}
+                className={fieldInputClasses}
+              />
             </div>
 
             <div className="grid gap-3 md:grid-cols-2">
@@ -533,10 +1437,98 @@ function AgentSettingsModal({
                 <p className="text-[11px] font-medium text-muted-foreground/72">
                   {t('settingsDialog.modelLabel')}
                 </p>
-                <p className="text-[12.75px] text-foreground/82">
-                  {agent.modelDisplay}
-                  {agent.inheritedModel ? ` (${t('inherited')})` : ''}
-                </p>
+                <div ref={modelPickerRef} className="relative mt-1.5">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setModelPickerOpen((open) => !open)}
+                    disabled={savingSettings}
+                    className="h-[42px] w-full justify-between rounded-[12px] border-border/70 bg-[hsl(var(--surface-elevated)/0.96)] px-3 text-left text-[13px] font-medium text-foreground shadow-none transition-colors hover:bg-[hsl(var(--surface-hover)/0.42)]"
+                  >
+                    <span className="truncate">{currentModelLabel}</span>
+                    <ChevronDown className="ml-2 h-3.5 w-3.5 shrink-0 text-foreground/48" />
+                  </Button>
+                  <p className="mt-2 text-[11.5px] leading-[1.55] text-foreground/54">
+                    {t('settingsDialog.modelDescription')}
+                  </p>
+                  {currentModelHint ? (
+                    <p className="mt-1 text-[11.5px] leading-[1.55] text-foreground/42">{currentModelHint}</p>
+                  ) : null}
+                  {modelPickerOpen ? (
+                    <div className="absolute left-0 top-full z-20 mt-2 w-full overflow-hidden rounded-[14px] border border-border/70 bg-[hsl(var(--surface-elevated)/1)] p-1.5 shadow-[0_18px_42px_rgba(15,23,42,0.12)]">
+                      <div className="px-2 pb-2">
+                        <div className="relative">
+                          <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/55" />
+                          <input
+                            aria-label={t('settingsDialog.modelSearchPlaceholder')}
+                            value={modelSearchValue}
+                            placeholder={t('settingsDialog.modelSearchPlaceholder')}
+                            onChange={(event) => setModelSearchValue(event.target.value)}
+                            className="h-8 w-full rounded-[10px] border border-border/65 bg-[hsl(var(--surface-panel)/0.95)] pl-8.5 pr-3 text-[12px] text-foreground outline-none placeholder:text-foreground/36 focus:border-ring/55"
+                          />
+                        </div>
+                      </div>
+                      <div className="max-h-72 overflow-y-auto pr-0.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUseDefaultModel(true);
+                            setModelPickerOpen(false);
+                          }}
+                          className={cn(
+                            'flex w-full flex-col items-start rounded-[10px] px-3 py-2 text-left transition-[background-color,color] hover:bg-[hsl(var(--foreground)/0.032)]',
+                            useDefaultModel && 'bg-[hsl(var(--foreground)/0.032)]',
+                          )}
+                        >
+                          <span className="text-[12.5px] font-medium text-foreground/92">{t('settingsDialog.useDefaultModel')}</span>
+                          <span className="text-[10.5px] text-muted-foreground/72">{t('settingsDialog.useDefaultModelDescription')}</span>
+                        </button>
+                        {modelsLoading ? (
+                          <div className="px-3 py-6 text-center text-[12px] text-muted-foreground">
+                            {t('settingsDialog.modelsLoading')}
+                          </div>
+                        ) : null}
+                        {!modelsLoading && modelsLoadError ? (
+                          <div className="px-3 py-6 text-center text-[12px] text-destructive">
+                            {t('settingsDialog.modelsLoadFailed')}
+                          </div>
+                        ) : null}
+                        {!modelsLoading && !modelsLoadError
+                          ? orderedModels.map((model) => (
+                              <button
+                                key={model.ref}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedModelRef(model.ref);
+                                  setUseDefaultModel(false);
+                                  setModelPickerOpen(false);
+                                }}
+                                className={cn(
+                                  'flex w-full flex-col items-start rounded-[10px] px-3 py-2 text-left transition-[background-color,color] hover:bg-[hsl(var(--foreground)/0.032)]',
+                                  !useDefaultModel && model.ref === selectedModelRef && 'bg-[hsl(var(--foreground)/0.032)]',
+                                )}
+                              >
+                                <span className="text-[12.5px] font-medium text-foreground/92">{getModelOptionLabel(model)}</span>
+                                {getModelOptionHint(model) ? (
+                                  <span className="text-[10.5px] text-muted-foreground/72">{getModelOptionHint(model)}</span>
+                                ) : null}
+                              </button>
+                            ))
+                          : null}
+                        {!modelsLoading && !modelsLoadError && models.length === 0 ? (
+                          <div className="px-3 py-6 text-center text-[12px] text-muted-foreground">
+                            {t('settingsDialog.modelsEmpty')}
+                          </div>
+                        ) : null}
+                        {!modelsLoading && !modelsLoadError && models.length > 0 && orderedModels.length === 0 ? (
+                          <div className="px-3 py-6 text-center text-[12px] text-muted-foreground">
+                            {t('settingsDialog.modelsEmptySearch')}
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
               </div>
             </div>
           </div>
@@ -585,6 +1577,25 @@ function AgentSettingsModal({
             )}
           </div>
         </CardContent>
+        <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border/70 px-6 py-4">
+          <Button variant="outline" onClick={onClose} className={dialogActionButtonClasses}>
+            {t('common:actions.cancel')}
+          </Button>
+          <Button
+            onClick={() => void handleSaveSettings()}
+            disabled={savingSettings || !trimmedName || !hasChanges || (!useDefaultModel && !nextModelRef)}
+            className="h-9 rounded-[12px] px-4 text-[13px] font-medium shadow-none"
+          >
+            {savingSettings ? (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                {t('settingsDialog.savingAndApplying')}
+              </>
+            ) : (
+              t('settingsDialog.saveAndApply')
+            )}
+          </Button>
+        </div>
       </Card>
     </div>
   );

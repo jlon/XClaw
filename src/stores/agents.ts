@@ -12,8 +12,8 @@ interface AgentsState {
   loading: boolean;
   error: string | null;
   fetchAgents: () => Promise<void>;
-  createAgent: (name: string) => Promise<void>;
-  updateAgent: (agentId: string, name: string) => Promise<void>;
+  createAgent: (name: string) => Promise<string>;
+  updateAgent: (agentId: string, updates: { name: string; modelRef?: string | null }) => Promise<{ applyingRuntime: boolean }>;
   deleteAgent: (agentId: string) => Promise<void>;
   assignChannel: (agentId: string, channelType: ChannelType) => Promise<void>;
   removeChannel: (agentId: string, channelType: ChannelType) => Promise<void>;
@@ -55,28 +55,30 @@ export const useAgentsStore = create<AgentsState>((set) => ({
   createAgent: async (name: string) => {
     set({ error: null });
     try {
-      const snapshot = await hostApiFetch<AgentsSnapshot & { success?: boolean }>('/api/agents', {
+      const snapshot = await hostApiFetch<AgentsSnapshot & { success?: boolean; createdAgentId?: string }>('/api/agents', {
         method: 'POST',
         body: JSON.stringify({ name }),
       });
       set(applySnapshot(snapshot));
+      return snapshot.createdAgentId ?? '';
     } catch (error) {
       set({ error: String(error) });
       throw error;
     }
   },
 
-  updateAgent: async (agentId: string, name: string) => {
+  updateAgent: async (agentId: string, updates: { name: string; modelRef?: string | null }) => {
     set({ error: null });
     try {
-      const snapshot = await hostApiFetch<AgentsSnapshot & { success?: boolean }>(
+      const snapshot = await hostApiFetch<AgentsSnapshot & { success?: boolean; applyingRuntime?: boolean }>(
         `/api/agents/${encodeURIComponent(agentId)}`,
         {
           method: 'PUT',
-          body: JSON.stringify({ name }),
+          body: JSON.stringify(updates),
         }
       );
       set(applySnapshot(snapshot));
+      return { applyingRuntime: Boolean(snapshot.applyingRuntime) };
     } catch (error) {
       set({ error: String(error) });
       throw error;

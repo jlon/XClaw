@@ -7,6 +7,7 @@ import { handleGatewayRoutes } from './routes/gateway';
 import { handleSettingsRoutes } from './routes/settings';
 import { handleProviderRoutes } from './routes/providers';
 import { handleAgentRoutes } from './routes/agents';
+import { handleAgentMarketRoutes } from './routes/agent-market';
 import { handleChannelRoutes } from './routes/channels';
 import { handleLogRoutes } from './routes/logs';
 import { handleUsageRoutes } from './routes/usage';
@@ -29,6 +30,7 @@ const routeHandlers: RouteHandler[] = [
   handleSettingsRoutes,
   handleProviderRoutes,
   handleAgentRoutes,
+  handleAgentMarketRoutes,
   handleChannelRoutes,
   handleSkillRoutes,
   handleFileRoutes,

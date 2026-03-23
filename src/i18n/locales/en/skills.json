@@ -1,6 +1,6 @@
 {
-    "title": "Skills",
-    "subtitle": "Browse and manage AI capabilities",
+    "title": "Skill Management",
+    "subtitle": "Provide your agents with reusable best practices and tools.",
     "refresh": "Refresh",
     "openFolder": "Open Skills Folder",
     "gatewayWarning": "Gateway is not running. Skills cannot be loaded without an active Gateway.",
@@ -13,13 +13,77 @@
         "builtIn": "Built-in ({{count}})",
         "marketplace": "Marketplace ({{count}})"
     },
-    "search": "Search skills...",
+    "search": "Search installed skills",
+    "addSkill": "Add Skill",
     "searchMarketplace": "Search marketplace...",
     "searchButton": "Search",
     "actions": {
         "enableVisible": "Enable Visible",
         "disableVisible": "Disable Visible",
-        "installSkill": "Install Skills"
+        "installSkill": "Install Skills",
+        "more": "More actions",
+        "viewDetails": "View details",
+        "openFolder": "Open folder",
+        "openReadme": "Open README"
+    },
+    "addMenu": {
+        "importGithub": "Import from GitHub",
+        "searchClawHub": "Search ClawHub",
+        "searchSkillHub": "Search SkillHub"
+    },
+    "summary": {
+        "total": "{{count}} skills",
+        "enabled": "{{count}} enabled",
+        "preinstalled": "{{count}} built-in"
+    },
+    "catalog": {
+        "descriptions": {
+            "agent-mbti": "An AI agent personality and configuration system for establishing a consistent collaboration style.",
+            "algorithmic-art": "A p5.js-based generative art skill for producing repeatable visuals from seeds and parameters.",
+            "analytics-dashboard": "Aggregates metrics and monitoring signals to help you assemble business dashboards quickly.",
+            "arxiv-reader": "A conversational reading and summarization skill for ArXiv papers.",
+            "arxiv-watcher": "Tracks new ArXiv papers continuously and organizes them into a usable research watchlist.",
+            "brand-guidelines": "Turns brand colors, typography, and usage rules into reusable design constraints.",
+            "pdf": "Extracts content, tables, and structured text from PDF files for downstream analysis.",
+            "xlsx": "Reads and analyzes workbook, worksheet, and cell data from Excel files.",
+            "docx": "Parses Word documents, headings, and paragraph text for rewriting and summarization.",
+            "pptx": "Reads slide structure, titles, and text from presentations to surface the key points quickly.",
+            "find-skills": "Finds the most relevant skills for your current task and suggests concrete install paths.",
+            "self-improving-agent": "Helps an agent retain feedback, summarize lessons, and improve future execution.",
+            "tavily-search": "Uses Tavily search to fetch live web information for research-heavy tasks.",
+            "brave-web-search": "Uses Brave Search for web retrieval and returns results that are friendly to agent workflows."
+        }
+    },
+    "card": {
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "updating": "Updating"
+    },
+    "empty": {
+        "searchTitle": "No matching skills",
+        "defaultTitle": "No skills here yet",
+        "searchSubtitle": "Try another keyword or add a new source from Add Skill.",
+        "defaultSubtitle": "Import from GitHub, or search ClawHub / SkillHub."
+    },
+    "providerSearch": {
+        "subtitle": "Send the selected skill into chat to continue installation.",
+        "visitCatalog": "Open {{name}}",
+        "placeholder": "Search skill catalogs",
+        "loading": "Searching catalogs…",
+        "emptyQuery": "No matching skills",
+        "emptyDefault": "Type a keyword or browse suggested skills",
+        "emptyHint": "This step does not install directly. It forwards a reliable draft into chat.",
+        "openSource": "Open",
+        "sendToChat": "Send to Chat"
+    },
+    "githubImport": {
+        "title": "Import from GitHub",
+        "subtitle": "Enter a repository URL and send a fixed import draft into chat.",
+        "repositoryLabel": "Repository URL",
+        "pathLabel": "Repository path (optional)",
+        "refLabel": "Branch or commit (optional)",
+        "sendToChat": "Send to Chat",
+        "validation": "Enter a GitHub repository URL first."
     },
     "noSkills": "No skills found",
     "noSkillsSearch": "Try a different search term",
@@ -59,6 +123,7 @@
     },
     "source": {
         "badge": {
+            "xclawPreinstalled": "Built-in",
             "bundled": "Bundled",
             "managed": "Managed",
             "workspace": "Workspace",

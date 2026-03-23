@@ -9,14 +9,16 @@ import { Progress } from '@/components/ui/progress';
 import { useUpdateStore } from '@/stores/update';
 import { useTranslation } from 'react-i18next';
 
-const updatePanelClass =
-  'space-y-4 rounded-[24px] border border-border/70 bg-[hsl(var(--surface-base)/0.92)] p-4 shadow-sm';
+const updatePanelClass = 'space-y-3';
+const summaryPanelClass =
+  'rounded-[14px] border border-border/60 bg-[hsl(var(--surface-panel)/0.96)] p-4';
 const statusRowClass =
-  'flex items-center justify-between rounded-2xl border border-border/60 bg-[hsl(var(--surface-base)/0.84)] px-4 py-3';
+  'flex flex-col gap-3 rounded-[14px] border border-border/60 bg-[hsl(var(--surface-base)/0.92)] px-4 py-4 sm:flex-row sm:items-center sm:justify-between';
 const infoPanelClass =
-  'rounded-2xl border border-border/60 bg-[hsl(var(--surface-base)/0.86)] p-4';
+  'rounded-[14px] border border-border/60 bg-[hsl(var(--surface-base)/0.92)] p-4';
 const errorPanelClass =
-  'rounded-2xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive';
+  'rounded-[14px] border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive';
+const infoSectionTitleClass = 'text-[12px] font-semibold uppercase tracking-[0.16em] text-foreground/56';
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';
@@ -151,49 +153,57 @@ export function UpdateSettings() {
     return (
       <div className="flex items-center gap-2 text-muted-foreground">
         <Loader2 className="h-4 w-4 animate-spin" />
-        <span>Loading...</span>
+        <span>{t('common:status.loading')}</span>
       </div>
     );
   }
 
   return (
     <div className={updatePanelClass}>
-      {/* Current Version */}
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <p className="text-sm font-medium">{t('updates.currentVersion')}</p>
-          <p className="text-2xl font-bold">v{currentVersion}</p>
+      <div className={summaryPanelClass}>
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-foreground/56">
+              {t('updates.currentVersion')}
+            </p>
+            <p className="text-[26px] font-semibold tracking-tight text-foreground">v{currentVersion}</p>
+          </div>
+          <div className="mt-1">{renderStatusIcon()}</div>
         </div>
-        {renderStatusIcon()}
       </div>
 
-      {/* Status */}
       <div className={statusRowClass}>
         <p className="text-sm text-muted-foreground">{renderStatusText()}</p>
         {renderAction()}
       </div>
 
-      {/* Download Progress */}
       {status === 'downloading' && progress && (
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span>
-              {formatBytes(progress.transferred)} / {formatBytes(progress.total)}
-            </span>
-            <span>{formatBytes(progress.bytesPerSecond)}/s</span>
+        <div className={infoPanelClass}>
+          <div className="space-y-2">
+            <p className={infoSectionTitleClass}>{t('updates.action.downloading')}</p>
+            <div className="flex justify-between text-sm">
+              <span>
+                {formatBytes(progress.transferred)} / {formatBytes(progress.total)}
+              </span>
+              <span>{formatBytes(progress.bytesPerSecond)}/s</span>
+            </div>
+            <Progress value={progress.percent} className="h-2" />
+            <p className="text-xs text-muted-foreground text-center">
+              {t('updates.progressComplete', { percent: Math.round(progress.percent) })}
+            </p>
           </div>
-          <Progress value={progress.percent} className="h-2" />
-          <p className="text-xs text-muted-foreground text-center">
-            {Math.round(progress.percent)}% complete
-          </p>
         </div>
       )}
 
-      {/* Update Info */}
       {updateInfo && (status === 'available' || status === 'downloaded') && (
         <div className={infoPanelClass}>
           <div className="flex items-center justify-between">
-            <p className="font-medium">Version {updateInfo.version}</p>
+            <div className="space-y-1">
+              <p className={infoSectionTitleClass}>{t('updates.whatsNew')}</p>
+              <p className="text-[15px] font-semibold text-foreground">
+                {t('updates.releaseVersion', { version: updateInfo.version })}
+              </p>
+            </div>
             {updateInfo.releaseDate && (
               <p className="text-sm text-muted-foreground">
                 {new Date(updateInfo.releaseDate).toLocaleDateString()}
@@ -201,23 +211,20 @@ export function UpdateSettings() {
             )}
           </div>
           {updateInfo.releaseNotes && (
-            <div className="text-sm text-muted-foreground prose prose-sm max-w-none">
-              <p className="font-medium text-foreground mb-1">{t('updates.whatsNew')}</p>
+            <div className="mt-4 rounded-[12px] border border-border/60 bg-[hsl(var(--surface-panel)/0.94)] p-4 text-[13px] leading-6 text-muted-foreground">
               <p className="whitespace-pre-wrap">{updateInfo.releaseNotes}</p>
             </div>
           )}
         </div>
       )}
 
-      {/* Error Details */}
       {status === 'error' && error && (
         <div className={errorPanelClass}>
-          <p className="font-medium mb-1">{t('updates.errorDetails')}</p>
-          <p>{error}</p>
+          <p className="mb-1 text-[12px] font-semibold uppercase tracking-[0.16em]">{t('updates.errorDetails')}</p>
+          <p className="text-[13px] leading-6">{error}</p>
         </div>
       )}
 
-      {/* Help Text */}
       <p className="text-xs text-muted-foreground">
         {t('updates.help')}
       </p>

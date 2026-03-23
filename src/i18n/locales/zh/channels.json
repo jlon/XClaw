@@ -1,6 +1,6 @@
 {
     "title": "消息频道",
-    "subtitle": "统一管理消息频道、接入账号和负责处理消息的 Agent",
+    "subtitle": "接入频道、账号与负责处理消息的智能体",
     "refresh": "刷新",
     "addChannel": "添加频道",
     "searchPlaceholder": "搜索频道",
@@ -10,6 +10,7 @@
     "accountListSummary": "已接入 {{count}} 个账号，默认使用 {{default}}",
     "stats": {
         "total": "频道总数",
+        "configured": "已接入",
         "connected": "已连接",
         "disconnected": "未连接"
     },

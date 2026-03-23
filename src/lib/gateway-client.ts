@@ -159,7 +159,7 @@ class GatewayBrowserClient {
                 },
                 caps: [],
                 role: 'operator',
-                scopes: ['operator.admin'],
+                scopes: ['operator.admin', 'operator.approvals'],
               },
             };
             ws.send(JSON.stringify(connectFrame));

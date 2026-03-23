@@ -29,6 +29,10 @@
       "local": "Local"
     },
     "sections": {
+      "basic": "Basic Information",
+      "connection": "Connection",
+      "credentials": "Credentials & Validation",
+      "fallbackStrategy": "Fallback Strategy",
       "model": "Model Settings",
       "fallback": "Fallback Settings"
     },
@@ -122,8 +126,11 @@
     "description": "OpenClaw Gateway settings",
     "status": "Status",
     "port": "Port",
+    "portDesc": "Host API and Gateway coordinate through this local port.",
     "logs": "Logs",
     "appLogs": "Application Logs",
+    "logsRecent": "Shows the latest 100 lines of application logs by default.",
+    "logsCopied": "Logs copied",
     "openFolder": "Open Folder",
     "autoStart": "Auto-start Gateway",
     "autoStartDesc": "Start Gateway when XClaw launches",
@@ -172,6 +179,8 @@
       "check": "Check for Updates"
     },
     "currentVersion": "Current Version",
+    "releaseVersion": "Version {{version}}",
+    "progressComplete": "{{percent}}% complete",
     "whatsNew": "What's New:",
     "errorDetails": "Error Details:",
     "help": "When auto-update is enabled, updates are downloaded and installed automatically."
@@ -242,6 +251,7 @@
     "doctorStdout": "Stdout",
     "doctorStderr": "Stderr",
     "doctorOutputEmpty": "(empty)",
+    "rawDoctorOutput": "Raw Output",
     "wsDiagnostic": "WS Diagnostic Mode",
     "wsDiagnosticDesc": "Temporarily enable WS/HTTP fallback chain for gateway RPC debugging.",
     "wsDiagnosticEnabled": "WS diagnostic mode enabled",
@@ -253,6 +263,7 @@
     "telemetryErrors": "Errors",
     "telemetrySlow": "Slow (>=800ms)",
     "telemetryEmpty": "No telemetry yet",
+    "rawTelemetryEvents": "Raw Events",
     "telemetryCopied": "Telemetry copied",
     "telemetryCleared": "Telemetry cleared",
     "installCmd": "Install \"openclaw\" Command",

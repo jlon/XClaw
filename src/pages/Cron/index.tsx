@@ -32,7 +32,6 @@ import { ChannelIcon } from '@/components/channels/ChannelIcon';
 import { WorkspacePageFrame, WorkspacePageLoading, WorkspacePageScrollArea, WorkspacePageShell } from '@/components/layout/WorkspacePage';
 import { WorkbenchHeader } from '@/components/layout/WorkbenchHeader';
 import { WorkbenchHeaderActions } from '@/components/layout/WorkbenchHeaderActions';
-import { WorkbenchHeaderIcon } from '@/components/layout/WorkbenchHeaderIcon';
 import { WorkbenchHeaderTitleBlock } from '@/components/layout/WorkbenchHeaderTitleBlock';
 import { WorkbenchSummaryStrip } from '@/components/layout/WorkbenchSummaryStrip';
 import { useCronStore } from '@/stores/cron';
@@ -667,11 +666,6 @@ export function Cron() {
       <WorkspacePageShell className="app-cron-shell">
         <WorkbenchHeader
           className="app-cron-header"
-          icon={(
-            <WorkbenchHeaderIcon tone="plum" className="app-cron-header-icon">
-              <Clock className="h-[18px] w-[18px]" strokeWidth={2.1} />
-            </WorkbenchHeaderIcon>
-          )}
           titleBlock={(
             <WorkbenchHeaderTitleBlock
               title={t('title')}

@@ -81,7 +81,7 @@ Building AI agents shouldn't require mastering the command line. XClaw was desig
 | Complex CLI setup | One-click installation with guided setup wizard |
 | Configuration files | Visual settings with real-time validation |
 | Process management | Automatic gateway lifecycle management |
-| Multiple AI providers | Unified provider configuration panel |
+| Multiple AI providers | Adaptive provider cards with token intelligence workbench |
 | Skill/plugin installation | Built-in skill marketplace and management |
 
 ### OpenClaw Inside

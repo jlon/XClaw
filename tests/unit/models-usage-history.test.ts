@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   filterUsageHistoryByWindow,
   groupUsageHistory,
+  groupUsageHistoryByWindow,
+  USAGE_BREAKDOWN_LIMIT,
   type UsageHistoryEntry,
 } from '@/pages/Models/usage-history';
 
@@ -9,6 +11,20 @@ function createEntry(day: number, totalTokens: number): UsageHistoryEntry {
   return {
     timestamp: `2026-03-${String(day).padStart(2, '0')}T12:00:00.000Z`,
     sessionId: `session-${day}`,
+    agentId: 'main',
+    model: 'gpt-5',
+    inputTokens: totalTokens,
+    outputTokens: 0,
+    cacheReadTokens: 0,
+    cacheWriteTokens: 0,
+    totalTokens,
+  };
+}
+
+function createDatedEntry(timestamp: string, totalTokens: number): UsageHistoryEntry {
+  return {
+    timestamp,
+    sessionId: `session-${timestamp}`,
     agentId: 'main',
     model: 'gpt-5',
     inputTokens: totalTokens,
@@ -38,9 +54,26 @@ describe('models usage history helpers', () => {
 
     const groups = groupUsageHistory(entries, 'model');
 
-    expect(groups).toHaveLength(8);
+    expect(USAGE_BREAKDOWN_LIMIT).toBe(8);
+    expect(groups).toHaveLength(USAGE_BREAKDOWN_LIMIT);
     expect(groups[0]?.label).toBe('model-10');
     expect(groups[7]?.label).toBe('model-3');
+  });
+
+  it('enforces all window aggregation by month instead of keeping every day bucket', () => {
+    const entries = [
+      createDatedEntry('2026-01-05T12:00:00.000Z', 5),
+      createDatedEntry('2026-01-18T12:00:00.000Z', 7),
+      createDatedEntry('2026-02-02T12:00:00.000Z', 11),
+      createDatedEntry('2026-02-20T12:00:00.000Z', 13),
+      createDatedEntry('2026-03-09T12:00:00.000Z', 17),
+    ];
+
+    const groups = groupUsageHistoryByWindow(entries, 'all', 'day');
+
+    expect(groups).toHaveLength(3);
+    expect(groups.map((group) => group.totalTokens)).toEqual([12, 24, 17]);
+    expect(groups.map((group) => group.label)).toEqual(['2026-01', '2026-02', '2026-03']);
   });
 
   it('filters the last 30 days relative to now instead of calendar month boundaries', () => {

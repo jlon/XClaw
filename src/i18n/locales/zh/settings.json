@@ -29,6 +29,10 @@
       "local": "本地"
     },
     "sections": {
+      "basic": "基础信息",
+      "connection": "接入配置",
+      "credentials": "凭证与验证",
+      "fallbackStrategy": "回退策略",
       "model": "模型配置",
       "fallback": "回退配置"
     },
@@ -122,8 +126,11 @@
     "description": "OpenClaw 网关设置",
     "status": "状态",
     "port": "端口",
+    "portDesc": "Host API 与 Gateway 通过本地端口联动。",
     "logs": "日志",
     "appLogs": "应用日志",
+    "logsRecent": "默认显示最近 100 行应用日志。",
+    "logsCopied": "日志已复制",
     "openFolder": "打开文件夹",
     "autoStart": "自动启动网关",
     "autoStartDesc": "XClaw 启动时自动启动网关",
@@ -172,6 +179,8 @@
       "check": "检查更新"
     },
     "currentVersion": "当前版本",
+    "releaseVersion": "版本 {{version}}",
+    "progressComplete": "已完成 {{percent}}%",
     "whatsNew": "更新内容：",
     "errorDetails": "错误详情：",
     "help": "开启自动更新后，更新将自动下载并安装。"
@@ -242,6 +251,7 @@
     "doctorStdout": "标准输出",
     "doctorStderr": "标准错误",
     "doctorOutputEmpty": "（空）",
+    "rawDoctorOutput": "原始输出",
     "wsDiagnostic": "WS 诊断模式",
     "wsDiagnosticDesc": "临时启用 WS/HTTP 回退链，用于网关 RPC 调试。",
     "wsDiagnosticEnabled": "已启用 WS 诊断模式",
@@ -253,6 +263,7 @@
     "telemetryErrors": "错误",
     "telemetrySlow": "慢请求（>=800ms）",
     "telemetryEmpty": "暂无埋点",
+    "rawTelemetryEvents": "原始事件",
     "telemetryCopied": "埋点已复制",
     "telemetryCleared": "埋点已清空",
     "installCmd": "安装 \"openclaw\" 命令",

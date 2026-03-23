@@ -11,7 +11,43 @@
     "gatewayNotRunning": "网关未运行",
     "models": {
         "title": "模型",
-        "subtitle": "管理您的 AI 提供商并监控 Token 用量"
+        "subtitle": "管理您的 AI 提供商并监控 Token 用量",
+        "kpis": {
+            "tokens": "窗口总 Tokens",
+            "cost": "窗口总 Cost",
+            "providers": "活跃提供商",
+            "models": "活跃模型"
+        },
+  "allProviders": "全部提供商",
+  "activeScope": "当前范围",
+  "providersTitle": "模型提供商",
+  "providersHint": "选择一个提供商，进入配置并联动下方用量分析",
+  "providersEmptyTitle": "还没有提供商",
+  "providersEmptyHint": "先添加一个提供商，模型控制台才会显示可配置入口和联动分析。",
+  "windowTokens": "窗口 Tokens",
+  "windowRequests": "请求",
+  "defaultProvider": "默认",
+  "globalScopeHint": "全局范围",
+  "accounts": "账号",
+  "openProvider": "进入配置",
+  "viewingProvider": "正在查看",
+  "inspectorTitle": "提供商详情",
+  "inspectorDescription": "{{label}} 的配置与用量详情",
+  "accountSwitchTitle": "账号",
+  "accountSwitchHint": "同一提供商下的账号共享分析范围，切换后右侧配置会跟着切换。",
+  "editProvider": "编辑 {{label}}",
+  "setDefaultProvider": "设为默认 · {{label}}",
+  "deleteProvider": "删除 {{label}}",
+  "missingProviderScope": "{{provider}} 已不在当前配置中，请先添加或恢复对应提供商。",
+  "metrics": {
+            "tokens": "Tokens",
+            "cost": "Cost"
+        },
+        "breakdown": {
+            "provider": "提供商排行",
+            "model": "模型排行"
+        },
+        "costIncomplete": "成本数据不完整"
     },
     "quickActions": {
         "title": "快捷操作",
@@ -36,6 +72,7 @@
         "description": "展示最近的助手回复与工具结果中的模型/提供商用量记录。",
         "loading": "正在加载 token 消耗历史...",
         "empty": "还没有 token 消耗历史",
+        "groupByProvider": "按提供商",
         "groupByModel": "按模型",
         "groupByTime": "按时间",
         "last7Days": "7 天",

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { Chat } from '@/pages/Chat';
 
 const {
@@ -28,6 +29,7 @@ const {
   },
   gatewayState: {
     status: { state: 'running', port: 18789 },
+    execApprovalQueue: [] as Array<Record<string, unknown>>,
   },
   agentsState: {
     agents: [] as Array<Record<string, unknown>>,
@@ -98,6 +100,10 @@ vi.mock('@/pages/Chat/ChatMessage', () => ({
 }));
 
 vi.mock('react-i18next', () => ({
+  initReactI18next: {
+    type: '3rdParty',
+    init: () => undefined,
+  },
   useTranslation: () => ({
     t: (key: string, vars?: Record<string, unknown>) => {
       switch (key) {
@@ -155,6 +161,12 @@ vi.mock('react-i18next', () => ({
 }));
 
 describe('chat humanized actions', () => {
+  const renderChat = () => render(
+    <MemoryRouter>
+      <Chat />
+    </MemoryRouter>,
+  );
+
   beforeEach(() => {
     chatState.messages = [
       {
@@ -185,6 +197,7 @@ describe('chat humanized actions', () => {
     chatState.clearError = vi.fn();
     chatState.cleanupEmptySession = vi.fn();
     gatewayState.status = { state: 'running', port: 18789 };
+    gatewayState.execApprovalQueue = [];
     agentsState.agents = [
       {
         id: 'main',
@@ -197,7 +210,7 @@ describe('chat humanized actions', () => {
   });
 
   it('shows a jump-to-latest affordance when the user scrolls away from the bottom', async () => {
-    render(<Chat />);
+    renderChat();
 
     const scroller = scrollRefs.scrollRef.current;
     expect(scroller).toBeTruthy();
@@ -221,7 +234,7 @@ describe('chat humanized actions', () => {
   it('renders a compact composer-adjacent error bubble for request timeouts', async () => {
     chatState.error = 'LLM request timed out.';
 
-    render(<Chat />);
+    renderChat();
 
     expect(screen.getByText('This request timed out')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Dismiss' })).toBeInTheDocument();
@@ -230,7 +243,7 @@ describe('chat humanized actions', () => {
   it('hydrates the composer with a starter prompt when a welcome quick action is clicked', async () => {
     chatState.messages = [];
 
-    render(<Chat />);
+    renderChat();
 
     fireEvent.click(screen.getByRole('button', { name: /Start the work/i }));
 
@@ -242,7 +255,7 @@ describe('chat humanized actions', () => {
   it('hydrates the composer with a capability prompt when the fourth welcome action is clicked', async () => {
     chatState.messages = [];
 
-    render(<Chat />);
+    renderChat();
 
     fireEvent.click(screen.getByRole('button', { name: /Plug in more/i }));
 
@@ -254,7 +267,7 @@ describe('chat humanized actions', () => {
   it('renders the welcome screen as a centered desktop starter instead of a plain suggestion list', () => {
     chatState.messages = [];
 
-    render(<Chat />);
+    renderChat();
 
     expect(screen.getByText('XClaw')).toBeInTheDocument();
     expect(screen.queryByText('Main Agent')).not.toBeInTheDocument();
@@ -294,7 +307,7 @@ describe('chat humanized actions', () => {
       },
     ];
 
-    render(<Chat />);
+    renderChat();
 
     const rows = screen.getAllByTestId('chat-message-row');
     expect(rows).toHaveLength(4);
@@ -325,7 +338,7 @@ describe('chat humanized actions', () => {
       },
     ];
 
-    render(<Chat />);
+    renderChat();
 
     const rows = screen.getAllByTestId('chat-message-row');
     expect(rows[0].parentElement).toHaveClass('mt-0');

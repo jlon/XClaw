@@ -30,7 +30,7 @@ interface OpenClawConfig {
     [key: string]: unknown;
 }
 
-interface PreinstalledSkillSpec {
+export interface PreinstalledSkillSpec {
     slug: string;
     version?: string;
     autoEnable?: boolean;
@@ -49,7 +49,7 @@ interface PreinstalledLockFile {
     skills?: PreinstalledLockEntry[];
 }
 
-interface PreinstalledMarker {
+export interface PreinstalledMarker {
     source: 'XClaw-preinstalled';
     slug: string;
     version: string;
@@ -231,7 +231,7 @@ export async function ensureBuiltinSkillsInstalled(): Promise<void> {
 const PREINSTALLED_MANIFEST_NAME = 'preinstalled-manifest.json';
 const PREINSTALLED_MARKER_NAME = '.XClaw-preinstalled.json';
 
-async function readPreinstalledManifest(): Promise<PreinstalledSkillSpec[]> {
+export async function readPreinstalledManifest(): Promise<PreinstalledSkillSpec[]> {
     const candidates = [
         join(getResourcesDir(), 'skills', PREINSTALLED_MANIFEST_NAME),
         join(process.cwd(), 'resources', 'skills', PREINSTALLED_MANIFEST_NAME),
@@ -289,7 +289,7 @@ async function readPreinstalledLockVersions(sourceRoot: string): Promise<Map<str
     }
 }
 
-async function tryReadMarker(markerPath: string): Promise<PreinstalledMarker | null> {
+export async function readPreinstalledMarker(markerPath: string): Promise<PreinstalledMarker | null> {
     if (!existsSync(markerPath)) {
         return null;
     }
@@ -346,7 +346,7 @@ export async function ensurePreinstalledSkillsInstalled(): Promise<void> {
         const desiredVersion = lockVersions.get(spec.slug)
             || (spec.version || 'unknown').trim()
             || 'unknown';
-        const marker = await tryReadMarker(markerPath);
+        const marker = await readPreinstalledMarker(markerPath);
 
         if (existsSync(targetManifest)) {
             if (!marker) {

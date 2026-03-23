@@ -24,6 +24,7 @@
 - `pnpm exec vitest run tests/unit/theme-second-wave-pages.test.ts tests/unit/channels-page.test.tsx tests/unit/chat-theme-shell.test.ts --testTimeout=15000 --reporter=dot`
 - `pnpm exec vitest run tests/unit/channel-config-modal.test.tsx --testTimeout=15000`
 - `pnpm exec vitest run tests/unit/theme-second-wave-pages.test.ts --testTimeout=15000`
+- `pnpm exec vitest run tests/unit/theme-second-wave-pages.test.ts -t "keeps the skills enabled switch on a token-driven accent in light theme instead of a hard black toggle" --reporter=dot`
 - `pnpm exec vitest run tests/unit/channel-config-modal.test.tsx --testTimeout=15000 --reporter=dot`
 - `pnpm exec vitest run tests/unit/theme-second-wave-pages.test.ts --testTimeout=15000 --reporter=dot`
 - `pnpm exec vitest run tests/unit/channel-config-modal.test.tsx tests/unit/theme-second-wave-pages.test.ts tests/unit/chat-theme-shell.test.ts tests/unit/chat-input.test.tsx tests/unit/chat-humanized-actions.test.tsx --testTimeout=15000 --reporter=dot`
@@ -33,6 +34,7 @@
 - `pnpm run typecheck`
 - 如果 `build:vite` 报 `./assets/e-*.js from index.html` 这类错误，先检查根 `index.html` 是否被参考产物污染，确认入口仍是 `/src/main.tsx`
 - `tests/unit/theme-second-wave-pages.test.ts` 现在同时锁住 `Settings / Providers` 的桌面 pane 语法，改动这两页时要同步维护这条回归锁
+- `tests/unit/theme-second-wave-pages.test.ts` 现在也锁住了 `Skills` 浅色主题启用开关的开启态语义，任何把开启态重新改成硬黑色的修改都应视为回归
 
 ### 构建级
 

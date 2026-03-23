@@ -1,6 +1,6 @@
 {
-    "title": "スキル",
-    "subtitle": "AI機能の閲覧と管理",
+    "title": "スキル管理",
+    "subtitle": "エージェントに再利用可能なベストプラクティスとツールを提供します。",
     "refresh": "更新",
     "openFolder": "スキルフォルダを開く",
     "gatewayWarning": "ゲートウェイが稼働していません。アクティブなゲートウェイがないとスキルを読み込めません。",
@@ -13,13 +13,77 @@
         "builtIn": "内蔵 ({{count}})",
         "marketplace": "マーケットプレイス ({{count}})"
     },
-    "search": "スキルを検索...",
+    "search": "インストール済みスキルを検索",
+    "addSkill": "スキルを追加",
     "searchMarketplace": "マーケットプレイスを検索...",
     "searchButton": "検索",
     "actions": {
         "enableVisible": "表示中を一括有効化",
         "disableVisible": "表示中を一括無効化",
-        "installSkill": "スキルをインストール"
+        "installSkill": "スキルをインストール",
+        "more": "その他の操作",
+        "viewDetails": "詳細を見る",
+        "openFolder": "フォルダを開く",
+        "openReadme": "README を開く"
+    },
+    "addMenu": {
+        "importGithub": "GitHub から取り込む",
+        "searchClawHub": "ClawHub を検索",
+        "searchSkillHub": "SkillHub を検索"
+    },
+    "summary": {
+        "total": "{{count}} 件のスキル",
+        "enabled": "{{count}} 件が有効",
+        "preinstalled": "{{count}} 件の内蔵スキル"
+    },
+    "catalog": {
+        "descriptions": {
+            "agent-mbti": "一貫した協業スタイルを素早く整えるための AI エージェント人格・設定スキルです。",
+            "algorithmic-art": "p5.js を使い、シードやパラメータから再現可能な生成アートを作るスキルです。",
+            "analytics-dashboard": "指標と監視データを集約し、業務ダッシュボードを素早く組み立てます。",
+            "arxiv-reader": "arXiv 論文を対話的に読み取り、要点を要約するためのスキルです。",
+            "arxiv-watcher": "新しい ArXiv 論文を継続的に追跡し、扱いやすい監視リストに整理します。",
+            "brand-guidelines": "ブランドカラー、タイポグラフィ、運用ルールを再利用可能な制約としてまとめます。",
+            "pdf": "PDF から本文、表、構造化テキストを抽出し、後続分析に渡しやすくします。",
+            "xlsx": "Excel ファイルのブック、シート、セルデータを読み取り分析します。",
+            "docx": "Word 文書の本文、見出し構造、段落テキストを解析して再利用しやすくします。",
+            "pptx": "プレゼン資料のスライド構造、タイトル、本文を読み取り、要点を素早く抽出します。",
+            "find-skills": "現在のタスクに合うスキルを見つけ、具体的な導入候補を提案します。",
+            "self-improving-agent": "フィードバックを蓄積し、学びを整理して次回の実行改善につなげます。",
+            "tavily-search": "Tavily 検索を使って最新の Web 情報を取得するリサーチ向けスキルです。",
+            "brave-web-search": "Brave Search を使ってエージェント処理に向いた Web 検索結果を取得します。"
+        }
+    },
+    "card": {
+        "enabled": "有効",
+        "disabled": "無効",
+        "updating": "更新中"
+    },
+    "empty": {
+        "searchTitle": "一致するスキルがありません",
+        "defaultTitle": "まだスキルがありません",
+        "searchSubtitle": "別のキーワードを試すか、追加メニューから新しいソースを開いてください。",
+        "defaultSubtitle": "GitHub から取り込むか、ClawHub / SkillHub を検索できます。"
+    },
+    "providerSearch": {
+        "subtitle": "選択したスキルをチャットへ送り、続きのインストールを進めます。",
+        "visitCatalog": "{{name}} を開く",
+        "placeholder": "スキルカタログを検索",
+        "loading": "カタログを検索中…",
+        "emptyQuery": "一致するスキルがありません",
+        "emptyDefault": "キーワードを入力するか、おすすめスキルを閲覧してください",
+        "emptyHint": "ここでは直接インストールせず、信頼できる草案をチャットへ渡します。",
+        "openSource": "開く",
+        "sendToChat": "チャットへ送る"
+    },
+    "githubImport": {
+        "title": "GitHub から取り込む",
+        "subtitle": "リポジトリ URL を入力し、固定の取り込み草案をチャットへ送ります。",
+        "repositoryLabel": "リポジトリ URL",
+        "pathLabel": "リポジトリ内パス（任意）",
+        "refLabel": "ブランチまたはコミット（任意）",
+        "sendToChat": "チャットへ送る",
+        "validation": "まず GitHub リポジトリ URL を入力してください。"
     },
     "noSkills": "スキルが見つかりません",
     "noSkillsSearch": "別の検索語をお試しください",
@@ -59,6 +123,7 @@
     },
     "source": {
         "badge": {
+            "xclawPreinstalled": "内蔵スキル",
             "bundled": "内蔵",
             "managed": "管理ディレクトリ",
             "workspace": "ワークスペース",

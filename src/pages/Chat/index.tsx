@@ -5,11 +5,13 @@
  * are in the toolbar; messages render with markdown + streaming.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Loader2, X } from 'lucide-react';
+import { ArrowLeft, Loader2, X } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AgentAvatar } from '@/components/chat/AgentAvatar';
 import { useChatStore, type RawMessage } from '@/stores/chat';
 import { useGatewayStore } from '@/stores/gateway';
 import { useAgentsStore } from '@/stores/agents';
+import { useSkillsStore } from '@/stores/skills';
 import { useSettingsStore } from '@/stores/settings';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ChatMessage } from './ChatMessage';
@@ -23,6 +25,9 @@ import { useMinLoading } from '@/hooks/use-min-loading';
 import { XClawWelcomeWordmark } from '@/components/common/XClawWelcomeWordmark';
 import { hostApiFetch } from '@/lib/host-api';
 import { buildChatExportFileName, buildChatMarkdown } from './export-markdown';
+import { ExecApprovalOverlay } from './ExecApprovalOverlay';
+import { submitExecApprovalDecision } from '@/stores/chat/exec-approval-submit';
+import type { SkillChatDraft } from '@/types/skill';
 
 const messageVisualRole = (message: RawMessage, showThinking: boolean): 'assistant' | 'user' | null => {
   if (isSystemRuntimeMessage(message)) return null;
@@ -47,10 +52,15 @@ const welcomeCardClassNames = {
   integration: 'app-chat-welcome-card--integration',
 } as const;
 
+type SkillFlowPhase = 'draft' | 'sent' | 'submitted';
+
 export function Chat() {
   const { t } = useTranslation('chat');
+  const location = useLocation();
+  const navigate = useNavigate();
   const isWindows = window.electron?.platform === 'win32';
   const gatewayStatus = useGatewayStore((s) => s.status);
+  const execApprovalQueue = useGatewayStore((s) => s.execApprovalQueue);
   const isGatewayRunning = gatewayStatus.state === 'running';
 
   const messages = useChatStore((s) => s.messages);
@@ -80,10 +90,27 @@ export function Chat() {
   const [hasPendingLatest, setHasPendingLatest] = useState(false);
   const [draftSeed, setDraftSeed] = useState('');
   const [draftSeedVersion, setDraftSeedVersion] = useState(0);
+  const [pendingSkillDraft, setPendingSkillDraft] = useState<SkillChatDraft | null>(null);
+  const [skillFlowState, setSkillFlowState] = useState<{ draft: SkillChatDraft; phase: SkillFlowPhase } | null>(null);
+  const [execApprovalBusy, setExecApprovalBusy] = useState(false);
+  const [execApprovalError, setExecApprovalError] = useState<{ approvalId: string; message: string } | null>(null);
   const isHistoryLoading = loading && messages.length === 0;
   const minLoading = useMinLoading(loading && messages.length > 0);
   const { contentRef, scrollRef } = useStickToBottomInstant(currentSessionKey);
   const isNearBottomRef = useRef(true);
+  const consumedDraftLocationRef = useRef<string | null>(null);
+
+  const routeDraft = (() => {
+    const state = location.state;
+    if (!state || typeof state !== 'object' || !('skillChatDraft' in state)) {
+      return null;
+    }
+    const draft = (state as { skillChatDraft?: SkillChatDraft | null }).skillChatDraft;
+    if (!draft || typeof draft !== 'object' || typeof draft.message !== 'string') {
+      return null;
+    }
+    return draft;
+  })();
 
   // Load data when gateway is running.
   // When the store already holds messages for this session (i.e. the user
@@ -101,6 +128,16 @@ export function Chat() {
   useEffect(() => {
     void fetchAgents();
   }, [fetchAgents]);
+
+  useEffect(() => {
+    if (!routeDraft) return;
+    if (consumedDraftLocationRef.current === location.key) return;
+    setDraftSeed(routeDraft.message);
+    setDraftSeedVersion((version) => version + 1);
+    setPendingSkillDraft(routeDraft);
+    setSkillFlowState({ draft: routeDraft, phase: 'draft' });
+    consumedDraftLocationRef.current = location.key;
+  }, [location.key, routeDraft]);
 
   // Update timestamp when sending starts
   const streamMsg = streamingMessage && typeof streamingMessage === 'object'
@@ -125,6 +162,113 @@ export function Chat() {
     agentId: currentAgentId,
     agentName: currentAgentName,
   }), [currentAgentId, currentAgentName, currentSessionKey, currentSessionLabel]);
+  const handleSendSkillDraft = useCallback(async (draft: SkillChatDraft, text: string) => {
+    if (draft.execution.kind !== 'host-install') {
+      setSkillFlowState({ draft, phase: 'sent' });
+      setPendingSkillDraft(null);
+      return false;
+    }
+
+    const payload = draft.execution.payload;
+    const slug = typeof payload.slug === 'string' ? payload.slug : draft.slug;
+    const version = typeof payload.version === 'string' ? payload.version : undefined;
+    if (!slug) {
+      useChatStore.setState({ error: 'Invalid skill install draft: missing slug.' });
+      setPendingSkillDraft(null);
+      return true;
+    }
+
+    const now = Date.now();
+    const userMessage: RawMessage = {
+      role: 'user',
+      content: text,
+      timestamp: now / 1000,
+      id: crypto.randomUUID(),
+    };
+
+    useChatStore.setState((state) => ({
+      sending: true,
+      error: null,
+      messages: [...state.messages, userMessage],
+      sessionLabels: state.sessionLabels[state.currentSessionKey]
+        ? state.sessionLabels
+        : { ...state.sessionLabels, [state.currentSessionKey]: draft.name || text.slice(0, 72) },
+      sessionLastActivity: { ...state.sessionLastActivity, [state.currentSessionKey]: now },
+    }));
+
+    try {
+      const result = await hostApiFetch<{ success: boolean; error?: string }>('/api/clawhub/install', {
+        method: 'POST',
+        body: JSON.stringify({ slug, version }),
+      });
+      if (!result.success) {
+        throw new Error(result.error || 'Install failed');
+      }
+      await useSkillsStore.getState().fetchSkills();
+      setSkillFlowState({ draft, phase: 'submitted' });
+      useChatStore.setState((state) => ({
+        sending: false,
+        messages: [
+          ...state.messages,
+          {
+            role: 'assistant',
+            content: `已提交 ${draft.name || slug} 的安装请求。安装完成后可以回到技能页继续管理。`,
+            timestamp: Date.now() / 1000,
+            id: crypto.randomUUID(),
+          },
+        ],
+        sessionLastActivity: { ...state.sessionLastActivity, [state.currentSessionKey]: Date.now() },
+      }));
+    } catch (error) {
+      setSkillFlowState({ draft, phase: 'draft' });
+      useChatStore.setState((state) => ({
+        sending: false,
+        error: String(error),
+        messages: [
+          ...state.messages,
+          {
+            role: 'assistant',
+            content: `安装 ${draft.name || slug} 失败：${String(error)}`,
+            timestamp: Date.now() / 1000,
+            id: crypto.randomUUID(),
+          },
+        ],
+        sessionLastActivity: { ...state.sessionLastActivity, [state.currentSessionKey]: Date.now() },
+      }));
+    } finally {
+      setPendingSkillDraft(null);
+    }
+
+    return true;
+  }, []);
+  const skillFlowRailCopy = useMemo(() => {
+    if (!skillFlowState?.draft.returnContext) {
+      return null;
+    }
+    const draftName = skillFlowState.draft.name || skillFlowState.draft.title;
+    const sourceLabel = skillFlowState.draft.providerId === 'skillhub'
+      ? 'SkillHub'
+      : skillFlowState.draft.providerId === 'clawhub'
+        ? 'ClawHub'
+        : t('skillFlow.skillsCenter', { defaultValue: '技能中心' });
+    const title = skillFlowState.phase === 'submitted'
+      ? t('skillFlow.submittedTitle', { name: draftName, defaultValue: `${draftName} 的安装请求已提交` })
+      : skillFlowState.phase === 'sent'
+        ? t('skillFlow.sentTitle', { name: draftName, defaultValue: `${draftName} 的安装草案已发到当前线程` })
+        : t('skillFlow.readyTitle', { name: draftName, defaultValue: `${draftName} 的安装草案已就位` });
+    const description = skillFlowState.phase === 'submitted'
+      ? t('skillFlow.submittedDescription', { defaultValue: '安装完成后可回到技能页查看、启停或继续管理。' })
+      : skillFlowState.phase === 'sent'
+        ? t('skillFlow.sentDescription', { defaultValue: '草案已经发到这条线程，处理完后仍可回到技能页继续筛选。' })
+        : t('skillFlow.readyDescription', { defaultValue: '确认后就从当前线程继续安装，需要时随时回到技能页。' });
+    return { sourceLabel, title, description };
+  }, [skillFlowState, t]);
+  const handleReturnToSkills = useCallback(() => {
+    if (!skillFlowState?.draft.returnContext) {
+      return;
+    }
+    navigate('/skills');
+  }, [navigate, skillFlowState]);
   const renderedMessages = useMemo(() => {
     const visibleMessages: Array<{
       idx: number;
@@ -210,6 +354,14 @@ export function Chat() {
   const scrollChromeClass = isEmpty
     ? (isWindows ? 'subtle-scrollbar-win' : 'subtle-scrollbar')
     : (isWindows ? 'workspace-page-scroll-win' : 'workspace-page-scroll-default');
+  const activeExecApproval = useMemo(() => {
+    if (execApprovalQueue.length === 0) {
+      return null;
+    }
+    return execApprovalQueue.find((entry) => entry.request.sessionKey === currentSessionKey)
+      ?? execApprovalQueue[0]
+      ?? null;
+  }, [currentSessionKey, execApprovalQueue]);
 
   useEffect(() => {
     if (!pendingSlashAction) return;
@@ -247,6 +399,31 @@ export function Chat() {
     pendingSlashAction,
     setChatFocusMode,
   ]);
+
+  const handleExecApprovalDecision = useCallback(async (decision: 'allow-once' | 'allow-always' | 'deny') => {
+    if (!activeExecApproval || execApprovalBusy) {
+      return;
+    }
+    setExecApprovalBusy(true);
+    setExecApprovalError(null);
+    const result = await submitExecApprovalDecision({
+      requestedId: activeExecApproval.id,
+      decision,
+      currentSessionKey,
+    });
+    if (!result.ok) {
+      setExecApprovalError({
+        approvalId: activeExecApproval.id,
+        message: result.message,
+      });
+      setExecApprovalBusy(false);
+      return;
+    }
+    if (result.syncError) {
+      useChatStore.setState({ error: `Approval transcript sync failed: ${result.syncError}` });
+    }
+    setExecApprovalBusy(false);
+  }, [activeExecApproval, currentSessionKey, execApprovalBusy]);
 
   return (
     <div className={cn('app-chat-shell relative flex h-full flex-col transition-colors duration-500')}>
@@ -325,6 +502,16 @@ export function Chat() {
         )}
       </div>
 
+      {activeExecApproval ? (
+        <ExecApprovalOverlay
+          entry={activeExecApproval}
+          queueCount={execApprovalQueue.length}
+          busy={execApprovalBusy}
+          error={execApprovalError?.approvalId === activeExecApproval.id ? execApprovalError.message : null}
+          onDecision={handleExecApprovalDecision}
+        />
+      ) : null}
+
       {composerErrorCopy && (
         <div className="app-chat-workbench px-4 pb-2">
           <div className="flex justify-end">
@@ -347,15 +534,54 @@ export function Chat() {
         </div>
       )}
 
+      {skillFlowRailCopy && (
+        <div className="app-chat-workbench px-4 pb-2">
+          <div className="flex justify-end">
+            <div data-testid="chat-skill-flow-rail" className="app-chat-skill-flow-rail">
+              <div className="min-w-0 flex-1">
+                <div className="app-chat-skill-flow-meta">
+                  <span className="app-chat-skill-flow-badge">{skillFlowRailCopy.sourceLabel}</span>
+                  <span className="truncate text-[12px] font-medium text-foreground/46">{skillFlowState?.draft.name || skillFlowState?.draft.title}</span>
+                </div>
+                <p className="truncate text-[13px] font-semibold text-foreground/86">{skillFlowRailCopy.title}</p>
+                <p className="mt-0.5 text-[12px] font-medium leading-[1.55] text-foreground/56">{skillFlowRailCopy.description}</p>
+              </div>
+              <div className="flex shrink-0 items-center gap-1.5">
+                <button
+                  type="button"
+                  className="app-chat-skill-flow-return"
+                  onClick={handleReturnToSkills}
+                  data-testid="chat-skill-flow-return"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  <span>{t('skillFlow.returnToSkills', { defaultValue: '返回技能页' })}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSkillFlowState(null)}
+                  className="app-chat-skill-flow-dismiss"
+                  aria-label={t('common:actions.dismiss')}
+                  title={t('common:actions.dismiss')}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Input Area */}
       <ChatInput
         onSend={sendMessage}
+        onSendSkillDraft={handleSendSkillDraft}
         onStop={abortRun}
         disabled={!isGatewayRunning}
         sending={sending}
         isEmpty={isEmpty}
         draftSeed={draftSeed}
         draftSeedVersion={draftSeedVersion}
+        pendingSkillDraft={pendingSkillDraft}
         showScrollToLatest={showScrollToLatest}
         hasPendingLatest={hasPendingLatest}
         onScrollToLatest={scrollToLatest}
@@ -426,6 +652,7 @@ function WelcomeScreen({
     },
   ];
   const runtimeIssue = gatewayState !== 'running' ? t('header.runtimeIssue', { state: gatewayState }) : null;
+  const runtimeStatusText = runtimeIssue ?? '\u00A0';
 
   return (
     <div data-testid="chat-welcome-hero" className="app-chat-welcome-hero mx-auto flex min-h-full w-full max-w-[1000px] flex-col px-1 pb-4 pt-1">
@@ -446,12 +673,18 @@ function WelcomeScreen({
               <p className="app-chat-welcome-description">{welcomeDescription}</p>
             ) : null}
           </div>
-          {runtimeIssue && (
-            <div className="app-chat-header-meta app-chat-welcome-status" role="status" aria-live="polite">
+          <div className="app-chat-welcome-status-shell">
+            <div
+              data-testid="chat-welcome-status-slot"
+              className={cn('app-chat-header-meta app-chat-welcome-status', !runtimeIssue && 'app-chat-welcome-status--hidden')}
+              role={runtimeIssue ? 'status' : undefined}
+              aria-live={runtimeIssue ? 'polite' : undefined}
+              aria-hidden={runtimeIssue ? 'false' : 'true'}
+            >
               <span className="app-chat-welcome-status-dot" aria-hidden="true" />
-              <span>{runtimeIssue}</span>
+              <span>{runtimeStatusText}</span>
             </div>
-          )}
+          </div>
         </div>
 
         <div className="app-chat-welcome-actions">

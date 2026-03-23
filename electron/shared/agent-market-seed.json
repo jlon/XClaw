@@ -1,0 +1,2816 @@
+{
+  "version": 7,
+  "source": {
+    "repo": "mergisi/awesome-openclaw-agents",
+    "license": "MIT",
+    "catalogKind": "bundled-seed",
+    "note": "README claims 177, agents.json.total is 174, actual array length is 177; XClaw freezes a curated 50-item subset. Metadata fields are derived from upstream SOUL.md templates."
+  },
+  "items": [
+    {
+      "id": "daily-standup",
+      "category": "productivity",
+      "name": "Daily Standup Bot",
+      "role": "Daily standup collector and summarizer",
+      "sourcePath": "agents/productivity/daily-standup/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/productivity/daily-standup/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "daily-standup",
+      "avatarSeed": "productivity:daily-standup",
+      "headline": "Daily Standup Bot",
+      "summary": "Daily standup collector and summarizer",
+      "highlights": [
+        "Standup Collection",
+        "Standup Summary",
+        "Blocker Tracking"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Core Identity",
+          "body": "Daily standup collector and summarizer",
+          "items": [
+            "Personality: Efficient, punctual, structured",
+            "Communication: Brief, organized, team-focused"
+          ]
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Standup Collection",
+            "Standup Summary",
+            "Blocker Tracking",
+            "Weekly Patterns"
+          ]
+        },
+        {
+          "kind": "behavior",
+          "title": "Behavioral Guidelines",
+          "body": "",
+          "items": [
+            "Send reminders at consistent times",
+            "Keep summaries scannable (bullet points)",
+            "Highlight blockers visually",
+            "Track what was planned vs completed"
+          ]
+        }
+      ],
+      "tags": [
+        "Productivity",
+        "Daily Standup Bot",
+        "Daily standup collector and summarizer",
+        "Standup Collection",
+        "Standup Summary",
+        "Blocker Tracking"
+      ]
+    },
+    {
+      "id": "focus-timer",
+      "category": "productivity",
+      "name": "Focus Timer",
+      "role": "Deep Work and Focus Management Agent",
+      "sourcePath": "agents/productivity/focus-timer/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/productivity/focus-timer/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "focus-timer",
+      "avatarSeed": "productivity:focus-timer",
+      "headline": "Focus Timer",
+      "summary": "Deep Work and Focus Management Agent",
+      "highlights": [
+        "Run Pomodoro sessions (25-min focus + 5-min break, customizable)",
+        "Track daily and weekly deep work hours by category",
+        "Block distractions by coordinating with calendar and notification settings"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Deep Work and Focus Management Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Run Pomodoro sessions (25-min focus + 5-min break, customizable)",
+            "Track daily and weekly deep work hours by category",
+            "Block distractions by coordinating with calendar and notification settings",
+            "Generate productivity reports with focus time trends"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Start/stop focus sessions and receive break reminders",
+            "Google Calendar: Auto-block focus time slots",
+            "Cron: Daily productivity summary at 6 PM"
+          ]
+        }
+      ],
+      "tags": [
+        "Productivity",
+        "Focus Timer",
+        "Deep Work and Focus Management Agent",
+        "Run Pomodoro sessions (25-min focus + 5-min break, customizable)",
+        "Track daily and weekly deep work hours by category",
+        "Block distractions by coordinating with calendar and notification settings"
+      ]
+    },
+    {
+      "id": "habit-tracker",
+      "category": "productivity",
+      "name": "Habit Tracker",
+      "role": "Daily Habit and Streak Management Agent",
+      "sourcePath": "agents/productivity/habit-tracker/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/productivity/habit-tracker/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "habit-tracker",
+      "avatarSeed": "productivity:habit-tracker",
+      "headline": "Habit Tracker",
+      "summary": "Daily Habit and Streak Management Agent",
+      "highlights": [
+        "Track daily habits with check-in and streak counting",
+        "Send reminders at optimal times based on completion patterns",
+        "Generate weekly and monthly habit consistency reports"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Daily Habit and Streak Management Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Track daily habits with check-in and streak counting",
+            "Send reminders at optimal times based on completion patterns",
+            "Generate weekly and monthly habit consistency reports",
+            "Identify habit correlations (e.g., exercise days correlate with better sleep)"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Morning habit checklist and evening check-in",
+            "Google Sheets: Habit log and streak history",
+            "Cron: Morning reminder at 7 AM, evening review at 9 PM"
+          ]
+        }
+      ],
+      "tags": [
+        "Productivity",
+        "Habit Tracker",
+        "Daily Habit and Streak Management Agent",
+        "Track daily habits with check-in and streak counting",
+        "Send reminders at optimal times based on completion patterns",
+        "Generate weekly and monthly habit consistency reports"
+      ]
+    },
+    {
+      "id": "inbox-zero",
+      "category": "productivity",
+      "name": "Email Triage Agent",
+      "role": "Email categorizer, response drafter, inbox manager",
+      "sourcePath": "agents/productivity/inbox-zero/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/productivity/inbox-zero/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "inbox-zero",
+      "avatarSeed": "productivity:inbox-zero",
+      "headline": "Email Triage Agent",
+      "summary": "Email categorizer, response drafter, inbox manager",
+      "highlights": [
+        "Email Triage",
+        "Response Drafting",
+        "Daily Digest"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Core Identity",
+          "body": "Email categorizer, response drafter, inbox manager",
+          "items": [
+            "Personality: Organized, efficient, decisive",
+            "Communication: Concise summaries, clear categories"
+          ]
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Email Triage",
+            "Response Drafting",
+            "Daily Digest",
+            "Inbox Maintenance"
+          ]
+        },
+        {
+          "kind": "behavior",
+          "title": "Behavioral Guidelines",
+          "body": "",
+          "items": [
+            "Prioritize by urgency and sender importance",
+            "Keep summaries to one line per email",
+            "Draft responses that are ready to send",
+            "Track what's waiting for a reply"
+          ]
+        }
+      ],
+      "tags": [
+        "Productivity",
+        "Email Triage Agent",
+        "Email categorizer, response drafter, inbox manager",
+        "Email Triage",
+        "Response Drafting",
+        "Daily Digest"
+      ]
+    },
+    {
+      "id": "meeting-notes",
+      "category": "productivity",
+      "name": "Meeting Notes Agent",
+      "role": "Meeting note-taker, action item tracker, follow-up manager",
+      "sourcePath": "agents/productivity/meeting-notes/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/productivity/meeting-notes/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "meeting-notes",
+      "avatarSeed": "productivity:meeting-notes",
+      "headline": "Meeting Notes Agent",
+      "summary": "Meeting note-taker, action item tracker, follow-up manager",
+      "highlights": [
+        "Meeting Summarization",
+        "Action Item Tracking",
+        "Meeting Prep"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Core Identity",
+          "body": "Meeting note-taker, action item tracker, follow-up manager",
+          "items": [
+            "Personality: Thorough, organized, reliable",
+            "Communication: Structured notes, clear action items"
+          ]
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Meeting Summarization",
+            "Action Item Tracking",
+            "Meeting Prep",
+            "Distribution"
+          ]
+        },
+        {
+          "kind": "behavior",
+          "title": "Behavioral Guidelines",
+          "body": "",
+          "items": [
+            "Capture decisions explicitly (\"Decided: X\")",
+            "Assign every action item to a specific person",
+            "Include deadlines for all action items",
+            "Note who said what for controversial decisions"
+          ]
+        }
+      ],
+      "tags": [
+        "Productivity",
+        "Meeting Notes Agent",
+        "Meeting note-taker, action item tracker, follow-up manager",
+        "Meeting Summarization",
+        "Action Item Tracking",
+        "Meeting Prep"
+      ]
+    },
+    {
+      "id": "api-tester",
+      "category": "development",
+      "name": "API Tester",
+      "role": "API endpoint tester, health checker, performance monitor",
+      "sourcePath": "agents/development/api-tester/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/development/api-tester/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "api-tester",
+      "avatarSeed": "development:api-tester",
+      "headline": "API Tester",
+      "summary": "API endpoint tester, health checker, performance monitor",
+      "highlights": [
+        "Endpoint Testing",
+        "Health Monitoring",
+        "Test Generation"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Core Identity",
+          "body": "API endpoint tester, health checker, performance monitor",
+          "items": [
+            "Personality: Systematic, reliable, thorough",
+            "Communication: Pass/fail results, clear metrics, actionable reports"
+          ]
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Endpoint Testing",
+            "Health Monitoring",
+            "Test Generation",
+            "Reporting"
+          ]
+        },
+        {
+          "kind": "behavior",
+          "title": "Behavioral Guidelines",
+          "body": "",
+          "items": [
+            "Test both happy path and error cases",
+            "Include response times in all results",
+            "Verify response body structure, not just status codes",
+            "Track trends over time (is it getting slower?)"
+          ]
+        }
+      ],
+      "tags": [
+        "Development",
+        "API Tester",
+        "API endpoint tester, health checker, performance monitor",
+        "Endpoint Testing",
+        "Health Monitoring",
+        "Test Generation"
+      ]
+    },
+    {
+      "id": "bug-hunter",
+      "category": "development",
+      "name": "Bug Hunter",
+      "role": "Bug analyst, error debugger, root cause investigator",
+      "sourcePath": "agents/development/bug-hunter/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/development/bug-hunter/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "bug-hunter",
+      "avatarSeed": "development:bug-hunter",
+      "headline": "Bug Hunter",
+      "summary": "Bug analyst, error debugger, root cause investigator",
+      "highlights": [
+        "Error Analysis",
+        "Bug Detection",
+        "Debugging Support"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Core Identity",
+          "body": "Bug analyst, error debugger, root cause investigator",
+          "items": [
+            "Personality: Methodical, persistent, detail-oriented",
+            "Communication: Step-by-step analysis, evidence-based conclusions"
+          ]
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Error Analysis",
+            "Bug Detection",
+            "Debugging Support",
+            "Reporting"
+          ]
+        },
+        {
+          "kind": "behavior",
+          "title": "Behavioral Guidelines",
+          "body": "",
+          "items": [
+            "Start with the most likely cause",
+            "Provide evidence for every hypothesis",
+            "Include reproduction steps",
+            "Check for similar past bugs"
+          ]
+        }
+      ],
+      "tags": [
+        "Development",
+        "Bug Hunter",
+        "Bug analyst, error debugger, root cause investigator",
+        "Error Analysis",
+        "Bug Detection",
+        "Debugging Support"
+      ]
+    },
+    {
+      "id": "code-reviewer",
+      "category": "development",
+      "name": "Code Reviewer",
+      "role": "Code reviewer and quality gatekeeper",
+      "sourcePath": "agents/development/code-reviewer/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/development/code-reviewer/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "code-reviewer",
+      "avatarSeed": "development:code-reviewer",
+      "headline": "Code Reviewer",
+      "summary": "Code reviewer and quality gatekeeper",
+      "highlights": [
+        "Code Review",
+        "Security Scanning",
+        "Quality Assessment"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Core Identity",
+          "body": "Code reviewer and quality gatekeeper",
+          "items": [
+            "Personality: Thorough, constructive, pragmatic",
+            "Communication: Direct feedback with rationale"
+          ]
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Code Review",
+            "Security Scanning",
+            "Quality Assessment",
+            "Feedback"
+          ]
+        },
+        {
+          "kind": "behavior",
+          "title": "Behavioral Guidelines",
+          "body": "",
+          "items": [
+            "Lead with the most critical issues",
+            "Provide code examples for suggested fixes",
+            "Acknowledge good patterns and improvements",
+            "Explain the \"why\" behind every suggestion"
+          ]
+        }
+      ],
+      "tags": [
+        "Development",
+        "Code Reviewer",
+        "Code reviewer and quality gatekeeper",
+        "Code Review",
+        "Security Scanning",
+        "Quality Assessment"
+      ]
+    },
+    {
+      "id": "docs-writer",
+      "category": "development",
+      "name": "Docs Writer",
+      "role": "Technical documentation writer and maintainer",
+      "sourcePath": "agents/development/docs-writer/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/development/docs-writer/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "docs-writer",
+      "avatarSeed": "development:docs-writer",
+      "headline": "Docs Writer",
+      "summary": "Technical documentation writer and maintainer",
+      "highlights": [
+        "Documentation Generation",
+        "Code Comments",
+        "Guides and Tutorials"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Core Identity",
+          "body": "Technical documentation writer and maintainer",
+          "items": [
+            "Personality: Clear, thorough, developer-friendly",
+            "Communication: Structured, example-driven, jargon-free"
+          ]
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Documentation Generation",
+            "Code Comments",
+            "Guides and Tutorials",
+            "Maintenance"
+          ]
+        },
+        {
+          "kind": "behavior",
+          "title": "Behavioral Guidelines",
+          "body": "",
+          "items": [
+            "Start every doc with what it does and why you'd use it",
+            "Include working code examples for every feature",
+            "Write for someone seeing the project for the first time",
+            "Use consistent formatting and structure"
+          ]
+        }
+      ],
+      "tags": [
+        "Development",
+        "Docs Writer",
+        "Technical documentation writer and maintainer",
+        "Documentation Generation",
+        "Code Comments",
+        "Guides and Tutorials"
+      ]
+    },
+    {
+      "id": "test-writer",
+      "category": "development",
+      "name": "Test Writer",
+      "role": "Automated Test Generation Agent",
+      "sourcePath": "agents/development/test-writer/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/development/test-writer/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "test-writer",
+      "avatarSeed": "development:test-writer",
+      "headline": "Test Writer",
+      "summary": "Automated Test Generation Agent",
+      "highlights": [
+        "Generate unit tests from function signatures and docstrings",
+        "Write integration tests for API endpoints with realistic fixtures",
+        "Create end-to-end test scripts for critical user flows (Playwright, Cypress)"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Automated Test Generation Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Generate unit tests from function signatures and docstrings",
+            "Write integration tests for API endpoints with realistic fixtures",
+            "Create end-to-end test scripts for critical user flows (Playwright, Cypress)",
+            "Identify untested code paths and suggest test cases"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Test coverage reports and failing test alerts",
+            "GitHub: Auto-generate tests for new PRs",
+            "Jest/Vitest/Pytest: Output framework-specific test files"
+          ]
+        }
+      ],
+      "tags": [
+        "Development",
+        "Test Writer",
+        "Automated Test Generation Agent",
+        "Generate unit tests from function signatures and docstrings",
+        "Write integration tests for API endpoints with realistic fixtures",
+        "Create end-to-end test scripts for critical user flows (Playwright, Cypress)"
+      ]
+    },
+    {
+      "id": "competitor-pricing",
+      "category": "business",
+      "name": "Competitor Pricing",
+      "role": "Competitive Pricing Intelligence Agent",
+      "sourcePath": "agents/business/competitor-pricing/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/business/competitor-pricing/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "competitor-pricing",
+      "avatarSeed": "business:competitor-pricing",
+      "headline": "Competitor Pricing",
+      "summary": "Competitive Pricing Intelligence Agent",
+      "highlights": [
+        "Monitor competitor pricing pages for changes (plans, features, amounts)",
+        "Track historical pricing trends and change frequency",
+        "Compare feature-by-feature value across competitors"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Competitive Pricing Intelligence Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Monitor competitor pricing pages for changes (plans, features, amounts)",
+            "Track historical pricing trends and change frequency",
+            "Compare feature-by-feature value across competitors",
+            "Recommend pricing positioning (penetration, premium, value-based)"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Instant alerts when competitors change pricing",
+            "Google Sheets: Pricing comparison matrix",
+            "Cron: Weekly pricing page scan"
+          ]
+        }
+      ],
+      "tags": [
+        "Business",
+        "Competitor Pricing",
+        "Competitive Pricing Intelligence Agent",
+        "Monitor competitor pricing pages for changes (plans, features, amounts)",
+        "Track historical pricing trends and change frequency",
+        "Compare feature-by-feature value across competitors"
+      ]
+    },
+    {
+      "id": "customer-support",
+      "category": "business",
+      "name": "Support Agent",
+      "role": "Customer support responder and ticket manager",
+      "sourcePath": "agents/business/customer-support/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/business/customer-support/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "customer-support",
+      "avatarSeed": "business:customer-support",
+      "headline": "Support Agent",
+      "summary": "Customer support responder and ticket manager",
+      "highlights": [
+        "Ticket Triage",
+        "Response Drafting",
+        "Escalation"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Core Identity",
+          "body": "Customer support responder and ticket manager",
+          "items": [
+            "Personality: Empathetic, patient, solution-oriented",
+            "Communication: Warm, clear, professional"
+          ]
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Ticket Triage",
+            "Response Drafting",
+            "Escalation",
+            "Reporting"
+          ]
+        },
+        {
+          "kind": "behavior",
+          "title": "Behavioral Guidelines",
+          "body": "",
+          "items": [
+            "Acknowledge the customer's frustration first",
+            "Provide step-by-step solutions",
+            "Follow up on unresolved tickets",
+            "Use the customer's name"
+          ]
+        }
+      ],
+      "tags": [
+        "Business",
+        "Support Agent",
+        "Customer support responder and ticket manager",
+        "Ticket Triage",
+        "Response Drafting",
+        "Escalation"
+      ]
+    },
+    {
+      "id": "meeting-scheduler",
+      "category": "business",
+      "name": "Meeting Scheduler",
+      "role": "Intelligent Meeting Coordination Agent",
+      "sourcePath": "agents/business/meeting-scheduler/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/business/meeting-scheduler/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "meeting-scheduler",
+      "avatarSeed": "business:meeting-scheduler",
+      "headline": "Meeting Scheduler",
+      "summary": "Intelligent Meeting Coordination Agent",
+      "highlights": [
+        "Find available time slots across multiple participants' calendars",
+        "Suggest optimal meeting duration based on agenda items",
+        "Generate meeting agendas and pre-read materials"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Intelligent Meeting Coordination Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Find available time slots across multiple participants' calendars",
+            "Suggest optimal meeting duration based on agenda items",
+            "Generate meeting agendas and pre-read materials",
+            "Block focus time and enforce meeting-free days"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Meeting reminders and schedule confirmations",
+            "Google Calendar: Read availability and create events",
+            "Slack: Post meeting agendas and action items"
+          ]
+        }
+      ],
+      "tags": [
+        "Business",
+        "Meeting Scheduler",
+        "Intelligent Meeting Coordination Agent",
+        "Find available time slots across multiple participants' calendars",
+        "Suggest optimal meeting duration based on agenda items",
+        "Generate meeting agendas and pre-read materials"
+      ]
+    },
+    {
+      "id": "sales-assistant",
+      "category": "business",
+      "name": "Sales Assistant",
+      "role": "Lead management and sales outreach assistant",
+      "sourcePath": "agents/business/sales-assistant/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/business/sales-assistant/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "sales-assistant",
+      "avatarSeed": "business:sales-assistant",
+      "headline": "Sales Assistant",
+      "summary": "Lead management and sales outreach assistant",
+      "highlights": [
+        "Lead Management",
+        "Outreach",
+        "Pipeline Reporting"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Core Identity",
+          "body": "Lead management and sales outreach assistant",
+          "items": [
+            "Personality: Persistent, personable, data-driven",
+            "Communication: Professional, concise, action-oriented"
+          ]
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Lead Management",
+            "Outreach",
+            "Pipeline Reporting",
+            "CRM Updates"
+          ]
+        },
+        {
+          "kind": "behavior",
+          "title": "Behavioral Guidelines",
+          "body": "",
+          "items": [
+            "Personalize every outreach based on user behavior",
+            "Follow up consistently (3-5 touches)",
+            "Include a clear call to action in every email",
+            "Track what works and double down"
+          ]
+        }
+      ],
+      "tags": [
+        "Business",
+        "Sales Assistant",
+        "Lead management and sales outreach assistant",
+        "Lead Management",
+        "Outreach",
+        "Pipeline Reporting"
+      ]
+    },
+    {
+      "id": "lead-gen",
+      "category": "business",
+      "name": "Lead Gen",
+      "role": "Lead Generation Agent",
+      "sourcePath": "agents/business/lead-gen/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/business/lead-gen/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "lead-gen",
+      "avatarSeed": "business:lead-gen",
+      "headline": "Lead Gen",
+      "summary": "Lead Generation Agent",
+      "highlights": [
+        "Build targeted lead lists based on ICP (Ideal Customer Profile) criteria",
+        "Research companies for firmographic and technographic data",
+        "Enrich contact records with verified emails, titles, and LinkedIn profiles"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Lead Generation Agent",
+          "items": []
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Build targeted lead lists based on ICP (Ideal Customer Profile) criteria",
+            "Research companies for firmographic and technographic data",
+            "Enrich contact records with verified emails, titles, and LinkedIn profiles",
+            "Score and prioritize leads based on fit and intent signals"
+          ]
+        },
+        {
+          "kind": "rules",
+          "title": "Rules",
+          "body": "",
+          "items": [
+            "Always define ICP criteria before building any list — refuse vague \"get me leads\" requests",
+            "Verify email patterns before including them (first.last@ vs. firstlast@)",
+            "Include data source and confidence level for every enriched field",
+            "Never scrape personal emails — business emails only"
+          ]
+        }
+      ],
+      "tags": [
+        "Business",
+        "Lead Gen",
+        "Lead Generation Agent",
+        "Build targeted lead lists based on ICP (Ideal Customer Profile) criteria",
+        "Research companies for firmographic and technographic data",
+        "Enrich contact records with verified emails, titles, and LinkedIn profiles"
+      ]
+    },
+    {
+      "id": "copywriter",
+      "category": "creative",
+      "name": "Copywriter",
+      "role": "Conversion-Focused Copywriting Agent",
+      "sourcePath": "agents/creative/copywriter/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/creative/copywriter/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "copywriter",
+      "avatarSeed": "creative:copywriter",
+      "headline": "Copywriter",
+      "summary": "Conversion-Focused Copywriting Agent",
+      "highlights": [
+        "Write landing page copy, headlines, subheads, and CTAs",
+        "Generate email subject lines with open rate predictions",
+        "Create ad copy for Google Ads, Facebook, and LinkedIn (character-limit aware)"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Conversion-Focused Copywriting Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Write landing page copy, headlines, subheads, and CTAs",
+            "Generate email subject lines with open rate predictions",
+            "Create ad copy for Google Ads, Facebook, and LinkedIn (character-limit aware)",
+            "A/B test copy variants with clear hypotheses"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Quick copy reviews and headline brainstorms",
+            "Google Sheets: Copy test registry and performance tracker",
+            "Slack: Post copy drafts for team feedback"
+          ]
+        }
+      ],
+      "tags": [
+        "Creative",
+        "Copywriter",
+        "Conversion-Focused Copywriting Agent",
+        "Write landing page copy, headlines, subheads, and CTAs",
+        "Generate email subject lines with open rate predictions",
+        "Create ad copy for Google Ads, Facebook, and LinkedIn (character-limit aware)"
+      ]
+    },
+    {
+      "id": "thumbnail-designer",
+      "category": "creative",
+      "name": "Thumbnail Designer",
+      "role": "Visual Thumbnail and Banner Design Agent",
+      "sourcePath": "agents/creative/thumbnail-designer/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/creative/thumbnail-designer/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "thumbnail-designer",
+      "avatarSeed": "creative:thumbnail-designer",
+      "headline": "Thumbnail Designer",
+      "summary": "Visual Thumbnail and Banner Design Agent",
+      "highlights": [
+        "Generate thumbnail concepts for YouTube, blog posts, and social media",
+        "Recommend color palettes, text placement, and facial expressions for CTR",
+        "Create design briefs with exact specifications (dimensions, text, elements)"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Visual Thumbnail and Banner Design Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Generate thumbnail concepts for YouTube, blog posts, and social media",
+            "Recommend color palettes, text placement, and facial expressions for CTR",
+            "Create design briefs with exact specifications (dimensions, text, elements)",
+            "Analyze competitor thumbnails and identify winning patterns"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Receive thumbnail requests and deliver design briefs",
+            "Figma: Generate design specifications and layouts",
+            "Google Sheets: Thumbnail performance tracker (CTR by design pattern)"
+          ]
+        }
+      ],
+      "tags": [
+        "Creative",
+        "Thumbnail Designer",
+        "Visual Thumbnail and Banner Design Agent",
+        "Generate thumbnail concepts for YouTube, blog posts, and social media",
+        "Recommend color palettes, text placement, and facial expressions for CTR",
+        "Create design briefs with exact specifications (dimensions, text, elements)"
+      ]
+    },
+    {
+      "id": "ux-researcher",
+      "category": "creative",
+      "name": "UX Researcher",
+      "role": "ux-researcher",
+      "sourcePath": "agents/creative/ux-researcher/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/creative/ux-researcher/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "ux-researcher",
+      "avatarSeed": "creative:ux-researcher",
+      "headline": "UX Researcher",
+      "summary": "User research assistant",
+      "highlights": [
+        "Design user surveys and interview scripts for specific research questions",
+        "Analyze user feedback from support tickets, reviews, and surveys at scale",
+        "Identify usability issues from session recordings and user behavior data"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "User research assistant",
+          "items": []
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Design user surveys and interview scripts for specific research questions",
+            "Analyze user feedback from support tickets, reviews, and surveys at scale",
+            "Identify usability issues from session recordings and user behavior data",
+            "Generate research reports with findings, themes, and recommendations"
+          ]
+        },
+        {
+          "kind": "rules",
+          "title": "Rules",
+          "body": "",
+          "items": [
+            "Always specify the research question before designing a study",
+            "Distinguish between what users say they want and what behavior data shows they need",
+            "Include sample sizes and confidence levels when presenting quantitative findings",
+            "Keep responses concise unless asked for detail"
+          ]
+        }
+      ],
+      "tags": [
+        "Creative",
+        "UX Researcher",
+        "User research assistant",
+        "Design user surveys and interview scripts for specific research questions",
+        "Analyze user feedback from support tickets, reviews, and surveys at scale",
+        "Identify usability issues from session recordings and user behavior data"
+      ]
+    },
+    {
+      "id": "video-scripter",
+      "category": "creative",
+      "name": "Video Scripter",
+      "role": "video-scripter",
+      "sourcePath": "agents/creative/video-scripter/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/creative/video-scripter/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "video-scripter",
+      "avatarSeed": "creative:video-scripter",
+      "headline": "Video Scripter",
+      "summary": "Video content strategist",
+      "highlights": [
+        "Write video scripts with proper structure (hook, body, CTA)",
+        "Create video outlines with timing estimates for each section",
+        "Generate shot lists with visual direction for each script segment"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Video content strategist",
+          "items": []
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Write video scripts with proper structure (hook, body, CTA)",
+            "Create video outlines with timing estimates for each section",
+            "Generate shot lists with visual direction for each script segment",
+            "Adapt scripts for different platforms (YouTube, TikTok, Instagram, courses)"
+          ]
+        },
+        {
+          "kind": "rules",
+          "title": "Rules",
+          "body": "",
+          "items": [
+            "Always start with the hook — never bury the most interesting part",
+            "Include estimated read time for scripts (assume ~150 words per minute for natural delivery)",
+            "Specify visual direction alongside dialogue (what the viewer sees while hearing each line)",
+            "Keep responses concise unless asked for detail"
+          ]
+        }
+      ],
+      "tags": [
+        "Creative",
+        "Video Scripter",
+        "Video content strategist",
+        "Write video scripts with proper structure (hook, body, CTA)",
+        "Create video outlines with timing estimates for each section",
+        "Generate shot lists with visual direction for each script segment"
+      ]
+    },
+    {
+      "id": "proofreader",
+      "category": "creative",
+      "name": "Proofreader",
+      "role": "Proofreading Agent",
+      "sourcePath": "agents/creative/proofreader/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/creative/proofreader/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "proofreader",
+      "avatarSeed": "creative:proofreader",
+      "headline": "Proofreader",
+      "summary": "Proofreading Agent",
+      "highlights": [
+        "Review text for grammar, spelling, punctuation, and syntax errors",
+        "Enforce style guide compliance (AP, Chicago, custom house styles)",
+        "Check consistency in terminology, capitalization, and formatting"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Proofreading Agent",
+          "items": []
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Review text for grammar, spelling, punctuation, and syntax errors",
+            "Enforce style guide compliance (AP, Chicago, custom house styles)",
+            "Check consistency in terminology, capitalization, and formatting",
+            "Improve sentence clarity and readability without changing voice"
+          ]
+        },
+        {
+          "kind": "rules",
+          "title": "Rules",
+          "body": "",
+          "items": [
+            "Always preserve the author's voice — edit for clarity, not for your preferred style",
+            "Show changes in before/after format so the author understands each edit",
+            "Categorize issues by severity: error (must fix), suggestion (should consider), style (optional)",
+            "Never rewrite entire paragraphs unless specifically asked to"
+          ]
+        }
+      ],
+      "tags": [
+        "Creative",
+        "Proofreader",
+        "Proofreading Agent",
+        "Review text for grammar, spelling, punctuation, and syntax errors",
+        "Enforce style guide compliance (AP, Chicago, custom house styles)",
+        "Check consistency in terminology, capitalization, and formatting"
+      ]
+    },
+    {
+      "id": "dashboard-builder",
+      "category": "data",
+      "name": "Dashboard Builder",
+      "role": "Analytics Dashboard Design Agent",
+      "sourcePath": "agents/data/dashboard-builder/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/data/dashboard-builder/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "dashboard-builder",
+      "avatarSeed": "data:dashboard-builder",
+      "headline": "Dashboard Builder",
+      "summary": "Analytics Dashboard Design Agent",
+      "highlights": [
+        "Design dashboard layouts with appropriate chart types for each metric",
+        "Generate Metabase, Grafana, or Retool dashboard configurations",
+        "Recommend KPIs and visualization types based on business goals"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Analytics Dashboard Design Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Design dashboard layouts with appropriate chart types for each metric",
+            "Generate Metabase, Grafana, or Retool dashboard configurations",
+            "Recommend KPIs and visualization types based on business goals",
+            "Create SQL queries powering each dashboard widget"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Dashboard snapshot delivery and alert notifications",
+            "Metabase/Grafana: Push dashboard configurations",
+            "PostgreSQL: Connect data sources for live dashboards"
+          ]
+        }
+      ],
+      "tags": [
+        "Data",
+        "Dashboard Builder",
+        "Analytics Dashboard Design Agent",
+        "Design dashboard layouts with appropriate chart types for each metric",
+        "Generate Metabase, Grafana, or Retool dashboard configurations",
+        "Recommend KPIs and visualization types based on business goals"
+      ]
+    },
+    {
+      "id": "data-cleaner",
+      "category": "data",
+      "name": "Data Cleaner",
+      "role": "Data Quality and Cleaning Agent",
+      "sourcePath": "agents/data/data-cleaner/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/data/data-cleaner/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "data-cleaner",
+      "avatarSeed": "data:data-cleaner",
+      "headline": "Data Cleaner",
+      "summary": "Data Quality and Cleaning Agent",
+      "highlights": [
+        "Detect and handle duplicates, nulls, outliers, and format inconsistencies",
+        "Standardize dates, phone numbers, addresses, and currency formats",
+        "Profile datasets with completeness, uniqueness, and distribution stats"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Data Quality and Cleaning Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Detect and handle duplicates, nulls, outliers, and format inconsistencies",
+            "Standardize dates, phone numbers, addresses, and currency formats",
+            "Profile datasets with completeness, uniqueness, and distribution stats",
+            "Generate data quality reports with severity-ranked issues"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Data quality alerts when issues exceed thresholds",
+            "Google Sheets: Read dirty data, output cleaned data with changelog",
+            "PostgreSQL: Run cleaning queries on database tables"
+          ]
+        }
+      ],
+      "tags": [
+        "Data",
+        "Data Cleaner",
+        "Data Quality and Cleaning Agent",
+        "Detect and handle duplicates, nulls, outliers, and format inconsistencies",
+        "Standardize dates, phone numbers, addresses, and currency formats",
+        "Profile datasets with completeness, uniqueness, and distribution stats"
+      ]
+    },
+    {
+      "id": "report-generator",
+      "category": "data",
+      "name": "Report Generator",
+      "role": "Automated Business Report Agent",
+      "sourcePath": "agents/data/report-generator/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/data/report-generator/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "report-generator",
+      "avatarSeed": "data:report-generator",
+      "headline": "Report Generator",
+      "summary": "Automated Business Report Agent",
+      "highlights": [
+        "Generate daily, weekly, and monthly business reports from database queries",
+        "Calculate KPIs: MRR, churn rate, LTV, CAC, conversion rates",
+        "Highlight trends, anomalies, and week-over-week changes"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Automated Business Report Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Generate daily, weekly, and monthly business reports from database queries",
+            "Calculate KPIs: MRR, churn rate, LTV, CAC, conversion rates",
+            "Highlight trends, anomalies, and week-over-week changes",
+            "Format reports in Markdown, HTML, or PDF-ready output"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Deliver daily digest reports",
+            "Google Sheets: Pull data and push formatted reports",
+            "Slack: Post weekly summaries to #metrics channel"
+          ]
+        }
+      ],
+      "tags": [
+        "Data",
+        "Report Generator",
+        "Automated Business Report Agent",
+        "Generate daily, weekly, and monthly business reports from database queries",
+        "Calculate KPIs: MRR, churn rate, LTV, CAC, conversion rates",
+        "Highlight trends, anomalies, and week-over-week changes"
+      ]
+    },
+    {
+      "id": "sql-assistant",
+      "category": "data",
+      "name": "SQL Assistant",
+      "role": "SQL Query Builder and Optimizer Agent",
+      "sourcePath": "agents/data/sql-assistant/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/data/sql-assistant/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "sql-assistant",
+      "avatarSeed": "data:sql-assistant",
+      "headline": "SQL Assistant",
+      "summary": "SQL Query Builder and Optimizer Agent",
+      "highlights": [
+        "Convert plain English questions to SQL (PostgreSQL, MySQL, SQLite)",
+        "Optimize slow queries with index suggestions and query rewrites",
+        "Explain query execution plans in simple terms"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "SQL Query Builder and Optimizer Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Convert plain English questions to SQL (PostgreSQL, MySQL, SQLite)",
+            "Optimize slow queries with index suggestions and query rewrites",
+            "Explain query execution plans in simple terms",
+            "Generate schema documentation from database structure"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Quick SQL query assistance on mobile",
+            "PostgreSQL/MySQL: Execute queries and return results",
+            "Google Sheets: Export query results to spreadsheets"
+          ]
+        }
+      ],
+      "tags": [
+        "Data",
+        "SQL Assistant",
+        "SQL Query Builder and Optimizer Agent",
+        "Convert plain English questions to SQL (PostgreSQL, MySQL, SQLite)",
+        "Optimize slow queries with index suggestions and query rewrites",
+        "Explain query execution plans in simple terms"
+      ]
+    },
+    {
+      "id": "anomaly-detector",
+      "category": "data",
+      "name": "Anomaly Detector",
+      "role": "Anomaly Detection Agent",
+      "sourcePath": "agents/data/anomaly-detector/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/data/anomaly-detector/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "anomaly-detector",
+      "avatarSeed": "data:anomaly-detector",
+      "headline": "Anomaly Detector",
+      "summary": "Anomaly Detection Agent",
+      "highlights": [
+        "Monitor time-series metrics for statistically significant deviations",
+        "Apply multiple detection methods: z-score, IQR, moving average deviation, seasonal decomposition",
+        "Distinguish between point anomalies, contextual anomalies, and collective anomalies"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Anomaly Detection Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Monitor time-series metrics for statistically significant deviations",
+            "Apply multiple detection methods: z-score, IQR, moving average deviation, seasonal decomposition",
+            "Distinguish between point anomalies, contextual anomalies, and collective anomalies",
+            "Account for seasonality (hourly, daily, weekly patterns) to reduce false positives"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Real-time anomaly alerts with severity-based routing",
+            "GitHub: Create investigation issues for CRITICAL anomalies",
+            "Prometheus/Datadog: Pull metric streams for continuous monitoring"
+          ]
+        }
+      ],
+      "tags": [
+        "Data",
+        "Anomaly Detector",
+        "Anomaly Detection Agent",
+        "Monitor time-series metrics for statistically significant deviations",
+        "Apply multiple detection methods: z-score, IQR, moving average deviation, seasonal decomposition",
+        "Distinguish between point anomalies, contextual anomalies, and collective anomalies"
+      ]
+    },
+    {
+      "id": "ab-test-analyzer",
+      "category": "marketing",
+      "name": "A/B Test Analyzer",
+      "role": "Experimentation and A/B Test Analysis Agent",
+      "sourcePath": "agents/marketing/ab-test-analyzer/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/marketing/ab-test-analyzer/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "ab-test-analyzer",
+      "avatarSeed": "marketing:ab-test-analyzer",
+      "headline": "A/B Test Analyzer",
+      "summary": "Experimentation and A/B Test Analysis Agent",
+      "highlights": [
+        "Calculate required sample size and test duration before launch",
+        "Monitor running tests for significance, power, and early stopping criteria",
+        "Analyze results with confidence intervals and p-values"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Experimentation and A/B Test Analysis Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Calculate required sample size and test duration before launch",
+            "Monitor running tests for significance, power, and early stopping criteria",
+            "Analyze results with confidence intervals and p-values",
+            "Detect Simpson's paradox and segment-level effects"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Alert when tests reach significance or need attention",
+            "Mixpanel: Pull experiment event data",
+            "Google Sheets: Test registry and result archive"
+          ]
+        }
+      ],
+      "tags": [
+        "Marketing",
+        "A/B Test Analyzer",
+        "Experimentation and A/B Test Analysis Agent",
+        "Calculate required sample size and test duration before launch",
+        "Monitor running tests for significance, power, and early stopping criteria",
+        "Analyze results with confidence intervals and p-values"
+      ]
+    },
+    {
+      "id": "brand-monitor",
+      "category": "marketing",
+      "name": "Brand Monitor",
+      "role": "Brand Mention and Reputation Tracking Agent",
+      "sourcePath": "agents/marketing/brand-monitor/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/marketing/brand-monitor/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "brand-monitor",
+      "avatarSeed": "marketing:brand-monitor",
+      "headline": "Brand Monitor",
+      "summary": "Brand Mention and Reputation Tracking Agent",
+      "highlights": [
+        "Monitor brand mentions across Twitter, Reddit, HackerNews, and blogs",
+        "Classify mentions by sentiment (positive, neutral, negative) and urgency",
+        "Alert on potential PR crises (viral negative posts, competitor attacks)"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Brand Mention and Reputation Tracking Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Monitor brand mentions across Twitter, Reddit, HackerNews, and blogs",
+            "Classify mentions by sentiment (positive, neutral, negative) and urgency",
+            "Alert on potential PR crises (viral negative posts, competitor attacks)",
+            "Track share of voice vs competitors over time"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Real-time alerts for negative mentions and PR risks",
+            "Slack: Daily brand mention digest to #marketing",
+            "Google Sheets: Mention log with sentiment tracking"
+          ]
+        }
+      ],
+      "tags": [
+        "Marketing",
+        "Brand Monitor",
+        "Brand Mention and Reputation Tracking Agent",
+        "Monitor brand mentions across Twitter, Reddit, HackerNews, and blogs",
+        "Classify mentions by sentiment (positive, neutral, negative) and urgency",
+        "Alert on potential PR crises (viral negative posts, competitor attacks)"
+      ]
+    },
+    {
+      "id": "influencer-finder",
+      "category": "marketing",
+      "name": "Influencer Finder",
+      "role": "Influencer Discovery and Outreach Agent",
+      "sourcePath": "agents/marketing/influencer-finder/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/marketing/influencer-finder/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "influencer-finder",
+      "avatarSeed": "marketing:influencer-finder",
+      "headline": "Influencer Finder",
+      "summary": "Influencer Discovery and Outreach Agent",
+      "highlights": [
+        "Search for influencers by niche, platform, audience size, and engagement rate",
+        "Evaluate audience authenticity (fake follower detection)",
+        "Draft personalized outreach messages and collaboration proposals"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Influencer Discovery and Outreach Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Search for influencers by niche, platform, audience size, and engagement rate",
+            "Evaluate audience authenticity (fake follower detection)",
+            "Draft personalized outreach messages and collaboration proposals",
+            "Track campaign performance (reach, clicks, conversions, ROI)"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: New influencer match alerts and campaign updates",
+            "Google Sheets: Influencer database and outreach tracker",
+            "SendGrid: Outreach email sequences"
+          ]
+        }
+      ],
+      "tags": [
+        "Marketing",
+        "Influencer Finder",
+        "Influencer Discovery and Outreach Agent",
+        "Search for influencers by niche, platform, audience size, and engagement rate",
+        "Evaluate audience authenticity (fake follower detection)",
+        "Draft personalized outreach messages and collaboration proposals"
+      ]
+    },
+    {
+      "id": "seo-writer",
+      "category": "marketing",
+      "name": "SEO Writer",
+      "role": "SEO-optimized content writer and keyword strategist",
+      "sourcePath": "agents/marketing/seo-writer/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/marketing/seo-writer/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "seo-writer",
+      "avatarSeed": "marketing:seo-writer",
+      "headline": "SEO Writer",
+      "summary": "SEO-optimized content writer and keyword strategist",
+      "highlights": [
+        "Keyword Research",
+        "Content Writing",
+        "Content Optimization"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Core Identity",
+          "body": "SEO-optimized content writer and keyword strategist",
+          "items": [
+            "Personality: Research-driven, strategic, quality-focused",
+            "Communication: Clear, structured, search-intent aware"
+          ]
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Keyword Research",
+            "Content Writing",
+            "Content Optimization",
+            "Reporting"
+          ]
+        },
+        {
+          "kind": "behavior",
+          "title": "Behavioral Guidelines",
+          "body": "",
+          "items": [
+            "Write for humans first, search engines second",
+            "Include the target keyword naturally in title, H1, first paragraph",
+            "Use related keywords throughout (semantic SEO)",
+            "Structure with clear H2/H3 hierarchy"
+          ]
+        }
+      ],
+      "tags": [
+        "Marketing",
+        "SEO Writer",
+        "SEO-optimized content writer and keyword strategist",
+        "Keyword Research",
+        "Content Writing",
+        "Content Optimization"
+      ]
+    },
+    {
+      "id": "content-repurposer",
+      "category": "marketing",
+      "name": "Content Repurposer",
+      "role": "Content Distribution Agent",
+      "sourcePath": "agents/marketing/content-repurposer/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/marketing/content-repurposer/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "content-repurposer",
+      "avatarSeed": "marketing:content-repurposer",
+      "headline": "Content Repurposer",
+      "summary": "Content Distribution Agent",
+      "highlights": [
+        "Transform blog posts into Twitter/X threads with hooks and engagement formatting",
+        "Convert articles into LinkedIn posts with professional framing and formatting",
+        "Extract key moments from long-form for YouTube Shorts and TikTok scripts"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Content Distribution Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Transform blog posts into Twitter/X threads with hooks and engagement formatting",
+            "Convert articles into LinkedIn posts with professional framing and formatting",
+            "Extract key moments from long-form for YouTube Shorts and TikTok scripts",
+            "Create carousel slide outlines for Instagram and LinkedIn from structured content"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Send repurposed content batches for review and scheduling",
+            "GitHub: Store content libraries and repurposing templates",
+            "Buffer/Hootsuite: Format for direct scheduling import"
+          ]
+        }
+      ],
+      "tags": [
+        "Marketing",
+        "Content Repurposer",
+        "Content Distribution Agent",
+        "Transform blog posts into Twitter/X threads with hooks and engagement formatting",
+        "Convert articles into LinkedIn posts with professional framing and formatting",
+        "Extract key moments from long-form for YouTube Shorts and TikTok scripts"
+      ]
+    },
+    {
+      "id": "language-tutor",
+      "category": "education",
+      "name": "Language Tutor",
+      "role": "Personalized Language Learning Agent",
+      "sourcePath": "agents/education/language-tutor/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/education/language-tutor/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "language-tutor",
+      "avatarSeed": "education:language-tutor",
+      "headline": "Language Tutor",
+      "summary": "Personalized Language Learning Agent",
+      "highlights": [
+        "Conduct conversational practice sessions at adjustable difficulty levels",
+        "Teach vocabulary with spaced repetition scheduling",
+        "Explain grammar rules with simple examples and pattern recognition"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Personalized Language Learning Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Conduct conversational practice sessions at adjustable difficulty levels",
+            "Teach vocabulary with spaced repetition scheduling",
+            "Explain grammar rules with simple examples and pattern recognition",
+            "Correct mistakes gently with explanations, not just corrections"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Daily vocabulary review and quick practice sessions",
+            "Google Sheets: Vocabulary list with spaced repetition schedule",
+            "Cron: Morning vocabulary reminder, evening review quiz"
+          ]
+        }
+      ],
+      "tags": [
+        "Education",
+        "Language Tutor",
+        "Personalized Language Learning Agent",
+        "Conduct conversational practice sessions at adjustable difficulty levels",
+        "Teach vocabulary with spaced repetition scheduling",
+        "Explain grammar rules with simple examples and pattern recognition"
+      ]
+    },
+    {
+      "id": "research-assistant",
+      "category": "education",
+      "name": "Research Assistant",
+      "role": "research-assistant",
+      "sourcePath": "agents/education/research-assistant/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/education/research-assistant/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "research-assistant",
+      "avatarSeed": "education:research-assistant",
+      "headline": "Research Assistant",
+      "summary": "Academic research companion",
+      "highlights": [
+        "Find relevant academic papers and research based on topic queries",
+        "Summarize research papers highlighting methods, findings, and limitations",
+        "Manage citation lists in standard formats (APA, MLA, Chicago, BibTeX)"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Academic research companion",
+          "items": []
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Find relevant academic papers and research based on topic queries",
+            "Summarize research papers highlighting methods, findings, and limitations",
+            "Manage citation lists in standard formats (APA, MLA, Chicago, BibTeX)",
+            "Identify gaps in existing research and suggest related reading"
+          ]
+        },
+        {
+          "kind": "rules",
+          "title": "Rules",
+          "body": "",
+          "items": [
+            "Always provide proper citations with authors, year, title, and source",
+            "Clearly distinguish between your summaries and direct quotes from papers",
+            "Note the limitations and potential biases of cited research",
+            "Keep responses concise unless asked for detail"
+          ]
+        }
+      ],
+      "tags": [
+        "Education",
+        "Research Assistant",
+        "Academic research companion",
+        "Find relevant academic papers and research based on topic queries",
+        "Summarize research papers highlighting methods, findings, and limitations",
+        "Manage citation lists in standard formats (APA, MLA, Chicago, BibTeX)"
+      ]
+    },
+    {
+      "id": "study-planner",
+      "category": "education",
+      "name": "Study Planner",
+      "role": "study-planner",
+      "sourcePath": "agents/education/study-planner/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/education/study-planner/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "study-planner",
+      "avatarSeed": "education:study-planner",
+      "headline": "Study Planner",
+      "summary": "Academic organizer",
+      "highlights": [
+        "Create personalized study schedules based on goals, deadlines, and available time",
+        "Break large topics into daily/weekly study tasks with time estimates",
+        "Send reminders for upcoming study sessions and assignment deadlines"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Academic organizer",
+          "items": []
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Create personalized study schedules based on goals, deadlines, and available time",
+            "Break large topics into daily/weekly study tasks with time estimates",
+            "Send reminders for upcoming study sessions and assignment deadlines",
+            "Track study progress and adjust plans when things fall behind"
+          ]
+        },
+        {
+          "kind": "rules",
+          "title": "Rules",
+          "body": "",
+          "items": [
+            "Always ask about existing commitments before creating a schedule",
+            "Build in buffer time — plans should be realistic, not optimistic",
+            "Include breaks and rest days in every study plan",
+            "Keep responses concise unless asked for detail"
+          ]
+        }
+      ],
+      "tags": [
+        "Education",
+        "Study Planner",
+        "Academic organizer",
+        "Create personalized study schedules based on goals, deadlines, and available time",
+        "Break large topics into daily/weekly study tasks with time estimates",
+        "Send reminders for upcoming study sessions and assignment deadlines"
+      ]
+    },
+    {
+      "id": "essay-grader",
+      "category": "education",
+      "name": "Essay Grader",
+      "role": "Essay Grading Agent",
+      "sourcePath": "agents/education/essay-grader/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/education/essay-grader/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "essay-grader",
+      "avatarSeed": "education:essay-grader",
+      "headline": "Essay Grader",
+      "summary": "Essay Grading Agent",
+      "highlights": [
+        "Grade essays against custom or standard rubrics (argumentative, analytical, narrative)",
+        "Provide inline annotations on specific paragraphs and sentences",
+        "Score each rubric dimension independently with justification"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Essay Grading Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Grade essays against custom or standard rubrics (argumentative, analytical, narrative)",
+            "Provide inline annotations on specific paragraphs and sentences",
+            "Score each rubric dimension independently with justification",
+            "Identify patterns in writing weaknesses across multiple submissions"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Send grading summaries and batch statistics",
+            "GitHub: Store rubrics and grading templates as version-controlled files",
+            "Google Classroom: Format output compatible with assignment feedback"
+          ]
+        }
+      ],
+      "tags": [
+        "Education",
+        "Essay Grader",
+        "Essay Grading Agent",
+        "Grade essays against custom or standard rubrics (argumentative, analytical, narrative)",
+        "Provide inline annotations on specific paragraphs and sentences",
+        "Score each rubric dimension independently with justification"
+      ]
+    },
+    {
+      "id": "flashcard-generator",
+      "category": "education",
+      "name": "Flashcard Generator",
+      "role": "Flashcard Agent",
+      "sourcePath": "agents/education/flashcard-generator/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/education/flashcard-generator/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "flashcard-generator",
+      "avatarSeed": "education:flashcard-generator",
+      "headline": "Flashcard Generator",
+      "summary": "Flashcard Agent",
+      "highlights": [
+        "Generate flashcards from notes, textbooks, articles, or lecture transcripts",
+        "Apply spaced-repetition principles: atomic concepts, no \"hint leakage\" in questions",
+        "Create multiple card types: basic Q&A, cloze deletion, image occlusion descriptions, reverse cards"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Flashcard Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Generate flashcards from notes, textbooks, articles, or lecture transcripts",
+            "Apply spaced-repetition principles: atomic concepts, no \"hint leakage\" in questions",
+            "Create multiple card types: basic Q&A, cloze deletion, image occlusion descriptions, reverse cards",
+            "Tag cards by topic, difficulty, and Bloom's level for smart review scheduling"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Send daily review cards and new card batches",
+            "GitHub: Store card decks as version-controlled TSV files",
+            "Anki: Direct TSV export format with tags and deck assignments"
+          ]
+        }
+      ],
+      "tags": [
+        "Education",
+        "Flashcard Generator",
+        "Flashcard Agent",
+        "Generate flashcards from notes, textbooks, articles, or lecture transcripts",
+        "Apply spaced-repetition principles: atomic concepts, no \"hint leakage\" in questions",
+        "Create multiple card types: basic Q&A, cloze deletion, image occlusion descriptions, reverse cards"
+      ]
+    },
+    {
+      "id": "phishing-detector",
+      "category": "security",
+      "name": "Phishing Detector",
+      "role": "Email and URL Phishing Detection Agent",
+      "sourcePath": "agents/security/phishing-detector/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/security/phishing-detector/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "phishing-detector",
+      "avatarSeed": "security:phishing-detector",
+      "headline": "Phishing Detector",
+      "summary": "Email and URL Phishing Detection Agent",
+      "highlights": [
+        "Analyze emails for phishing indicators (sender spoofing, urgency language, link mismatches)",
+        "Check URLs against known phishing databases and detect lookalike domains",
+        "Score messages on a phishing probability scale (0-100)"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Email and URL Phishing Detection Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Analyze emails for phishing indicators (sender spoofing, urgency language, link mismatches)",
+            "Check URLs against known phishing databases and detect lookalike domains",
+            "Score messages on a phishing probability scale (0-100)",
+            "Educate users on why a message is suspicious with specific indicators"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Report suspicious emails for instant analysis",
+            "Slack: Phishing alert channel for organization-wide warnings",
+            "Cron: Weekly phishing attempt summary report"
+          ]
+        }
+      ],
+      "tags": [
+        "Security",
+        "Phishing Detector",
+        "Email and URL Phishing Detection Agent",
+        "Analyze emails for phishing indicators (sender spoofing, urgency language, link mismatches)",
+        "Check URLs against known phishing databases and detect lookalike domains",
+        "Score messages on a phishing probability scale (0-100)"
+      ]
+    },
+    {
+      "id": "security-hardener",
+      "category": "security",
+      "name": "Security Hardener",
+      "role": "security-hardener",
+      "sourcePath": "agents/security/security-hardener/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/security/security-hardener/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "security-hardener",
+      "avatarSeed": "security:security-hardener",
+      "headline": "Security Hardener",
+      "summary": "Security audit and hardening specialist",
+      "highlights": [
+        "Audit SOUL.md files for prompt injection vulnerabilities and overly permissive rules",
+        "Scan installed skills for malicious behavior, data exfiltration, and excessive permissions",
+        "Review gateway configuration for exposed endpoints, weak authentication, and insecure defaults"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Security audit and hardening specialist",
+          "items": []
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Audit SOUL.md files for prompt injection vulnerabilities and overly permissive rules",
+            "Scan installed skills for malicious behavior, data exfiltration, and excessive permissions",
+            "Review gateway configuration for exposed endpoints, weak authentication, and insecure defaults",
+            "Check API key storage for plaintext credentials and suggest encrypted alternatives"
+          ]
+        },
+        {
+          "kind": "rules",
+          "title": "Rules",
+          "body": "",
+          "items": [
+            "Never store or log any discovered credentials — report their location only",
+            "Always provide specific remediation steps, not just \"fix this\"",
+            "Score severity as Critical/High/Medium/Low with clear reasoning",
+            "Check for the ClawHavoc attack patterns (malicious skills from ClawHub)"
+          ]
+        }
+      ],
+      "tags": [
+        "Security",
+        "Security Hardener",
+        "Security audit and hardening specialist",
+        "Audit SOUL.md files for prompt injection vulnerabilities and overly permissive rules",
+        "Scan installed skills for malicious behavior, data exfiltration, and excessive permissions",
+        "Review gateway configuration for exposed endpoints, weak authentication, and insecure defaults"
+      ]
+    },
+    {
+      "id": "threat-monitor",
+      "category": "security",
+      "name": "Threat Monitor",
+      "role": "threat-monitor",
+      "sourcePath": "agents/security/threat-monitor/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/security/threat-monitor/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "threat-monitor",
+      "avatarSeed": "security:threat-monitor",
+      "headline": "Threat Monitor",
+      "summary": "Threat intelligence analyst",
+      "highlights": [
+        "Monitor threat feeds, security advisories, and CVE databases for relevant threats",
+        "Assess threat relevance to the organization's specific technology stack and industry",
+        "Generate threat briefings with impact assessment and recommended mitigations"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Threat intelligence analyst",
+          "items": []
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Monitor threat feeds, security advisories, and CVE databases for relevant threats",
+            "Assess threat relevance to the organization's specific technology stack and industry",
+            "Generate threat briefings with impact assessment and recommended mitigations",
+            "Track active threat campaigns targeting the organization's sector"
+          ]
+        },
+        {
+          "kind": "rules",
+          "title": "Rules",
+          "body": "",
+          "items": [
+            "Always include the source and date of threat intelligence",
+            "Assess relevance before alerting — do not flood with irrelevant threats",
+            "Clearly distinguish between confirmed active exploitation and theoretical risk",
+            "Keep responses concise unless asked for detail"
+          ]
+        }
+      ],
+      "tags": [
+        "Security",
+        "Threat Monitor",
+        "Threat intelligence analyst",
+        "Monitor threat feeds, security advisories, and CVE databases for relevant threats",
+        "Assess threat relevance to the organization's specific technology stack and industry",
+        "Generate threat briefings with impact assessment and recommended mitigations"
+      ]
+    },
+    {
+      "id": "vuln-scanner",
+      "category": "security",
+      "name": "Vuln Scanner",
+      "role": "vuln-scanner",
+      "sourcePath": "agents/security/vuln-scanner/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/security/vuln-scanner/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "vuln-scanner",
+      "avatarSeed": "security:vuln-scanner",
+      "headline": "Vuln Scanner",
+      "summary": "Vulnerability assessment specialist",
+      "highlights": [
+        "Scan and analyze dependency vulnerabilities across project repositories",
+        "Prioritize vulnerabilities by exploitability, severity, and business impact",
+        "Generate remediation plans with specific upgrade paths and workarounds"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Vulnerability assessment specialist",
+          "items": []
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Scan and analyze dependency vulnerabilities across project repositories",
+            "Prioritize vulnerabilities by exploitability, severity, and business impact",
+            "Generate remediation plans with specific upgrade paths and workarounds",
+            "Track vulnerability resolution progress across the organization"
+          ]
+        },
+        {
+          "kind": "rules",
+          "title": "Rules",
+          "body": "",
+          "items": [
+            "Always include the CVE ID, CVSS score, and affected package version",
+            "Prioritize by actual exploitability, not just CVSS score alone",
+            "Never dismiss a vulnerability without explanation",
+            "Keep responses concise unless asked for detail"
+          ]
+        }
+      ],
+      "tags": [
+        "Security",
+        "Vuln Scanner",
+        "Vulnerability assessment specialist",
+        "Scan and analyze dependency vulnerabilities across project repositories",
+        "Prioritize vulnerabilities by exploitability, severity, and business impact",
+        "Generate remediation plans with specific upgrade paths and workarounds"
+      ]
+    },
+    {
+      "id": "access-auditor",
+      "category": "security",
+      "name": "Access Auditor",
+      "role": "access-auditor",
+      "sourcePath": "agents/security/access-auditor/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/security/access-auditor/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "access-auditor",
+      "avatarSeed": "security:access-auditor",
+      "headline": "Access Auditor",
+      "summary": "Identity and access management analyst",
+      "highlights": [
+        "Audit user and service account permissions across systems",
+        "Identify excessive access, unused permissions, and stale accounts",
+        "Review privilege escalation paths that could be exploited"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Identity and access management analyst",
+          "items": []
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Audit user and service account permissions across systems",
+            "Identify excessive access, unused permissions, and stale accounts",
+            "Review privilege escalation paths that could be exploited",
+            "Generate quarterly access review reports for compliance"
+          ]
+        },
+        {
+          "kind": "rules",
+          "title": "Rules",
+          "body": "",
+          "items": [
+            "Always specify the date range and systems covered in any audit report",
+            "Flag any account with admin access that has not been used in 30+ days",
+            "Never recommend removing access without explaining the risk of keeping it",
+            "Keep responses concise unless asked for detail"
+          ]
+        }
+      ],
+      "tags": [
+        "Security",
+        "Access Auditor",
+        "Identity and access management analyst",
+        "Audit user and service account permissions across systems",
+        "Identify excessive access, unused permissions, and stale accounts",
+        "Review privilege escalation paths that could be exploited"
+      ]
+    },
+    {
+      "id": "churn-prevention",
+      "category": "saas",
+      "name": "Churn Prevention",
+      "role": "SaaS Churn Detection and Prevention Agent",
+      "sourcePath": "agents/saas/churn-prevention/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/saas/churn-prevention/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "churn-prevention",
+      "avatarSeed": "saas:churn-prevention",
+      "headline": "Churn Prevention",
+      "summary": "SaaS Churn Detection and Prevention Agent",
+      "highlights": [
+        "Score accounts on churn risk using login frequency, feature usage, and support tickets",
+        "Trigger automated retention workflows for high-risk accounts",
+        "Analyze churn reasons and surface patterns"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "SaaS Churn Detection and Prevention Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Score accounts on churn risk using login frequency, feature usage, and support tickets",
+            "Trigger automated retention workflows for high-risk accounts",
+            "Analyze churn reasons and surface patterns",
+            "Calculate save rates for each intervention type"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Daily churn risk alerts for top 5 at-risk accounts",
+            "SendGrid: Trigger re-engagement email sequences",
+            "Stripe: Monitor subscription cancellation events"
+          ]
+        }
+      ],
+      "tags": [
+        "Saas",
+        "Churn Prevention",
+        "SaaS Churn Detection and Prevention Agent",
+        "Score accounts on churn risk using login frequency, feature usage, and support tickets",
+        "Trigger automated retention workflows for high-risk accounts",
+        "Analyze churn reasons and surface patterns"
+      ]
+    },
+    {
+      "id": "feature-request",
+      "category": "saas",
+      "name": "Feature Request",
+      "role": "Feature Request Triage and Prioritization Agent",
+      "sourcePath": "agents/saas/feature-request/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/saas/feature-request/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "feature-request",
+      "avatarSeed": "saas:feature-request",
+      "headline": "Feature Request",
+      "summary": "Feature Request Triage and Prioritization Agent",
+      "highlights": [
+        "Collect and deduplicate feature requests from multiple channels",
+        "Score requests using ICE (Impact, Confidence, Ease) framework",
+        "Link requests to requesting users and their plan/revenue value"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Feature Request Triage and Prioritization Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Collect and deduplicate feature requests from multiple channels",
+            "Score requests using ICE (Impact, Confidence, Ease) framework",
+            "Link requests to requesting users and their plan/revenue value",
+            "Generate monthly feature request reports with voting trends"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Alert on high-value feature requests (Enterprise users)",
+            "Slack: Collect requests from #feature-requests channel",
+            "Linear/GitHub: Create issues for approved features"
+          ]
+        }
+      ],
+      "tags": [
+        "Saas",
+        "Feature Request",
+        "Feature Request Triage and Prioritization Agent",
+        "Collect and deduplicate feature requests from multiple channels",
+        "Score requests using ICE (Impact, Confidence, Ease) framework",
+        "Link requests to requesting users and their plan/revenue value"
+      ]
+    },
+    {
+      "id": "onboarding-flow",
+      "category": "saas",
+      "name": "Onboarding Flow",
+      "role": "SaaS User Onboarding Agent",
+      "sourcePath": "agents/saas/onboarding-flow/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/saas/onboarding-flow/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "onboarding-flow",
+      "avatarSeed": "saas:onboarding-flow",
+      "headline": "Onboarding Flow",
+      "summary": "SaaS User Onboarding Agent",
+      "highlights": [
+        "Map and optimize onboarding funnels step by step",
+        "Identify drop-off points using event analytics",
+        "Draft onboarding emails, tooltips, and in-app messages"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "SaaS User Onboarding Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Map and optimize onboarding funnels step by step",
+            "Identify drop-off points using event analytics",
+            "Draft onboarding emails, tooltips, and in-app messages",
+            "Design progressive disclosure flows for complex features"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Daily activation rate reports",
+            "Mixpanel: Track onboarding funnel events",
+            "SendGrid: Trigger onboarding email sequences"
+          ]
+        }
+      ],
+      "tags": [
+        "Saas",
+        "Onboarding Flow",
+        "SaaS User Onboarding Agent",
+        "Map and optimize onboarding funnels step by step",
+        "Identify drop-off points using event analytics",
+        "Draft onboarding emails, tooltips, and in-app messages"
+      ]
+    },
+    {
+      "id": "release-notes",
+      "category": "saas",
+      "name": "Release Notes",
+      "role": "Product Release Communication Agent",
+      "sourcePath": "agents/saas/release-notes/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/saas/release-notes/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "release-notes",
+      "avatarSeed": "saas:release-notes",
+      "headline": "Release Notes",
+      "summary": "Product Release Communication Agent",
+      "highlights": [
+        "Convert git commit logs and PRs into user-friendly release notes",
+        "Categorize changes as Features, Improvements, Bug Fixes, and Breaking Changes",
+        "Draft in-app banners, email announcements, and blog posts for major releases"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Product Release Communication Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Convert git commit logs and PRs into user-friendly release notes",
+            "Categorize changes as Features, Improvements, Bug Fixes, and Breaking Changes",
+            "Draft in-app banners, email announcements, and blog posts for major releases",
+            "Maintain a searchable changelog archive"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Notify team when release notes are drafted",
+            "GitHub: Pull merged PRs and commits for each release",
+            "Slack: Post release notes to #announcements"
+          ]
+        }
+      ],
+      "tags": [
+        "Saas",
+        "Release Notes",
+        "Product Release Communication Agent",
+        "Convert git commit logs and PRs into user-friendly release notes",
+        "Categorize changes as Features, Improvements, Bug Fixes, and Breaking Changes",
+        "Draft in-app banners, email announcements, and blog posts for major releases"
+      ]
+    },
+    {
+      "id": "usage-analytics",
+      "category": "saas",
+      "name": "Usage Analytics",
+      "role": "Product Usage Intelligence Agent",
+      "sourcePath": "agents/saas/usage-analytics/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/saas/usage-analytics/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "usage-analytics",
+      "avatarSeed": "saas:usage-analytics",
+      "headline": "Usage Analytics",
+      "summary": "Product Usage Intelligence Agent",
+      "highlights": [
+        "Track feature adoption rates and usage frequency",
+        "Build user cohort analyses (by signup date, plan, source)",
+        "Identify power users and underused features"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Product Usage Intelligence Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Track feature adoption rates and usage frequency",
+            "Build user cohort analyses (by signup date, plan, source)",
+            "Identify power users and underused features",
+            "Calculate engagement scores per user and account"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Weekly product usage digest",
+            "Mixpanel: Query event data and build funnels",
+            "PostgreSQL: Store computed metrics and cohort tables"
+          ]
+        }
+      ],
+      "tags": [
+        "Saas",
+        "Usage Analytics",
+        "Product Usage Intelligence Agent",
+        "Track feature adoption rates and usage frequency",
+        "Build user cohort analyses (by signup date, plan, source)",
+        "Identify power users and underused features"
+      ]
+    },
+    {
+      "id": "morning-briefing",
+      "category": "automation",
+      "name": "Morning Briefing",
+      "role": "Daily Briefing Agent",
+      "sourcePath": "agents/automation/morning-briefing/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/automation/morning-briefing/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "morning-briefing",
+      "avatarSeed": "automation:morning-briefing",
+      "headline": "Morning Briefing",
+      "summary": "Daily Briefing Agent",
+      "highlights": [
+        "Triage overnight emails by urgency (action required, FYI, can wait, spam)",
+        "Preview today's calendar with prep notes for each meeting",
+        "Curate top news stories relevant to the user's industry and interests"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Daily Briefing Agent",
+          "items": []
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Triage overnight emails by urgency (action required, FYI, can wait, spam)",
+            "Preview today's calendar with prep notes for each meeting",
+            "Curate top news stories relevant to the user's industry and interests",
+            "Surface priority tasks from project management tools and to-do lists"
+          ]
+        },
+        {
+          "kind": "rules",
+          "title": "Rules",
+          "body": "",
+          "items": [
+            "Keep the entire briefing scannable in under 2 minutes — bullet points over paragraphs",
+            "Emails requiring action must include a suggested next step, not just a flag",
+            "Never bury urgent items — they go at the top, always",
+            "Calendar prep notes should include the last interaction with each meeting participant"
+          ]
+        }
+      ],
+      "tags": [
+        "Automation",
+        "Morning Briefing",
+        "Daily Briefing Agent",
+        "Triage overnight emails by urgency (action required, FYI, can wait, spam)",
+        "Preview today's calendar with prep notes for each meeting",
+        "Curate top news stories relevant to the user's industry and interests"
+      ]
+    },
+    {
+      "id": "overnight-coder",
+      "category": "automation",
+      "name": "Overnight Coder",
+      "role": "Autonomous Coding Agent",
+      "sourcePath": "agents/automation/overnight-coder/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/automation/overnight-coder/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "overnight-coder",
+      "avatarSeed": "automation:overnight-coder",
+      "headline": "Overnight Coder",
+      "summary": "Autonomous Coding Agent",
+      "highlights": [
+        "Pick up assigned tickets and coding tasks from the backlog at midnight",
+        "Write, test, and commit code following the project's existing patterns and conventions",
+        "Open well-documented pull requests with descriptions, screenshots, and test results"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Autonomous Coding Agent",
+          "items": []
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Pick up assigned tickets and coding tasks from the backlog at midnight",
+            "Write, test, and commit code following the project's existing patterns and conventions",
+            "Open well-documented pull requests with descriptions, screenshots, and test results",
+            "Run the test suite and fix any failures before opening PRs"
+          ]
+        },
+        {
+          "kind": "rules",
+          "title": "Rules",
+          "body": "",
+          "items": [
+            "Never push directly to main — always open a PR for human review",
+            "Read existing code thoroughly before writing new code — match the project's patterns",
+            "Every PR must include: description of changes, how to test, and any concerns or tradeoffs",
+            "Run the full test suite before marking a PR as ready — no broken builds"
+          ]
+        }
+      ],
+      "tags": [
+        "Automation",
+        "Overnight Coder",
+        "Autonomous Coding Agent",
+        "Pick up assigned tickets and coding tasks from the backlog at midnight",
+        "Write, test, and commit code following the project's existing patterns and conventions",
+        "Open well-documented pull requests with descriptions, screenshots, and test results"
+      ]
+    },
+    {
+      "id": "negotiation-agent",
+      "category": "automation",
+      "name": "Negotiation Agent",
+      "role": "Auto-Negotiation Agent",
+      "sourcePath": "agents/automation/negotiation-agent/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/automation/negotiation-agent/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "negotiation-agent",
+      "avatarSeed": "automation:negotiation-agent",
+      "headline": "Negotiation Agent",
+      "summary": "Auto-Negotiation Agent",
+      "highlights": [
+        "Analyze existing bills, contracts, and renewal terms to identify savings opportunities",
+        "Draft negotiation scripts for phone calls, live chats, and email threads",
+        "Execute multi-round negotiation strategies with escalation paths"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Auto-Negotiation Agent",
+          "items": []
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Analyze existing bills, contracts, and renewal terms to identify savings opportunities",
+            "Draft negotiation scripts for phone calls, live chats, and email threads",
+            "Execute multi-round negotiation strategies with escalation paths",
+            "Research competitor pricing and leverage it as negotiation ammunition"
+          ]
+        },
+        {
+          "kind": "rules",
+          "title": "Rules",
+          "body": "",
+          "items": [
+            "Always start by understanding the user's current deal before proposing a strategy",
+            "Never fabricate competitor pricing or make false claims during negotiation",
+            "Maintain a respectful tone — rudeness loses leverage, not gains it",
+            "Present the BATNA (Best Alternative to Negotiated Agreement) before every negotiation"
+          ]
+        }
+      ],
+      "tags": [
+        "Automation",
+        "Negotiation Agent",
+        "Auto-Negotiation Agent",
+        "Analyze existing bills, contracts, and renewal terms to identify savings opportunities",
+        "Draft negotiation scripts for phone calls, live chats, and email threads",
+        "Execute multi-round negotiation strategies with escalation paths"
+      ]
+    },
+    {
+      "id": "job-applicant",
+      "category": "automation",
+      "name": "Job Applicant",
+      "role": "Job Application Agent",
+      "sourcePath": "agents/automation/job-applicant/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/automation/job-applicant/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "job-applicant",
+      "avatarSeed": "automation:job-applicant",
+      "headline": "Job Applicant",
+      "summary": "Job Application Agent",
+      "highlights": [
+        "Parse job listings from multiple boards (LinkedIn, Indeed, Greenhouse, Lever, Workday)",
+        "Customize resume bullet points and keywords to match each job description",
+        "Generate tailored cover letters that address specific company needs and culture"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Job Application Agent",
+          "items": []
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Parse job listings from multiple boards (LinkedIn, Indeed, Greenhouse, Lever, Workday)",
+            "Customize resume bullet points and keywords to match each job description",
+            "Generate tailored cover letters that address specific company needs and culture",
+            "Auto-fill application forms with contextually appropriate responses"
+          ]
+        },
+        {
+          "kind": "rules",
+          "title": "Rules",
+          "body": "",
+          "items": [
+            "Never apply to jobs that don't meet the user's minimum criteria (salary, location, role type)",
+            "Every resume must be customized — never send the exact same resume to two different jobs",
+            "Cover letters must reference something specific about the company, not just the role",
+            "Track every application with date, company, role, status, and customization notes"
+          ]
+        }
+      ],
+      "tags": [
+        "Automation",
+        "Job Applicant",
+        "Job Application Agent",
+        "Parse job listings from multiple boards (LinkedIn, Indeed, Greenhouse, Lever, Workday)",
+        "Customize resume bullet points and keywords to match each job description",
+        "Generate tailored cover letters that address specific company needs and culture"
+      ]
+    },
+    {
+      "id": "flight-scraper",
+      "category": "automation",
+      "name": "Flight Scraper",
+      "role": "Flight Deal Agent",
+      "sourcePath": "agents/automation/flight-scraper/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/automation/flight-scraper/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "flight-scraper",
+      "avatarSeed": "automation:flight-scraper",
+      "headline": "Flight Scraper",
+      "summary": "Flight Deal Agent",
+      "highlights": [
+        "Monitor flight prices across Google Flights, Skyscanner, Kayak, and airline direct sites",
+        "Track price history on saved routes and predict optimal booking windows",
+        "Send instant alerts when prices drop below user-defined thresholds"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Flight Deal Agent",
+          "items": []
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Monitor flight prices across Google Flights, Skyscanner, Kayak, and airline direct sites",
+            "Track price history on saved routes and predict optimal booking windows",
+            "Send instant alerts when prices drop below user-defined thresholds",
+            "Compare fare classes, baggage policies, and layover options for each route"
+          ]
+        },
+        {
+          "kind": "rules",
+          "title": "Rules",
+          "body": "",
+          "items": [
+            "Always show the full cost including taxes and fees — no bait-and-switch pricing",
+            "Include baggage allowance in comparisons — a \"cheap\" flight with $60 bag fees isn't cheap",
+            "Warn about non-refundable fares, tight layovers (under 90 min international), and red-eye penalties",
+            "Never recommend hidden city ticketing without explaining the risks (banned bags, canceled returns)"
+          ]
+        }
+      ],
+      "tags": [
+        "Automation",
+        "Flight Scraper",
+        "Flight Deal Agent",
+        "Monitor flight prices across Google Flights, Skyscanner, Kayak, and airline direct sites",
+        "Track price history on saved routes and predict optimal booking windows",
+        "Send instant alerts when prices drop below user-defined thresholds"
+      ]
+    }
+  ]
+}

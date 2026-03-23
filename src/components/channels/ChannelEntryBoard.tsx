@@ -1,5 +1,3 @@
-import { Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import type { ChannelType } from '@/types/channel';
 import { ChannelEntryCard, type ChannelEntryCardProps } from '@/components/channels/ChannelEntryCard';
 
@@ -13,9 +11,6 @@ export interface ChannelEntryBoardSection {
 }
 
 interface ChannelEntryBoardProps {
-  query: string;
-  queryPlaceholder: string;
-  onQueryChange: (value: string) => void;
   sections: ChannelEntryBoardSection[];
   emptyMessage: string;
   columnCount: 1 | 2 | 3 | 4;
@@ -23,9 +18,6 @@ interface ChannelEntryBoardProps {
 }
 
 export function ChannelEntryBoard({
-  query,
-  queryPlaceholder,
-  onQueryChange,
   sections,
   emptyMessage,
   columnCount,
@@ -38,18 +30,6 @@ export function ChannelEntryBoard({
       data-testid="channel-entry-board"
       className="space-y-3.5"
     >
-      <div className="flex justify-end">
-        <div className="relative w-full md:max-w-[300px]">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/68" />
-          <Input
-            value={query}
-            onChange={(event) => onQueryChange(event.target.value)}
-            placeholder={queryPlaceholder}
-            className="h-9 rounded-[12px] border border-[hsl(var(--border-subtle)/0.48)] bg-[hsl(var(--surface-panel)/0.82)] pl-9 text-[12px] shadow-none placeholder:text-muted-foreground/52 hover:border-[hsl(var(--border-subtle)/0.72)] hover:bg-[hsl(var(--surface-elevated)/0.98)] focus-visible:border-[hsl(var(--border-strong)/0.52)] focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0"
-          />
-        </div>
-      </div>
-
       {visibleSections.length > 0 ? (
         visibleSections.map((section) => (
           <div key={section.id} className="space-y-2">

@@ -1,6 +1,6 @@
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { Chat } from '@/pages/Chat';
 
@@ -32,6 +32,7 @@ const {
   },
   gatewayState: {
     status: { state: 'running', port: 18789 },
+    execApprovalQueue: [] as Array<Record<string, unknown>>,
   },
   agentsState: {
     agents: [] as Array<Record<string, unknown>>,
@@ -49,7 +50,13 @@ const {
 }));
 
 vi.mock('@/stores/chat', () => ({
-  useChatStore: (selector: (state: typeof chatState) => unknown) => selector(chatState),
+  useChatStore: Object.assign(
+    (selector: (state: typeof chatState) => unknown) => selector(chatState),
+    {
+      getState: () => chatState,
+      setState: vi.fn(),
+    },
+  ),
 }));
 
 vi.mock('@/stores/gateway', () => ({
@@ -137,6 +144,26 @@ vi.mock('react-i18next', () => ({
           return 'Wire in skills, tools, and external access so this desk can take on more than one kind of job.';
         case 'message.toolProcessing':
           return 'Processing tools';
+        case 'execApproval.title':
+          return 'Local exec approval needed';
+        case 'execApproval.subtitle':
+          return `This command expires in ${String(vars?.remaining ?? '')}`;
+        case 'execApproval.queueCount':
+          return `${String(vars?.count ?? '')} pending`;
+        case 'execApproval.commandLabel':
+          return 'Pending command';
+        case 'execApproval.cwdLabel':
+          return 'Working directory';
+        case 'execApproval.hostLabel':
+          return 'Host';
+        case 'execApproval.policyLabel':
+          return 'Approval policy';
+        case 'execApproval.deny':
+          return 'Deny';
+        case 'execApproval.allowAlways':
+          return 'Allow always';
+        case 'execApproval.allowOnce':
+          return 'Allow once';
         default:
           return typeof vars?.state === 'string' ? `${key}:${vars.state}` : key;
       }
@@ -172,6 +199,7 @@ describe('chat render stability', () => {
     chatState.streamingTools = [];
     chatState.pendingFinal = false;
     gatewayState.status = { state: 'running', port: 18789 };
+    gatewayState.execApprovalQueue = [];
     agentsState.agents = [
       {
         id: 'main',
@@ -217,6 +245,27 @@ describe('chat render stability', () => {
     expect(getByText('Split the job')).toBeInTheDocument();
     expect(getByText('Plug in more')).toBeInTheDocument();
     expect(scrollShell).toHaveClass('subtle-scrollbar');
+  });
+
+  it('keeps a stable welcome status slot regardless of runtime state so the hero height does not jump', () => {
+    chatState.messages = [];
+    gatewayState.status = { state: 'running', port: 18789 };
+
+    const { rerender } = renderChat();
+
+    expect(screen.getByTestId('chat-welcome-status-slot')).toBeInTheDocument();
+    expect(screen.getByTestId('chat-welcome-status-slot')).toHaveAttribute('aria-hidden', 'true');
+
+    gatewayState.status = { state: 'starting', port: 18789 };
+
+    rerender(
+      <MemoryRouter>
+        <Chat />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByTestId('chat-welcome-status-slot')).toHaveTextContent('header.runtimeIssue:starting');
+    expect(screen.getByTestId('chat-welcome-status-slot')).toHaveAttribute('aria-hidden', 'false');
   });
 
   it('does not fall back to the welcome shell while an existing session history is loading', () => {
@@ -266,5 +315,34 @@ describe('chat render stability', () => {
 
     const emptyScrollShell = container.querySelector('.app-chat-shell > .chat-im-font');
     expect(emptyScrollShell).toHaveClass('subtle-scrollbar');
+  });
+
+  it('renders a desktop exec approval overlay for pending approvals in the current session', () => {
+    gatewayState.execApprovalQueue = [
+      {
+        id: '3991c078-e218-45b9-bc33-c9218184520c',
+        slug: '3991c078',
+        createdAtMs: 10,
+        expiresAtMs: Date.now() + 60_000,
+        request: {
+          command: `uv run python - <<'PY'
+print("hello")
+PY`,
+          cwd: '/Users/jianglong/.openclaw/workspace',
+          host: 'gateway',
+          security: 'default',
+          ask: 'on-fail',
+          sessionKey: 'agent:main:thread-1',
+        },
+      },
+    ];
+
+    const { getByText } = renderChat();
+
+    expect(getByText('Local exec approval needed')).toBeInTheDocument();
+    expect(getByText('Pending command')).toBeInTheDocument();
+    expect(getByText('Allow once')).toBeInTheDocument();
+    expect(getByText('Allow always')).toBeInTheDocument();
+    expect(getByText('Deny')).toBeInTheDocument();
   });
 });

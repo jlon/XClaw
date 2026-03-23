@@ -3117,6 +3117,10 @@
   gap: 0.875rem;
 }
 
+.app-workbench-header-leading--iconless {
+  gap: 0;
+}
+
 .app-workbench-header-rail {
   display: flex;
   flex-wrap: wrap;
@@ -3235,14 +3239,7 @@
 
 .app-cron-header .app-workbench-header-leading {
   align-items: center;
-  gap: 0.68rem;
-}
-
-.app-cron-header-icon {
-  height: 2.75rem;
-  width: 2.75rem;
-  border-radius: 0.875rem;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.64);
+  gap: 0;
 }
 
 .app-cron-header-copy {
@@ -3265,6 +3262,117 @@
 
 .app-cron-header-actions {
   gap: 0.55rem;
+}
+
+.app-channels-header {
+  margin-bottom: 0.92rem;
+  gap: 0.48rem;
+}
+
+.app-channels-shell {
+  max-width: 1480px;
+}
+
+.app-channels-header .app-workbench-header-main {
+  gap: 0.12rem;
+}
+
+.app-channels-header .app-workbench-header-leading {
+  align-items: flex-start;
+  gap: 0;
+  max-width: 25rem;
+}
+
+.app-channels-header-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.56rem 0.75rem;
+}
+
+.app-channels-header-search {
+  width: 14.5rem;
+}
+
+.app-channels-header-toolbar-rail {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.38rem;
+}
+
+.app-channels-header-copy .app-workbench-header-title {
+  font-size: clamp(1.48rem, 1.78vw, 1.74rem);
+  line-height: 1.04;
+  letter-spacing: -0.036em;
+}
+
+.app-channels-header-copy .app-workbench-header-subtitle {
+  margin-top: 0.06rem;
+  max-width: 20rem;
+  font-size: 0.76rem;
+  line-height: 1.24;
+  color: hsl(var(--foreground) / 0.46);
+}
+
+.app-channels-header-actions {
+  gap: 0.38rem;
+}
+
+.app-channels-header-refresh {
+  min-width: 5.8rem;
+  background: hsl(var(--surface-panel) / 0.52);
+  color: hsl(var(--foreground) / 0.72);
+}
+
+.app-channels-summary-strip {
+  min-height: 0;
+  width: fit-content;
+  max-width: 100%;
+  gap: 0.34rem;
+  padding: 0;
+  border-color: transparent;
+  border-radius: 0;
+  background: transparent;
+}
+
+.app-channels-summary-strip .app-workbench-summary-item {
+  min-height: 1.56rem;
+  gap: 0.36rem;
+  border-color: hsl(var(--border-subtle) / 0.62);
+  background: hsl(var(--surface-panel) / 0.58);
+  padding: 0.16rem 0.48rem 0.16rem 0.28rem;
+}
+
+.app-channels-summary-strip .app-workbench-summary-item-icon {
+  height: 1.18rem;
+  width: 1.18rem;
+}
+
+.app-channels-summary-strip .app-workbench-summary-item-value {
+  font-size: 0.76rem;
+}
+
+.app-channels-summary-strip .app-workbench-summary-item-label {
+  font-size: 0.68rem;
+  letter-spacing: -0.01em;
+}
+
+@media (max-width: 959px) {
+  .app-channels-header-toolbar {
+    align-items: stretch;
+  }
+
+  .app-channels-header-toolbar-rail {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .app-channels-header-search {
+    width: 100%;
+  }
 }
 
 .app-cron-summary-strip {

@@ -91,4 +91,12 @@ describe('second-wave desktop theme rollout', () => {
     expect(source).toContain('app-modal-surface');
     expect(source).toContain('searchFieldClass');
   });
+
+  it('keeps the skills enabled switch on a token-driven accent in light theme instead of a hard black toggle', () => {
+    const source = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
+
+    expect(source).toContain(".app-skills-card-switch[data-state='checked']");
+    expect(source).not.toContain("border-color: rgb(33 35 41 / 0.9);");
+    expect(source).not.toContain("background: linear-gradient(180deg, rgb(41 43 49 / 0.98) 0%, rgb(26 28 33 / 0.98) 100%);");
+  });
 });

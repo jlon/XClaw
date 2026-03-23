@@ -60,6 +60,7 @@ interface SettingsState {
 
   // UI State
   sidebarCollapsed: boolean;
+  chatFocusMode: boolean;
   devModeUnlocked: boolean;
 
   // Setup
@@ -84,6 +85,7 @@ interface SettingsState {
   setAutoCheckUpdate: (value: boolean) => void;
   setAutoDownloadUpdate: (value: boolean) => void;
   setSidebarCollapsed: (value: boolean) => void;
+  setChatFocusMode: (value: boolean) => void;
   setDevModeUnlocked: (value: boolean) => void;
   markSetupComplete: (options?: { persist?: boolean }) => void;
   resetSettings: () => void;
@@ -109,6 +111,7 @@ const defaultSettings = {
   autoCheckUpdate: true,
   autoDownloadUpdate: false,
   sidebarCollapsed: false,
+  chatFocusMode: false,
   devModeUnlocked: false,
   setupComplete: false,
 };
@@ -201,6 +204,7 @@ export const useSettingsStore = create<SettingsState>()(
       setAutoCheckUpdate: (autoCheckUpdate) => set({ autoCheckUpdate }),
       setAutoDownloadUpdate: (autoDownloadUpdate) => set({ autoDownloadUpdate }),
       setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
+      setChatFocusMode: (chatFocusMode) => set({ chatFocusMode }),
       setDevModeUnlocked: (devModeUnlocked) => {
         set({ devModeUnlocked });
         void hostApiFetch('/api/settings/devModeUnlocked', {

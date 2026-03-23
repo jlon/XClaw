@@ -11,6 +11,7 @@ import {
   getApiClientConfig,
   applyGatewayTransportPreference,
   createGatewayHttpTransportInvoker,
+  createGatewayWsTransportInvoker,
   getGatewayWsDiagnosticEnabled,
   setGatewayWsDiagnosticEnabled,
 } from '@/lib/api-client';
@@ -278,5 +279,67 @@ describe('api-client', () => {
       'gateway:rpc config.patch requires object patch',
     );
     expect(invoke).not.toHaveBeenCalled();
+  });
+
+  it('includes operator.approvals in gateway WS connect scope for exec approval resolution flows', async () => {
+    let openHandler: (() => void) | null = null;
+    let messageHandler: ((event: MessageEvent) => void) | null = null;
+    const sentFrames: Array<Record<string, unknown>> = [];
+
+    const mockSocket = {
+      readyState: 1,
+      addEventListener: vi.fn((event: string, handler: (event?: MessageEvent) => void) => {
+        if (event === 'open') openHandler = handler as () => void;
+        if (event === 'message') messageHandler = handler as (event: MessageEvent) => void;
+      }),
+      removeEventListener: vi.fn(),
+      send: vi.fn((payload: string) => {
+        const parsed = JSON.parse(payload) as Record<string, unknown>;
+        sentFrames.push(parsed);
+        if (parsed.method === 'connect' && messageHandler) {
+          messageHandler({
+            data: JSON.stringify({
+              type: 'res',
+              id: parsed.id,
+              ok: false,
+              error: {
+                code: 'FORBIDDEN',
+                message: 'missing required scope operator.approvals',
+              },
+            }),
+          } as MessageEvent);
+        }
+      }),
+      close: vi.fn(),
+    } as unknown as WebSocket;
+
+    const invoker = createGatewayWsTransportInvoker({
+      urlResolver: async () => 'ws://127.0.0.1:18789',
+      tokenResolver: async () => 'token',
+      websocketFactory: () => mockSocket,
+      timeoutMs: 200,
+    });
+
+    const call = invoker('gateway:rpc', ['exec.approval.resolve', { id: 'abc', decision: 'allow-once' }]);
+
+    openHandler?.();
+    messageHandler?.({
+      data: JSON.stringify({
+        type: 'event',
+        event: 'connect.challenge',
+        payload: { nonce: 'nonce-1' },
+      }),
+    } as MessageEvent);
+
+    await expect(call).rejects.toThrow('Gateway WS connect timeout');
+
+    const connectFrame = sentFrames.find((frame) => frame.method === 'connect');
+    expect(connectFrame).toBeTruthy();
+    expect(connectFrame).toMatchObject({
+      params: {
+        role: 'operator',
+        scopes: ['operator.admin', 'operator.approvals'],
+      },
+    });
   });
 });

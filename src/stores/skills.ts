@@ -8,34 +8,6 @@ import { AppError, normalizeAppError } from '@/lib/error-model';
 import { useGatewayStore } from './gateway';
 import type { Skill, MarketplaceSkill } from '../types/skill';
 
-type GatewaySkillStatus = {
-  skillKey: string;
-  slug?: string;
-  name?: string;
-  description?: string;
-  disabled?: boolean;
-  emoji?: string;
-  version?: string;
-  author?: string;
-  config?: Record<string, unknown>;
-  bundled?: boolean;
-  always?: boolean;
-  source?: string;
-  baseDir?: string;
-  filePath?: string;
-};
-
-type GatewaySkillsStatusResult = {
-  skills?: GatewaySkillStatus[];
-};
-
-type ClawHubListResult = {
-  slug: string;
-  version?: string;
-  source?: string;
-  baseDir?: string;
-};
-
 function mapErrorCodeToSkillErrorKey(
   code: AppError['code'],
   operation: 'fetch' | 'search' | 'install',
@@ -87,87 +59,18 @@ export const useSkillsStore = create<SkillsState>((set, get) => ({
   error: null,
 
   fetchSkills: async () => {
-    // Only show loading state if we have no skills yet (initial load)
     if (get().skills.length === 0) {
       set({ loading: true, error: null });
     }
     try {
-      // 1. Fetch from Gateway (running skills)
-      const gatewayData = await useGatewayStore.getState().rpc<GatewaySkillsStatusResult>('skills.status');
-
-      // 2. Fetch from ClawHub (installed on disk)
-      const clawhubResult = await hostApiFetch<{ success: boolean; results?: ClawHubListResult[]; error?: string }>('/api/clawhub/list');
-
-      // 3. Fetch configurations directly from Electron (since Gateway doesn't return them)
-      const configResult = await hostApiFetch<Record<string, { apiKey?: string; env?: Record<string, string> }>>('/api/skills/configs');
-
-      let combinedSkills: Skill[] = [];
-      const currentSkills = get().skills;
-
-      // Map gateway skills info
-      if (gatewayData.skills) {
-        combinedSkills = gatewayData.skills.map((s: GatewaySkillStatus) => {
-          // Merge with direct config if available
-          const directConfig = configResult[s.skillKey] || {};
-
-          return {
-            id: s.skillKey,
-            slug: s.slug || s.skillKey,
-            name: s.name || s.skillKey,
-            description: s.description || '',
-            enabled: !s.disabled,
-            icon: s.emoji || '📦',
-            version: s.version || '1.0.0',
-            author: s.author,
-            config: {
-              ...(s.config || {}),
-              ...directConfig,
-            },
-            isCore: s.bundled && s.always,
-            isBundled: s.bundled,
-            source: s.source,
-            baseDir: s.baseDir,
-            filePath: s.filePath,
-          };
-        });
-      } else if (currentSkills.length > 0) {
-        // ... if gateway down ...
-        combinedSkills = [...currentSkills];
-      }
-
-      // Merge with ClawHub results
-      if (clawhubResult.success && clawhubResult.results) {
-        clawhubResult.results.forEach((cs: ClawHubListResult) => {
-          const existing = combinedSkills.find(s => s.id === cs.slug);
-          if (existing) {
-            if (!existing.baseDir && cs.baseDir) {
-              existing.baseDir = cs.baseDir;
-            }
-            if (!existing.source && cs.source) {
-              existing.source = cs.source;
-            }
-            return;
-          }
-          const directConfig = configResult[cs.slug] || {};
-          combinedSkills.push({
-            id: cs.slug,
-            slug: cs.slug,
-            name: cs.slug,
-            description: 'Recently installed, initializing...',
-            enabled: false,
-            icon: '⌛',
-            version: cs.version || 'unknown',
-            author: undefined,
-            config: directConfig,
-            isCore: false,
-            isBundled: false,
-            source: cs.source || 'openclaw-managed',
-            baseDir: cs.baseDir,
-          });
+      const result = await hostApiFetch<{ success: boolean; skills?: Skill[]; error?: string }>('/api/skills/catalog');
+      if (!result.success) {
+        throw normalizeAppError(new Error(result.error || 'Failed to fetch skills catalog'), {
+          module: 'skills',
+          operation: 'fetch',
         });
       }
-
-      set({ skills: combinedSkills, loading: false });
+      set({ skills: result.skills || [], loading: false, error: null });
     } catch (error) {
       console.error('Failed to fetch skills:', error);
       const appError = normalizeAppError(error, { module: 'skills', operation: 'fetch' });

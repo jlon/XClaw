@@ -1,0 +1,195 @@
+import { Store } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { AgentAvatar } from '@/components/agents/AgentAvatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { resolveMarketItemCopy } from '@/lib/agent-market-copy';
+import { cn } from '@/lib/utils';
+import type { AgentMarketCatalogItem } from '@/types/agent-market';
+
+export interface AgentMarketDetailPaneProps {
+  marketItem: AgentMarketCatalogItem | null;
+  marketInstallName: string;
+  marketInstalling: boolean;
+  onInstall: () => void;
+  onInstallNameChange: (value: string) => void;
+}
+
+const shellCardClasses =
+  'rounded-[24px] border border-border/70 bg-[linear-gradient(180deg,hsl(var(--surface-elevated)/0.998)_0%,hsl(var(--surface-panel)/0.972)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.72),0_14px_28px_rgba(15,23,42,0.04)]';
+const surfaceCardClasses = 'rounded-[20px] border border-border/60 bg-[hsl(var(--surface-panel)/0.92)]';
+const badgeClasses =
+  'h-5 rounded-[10px] border border-border/70 bg-background/70 px-2 text-[10px] font-medium text-foreground/70 shadow-none';
+const actionButtonClasses =
+  'h-10 rounded-[13px] border-transparent bg-primary px-5 text-[13px] font-semibold text-primary-foreground shadow-[0_10px_22px_rgba(15,23,42,0.12)] transition-colors hover:bg-primary/92';
+const summaryLabelClasses = 'text-[11px] font-medium uppercase tracking-[0.08em] text-foreground/44';
+const fieldInputClasses =
+  'h-[44px] rounded-xl text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30';
+const installPanelClasses =
+  'rounded-[22px] border border-[hsl(var(--primary)/0.12)] bg-[linear-gradient(180deg,hsl(var(--surface-elevated)/1)_0%,hsl(var(--surface-panel)/0.968)_100%)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.76),0_16px_28px_rgba(15,23,42,0.05)]';
+
+const SectionLabel = ({ label, description }: { label: string; description: string }) => (
+  <div className="border-b border-border/55 pb-3">
+    <p className="text-[13px] font-semibold tracking-tight text-foreground">{label}</p>
+    <p className="mt-1 text-[12px] leading-[1.55] text-foreground/52">{description}</p>
+  </div>
+);
+
+export function AgentMarketDetailPane({
+  marketItem,
+  marketInstallName,
+  marketInstalling,
+  onInstall,
+  onInstallNameChange,
+}: AgentMarketDetailPaneProps) {
+  const { t } = useTranslation('agents');
+
+  if (!marketItem) {
+    return (
+      <div
+        data-testid="agents-market-empty-state"
+        className="app-empty-surface flex h-full min-h-[520px] flex-col items-center justify-center rounded-[18px] border border-dashed border-border/55 px-6 py-10 text-center"
+      >
+        <Store className="h-10 w-10 text-foreground/28" />
+        <h3 className="mt-4 text-[20px] font-semibold tracking-tight text-foreground">{t('workbench.detail.emptyMarketTitle')}</h3>
+        <p className="mt-2 max-w-[420px] text-[13px] leading-[1.65] text-foreground/58">
+          {t('workbench.detail.emptyMarketDescription')}
+        </p>
+      </div>
+    );
+  }
+
+  const copy = resolveMarketItemCopy(t, marketItem);
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col gap-4">
+      <div className={cn(shellCardClasses, 'relative overflow-hidden p-5')}>
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/10 to-transparent" />
+        <div className="relative flex min-w-0 flex-col gap-4">
+          <div className="flex min-w-0 items-start gap-4">
+            <AgentAvatar agentId={`${marketItem.id}:${marketItem.category}`} size={60} />
+            <div className="min-w-0 space-y-3">
+              <Badge variant="outline" className={cn(badgeClasses, 'w-fit bg-[hsl(var(--surface-panel)/0.94)]')}>
+                {marketItem.category}
+              </Badge>
+              <div className="space-y-1.5">
+                <h2 className="text-[24px] font-semibold tracking-tight text-foreground">
+                  {copy.name}
+                </h2>
+                <p className="text-[13px] font-medium text-foreground/62">{copy.headline}</p>
+                <p className="max-w-2xl text-[13px] leading-[1.68] text-foreground/60">
+                  {copy.summary || t('workbench.market.noRole')}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className={installPanelClasses}>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className={summaryLabelClasses}>{t('workbench.market.installPanelTitle')}</p>
+              <Badge variant="outline" className={cn(badgeClasses, 'bg-[hsl(var(--surface-panel)/0.94)]')}>
+                {t('workbench.market.installReadyTag')}
+              </Badge>
+            </div>
+            <p className="mt-1 text-[12.5px] leading-[1.55] text-foreground/54">
+              {t('workbench.market.installReadyDescription')}
+            </p>
+            <div className="mt-4 grid gap-3 min-[1320px]:grid-cols-[minmax(0,1fr)_168px] min-[1320px]:items-end">
+              <div>
+                <Label htmlFor="market-install-name" className="text-[13px] font-semibold text-foreground/80">
+                  {t('workbench.market.installNameLabel')}
+                </Label>
+                <Input
+                  id="market-install-name"
+                  value={marketInstallName}
+                  onChange={(event) => onInstallNameChange(event.target.value)}
+                  placeholder={copy.name || marketItem.id}
+                  className={cn(fieldInputClasses, 'mt-2')}
+                />
+              </div>
+              <Button
+                type="button"
+                onClick={onInstall}
+                disabled={marketInstalling}
+                className={cn(actionButtonClasses, 'h-10 w-full rounded-[13px] border-transparent bg-primary px-5 text-[13px] font-semibold text-primary-foreground hover:bg-primary/92')}
+              >
+                {marketInstalling ? t('workbench.market.installing') : t('workbench.market.installAction')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-4">
+        <div className={cn(shellCardClasses, 'p-4')}>
+          <SectionLabel
+            label={t('workbench.market.highlightsTitle')}
+            description={t('workbench.market.highlightsDescription')}
+          />
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            {copy.highlights.length > 0 ? (
+              copy.highlights.map((highlight) => (
+                <div
+                  key={`${marketItem.id}:${highlight}`}
+                  className="flex min-h-[48px] items-start gap-2 rounded-[14px] border border-border/55 bg-[hsl(var(--surface-panel)/0.92)] px-3 py-2.5 text-[12px] text-foreground/68 shadow-[inset_0_1px_0_rgba(255,255,255,0.54)]"
+                >
+                  <span className="mt-[5px] h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/24" />
+                  <span className="leading-[1.55]">{highlight}</span>
+                </div>
+              ))
+            ) : (
+              <span className="text-[12px] text-foreground/52">{t('workbench.market.noRole')}</span>
+            )}
+          </div>
+        </div>
+
+        <div className={cn(shellCardClasses, 'flex min-h-0 flex-col p-4')}>
+          <SectionLabel
+            label={t('workbench.market.detailsTitle')}
+            description={t('workbench.market.detailsDescription')}
+          />
+          <div className="mt-4 grid gap-3">
+            {copy.detailSections.map((section) => (
+              <div
+                key={`${marketItem.id}:${section.kind}:${section.title}`}
+                className={cn(surfaceCardClasses, 'p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.56)]')}
+              >
+                <p className="text-[13px] font-semibold tracking-tight text-foreground">{section.title}</p>
+                {section.body ? (
+                  <p className="mt-2 text-[12.5px] leading-[1.65] text-foreground/58">{section.body}</p>
+                ) : null}
+                {section.items.length > 0 ? (
+                  <ul className="mt-3 space-y-2 text-[12.5px] leading-[1.6] text-foreground/62">
+                    {section.items.map((entry) => (
+                      <li key={`${section.kind}:${entry}`} className="flex gap-2">
+                        <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/28" />
+                        <span>{entry}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className={cn(shellCardClasses, 'p-4')}>
+          <SectionLabel
+            label={t('workbench.market.sourceSummaryTitle')}
+            description={t('workbench.market.sourceHint')}
+          />
+          <div className="mt-4 grid gap-2 text-[12.5px] leading-[1.6] text-foreground/58">
+            <div className={cn(surfaceCardClasses, 'px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]')}>
+              <p className={summaryLabelClasses}>{t('workbench.market.sourcePathLabel')}</p>
+              <p className="mt-1 font-medium text-foreground/74">{marketItem.sourcePath}</p>
+            </div>
+            <div className={cn(surfaceCardClasses, 'px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]')}>
+              <p className={summaryLabelClasses}>Raw URL</p>
+              <p className="mt-1 break-all text-foreground/62">{marketItem.rawUrl}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

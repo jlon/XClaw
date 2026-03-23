@@ -99,6 +99,19 @@ export function getProviderAccountRuntimeKey(
   return account.vendorId;
 }
 
+export function findProviderAccountsByRuntimeKey(
+  accounts: ProviderAccount[],
+  runtimeProviderKey: string | null | undefined,
+): ProviderAccount[] {
+  const normalizedRuntimeProviderKey = runtimeProviderKey?.trim().toLowerCase();
+  if (!normalizedRuntimeProviderKey) return [];
+
+  return accounts.filter((account) =>
+    getProviderAccountRuntimeKey(account).toLowerCase() === normalizedRuntimeProviderKey
+    || account.id.toLowerCase() === normalizedRuntimeProviderKey,
+  );
+}
+
 export function legacyProviderToAccount(provider: ProviderWithKeyInfo): ProviderAccount {
   return {
     id: provider.id,

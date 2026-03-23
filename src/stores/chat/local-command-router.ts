@@ -1,5 +1,6 @@
 import { useGatewayStore } from '@/stores/gateway';
-import { formatApprovalCommandReply, parseApprovalCommand } from './approval-command';
+import { parseApprovalCommand } from './approval-command';
+import { submitExecApprovalDecision } from './exec-approval-submit';
 import {
   buildSlashHelpText,
   isStopCommand,
@@ -127,6 +128,7 @@ export async function executeLocalChatCommand(
     return true;
   }
 
+  const currentSessionKey = get().currentSessionKey;
   const approvalCommand = parseApprovalCommand(trimmed);
   if (approvalCommand) {
     if ('error' in approvalCommand) {
@@ -144,23 +146,24 @@ export async function executeLocalChatCommand(
       lastUserMessageAt: null,
       pendingToolImages: [],
     });
-    try {
-      await useGatewayStore.getState().rpc('exec.approval.resolve', {
-        id: approvalCommand.id,
-        decision: approvalCommand.decision,
-      });
+    const result = await submitExecApprovalDecision({
+      requestedId: approvalCommand.id,
+      decision: approvalCommand.decision,
+      currentSessionKey,
+    });
+    if (!result.ok) {
       set((state) => appendLocalAssistantReply(
         state,
-        formatApprovalCommandReply(approvalCommand.id, approvalCommand.decision),
+        result.message,
         { sending: false },
       ));
-    } catch (error) {
-      set((state) => appendLocalAssistantReply(
-        state,
-        `Failed to submit approval: ${String(error)}`,
-        { sending: false },
-      ));
+      return true;
     }
+    set((state) => appendLocalAssistantReply(
+      state,
+      result.syncError ? `${result.reply}\n\nApproval transcript sync failed: ${result.syncError}` : result.reply,
+      { sending: false },
+    ));
     return true;
   }
 
@@ -179,7 +182,6 @@ export async function executeLocalChatCommand(
   }
 
   const { command, args } = parsedSlash;
-  const currentSessionKey = get().currentSessionKey;
 
   switch (command.name) {
     case 'help': {

@@ -2,7 +2,7 @@ import type { HTMLAttributes, ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 interface WorkbenchHeaderProps extends HTMLAttributes<HTMLElement> {
-  icon: ReactNode;
+  icon?: ReactNode;
   titleBlock: ReactNode;
   actions?: ReactNode;
   utility?: ReactNode;
@@ -25,8 +25,8 @@ export function WorkbenchHeader({
       {...props}
     >
       <div className="app-workbench-header-main">
-        <div className="app-workbench-header-leading">
-          {icon}
+        <div className={cn('app-workbench-header-leading', !icon && 'app-workbench-header-leading--iconless')}>
+          {icon ? icon : null}
           <div className="min-w-0 flex-1">{titleBlock}</div>
         </div>
 

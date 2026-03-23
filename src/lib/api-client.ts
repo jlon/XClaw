@@ -729,7 +729,7 @@ export function createGatewayWsTransportInvoker(options: GatewayWsTransportOptio
         auth,
         caps: ['tool-events'],
         role: 'operator',
-        scopes: ['operator.admin'],
+        scopes: ['operator.admin', 'operator.approvals'],
         userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
         locale: typeof navigator !== 'undefined' ? navigator.language : 'en',
       },

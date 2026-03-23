@@ -39,6 +39,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { hostApiFetch } from '@/lib/host-api';
 import { invokeIpc } from '@/lib/api-client';
+import { getModelOptionHint, getModelOptionLabel, normalizeModelOption, type ModelOption } from '@/lib/model-options';
 import { cn } from '@/lib/utils';
 import { useGatewayStore } from '@/stores/gateway';
 import { useAgentsStore } from '@/stores/agents';
@@ -55,6 +56,7 @@ import {
 } from '@/stores/chat/slash-commands';
 import { resolveGatewayUi } from './gateway-ui';
 import type { ProviderAccount } from '@/lib/providers';
+import type { SkillChatDraft } from '@/types/skill';
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -71,23 +73,17 @@ export interface FileAttachment {
 
 interface ChatInputProps {
   onSend: (text: string, attachments?: FileAttachment[], targetAgentId?: string | null) => void;
+  onSendSkillDraft?: (draft: SkillChatDraft, text: string) => Promise<boolean> | boolean;
   onStop?: () => void;
   disabled?: boolean;
   sending?: boolean;
   isEmpty?: boolean;
   draftSeed?: string;
   draftSeedVersion?: number;
+  pendingSkillDraft?: SkillChatDraft | null;
   showScrollToLatest?: boolean;
   hasPendingLatest?: boolean;
   onScrollToLatest?: () => void;
-}
-
-interface ChatModelOption {
-  ref: string;
-  modelId?: string;
-  name?: string;
-  vendorId?: string;
-  providerLabel?: string;
 }
 
 type SlashMenuMode = 'command' | 'args';
@@ -154,102 +150,6 @@ function SlashCommandGlyph({ icon, name }: { icon?: SlashCommandIcon; name: stri
   );
 }
 
-function normalizeChatModelOption(
-  raw: unknown,
-  providerLabelMap: Map<string, string>,
-): ChatModelOption | null {
-  if (!raw || typeof raw !== 'object') {
-    return null;
-  }
-  const model = raw as Record<string, unknown>;
-  const vendorId = typeof model.vendorId === 'string'
-    ? model.vendorId
-    : (typeof model.provider === 'string' ? model.provider : undefined);
-  const rawModelId = typeof model.id === 'string'
-    ? model.id
-    : (typeof model.model === 'string' ? model.model : '');
-  const ref = (() => {
-    if (typeof model.key === 'string' && model.key.trim()) {
-      return model.key.trim();
-    }
-    if (typeof model.ref === 'string' && model.ref.trim()) {
-      return model.ref.trim();
-    }
-    if (typeof model.modelRef === 'string' && model.modelRef.trim()) {
-      return model.modelRef.trim();
-    }
-    const trimmedModelId = rawModelId.trim();
-    if (!trimmedModelId) {
-      return '';
-    }
-    if (trimmedModelId.includes('/')) {
-      return trimmedModelId;
-    }
-    const trimmedVendorId = vendorId?.trim();
-    return trimmedVendorId ? `${trimmedVendorId}/${trimmedModelId}` : trimmedModelId;
-  })();
-  if (!ref) {
-    return null;
-  }
-  const name = typeof model.name === 'string'
-    ? model.name
-    : (typeof model.label === 'string' ? model.label : undefined);
-  const trimmedModelId = rawModelId.trim();
-  const refProvider = ref.includes('/') ? ref.split('/')[0]?.trim() : undefined;
-  const refModelId = ref.includes('/') ? ref.slice(ref.indexOf('/') + 1).trim() : undefined;
-  const normalizedVendorId = vendorId?.trim() || refProvider || undefined;
-  const normalizedModelId = (
-    trimmedModelId.includes('/')
-      ? trimmedModelId.slice(trimmedModelId.indexOf('/') + 1).trim()
-      : trimmedModelId
-  ) || refModelId || undefined;
-  return {
-    ref,
-    modelId: normalizedModelId,
-    name: name?.trim() || undefined,
-    vendorId: normalizedVendorId,
-    providerLabel: providerLabelMap.get(normalizedVendorId || '')?.trim() || undefined,
-  };
-}
-
-function getModelLabel(model: ChatModelOption): string {
-  return model.name || model.modelId || model.ref;
-}
-
-function getModelHintBase(model: ChatModelOption): string {
-  if (model.modelId && model.modelId !== model.ref) {
-    return model.modelId;
-  }
-  if (model.name && model.name !== model.ref) {
-    return model.name;
-  }
-  return model.ref;
-}
-
-function getModelHint(model: ChatModelOption): string | null {
-  if (model.providerLabel) {
-    const hintBase = getModelHintBase(model);
-    if (!hintBase) {
-      return model.providerLabel;
-    }
-    const providerPrefix = `${model.providerLabel}/`;
-    if (hintBase.startsWith(providerPrefix)) {
-      return model.providerLabel;
-    }
-    if (hintBase === model.providerLabel) {
-      return null;
-    }
-    return `${model.providerLabel} · ${hintBase}`;
-  }
-  if (model.name && model.name !== model.ref) {
-    return model.ref;
-  }
-  if (model.modelId && model.modelId !== model.ref) {
-    return model.ref;
-  }
-  return null;
-}
-
 /**
  * Read a browser File object as base64 string (without the data URL prefix).
  */
@@ -278,12 +178,14 @@ function readFileAsBase64(file: globalThis.File): Promise<string> {
 
 export function ChatInput({
   onSend,
+  onSendSkillDraft,
   onStop,
   disabled = false,
   sending = false,
   isEmpty = false,
   draftSeed,
   draftSeedVersion = 0,
+  pendingSkillDraft = null,
   showScrollToLatest = false,
   hasPendingLatest = false,
   onScrollToLatest,
@@ -296,7 +198,7 @@ export function ChatInput({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [modelPickerOpen, setModelPickerOpen] = useState(false);
   const [modelSearchQuery, setModelSearchQuery] = useState('');
-  const [models, setModels] = useState<ChatModelOption[]>([]);
+  const [models, setModels] = useState<ModelOption[]>([]);
   const [modelsLoading, setModelsLoading] = useState(false);
   const [modelsLoadError, setModelsLoadError] = useState<string | null>(null);
   const [switchingModel, setSwitchingModel] = useState(false);
@@ -350,8 +252,8 @@ export function ChatInput({
       return models;
     }
     return models.filter((model) => [
-      getModelLabel(model),
-      getModelHint(model) ?? '',
+      getModelOptionLabel(model),
+      getModelOptionHint(model) ?? '',
       model.ref,
       model.modelId ?? '',
       model.vendorId ?? '',
@@ -373,7 +275,7 @@ export function ChatInput({
     ? orderedModels[0]
     : null;
   const currentModelLabel = selectedModel
-    ? getModelLabel(selectedModel)
+    ? getModelOptionLabel(selectedModel)
     : (currentAgent?.modelDisplay || currentModelId || t('composer.modelPickerDefault'));
   const composerTextareaMinHeight = isEmpty ? 74 : 60;
   const idlePrompts = useMemo(() => {
@@ -487,10 +389,10 @@ export function ChatInput({
       const nextModels = Array.isArray(response?.models)
         ? response.models
           .map((model, index) => ({
-            model: normalizeChatModelOption(model, providerLabelMap),
+            model: normalizeModelOption(model, providerLabelMap),
             index,
           }))
-          .filter((entry): entry is { model: ChatModelOption; index: number } => Boolean(entry.model))
+          .filter((entry): entry is { model: ModelOption; index: number } => Boolean(entry.model))
           .sort((left, right) => {
             const leftPreferred = preferredModelRefs.has(left.model.ref.toLowerCase());
             const rightPreferred = preferredModelRefs.has(right.model.ref.toLowerCase());
@@ -731,10 +633,22 @@ export function ChatInput({
     }
   }, [resetSlashMenu]);
 
-  const dispatchMessage = useCallback((textToSend: string, attachmentsToSend?: FileAttachment[]) => {
+  const dispatchMessage = useCallback(async (textToSend: string, attachmentsToSend?: FileAttachment[]) => {
+    if (
+      !attachmentsToSend?.length
+      && pendingSkillDraft
+      && textToSend.trim() === pendingSkillDraft.message.trim()
+      && onSendSkillDraft
+    ) {
+      const handled = await onSendSkillDraft(pendingSkillDraft, textToSend);
+      if (handled) {
+        clearComposer();
+        return;
+      }
+    }
     onSend(textToSend, attachmentsToSend?.length ? attachmentsToSend : undefined, targetAgentId);
     clearComposer();
-  }, [clearComposer, onSend, targetAgentId]);
+  }, [clearComposer, onSend, onSendSkillDraft, pendingSkillDraft, targetAgentId]);
 
   const selectSlashArg = useCallback((arg: string, execute: boolean) => {
     const commandName = slashMenuCommand?.name ?? '';
@@ -1396,11 +1310,11 @@ function ModelPickerItem({
   selected,
   onSelect,
 }: {
-  model: ChatModelOption;
+  model: ModelOption;
   selected: boolean;
   onSelect: () => void;
 }) {
-  const hint = getModelHint(model);
+  const hint = getModelOptionHint(model);
 
   return (
     <button
@@ -1414,7 +1328,7 @@ function ModelPickerItem({
       )}
     >
       <span className="min-w-0">
-        <span className="block truncate text-[13px] font-medium text-foreground">{getModelLabel(model)}</span>
+        <span className="block truncate text-[13px] font-medium text-foreground">{getModelOptionLabel(model)}</span>
         {hint && (
           <span className="block truncate text-[10.5px] text-muted-foreground/78">
             {hint}
