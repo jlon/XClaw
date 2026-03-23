@@ -75,7 +75,7 @@ describe('handleLogRoutes', () => {
 
     expect(handled).toBe(true);
     expect(showSaveDialogMock).toHaveBeenCalled();
-    expect(readFileMock).toHaveBeenCalledTimes(2);
+    expect(writeFileMock).toHaveBeenCalledTimes(1);
     expect(writeFileMock).toHaveBeenCalledWith('/tmp/xclaw-logs.zip', expect.any(Buffer));
     expect(sendJsonMock).toHaveBeenCalledWith(
       expect.anything(),

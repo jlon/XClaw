@@ -12,6 +12,7 @@ import {
   Copy,
   FileText,
   Download,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -803,9 +804,12 @@ export function Settings() {
                           size="sm"
                           onClick={handleExportLogBundle}
                           disabled={exportingLogBundle}
+                          aria-busy={exportingLogBundle}
                           className={cn('h-8 px-4', settingsGhostButtonClass)}
                         >
-                          <Download className="mr-1.5 h-3.5 w-3.5" />
+                          {exportingLogBundle
+                            ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                            : <Download className="mr-1.5 h-3.5 w-3.5" />}
                           {exportingLogBundle ? t('gateway.logsExporting') : t('gateway.exportLogs')}
                         </Button>
                         <Button variant="outline" size="sm" onClick={handleOpenLogDir} className={cn('h-8 px-4', settingsGhostButtonClass)}>
