@@ -28,7 +28,7 @@ export const websiteContent = {
   hero: {
     badge: '桌面 AI 工作台',
     subtitle: '让 AI 在桌面里持续工作',
-    description: '对话、渠道、技能、定时任务和模型管理，收进一个真正能下载的桌面应用。',
+    description: '把对话、渠道、技能、定时任务和模型管理，收进一个真正能下载的桌面应用。',
     primaryCta: '立即下载',
     secondaryCta: 'GitHub',
     stageLabel: '真实界面',
@@ -42,8 +42,8 @@ export const websiteContent = {
   ],
   stats: [
     { value: '~50 MB', label: '轻量安装包' },
-    { value: '低占用', label: '常驻桌面也保持克制' },
-    { value: '集中管理', label: '消息、任务和模型同屏可见' },
+    { value: '低占用', label: '常驻桌面也保持轻巧' },
+    { value: '本地集中', label: '消息、任务和模型同屏可见' },
   ],
   screenshots: [
     {
