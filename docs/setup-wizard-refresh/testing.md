@@ -2,13 +2,15 @@
 
 ## 目标
 
-确认 `Setup` 在完成结构级重构后，既符合统一品牌主题，也符合标准 mac / Windows 桌面引导页的使用预期。
+确认 `Setup` 在完成本轮重构后，真正符合“左轨 + 右单任务面 + 底部单 CTA”的桌面引导合同，而不是继续停留在工程后台式流程页。
 
 ## 设计阶段验证
 
 - 固定四阶段骨架已写入设计文档
 - `fresh / takeover` 共用同一套步骤骨架
-- 标准布局明确为“左侧步骤导航 + 右侧内容区 + 底部固定操作栏”
+- 默认桌面宽度下必须稳定出现左轨
+- 右侧只承载当前一步的单任务工作面
+- 底部固定操作栏是唯一主动作入口
 - `takeover` 路径也必须经过完成页
 - 左侧步骤导航默认不允许直接跳步
 - `完成` 阶段已明确拆成“应用变更中”和“完成摘要”两个子状态
@@ -33,17 +35,19 @@
 
 1. 首次进入 `Setup`
 2. 选择全新开始
-3. 完成工作目录和端口配置
-4. 完成 provider 接入
+3. 确认开始页只看到“路径选择”
+4. 进入准备页，只看到目录/端口/环境就绪确认
+5. 完成 provider 接入
 5. 确认经过完成页再进入首页
 
 ### 2. takeover 路径
 
 1. 检测到现有 OpenClaw
 2. 选择接管
-3. 查看导入摘要、冲突和警告
-4. 如需 provider review，在“模型与接入”阶段完成
-5. 确认最终仍经过完成页
+3. 确认开始页只看到路径选择与轻摘要，不出现日志/工程事实堆叠
+4. 在准备页查看导入摘要、冲突和警告
+5. 如需 provider review，在“模型与接入”阶段完成
+6. 确认最终仍经过完成页
 
 ### 3. 高级路径
 
@@ -58,7 +62,8 @@
 2. Windows 下确认导航和内容区边界清晰
 3. 缩放窗口时确认步骤导航、内容区和底部操作栏不乱
 4. 在默认窗口宽度下不依赖用户手动拉宽
-5. `complete.applying` 中关闭窗口时出现二次确认，确认退出后不会进入首页
+5. 不允许首步或准备页默认就出现内部滚动条
+6. `complete.applying` 中关闭窗口时出现二次确认，确认退出后不会进入首页
 
 ## 回归风险
 
@@ -69,21 +74,10 @@
 
 ## 最新验证
 
-- `pnpm exec eslint src/pages/Setup/index.tsx src/components/setup/SetupStartStage.tsx src/components/setup/SetupPreparationStage.tsx --max-warnings=0`
-- `pnpm exec vitest run tests/unit/setup-wizard-flow.test.ts`
-- `pnpm exec vitest run tests/unit/setup-wizard-layout.test.tsx`
-- `pnpm exec vitest run tests/unit/setup-takeover.test.tsx`
-- `pnpm exec vitest run tests/unit/setup-wizard-flow.test.ts tests/unit/setup-wizard-layout.test.tsx tests/unit/setup-takeover.test.tsx`
-- `pnpm exec vitest run tests/unit/setup-primary-action.test.ts tests/unit/setup-page-i18n.test.tsx tests/unit/setup-preparation-stage.test.tsx tests/unit/setup-locale.test.ts tests/unit/setup-wizard-flow.test.ts tests/unit/setup-wizard-layout.test.tsx tests/unit/setup-takeover.test.tsx`
-- `pnpm exec eslint src/pages/Setup/index.tsx src/components/setup/*.tsx src/components/setup/*.ts tests/unit/setup-*.ts tests/unit/setup-*.tsx --max-warnings=0`
-- `pnpm run typecheck`
-- `pnpm run build:vite`
+- `pnpm exec eslint src/components/setup/SetupShell.tsx src/components/setup/SetupStepRail.tsx src/components/setup/SetupStartStage.tsx src/components/setup/SetupPreparationStage.tsx tests/unit/setup-wizard-layout.test.tsx --max-warnings=0`
+- `pnpm exec vitest run tests/unit/setup-wizard-layout.test.tsx tests/unit/setup-wizard-flow.test.ts --reporter=dot`
 
 结果：
 
-- 四阶段模型与壳层测试通过
-- `takeover` 11 条回归测试通过
-- `Setup` 英文化、locale 覆盖和高级诊断折叠回归已通过
-- `setup-primary-action / setup-page-i18n / setup-preparation-stage / setup-locale / setup-wizard-flow / setup-wizard-layout / setup-takeover` 聚合共 22 条测试通过
-- `eslint`、`typecheck`、`build:vite` 通过
-- 当前自动化层面已无阻塞，剩余只是真机手工 smoke
+- `eslint` 通过
+- `setup-wizard-layout + setup-wizard-flow` 共 `6` 条测试通过

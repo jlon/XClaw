@@ -154,7 +154,58 @@ describe('agent config lifecycle', () => {
     );
   });
 
-  it('deletes the config entry, bindings, runtime directory, and managed workspace for a removed agent', async () => {
+  it('persists a provider-scoped modelRef when creating a new agent', async () => {
+    await writeOpenClawJson({
+      agents: {
+        defaults: {
+          model: {
+            primary: 'bailian/qwen3.5-plus',
+          },
+        },
+        list: [
+          {
+            id: 'main',
+            name: 'Main',
+            default: true,
+            workspace: '~/.openclaw/workspace',
+            agentDir: '~/.openclaw/agents/main/agent',
+          },
+        ],
+      },
+    });
+
+    const mainWorkspace = join(testHome, '.openclaw', 'workspace');
+    const mainAgentDir = join(testHome, '.openclaw', 'agents', 'main', 'agent');
+    await mkdir(mainWorkspace, { recursive: true });
+    await mkdir(mainAgentDir, { recursive: true });
+
+    const { createAgentWithId } = await import('@electron/utils/agent-config');
+
+    const result = await createAgentWithId('Thumbnail Designer', {
+      modelRef: 'provider-998/gpt-5.4',
+    });
+
+    const config = await readOpenClawJson();
+    const createdAgent = ((config.agents as { list: Array<{ id: string; model?: unknown }> }).list).find(
+      (agent) => agent.id === result.createdAgentId,
+    );
+
+    expect(createdAgent?.model).toEqual({
+      primary: 'provider-998/gpt-5.4',
+    });
+    expect(result.snapshot.agents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: result.createdAgentId,
+          modelDisplay: 'gpt-5.4',
+          modelRef: 'provider-998/gpt-5.4',
+          inheritedModel: false,
+        }),
+      ]),
+    );
+  });
+
+  it('deletes the config entry and bindings while deferring runtime/workspace cleanup for a removed agent', async () => {
     await writeOpenClawJson({
       agents: {
         defaults: {
@@ -226,9 +277,9 @@ describe('agent config lifecycle', () => {
       'test3',
     ]);
     expect(config.bindings).toEqual([]);
-    await expect(access(test2RuntimeDir)).rejects.toThrow();
-    // Workspace deletion is intentionally deferred by `deleteAgentConfig` to avoid
-    // ENOENT errors during Gateway restart, so it should still exist here.
+    // Runtime/workspace deletion is intentionally deferred by the route handler until
+    // after Gateway replacement succeeds, so both directories should still exist here.
+    await expect(access(test2RuntimeDir)).resolves.toBeUndefined();
     await expect(access(test2WorkspaceDir)).resolves.toBeUndefined();
 
     infoSpy.mockRestore();
@@ -271,6 +322,47 @@ describe('agent config lifecycle', () => {
 
     warnSpy.mockRestore();
     infoSpy.mockRestore();
+  });
+
+  it('hides inherited bootstrap files for non-main agents while keeping agent-specific SOUL visible', async () => {
+    const mainWorkspaceDir = join(testHome, '.openclaw', 'workspace');
+    const marketWorkspaceDir = join(testHome, '.openclaw', 'workspace-thumbnail-designer');
+
+    await writeOpenClawJson({
+      agents: {
+        list: [
+          {
+            id: 'main',
+            name: 'Main',
+            default: true,
+            workspace: '~/.openclaw/workspace',
+            agentDir: '~/.openclaw/agents/main/agent',
+          },
+          {
+            id: 'thumbnail-designer',
+            name: 'Thumbnail Designer',
+            workspace: '~/.openclaw/workspace-thumbnail-designer',
+            agentDir: '~/.openclaw/agents/thumbnail-designer/agent',
+          },
+        ],
+      },
+    });
+
+    await mkdir(mainWorkspaceDir, { recursive: true });
+    await mkdir(marketWorkspaceDir, { recursive: true });
+    await writeFile(join(mainWorkspaceDir, 'AGENTS.md'), '# main rules', 'utf8');
+    await writeFile(join(mainWorkspaceDir, 'IDENTITY.md'), '# main identity', 'utf8');
+    await writeFile(join(mainWorkspaceDir, 'SOUL.md'), '# main soul', 'utf8');
+
+    await writeFile(join(marketWorkspaceDir, 'AGENTS.md'), '# main rules', 'utf8');
+    await writeFile(join(marketWorkspaceDir, 'IDENTITY.md'), '# main identity', 'utf8');
+    await writeFile(join(marketWorkspaceDir, 'SOUL.md'), '# thumbnail soul', 'utf8');
+
+    const { listAgentWorkspaceFiles } = await import('@electron/utils/agent-config');
+
+    const files = await listAgentWorkspaceFiles('thumbnail-designer');
+
+    expect(files.map((file) => file.relativePath)).toEqual(['SOUL.md']);
   });
 
   it('does not delete a legacy-named account when it is owned by another agent', async () => {

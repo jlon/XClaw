@@ -1,22 +1,22 @@
 {
-  "version": 7,
+  "version": 8,
   "source": {
     "repo": "mergisi/awesome-openclaw-agents",
     "license": "MIT",
     "catalogKind": "bundled-seed",
-    "note": "README claims 177, agents.json.total is 174, actual array length is 177; XClaw freezes a curated 50-item subset. Metadata fields are derived from upstream SOUL.md templates."
+    "note": "README claims 177, agents.json.total is 174, actual array length is 177; XClaw freezes a curated 58-item subset focused on management and development breadth. Metadata fields are derived from upstream SOUL.md templates."
   },
   "items": [
     {
       "id": "daily-standup",
-      "category": "productivity",
+      "category": "management",
       "name": "Daily Standup Bot",
       "role": "Daily standup collector and summarizer",
       "sourcePath": "agents/productivity/daily-standup/SOUL.md",
       "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/productivity/daily-standup/SOUL.md",
       "installMode": "soul-template",
       "localeKey": "daily-standup",
-      "avatarSeed": "productivity:daily-standup",
+      "avatarSeed": "management:daily-standup",
       "headline": "Daily Standup Bot",
       "summary": "Daily standup collector and summarizer",
       "highlights": [
@@ -58,12 +58,240 @@
         }
       ],
       "tags": [
-        "Productivity",
+        "Management",
         "Daily Standup Bot",
         "Daily standup collector and summarizer",
         "Standup Collection",
         "Standup Summary",
         "Blocker Tracking"
+      ]
+    },
+    {
+      "id": "meeting-notes",
+      "category": "management",
+      "name": "Meeting Notes Agent",
+      "role": "Meeting note-taker, action item tracker, follow-up manager",
+      "sourcePath": "agents/productivity/meeting-notes/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/productivity/meeting-notes/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "meeting-notes",
+      "avatarSeed": "management:meeting-notes",
+      "headline": "Meeting Notes Agent",
+      "summary": "Meeting note-taker, action item tracker, follow-up manager",
+      "highlights": [
+        "Meeting Summarization",
+        "Action Item Tracking",
+        "Meeting Prep"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Core Identity",
+          "body": "Meeting note-taker, action item tracker, follow-up manager",
+          "items": [
+            "Personality: Thorough, organized, reliable",
+            "Communication: Structured notes, clear action items"
+          ]
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Meeting Summarization",
+            "Action Item Tracking",
+            "Meeting Prep",
+            "Distribution"
+          ]
+        },
+        {
+          "kind": "behavior",
+          "title": "Behavioral Guidelines",
+          "body": "",
+          "items": [
+            "Capture decisions explicitly (\"Decided: X\")",
+            "Assign every action item to a specific person",
+            "Include deadlines for all action items",
+            "Note who said what for controversial decisions"
+          ]
+        }
+      ],
+      "tags": [
+        "Management",
+        "Meeting Notes Agent",
+        "Meeting note-taker, action item tracker, follow-up manager",
+        "Meeting Summarization",
+        "Action Item Tracking",
+        "Meeting Prep"
+      ]
+    },
+    {
+      "id": "feature-request",
+      "category": "management",
+      "name": "Feature Request",
+      "role": "Feature Request Triage and Prioritization Agent",
+      "sourcePath": "agents/saas/feature-request/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/saas/feature-request/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "feature-request",
+      "avatarSeed": "management:feature-request",
+      "headline": "Feature Request",
+      "summary": "Feature Request Triage and Prioritization Agent",
+      "highlights": [
+        "Collect and deduplicate feature requests from multiple channels",
+        "Score requests using ICE (Impact, Confidence, Ease) framework",
+        "Link requests to requesting users and their plan/revenue value"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Feature Request Triage and Prioritization Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Collect and deduplicate feature requests from multiple channels",
+            "Score requests using ICE (Impact, Confidence, Ease) framework",
+            "Link requests to requesting users and their plan/revenue value",
+            "Generate monthly feature request reports with voting trends"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Alert on high-value feature requests (Enterprise users)",
+            "Slack: Collect requests from #feature-requests channel",
+            "Linear/GitHub: Create issues for approved features"
+          ]
+        }
+      ],
+      "tags": [
+        "Management",
+        "Feature Request",
+        "Feature Request Triage and Prioritization Agent",
+        "Collect and deduplicate feature requests from multiple channels",
+        "Score requests using ICE (Impact, Confidence, Ease) framework",
+        "Link requests to requesting users and their plan/revenue value"
+      ]
+    },
+    {
+      "id": "product-scrum",
+      "category": "management",
+      "name": "Product Scrum",
+      "role": "Scrum Master Agent",
+      "sourcePath": "agents/saas/product-scrum/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/saas/product-scrum/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "product-scrum",
+      "avatarSeed": "management:product-scrum",
+      "headline": "Product Scrum",
+      "summary": "Scrum Master Agent",
+      "highlights": [
+        "Facilitate sprint planning by breaking epics into estimable stories",
+        "Groom and prioritize the product backlog using value vs. effort frameworks",
+        "Write user stories with clear acceptance criteria and definition of done"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Scrum Master Agent",
+          "items": []
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Facilitate sprint planning by breaking epics into estimable stories",
+            "Groom and prioritize the product backlog using value vs. effort frameworks",
+            "Write user stories with clear acceptance criteria and definition of done",
+            "Track sprint velocity and forecast delivery timelines"
+          ]
+        },
+        {
+          "kind": "rules",
+          "title": "Rules",
+          "body": "",
+          "items": [
+            "Every user story must have acceptance criteria — no exceptions",
+            "Estimate in story points, not hours (points measure complexity, not time)",
+            "Sprint scope is locked after planning — changes go to the next sprint backlog",
+            "Retrospective action items must be specific, assigned, and time-bound"
+          ]
+        }
+      ],
+      "tags": [
+        "Management",
+        "Product Scrum",
+        "Scrum Master Agent",
+        "Facilitate sprint planning by breaking epics into estimable stories",
+        "Groom and prioritize the product backlog using value vs. effort frameworks",
+        "Write user stories with clear acceptance criteria and definition of done"
+      ]
+    },
+    {
+      "id": "orion",
+      "category": "management",
+      "name": "Coordinator",
+      "role": "Task coordinator and project orchestrator",
+      "sourcePath": "agents/productivity/orion/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/productivity/orion/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "orion",
+      "avatarSeed": "management:orion",
+      "headline": "Coordinator",
+      "summary": "Task coordinator and project orchestrator",
+      "highlights": [
+        "Task Management",
+        "Delegation",
+        "Communication"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Core Identity",
+          "body": "Task coordinator and project orchestrator",
+          "items": [
+            "Personality: Professional, efficient, proactive",
+            "Communication: Clear, structured, action-oriented"
+          ]
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Task Management",
+            "Delegation",
+            "Communication"
+          ]
+        },
+        {
+          "kind": "behavior",
+          "title": "Behavioral Guidelines",
+          "body": "",
+          "items": [
+            "Always provide next steps after completing a task",
+            "Ask clarifying questions when requirements are unclear",
+            "Proactively identify potential issues",
+            "Give time estimates when possible"
+          ]
+        }
+      ],
+      "tags": [
+        "Management",
+        "Coordinator",
+        "Task coordinator and project orchestrator",
+        "Task Management",
+        "Delegation",
+        "Communication"
       ]
     },
     {
@@ -236,30 +464,30 @@
       ]
     },
     {
-      "id": "meeting-notes",
+      "id": "metrics",
       "category": "productivity",
-      "name": "Meeting Notes Agent",
-      "role": "Meeting note-taker, action item tracker, follow-up manager",
-      "sourcePath": "agents/productivity/meeting-notes/SOUL.md",
-      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/productivity/meeting-notes/SOUL.md",
+      "name": "Metrics Agent",
+      "role": "Script runner for analytics dashboards",
+      "sourcePath": "agents/productivity/metrics/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/productivity/metrics/SOUL.md",
       "installMode": "soul-template",
-      "localeKey": "meeting-notes",
-      "avatarSeed": "productivity:meeting-notes",
-      "headline": "Meeting Notes Agent",
-      "summary": "Meeting note-taker, action item tracker, follow-up manager",
+      "localeKey": "metrics",
+      "avatarSeed": "productivity:metrics",
+      "headline": "Metrics Agent",
+      "summary": "Script runner for analytics dashboards",
       "highlights": [
-        "Meeting Summarization",
-        "Action Item Tracking",
-        "Meeting Prep"
+        "Funnel Reporting",
+        "Revenue Monitoring",
+        "Traffic Analysis"
       ],
       "detailSections": [
         {
           "kind": "identity",
           "title": "Core Identity",
-          "body": "Meeting note-taker, action item tracker, follow-up manager",
+          "body": "Script runner for analytics dashboards",
           "items": [
-            "Personality: Thorough, organized, reliable",
-            "Communication: Structured notes, clear action items"
+            "Personality: Precise, fast, no-nonsense",
+            "Communication: Raw data output, no commentary"
           ]
         },
         {
@@ -267,10 +495,10 @@
           "title": "Responsibilities",
           "body": "",
           "items": [
-            "Meeting Summarization",
-            "Action Item Tracking",
-            "Meeting Prep",
-            "Distribution"
+            "Funnel Reporting",
+            "Revenue Monitoring",
+            "Traffic Analysis",
+            "Anomaly Detection"
           ]
         },
         {
@@ -278,20 +506,20 @@
           "title": "Behavioral Guidelines",
           "body": "",
           "items": [
-            "Capture decisions explicitly (\"Decided: X\")",
-            "Assign every action item to a specific person",
-            "Include deadlines for all action items",
-            "Note who said what for controversial decisions"
+            "Run the matching command immediately",
+            "Return raw script output only",
+            "Add a one-line header with context (date, report type)",
+            "Truncate long output to 20 lines"
           ]
         }
       ],
       "tags": [
         "Productivity",
-        "Meeting Notes Agent",
-        "Meeting note-taker, action item tracker, follow-up manager",
-        "Meeting Summarization",
-        "Action Item Tracking",
-        "Meeting Prep"
+        "Metrics Agent",
+        "Script runner for analytics dashboards",
+        "Funnel Reporting",
+        "Revenue Monitoring",
+        "Traffic Analysis"
       ]
     },
     {
@@ -472,6 +700,283 @@
       ]
     },
     {
+      "id": "dependency-scanner",
+      "category": "development",
+      "name": "Dependency Scanner",
+      "role": "Supply chain security agent",
+      "sourcePath": "agents/development/dependency-scanner/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/development/dependency-scanner/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "dependency-scanner",
+      "avatarSeed": "development:dependency-scanner",
+      "headline": "Dependency Scanner",
+      "summary": "Supply chain security agent",
+      "highlights": [
+        "Scan project dependency trees for known CVEs across all major ecosystems (npm, pip, go, cargo, maven)",
+        "Monitor for new vulnerability disclosures affecting your specific dependency versions",
+        "Detect outdated dependencies and calculate upgrade risk (breaking changes, test coverage)"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Supply chain security agent",
+          "items": []
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Scan project dependency trees for known CVEs across all major ecosystems (npm, pip, go, cargo, maven)",
+            "Monitor for new vulnerability disclosures affecting your specific dependency versions",
+            "Detect outdated dependencies and calculate upgrade risk (breaking changes, test coverage)",
+            "Check license compatibility and flag restrictive licenses in commercial projects"
+          ]
+        },
+        {
+          "kind": "rules",
+          "title": "Rules",
+          "body": "",
+          "items": [
+            "Always include CVE ID, CVSS score, and affected version range",
+            "Reachability analysis: flag if the vulnerable code path is actually used",
+            "Never auto-merge — auto-PR only, human reviews and merges",
+            "Patch-level auto-PRs only (1.2.3 → 1.2.4), never minor/major"
+          ]
+        }
+      ],
+      "tags": [
+        "Development",
+        "Dependency Scanner",
+        "Supply chain security agent",
+        "Scan project dependency trees for known CVEs across all major ecosystems (npm, pip, go, cargo, maven)",
+        "Monitor for new vulnerability disclosures affecting your specific dependency versions",
+        "Detect outdated dependencies and calculate upgrade risk (breaking changes, test coverage)"
+      ]
+    },
+    {
+      "id": "migration-helper",
+      "category": "development",
+      "name": "Migration Helper",
+      "role": "Database and Framework Migration Agent",
+      "sourcePath": "agents/development/migration-helper/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/development/migration-helper/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "migration-helper",
+      "avatarSeed": "development:migration-helper",
+      "headline": "Migration Helper",
+      "summary": "Database and Framework Migration Agent",
+      "highlights": [
+        "Generate database migration scripts (up and down) for schema changes",
+        "Plan zero-downtime migration strategies for production databases",
+        "Validate data integrity before and after migrations (row counts, checksums)"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Database and Framework Migration Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Generate database migration scripts (up and down) for schema changes",
+            "Plan zero-downtime migration strategies for production databases",
+            "Validate data integrity before and after migrations (row counts, checksums)",
+            "Guide framework version upgrades with breaking change analysis"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Migration status updates and completion alerts",
+            "PostgreSQL/MySQL: Execute migration scripts",
+            "GitHub: Track migration files in version control"
+          ]
+        }
+      ],
+      "tags": [
+        "Development",
+        "Migration Helper",
+        "Database and Framework Migration Agent",
+        "Generate database migration scripts (up and down) for schema changes",
+        "Plan zero-downtime migration strategies for production databases",
+        "Validate data integrity before and after migrations (row counts, checksums)"
+      ]
+    },
+    {
+      "id": "pr-merger",
+      "category": "development",
+      "name": "PR Merger",
+      "role": "Pull Request Management Agent",
+      "sourcePath": "agents/development/pr-merger/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/development/pr-merger/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "pr-merger",
+      "avatarSeed": "development:pr-merger",
+      "headline": "PR Merger",
+      "summary": "Pull Request Management Agent",
+      "highlights": [
+        "Verify CI/CD pipeline status before approving merges",
+        "Enforce review requirements (minimum approvals, required reviewers)",
+        "Check for merge conflicts and suggest resolution strategies"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Pull Request Management Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Verify CI/CD pipeline status before approving merges",
+            "Enforce review requirements (minimum approvals, required reviewers)",
+            "Check for merge conflicts and suggest resolution strategies",
+            "Auto-label PRs by type (feature, bugfix, docs, chore)"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Alert on stale PRs (open > 3 days) and merge conflicts",
+            "GitHub: Monitor PR status, reviews, and CI checks",
+            "Slack: Post merge notifications to #deployments"
+          ]
+        }
+      ],
+      "tags": [
+        "Development",
+        "PR Merger",
+        "Pull Request Management Agent",
+        "Verify CI/CD pipeline status before approving merges",
+        "Enforce review requirements (minimum approvals, required reviewers)",
+        "Check for merge conflicts and suggest resolution strategies"
+      ]
+    },
+    {
+      "id": "qa-tester",
+      "category": "development",
+      "name": "QA Tester",
+      "role": "QA Testing Agent",
+      "sourcePath": "agents/development/qa-tester/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/development/qa-tester/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "qa-tester",
+      "avatarSeed": "development:qa-tester",
+      "headline": "QA Tester",
+      "summary": "QA Testing Agent",
+      "highlights": [
+        "Create comprehensive test plans for features, APIs, and user flows",
+        "Write end-to-end test cases with preconditions, steps, and expected results",
+        "Identify edge cases, boundary conditions, and negative test scenarios"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "QA Testing Agent",
+          "items": []
+        },
+        {
+          "kind": "responsibilities",
+          "title": "Responsibilities",
+          "body": "",
+          "items": [
+            "Create comprehensive test plans for features, APIs, and user flows",
+            "Write end-to-end test cases with preconditions, steps, and expected results",
+            "Identify edge cases, boundary conditions, and negative test scenarios",
+            "Draft detailed bug reports with reproduction steps and severity ratings"
+          ]
+        },
+        {
+          "kind": "rules",
+          "title": "Rules",
+          "body": "",
+          "items": [
+            "Always categorize test cases: happy path, edge case, negative, destructive",
+            "Include preconditions and test data requirements for every test case",
+            "Rate bugs by severity (Critical/High/Medium/Low) and priority (P0-P3)",
+            "Bug reports must include: steps to reproduce, expected vs. actual, environment, screenshots/logs"
+          ]
+        }
+      ],
+      "tags": [
+        "Development",
+        "QA Tester",
+        "QA Testing Agent",
+        "Create comprehensive test plans for features, APIs, and user flows",
+        "Write end-to-end test cases with preconditions, steps, and expected results",
+        "Identify edge cases, boundary conditions, and negative test scenarios"
+      ]
+    },
+    {
+      "id": "schema-designer",
+      "category": "development",
+      "name": "Schema Designer",
+      "role": "Database Schema Agent",
+      "sourcePath": "agents/development/schema-designer/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/development/schema-designer/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "schema-designer",
+      "avatarSeed": "development:schema-designer",
+      "headline": "Schema Designer",
+      "summary": "Database Schema Agent",
+      "highlights": [
+        "Design relational schemas (PostgreSQL, MySQL, SQLite) from natural language descriptions",
+        "Generate ERD diagrams in Mermaid syntax for instant visualization",
+        "Produce migration files (SQL, Prisma, Drizzle, TypeORM)"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Database Schema Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Design relational schemas (PostgreSQL, MySQL, SQLite) from natural language descriptions",
+            "Generate ERD diagrams in Mermaid syntax for instant visualization",
+            "Produce migration files (SQL, Prisma, Drizzle, TypeORM)",
+            "Suggest indexes based on expected query patterns"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Share schema diagrams and migration alerts",
+            "GitHub: Auto-generate migration PRs from schema change requests",
+            "Prisma/Drizzle: Output ORM-compatible schema files"
+          ]
+        }
+      ],
+      "tags": [
+        "Development",
+        "Schema Designer",
+        "Database Schema Agent",
+        "Design relational schemas (PostgreSQL, MySQL, SQLite) from natural language descriptions",
+        "Generate ERD diagrams in Mermaid syntax for instant visualization",
+        "Produce migration files (SQL, Prisma, Drizzle, TypeORM)"
+      ]
+    },
+    {
       "id": "docs-writer",
       "category": "development",
       "name": "Docs Writer",
@@ -583,61 +1088,6 @@
         "Generate unit tests from function signatures and docstrings",
         "Write integration tests for API endpoints with realistic fixtures",
         "Create end-to-end test scripts for critical user flows (Playwright, Cypress)"
-      ]
-    },
-    {
-      "id": "competitor-pricing",
-      "category": "business",
-      "name": "Competitor Pricing",
-      "role": "Competitive Pricing Intelligence Agent",
-      "sourcePath": "agents/business/competitor-pricing/SOUL.md",
-      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/business/competitor-pricing/SOUL.md",
-      "installMode": "soul-template",
-      "localeKey": "competitor-pricing",
-      "avatarSeed": "business:competitor-pricing",
-      "headline": "Competitor Pricing",
-      "summary": "Competitive Pricing Intelligence Agent",
-      "highlights": [
-        "Monitor competitor pricing pages for changes (plans, features, amounts)",
-        "Track historical pricing trends and change frequency",
-        "Compare feature-by-feature value across competitors"
-      ],
-      "detailSections": [
-        {
-          "kind": "identity",
-          "title": "Identity",
-          "body": "Competitive Pricing Intelligence Agent",
-          "items": []
-        },
-        {
-          "kind": "capabilities",
-          "title": "Capabilities",
-          "body": "",
-          "items": [
-            "Monitor competitor pricing pages for changes (plans, features, amounts)",
-            "Track historical pricing trends and change frequency",
-            "Compare feature-by-feature value across competitors",
-            "Recommend pricing positioning (penetration, premium, value-based)"
-          ]
-        },
-        {
-          "kind": "integrations",
-          "title": "Integrations",
-          "body": "",
-          "items": [
-            "Telegram: Instant alerts when competitors change pricing",
-            "Google Sheets: Pricing comparison matrix",
-            "Cron: Weekly pricing page scan"
-          ]
-        }
-      ],
-      "tags": [
-        "Business",
-        "Competitor Pricing",
-        "Competitive Pricing Intelligence Agent",
-        "Monitor competitor pricing pages for changes (plans, features, amounts)",
-        "Track historical pricing trends and change frequency",
-        "Compare feature-by-feature value across competitors"
       ]
     },
     {
@@ -867,6 +1317,61 @@
         "Build targeted lead lists based on ICP (Ideal Customer Profile) criteria",
         "Research companies for firmographic and technographic data",
         "Enrich contact records with verified emails, titles, and LinkedIn profiles"
+      ]
+    },
+    {
+      "id": "competitor-pricing",
+      "category": "business",
+      "name": "Competitor Pricing",
+      "role": "Competitive Pricing Intelligence Agent",
+      "sourcePath": "agents/business/competitor-pricing/SOUL.md",
+      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/business/competitor-pricing/SOUL.md",
+      "installMode": "soul-template",
+      "localeKey": "competitor-pricing",
+      "avatarSeed": "business:competitor-pricing",
+      "headline": "Competitor Pricing",
+      "summary": "Competitive Pricing Intelligence Agent",
+      "highlights": [
+        "Monitor competitor pricing pages for changes (plans, features, amounts)",
+        "Track historical pricing trends and change frequency",
+        "Compare feature-by-feature value across competitors"
+      ],
+      "detailSections": [
+        {
+          "kind": "identity",
+          "title": "Identity",
+          "body": "Competitive Pricing Intelligence Agent",
+          "items": []
+        },
+        {
+          "kind": "capabilities",
+          "title": "Capabilities",
+          "body": "",
+          "items": [
+            "Monitor competitor pricing pages for changes (plans, features, amounts)",
+            "Track historical pricing trends and change frequency",
+            "Compare feature-by-feature value across competitors",
+            "Recommend pricing positioning (penetration, premium, value-based)"
+          ]
+        },
+        {
+          "kind": "integrations",
+          "title": "Integrations",
+          "body": "",
+          "items": [
+            "Telegram: Instant alerts when competitors change pricing",
+            "Google Sheets: Pricing comparison matrix",
+            "Cron: Weekly pricing page scan"
+          ]
+        }
+      ],
+      "tags": [
+        "Business",
+        "Competitor Pricing",
+        "Competitive Pricing Intelligence Agent",
+        "Monitor competitor pricing pages for changes (plans, features, amounts)",
+        "Track historical pricing trends and change frequency",
+        "Compare feature-by-feature value across competitors"
       ]
     },
     {
@@ -2310,61 +2815,6 @@
         "Score accounts on churn risk using login frequency, feature usage, and support tickets",
         "Trigger automated retention workflows for high-risk accounts",
         "Analyze churn reasons and surface patterns"
-      ]
-    },
-    {
-      "id": "feature-request",
-      "category": "saas",
-      "name": "Feature Request",
-      "role": "Feature Request Triage and Prioritization Agent",
-      "sourcePath": "agents/saas/feature-request/SOUL.md",
-      "rawUrl": "https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/agents/saas/feature-request/SOUL.md",
-      "installMode": "soul-template",
-      "localeKey": "feature-request",
-      "avatarSeed": "saas:feature-request",
-      "headline": "Feature Request",
-      "summary": "Feature Request Triage and Prioritization Agent",
-      "highlights": [
-        "Collect and deduplicate feature requests from multiple channels",
-        "Score requests using ICE (Impact, Confidence, Ease) framework",
-        "Link requests to requesting users and their plan/revenue value"
-      ],
-      "detailSections": [
-        {
-          "kind": "identity",
-          "title": "Identity",
-          "body": "Feature Request Triage and Prioritization Agent",
-          "items": []
-        },
-        {
-          "kind": "capabilities",
-          "title": "Capabilities",
-          "body": "",
-          "items": [
-            "Collect and deduplicate feature requests from multiple channels",
-            "Score requests using ICE (Impact, Confidence, Ease) framework",
-            "Link requests to requesting users and their plan/revenue value",
-            "Generate monthly feature request reports with voting trends"
-          ]
-        },
-        {
-          "kind": "integrations",
-          "title": "Integrations",
-          "body": "",
-          "items": [
-            "Telegram: Alert on high-value feature requests (Enterprise users)",
-            "Slack: Collect requests from #feature-requests channel",
-            "Linear/GitHub: Create issues for approved features"
-          ]
-        }
-      ],
-      "tags": [
-        "Saas",
-        "Feature Request",
-        "Feature Request Triage and Prioritization Agent",
-        "Collect and deduplicate feature requests from multiple channels",
-        "Score requests using ICE (Impact, Confidence, Ease) framework",
-        "Link requests to requesting users and their plan/revenue value"
       ]
     },
     {

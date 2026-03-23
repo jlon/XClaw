@@ -412,9 +412,15 @@ export function Chat() {
       currentSessionKey,
     });
     if (!result.ok) {
+      const message = result.message;
+      if (/unknown or expired approval id/i.test(message)) {
+        useGatewayStore.setState((state) => ({
+          execApprovalQueue: state.execApprovalQueue.filter((entry) => entry.id !== activeExecApproval.id),
+        }));
+      }
       setExecApprovalError({
         approvalId: activeExecApproval.id,
-        message: result.message,
+        message,
       });
       setExecApprovalBusy(false);
       return;
@@ -437,7 +443,6 @@ export function Chat() {
         {isEmpty ? (
           <div ref={contentRef} className="app-chat-workbench space-y-5">
             <WelcomeScreen
-              gatewayState={gatewayStatus.state}
               onQuickAction={(nextDraft) => {
                 setDraftSeed(nextDraft);
                 setDraftSeedVersion((version) => version + 1);
@@ -602,10 +607,8 @@ export function Chat() {
 // ── Welcome Screen ──────────────────────────────────────────────
 
 function WelcomeScreen({
-  gatewayState,
   onQuickAction,
 }: {
-  gatewayState: string;
   onQuickAction: (draft: string) => void;
 }) {
   const { t } = useTranslation('chat');
@@ -651,8 +654,6 @@ function WelcomeScreen({
       className: welcomeCardClassNames.integration,
     },
   ];
-  const runtimeIssue = gatewayState !== 'running' ? t('header.runtimeIssue', { state: gatewayState }) : null;
-  const runtimeStatusText = runtimeIssue ?? '\u00A0';
 
   return (
     <div data-testid="chat-welcome-hero" className="app-chat-welcome-hero mx-auto flex min-h-full w-full max-w-[1000px] flex-col px-1 pb-4 pt-1">
@@ -672,18 +673,6 @@ function WelcomeScreen({
             {welcomeDescription.trim() ? (
               <p className="app-chat-welcome-description">{welcomeDescription}</p>
             ) : null}
-          </div>
-          <div className="app-chat-welcome-status-shell">
-            <div
-              data-testid="chat-welcome-status-slot"
-              className={cn('app-chat-header-meta app-chat-welcome-status', !runtimeIssue && 'app-chat-welcome-status--hidden')}
-              role={runtimeIssue ? 'status' : undefined}
-              aria-live={runtimeIssue ? 'polite' : undefined}
-              aria-hidden={runtimeIssue ? 'false' : 'true'}
-            >
-              <span className="app-chat-welcome-status-dot" aria-hidden="true" />
-              <span>{runtimeStatusText}</span>
-            </div>
           </div>
         </div>
 

@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { Cron } from '@/pages/Cron';
 import type { CronJob } from '@/types/cron';
 
-const { cronState, gatewayState, agentsState } = vi.hoisted(() => ({
+const { cronState, gatewayState, agentsState, hostApiFetchMock } = vi.hoisted(() => ({
   cronState: {
     jobs: [] as CronJob[],
     loading: false,
@@ -23,6 +23,7 @@ const { cronState, gatewayState, agentsState } = vi.hoisted(() => ({
     defaultAgentId: 'main',
     fetchAgents: vi.fn(),
   },
+  hostApiFetchMock: vi.fn(),
 }));
 
 vi.mock('@/stores/cron', () => ({
@@ -47,6 +48,10 @@ vi.mock('@/components/ui/confirm-dialog', () => ({
   ConfirmDialog: () => null,
 }));
 
+vi.mock('@/lib/host-api', () => ({
+  hostApiFetch: (...args: unknown[]) => hostApiFetchMock(...args),
+}));
+
 vi.mock('sonner', () => ({
   toast: {
     success: vi.fn(),
@@ -56,7 +61,7 @@ vi.mock('sonner', () => ({
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string) => {
+    t: (key: string, params?: Record<string, string>) => {
       if (key === 'title') return '定时任务';
       if (key === 'subtitle') return '安排消息与任务按时执行';
       if (key === 'newTask') return '新建任务';
@@ -69,6 +74,16 @@ vi.mock('react-i18next', () => ({
       if (key === 'dialog.agentPlaceholder') return '选择智能体';
       if (key === 'dialog.message') return '消息/提示词';
       if (key === 'dialog.messagePlaceholder') return 'AI 应该做什么？';
+      if (key === 'dialog.targetChannel') return '投递频道';
+      if (key === 'dialog.targetRecipient') return '目标会话 ID';
+      if (key === 'dialog.targetRecipientDesc') return '输入投递目标';
+      if (key === 'dialog.targetRecipientAuto') return `已自动填充 ${params?.value ?? ''}`;
+      if (key === 'dialog.targetRecipientDetected') return `检测到 ${params?.value ?? ''}`;
+      if (key === 'dialog.targetRecipientWildcard') return '需要手动填写';
+      if (key === 'dialog.targetRecipientMultiple') return '检测到多个';
+      if (key === 'dialog.targetRecipientUnavailable') return '未检测到';
+      if (key === 'dialog.targetRecipientPlaceholder') return '例如：频道 / 群组 / 聊天 ID';
+      if (key === 'dialog.noChannels') return '暂无频道';
       if (key === 'dialog.schedule') return '调度计划';
       if (key === 'dialog.enableImmediately') return '立即启用';
       if (key === 'dialog.enableImmediatelyDesc') return '创建后立即开始运行此任务';
@@ -81,6 +96,8 @@ vi.mock('react-i18next', () => ({
       if (key === 'toast.messageRequired') return '请输入消息';
       if (key === 'toast.scheduleRequired') return '请选择或输入调度计划';
       if (key === 'toast.agentRequired') return '请选择执行智能体';
+      if (key === 'toast.channelRequired') return '请选择投递频道';
+      if (key === 'toast.recipientRequired') return '请输入目标会话 ID';
       if (key === 'presets.daily9am') return '每天上午 9 点';
       if (key === 'dialog.useCustomCron') return '使用自定义 Cron';
       if (key === 'schedule.dailyAt') return '每天 09:00';
@@ -117,12 +134,47 @@ describe('cron agent targeting', () => {
     ];
     agentsState.defaultAgentId = 'main';
     agentsState.fetchAgents = vi.fn();
+    hostApiFetchMock.mockImplementation(async (path: string) => {
+      if (path === '/api/channels/accounts') {
+        return {
+          success: true,
+          channels: [
+            {
+              channelType: 'feishu',
+              enabled: true,
+              accounts: [
+                {
+                  accountId: 'bot2',
+                  configured: true,
+                  enabled: true,
+                  agentId: 'main',
+                },
+              ],
+            },
+          ],
+        };
+      }
+      if (path.startsWith('/api/channels/recipient-hints/feishu')) {
+        return {
+          success: true,
+          values: {
+            pairingAllowFrom: ['ou_123'],
+            pairingRecipientId: 'ou_123',
+          },
+        };
+      }
+      return { success: true };
+    });
   });
 
   it('requires an explicit agent target in the task dialog and submits it on create', async () => {
     render(<Cron />);
 
     fireEvent.click(screen.getByRole('button', { name: '新建任务' }));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('目标会话 ID')).toHaveValue('ou_123');
+    });
 
     const agentSelect = screen.getByLabelText('执行智能体');
     expect(agentSelect).toBeInTheDocument();
@@ -139,5 +191,18 @@ describe('cron agent targeting', () => {
         agentId: 'main',
       }),
     );
+  });
+
+  it('auto-fills a unique pairing-store recipient hint for cron delivery', async () => {
+    render(<Cron />);
+
+    fireEvent.click(screen.getByRole('button', { name: '新建任务' }));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('目标会话 ID')).toHaveValue('ou_123');
+    });
+
+    expect(hostApiFetchMock).toHaveBeenCalledWith('/api/channels/accounts');
+    expect(hostApiFetchMock).toHaveBeenCalledWith('/api/channels/recipient-hints/feishu?accountId=bot2');
   });
 });

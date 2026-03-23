@@ -11,8 +11,9 @@ interface AgentsState {
   channelAccountOwners: Record<string, string>;
   loading: boolean;
   error: string | null;
+  applySnapshot: (snapshot: AgentsSnapshot) => void;
   fetchAgents: () => Promise<void>;
-  createAgent: (name: string) => Promise<string>;
+  createAgent: (name: string, modelRef?: string | null) => Promise<string>;
   updateAgent: (agentId: string, updates: { name: string; modelRef?: string | null }) => Promise<{ applyingRuntime: boolean }>;
   deleteAgent: (agentId: string) => Promise<void>;
   assignChannel: (agentId: string, channelType: ChannelType) => Promise<void>;
@@ -39,6 +40,10 @@ export const useAgentsStore = create<AgentsState>((set) => ({
   loading: false,
   error: null,
 
+  applySnapshot: (snapshot: AgentsSnapshot) => {
+    set(applySnapshot(snapshot));
+  },
+
   fetchAgents: async () => {
     set({ loading: true, error: null });
     try {
@@ -52,12 +57,12 @@ export const useAgentsStore = create<AgentsState>((set) => ({
     }
   },
 
-  createAgent: async (name: string) => {
+  createAgent: async (name: string, modelRef?: string | null) => {
     set({ error: null });
     try {
       const snapshot = await hostApiFetch<AgentsSnapshot & { success?: boolean; createdAgentId?: string }>('/api/agents', {
         method: 'POST',
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, modelRef }),
       });
       set(applySnapshot(snapshot));
       return snapshot.createdAgentId ?? '';

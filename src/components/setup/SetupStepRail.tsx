@@ -28,19 +28,17 @@ export function SetupStepRail({ stages, className }: SetupStepRailProps) {
   const { t } = useTranslation('setup');
 
   return (
-    <nav aria-label={t('wizard.rail.aria')} className={cn('flex h-full min-h-0 flex-col px-5 py-6', className)}>
-      <div className="app-field-surface rounded-[1.6rem] p-4 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-[1rem] bg-[hsl(var(--surface-elevated)/0.9)] shadow-sm">
-            <img src={logoSvg} alt="XClaw" className="h-6 w-6" />
-          </div>
-          <div className="min-w-0">
-            <div className="text-[11px] font-medium uppercase tracking-[0.24em] text-primary/80">{t('wizard.rail.title')}</div>
-            <div className="mt-1 text-sm font-medium text-foreground">XClaw</div>
-          </div>
+    <nav aria-label={t('wizard.rail.aria')} className={cn('flex h-full min-h-0 flex-col px-4 py-5 lg:px-5 lg:py-6', className)}>
+      <div className="flex items-center gap-3 px-2">
+        <div className="flex h-9 w-9 items-center justify-center rounded-[0.95rem] bg-[hsl(var(--surface-elevated)/0.95)] shadow-sm ring-1 ring-border/60">
+          <img src={logoSvg} alt="XClaw" className="h-5 w-5" />
+        </div>
+        <div className="min-w-0">
+          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-primary/75">{t('wizard.rail.title')}</div>
+          <div className="mt-0.5 text-sm font-medium text-foreground">XClaw</div>
         </div>
       </div>
-      <ol className="mt-6 space-y-2">
+      <ol className="mt-5 space-y-1.5">
         {stages.map((stage, index) => (
           <li key={stage.id}>
             <button
@@ -48,13 +46,13 @@ export function SetupStepRail({ stages, className }: SetupStepRailProps) {
               disabled
               aria-current={stage.status === 'current' ? 'step' : undefined}
               className={cn(
-                'flex w-full items-start gap-3 rounded-2xl border px-4 py-3 text-left transition-colors disabled:cursor-default disabled:opacity-100',
+                'flex w-full items-center gap-3 rounded-[1rem] border px-3 py-2.5 text-left transition-colors disabled:cursor-default disabled:opacity-100',
                 statusClasses[stage.status],
               )}
             >
               <span
                 className={cn(
-                  'mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-xs font-semibold',
+                  'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold',
                   stage.status === 'complete'
                     ? 'border-primary-foreground/20 bg-primary-foreground/15 text-primary-foreground'
                     : stage.status === 'current'

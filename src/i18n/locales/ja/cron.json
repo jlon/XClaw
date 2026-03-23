@@ -1,6 +1,6 @@
 {
     "title": "定期タスク",
-    "subtitle": "メッセージとタスクを時刻どおりに実行",
+    "subtitle": "時刻どおりに実行",
     "newTask": "新規タスク",
     "refresh": "更新",
     "gatewayWarning": "ゲートウェイが稼働していません。アクティブなゲートウェイがないと定期タスクを管理できません。",
@@ -12,12 +12,15 @@
     },
     "empty": {
         "title": "定期タスクがありません",
-        "description": "定期タスクを作成してAIワークフローを自動化します。指定した時間にメッセージ送信、クエリ実行、アクション実行が可能です。",
+        "description": "指定した時刻にメッセージや操作を実行するタスクを作成します。",
         "create": "最初のタスクを作成"
     },
     "card": {
         "agent": "Agent",
         "runNow": "今すぐ実行",
+        "configureDelivery": "先に配信先を設定",
+        "deliveryRequired": "要設定",
+        "deliveryMissing": "このタスクにはまだ配信先がありません。タスクを編集し、現在の Agent に紐付いたチャンネルアカウントと送信先会話 ID を設定してください。",
         "deleteConfirm": "このタスクを削除してもよろしいですか？",
         "last": "前回",
         "next": "次回"
@@ -25,7 +28,7 @@
     "dialog": {
         "createTitle": "タスク作成",
         "editTitle": "タスク編集",
-        "description": "自動化AIタスクをスケジュール",
+        "description": "このタスクをいつ実行するか設定します",
         "taskName": "タスク名",
         "taskNamePlaceholder": "例：朝のブリーフィング",
         "agent": "実行 Agent",
@@ -36,13 +39,17 @@
         "cronPlaceholder": "Cron式（例：0 9 * * *）",
         "usePresets": "プリセットを使用",
         "useCustomCron": "カスタムCronを使用",
-        "targetChannel": "ターゲットチャンネル",
-        "noChannels": "利用可能なチャンネルがありません。先にチャンネルを追加してください。",
-        "discordChannelId": "DiscordチャンネルID",
-        "discordChannelIdPlaceholder": "例：1438452657525100686",
-        "discordChannelIdDesc": "Discordチャンネルを右クリック → チャンネルIDをコピー",
+        "targetChannel": "配信チャンネル",
+        "noChannels": "この Agent には紐付いたチャンネルアカウントがありません。先にチャンネルページで紐付けてください。",
+        "targetRecipient": "送信先会話 ID",
+        "targetRecipientPlaceholder": "例：チャンネル / グループ / チャット ID",
+        "targetRecipientDesc": "選択したアカウントに一意な既定ターゲットがあれば自動入力します。そうでなければ送信先会話 ID を手動で入力する必要があります。",
+        "targetRecipientAuto": "選択したチャンネルアカウント設定から既定ターゲットを自動入力しました：{{value}}。必要なら変更できます。",
+        "targetRecipientDetected": "選択したアカウントから既定ターゲット {{value}} を推定できますが、現在は既存の入力値を保持しています。",
+        "targetRecipientWildcard": "このアカウントは任意の送信元を許可しているため、一意な既定ターゲットを推定できません。送信先会話 ID を手動で入力してください。",
+        "targetRecipientMultiple": "このアカウントには候補ターゲットが複数あるため、自動では判断できません。送信先会話 ID を手動で入力してください。",
+        "targetRecipientUnavailable": "このアカウントには再利用できる既定ターゲットがありません。送信先会話 ID を手動で入力してください。",
         "enableImmediately": "すぐに有効化",
-        "enableImmediatelyDesc": "作成後すぐにこのタスクを実行開始",
         "saveChanges": "変更を保存"
     },
     "presets": {
@@ -61,15 +68,17 @@
         "enabled": "タスクを有効にしました",
         "paused": "タスクを停止しました",
         "deleted": "タスクを削除しました",
-        "triggered": "タスクを正常にトリガーしました",
+        "triggered": "タスクを開始しました",
+        "alreadyRunning": "このタスクはすでに実行中です",
+        "triggerQueued": "タスクを送信しました。実行待ちです",
         "failedTrigger": "タスクの実行に失敗しました: {{error}}",
         "failedUpdate": "タスクの更新に失敗しました",
         "failedDelete": "タスクの削除に失敗しました",
         "nameRequired": "タスク名を入力してください",
         "agentRequired": "実行 Agent を選択してください",
         "messageRequired": "メッセージを入力してください",
-        "channelRequired": "チャンネルを選択してください",
-        "discordIdRequired": "DiscordチャンネルIDを入力してください",
+        "channelRequired": "配信チャンネルを選択してください",
+        "recipientRequired": "送信先会話 ID を入力してください",
         "scheduleRequired": "スケジュールを選択または入力してください"
     },
     "schedule": {

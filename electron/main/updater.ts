@@ -16,7 +16,7 @@ import { setQuitting } from './app-state';
 const OSS_BASE_URL = 'https://oss.intelli-spectrum.com';
 
 export interface UpdateStatus {
-  status: 'idle' | 'checking' | 'available' | 'not-available' | 'downloading' | 'downloaded' | 'error';
+  status: 'idle' | 'checking' | 'available' | 'not-available' | 'downloading' | 'downloaded' | 'unsupported' | 'error';
   info?: UpdateInfo;
   progress?: ProgressInfo;
   error?: string;
@@ -171,7 +171,7 @@ export class AppUpdater extends EventEmitter {
    *
    * In dev mode (not packed), autoUpdater.checkForUpdates() silently returns
    * null without emitting any events, so we must detect this and force a
-   * final status so the UI never gets stuck in 'checking'.
+   * final neutral status so the UI never gets stuck in 'checking'.
    */
   async checkForUpdates(): Promise<UpdateInfo | null> {
     try {
@@ -179,11 +179,11 @@ export class AppUpdater extends EventEmitter {
 
       // In dev mode (app not packaged), autoUpdater silently returns null
       // without emitting ANY events (not even checking-for-update).
-      // Detect this and force an error so the UI never stays silent.
+      // Detect this and force a neutral unsupported state instead of an error.
       if (result == null) {
         this.updateStatus({
-          status: 'error',
-          error: 'Update check skipped (dev mode – app is not packaged)',
+          status: 'unsupported',
+          error: 'Updates are available only in packaged builds.',
         });
         return null;
       }

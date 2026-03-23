@@ -19,6 +19,7 @@
 - `pnpm exec vitest run tests/unit/workbench-style-unification.test.tsx --reporter=dot`
 - `pnpm exec eslint src/components/layout/WorkbenchHeader.tsx src/components/layout/WorkbenchSummaryStrip.tsx src/pages/Models/index.tsx src/pages/Agents/index.tsx src/pages/Channels/index.tsx src/pages/Skills/index.tsx src/pages/Cron/index.tsx tests/unit/workbench-style-unification.test.tsx --max-warnings=0`
 - `pnpm run typecheck`
+- `git diff --check -- src/pages/Cron/index.tsx src/stores/cron.ts src/types/cron.ts electron/api/routes/cron.ts electron/main/ipc-handlers.ts src/i18n/locales/zh/cron.json src/i18n/locales/en/cron.json src/i18n/locales/ja/cron.json docs/workbench-style-unification/progress.md docs/workbench-style-unification/testing.md`
 
 ### 结构断言
 
@@ -32,6 +33,9 @@
 - `WU-08`：默认基线视口下，主 pane / 主模态不依赖内部滚动条完成主任务
 - `WU-03`：header subtitle 与 summary strip 不得默认共存
 - `WU-06`：每个页面、每个 mode、每个空/非空状态，页级主 CTA 数量必须恰好为 `1`
+- `WU-05`：`定时任务` 创建链必须显式指定 `执行智能体 + 绑定频道账号 + 目标会话 ID`
+- `WU-05`：当前智能体没有绑定频道账号时，弹窗必须明确提示，并禁用保存
+- `WU-05`：手动触发任务必须按真实返回值反馈，不能把 `already-running` 误报成成功
 - `MW-01`：`Provider Board` 卡片不得再出现 `docs / footer 操作 / viewing 文案`
 - `MW-02`：未选中 provider 时，Token Intelligence 默认只允许轻分析态
 - `MW-04`：`Add Provider` 顶部 provider 选择区必须是小 tile 网格，不得退回大卡片选择器
@@ -169,15 +173,23 @@
   - `WU-05`：任务列表改成卡片网格，单卡改成 `头 / 主消息 / 事实胶囊 / 底栏`
   - `WU-03`：搜索/工具/主 CTA 回到一条桌面工具带语法
   - `WU-05`：页头、通知条、卡片网格、空态与模态收回同一内容宽度轨道
+  - `WU-05`：创建链显式绑定 `执行智能体 / 频道账号 / 目标会话 ID`
+  - `WU-05`：没有绑定频道账号时禁止保存
+  - `WU-05`：手动触发按真实运行状态反馈
 - 已跑命令：
   - `pnpm exec eslint src/pages/Cron/index.tsx --max-warnings=0`
   - `node -e "JSON.parse(...cron locale files...)"`
-  - `git diff --check -- src/pages/Cron/index.tsx src/styles/globals.css src/i18n/locales/zh/cron.json src/i18n/locales/en/cron.json src/i18n/locales/ja/cron.json docs/workbench-style-unification/progress.md docs/workbench-style-unification/testing.md`
+  - `git diff --check -- src/pages/Cron/index.tsx src/stores/cron.ts src/types/cron.ts electron/api/routes/cron.ts electron/main/ipc-handlers.ts src/styles/globals.css src/i18n/locales/zh/cron.json src/i18n/locales/en/cron.json src/i18n/locales/ja/cron.json docs/workbench-style-unification/progress.md docs/workbench-style-unification/testing.md`
 - 真实窗口证据：
   - 页头已改成与 `技能` 对齐的 `标题区 + 工具带` 双层结构
   - 任务列表已从横向后台 row 改成 pane 卡片网格，单卡不再拖满整窗
   - 页头摘要已不再使用厚 summary strip，而是轻状态胶囊
   - 创建/编辑模态已收成 pane 化双栏编辑器，并以无滚动为默认基线
+  - 创建/编辑模态的主字段已收回固定内容轨道，不再整窗铺开
+  - 创建/编辑模态已去掉“左大右小”的错误分栏，上半区为对等双栏，下半区为全宽调度区
+  - 创建/编辑模态内容区允许滚动，但默认隐藏滚动条，不再把滚动条直接暴露在 pane 内
+  - 当前智能体没有绑定频道账号时，弹窗会直接提示并禁用保存
+  - 手动触发若返回 `already-running`，不再误报为成功
 
 ## 需要补齐的自动化回归
 
@@ -194,3 +206,9 @@
 - 为了“更精致”继续加 badge、图标和说明
 - 为了“更统一”把所有页面压成同一张模板皮
 - 让 `智能体` 页重新长回后台 inspector
+
+## 最新验证补充
+
+- 真实配置核对：`feishu / bot2`、`telegram / default` 在 `openclaw.json` 里看起来都缺少唯一默认会话，但 pairing-store `credentials/*-allowFrom.json` 已记录了唯一来源 ID；定时任务必须同时读取配置和 pairing-store，不能只看 `openclaw.json`。
+- 交互规则调整：`目标会话 ID` 现在按“配置字段 -> pairing-store -> 手填”三层推导。只有在账号配置或 pairing-store 里能唯一推导时才自动带出；若配置允许任意来源、存在多个候选或根本没有默认目标，弹窗会直接提示原因。
+- 结构规则调整：`定时任务` 弹窗已从“左大右小”错误分栏改成“顶部双栏 + 底部全宽调度”，并继续隐藏内部滚动条。

@@ -1,131 +1,147 @@
-# Agent 市场首批 50 条内置种子
+# Agent 市场 58 条内置种子
 
 ## 来源原则
 
-首批内置市场不做开放抓取，只使用受控来源。
+内置市场不做开放抓取，只使用受控来源。
 
-当前确定的唯一来源：
+当前唯一来源：
 
 - 仓库：`mergisi/awesome-openclaw-agents`
-- 许可：MIT
+- 本地镜像：`/Users/jianglong/workspace/awesome-openclaw-agents`
+- 许可：`MIT`
 - 机器可读清单：`agents.json`
 
 注意：
 
-- 该仓库 `README` 宣称 `177`
+- 上游 `README` 宣称 `177`
 - `agents.json.total = 174`
 - `agents.json.agents.length = 177`
 
-因此 `XClaw` 不做全量镜像，而是冻结一份受控的 50 条 catalogue。
+因此 `XClaw` 不做全量镜像，而是冻结一份受控的 **58 条** catalogue，并明确偏向真实高频场景，而不是均匀分桶。
 
-## 选择标准
+## 当前选择标准
 
 - 必须是 OpenClaw 兼容的 `SOUL.md` 模板来源
 - 必须来自 MIT 仓库
+- 必须能抽取出清晰的职责、亮点与详情结构
 - 优先覆盖高频真实使用场景
-- 优先选择命名和职责较清晰的条目
-- 首批以办公、开发、业务、内容、数据为主
+- 优先扩充此前明显偏弱的 `management` 与 `development`
+- 不为了分类均匀而强行保留低价值模板
 
-## 首批 50 条
+## 当前分类结构
 
-### 生产力 5
+### 管理 5
 
 1. `daily-standup`
-2. `focus-timer`
-3. `habit-tracker`
-4. `inbox-zero`
-5. `meeting-notes`
+2. `meeting-notes`
+3. `feature-request`
+4. `product-scrum`
+5. `orion`
 
-### 开发 5
+### 效率 4
 
-6. `api-tester`
-7. `bug-hunter`
-8. `code-reviewer`
-9. `docs-writer`
-10. `test-writer`
+6. `focus-timer`
+7. `habit-tracker`
+8. `inbox-zero`
+9. `metrics`
 
-### 业务 5
+### 开发 10
 
-11. `competitor-pricing`
-12. `customer-support`
-13. `meeting-scheduler`
-14. `sales-assistant`
-15. `lead-gen`
+10. `api-tester`
+11. `bug-hunter`
+12. `code-reviewer`
+13. `dependency-scanner`
+14. `migration-helper`
+15. `pr-merger`
+16. `qa-tester`
+17. `schema-designer`
+18. `docs-writer`
+19. `test-writer`
+
+### 商业 5
+
+20. `customer-support`
+21. `meeting-scheduler`
+22. `sales-assistant`
+23. `lead-gen`
+24. `competitor-pricing`
 
 ### 创意 5
 
-16. `copywriter`
-17. `thumbnail-designer`
-18. `ux-researcher`
-19. `video-scripter`
-20. `proofreader`
+25. `copywriter`
+26. `thumbnail-designer`
+27. `ux-researcher`
+28. `video-scripter`
+29. `proofreader`
 
 ### 数据 5
 
-21. `dashboard-builder`
-22. `data-cleaner`
-23. `report-generator`
-24. `sql-assistant`
-25. `anomaly-detector`
+30. `dashboard-builder`
+31. `data-cleaner`
+32. `report-generator`
+33. `sql-assistant`
+34. `anomaly-detector`
 
 ### 营销 5
 
-26. `ab-test-analyzer`
-27. `brand-monitor`
-28. `influencer-finder`
-29. `seo-writer`
-30. `content-repurposer`
+35. `ab-test-analyzer`
+36. `brand-monitor`
+37. `influencer-finder`
+38. `seo-writer`
+39. `content-repurposer`
 
 ### 教育 5
 
-31. `language-tutor`
-32. `research-assistant`
-33. `study-planner`
-34. `essay-grader`
-35. `flashcard-generator`
+40. `language-tutor`
+41. `research-assistant`
+42. `study-planner`
+43. `essay-grader`
+44. `flashcard-generator`
 
 ### 安全 5
 
-36. `phishing-detector`
-37. `security-hardener`
-38. `threat-monitor`
-39. `vuln-scanner`
-40. `access-auditor`
+45. `phishing-detector`
+46. `security-hardener`
+47. `threat-monitor`
+48. `vuln-scanner`
+49. `access-auditor`
 
-### SaaS 5
+### SaaS 4
 
-41. `churn-prevention`
-42. `feature-request`
-43. `onboarding-flow`
-44. `release-notes`
-45. `usage-analytics`
+50. `churn-prevention`
+51. `onboarding-flow`
+52. `release-notes`
+53. `usage-analytics`
 
 ### 自动化 5
 
-46. `morning-briefing`
-47. `overnight-coder`
-48. `negotiation-agent`
-49. `job-applicant`
-50. `flight-scraper`
+54. `morning-briefing`
+55. `overnight-coder`
+56. `negotiation-agent`
+57. `job-applicant`
+58. `flight-scraper`
 
 ## 为什么不是更多
 
 不是找不到，而是 v1 不该把市场做成噪声列表。
 
-50 条的意义是：
+58 条的意义是：
 
-- 覆盖足够广的真实场景
-- 仍然可以人工 review
-- 便于后续做首屏分类和精选
-- 避免把来源不清晰或命名质量差的条目一起带进产品
+- 已经能覆盖管理、效率、开发、业务、内容、数据等主干场景
+- 仍然可以人工 review 内容质量
+- 允许为每条补齐本地化摘要和详情
+- 避免把命名差、职责不清、质量不稳的条目一并带进产品
+
+## 这一轮修正了什么
+
+- 不再机械维持“每类 5 个”的假平衡
+- 新增了真实的 `management` 分类
+- 明显扩充了 `development` 的深度
+- 中文市场内容已覆盖当前 58 条 catalogue
+- 分类名称通过壳层本地化，不再直接暴露英文原始值
 
 ## 下一步
 
-- 把这 50 条固化成代码清单
-- 为每条补齐：
-  - 显示名称
-  - 简介
-  - 分类
-  - 来源路径
-  - 安装语义
-- 市场 v1 只读取这份冻结清单
+- 继续人工抽查每条模板的中文摘要质量
+- 按真实安装和使用反馈做精选，而不是继续盲目扩容
+- 保持市场是受控 catalogue，不接受任意 URL 安装

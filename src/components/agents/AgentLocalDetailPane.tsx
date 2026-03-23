@@ -62,32 +62,6 @@ const getPathLeaf = (value: string) => {
 
 const ChannelLogo = ({ type }: { type: ChannelType }) => <ChannelIcon type={type} size={20} />;
 
-const HeroFactCard = ({
-  label,
-  value,
-  hint,
-  icon,
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-  icon: React.ComponentType<{ className?: string }>;
-}) => {
-  const Icon = icon;
-  return (
-    <div className="rounded-[18px] border border-border/60 bg-[linear-gradient(180deg,hsl(var(--surface-panel)/0.965)_0%,hsl(var(--surface-elevated)/0.985)_100%)] px-4 py-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.62)]">
-      <div className="flex items-center gap-2 text-foreground/48">
-        <span className="inline-flex h-7 w-7 items-center justify-center rounded-[10px] border border-border/55 bg-[hsl(var(--surface-elevated)/0.96)] text-foreground/56">
-          <Icon className="h-3.5 w-3.5 shrink-0" />
-        </span>
-        <p className="text-[11.5px] font-medium text-foreground/46">{label}</p>
-      </div>
-      <p className="mt-2.5 truncate text-[14px] font-semibold tracking-tight text-foreground">{value}</p>
-      {hint ? <p className="mt-1 text-[11.5px] leading-[1.5] text-foreground/48">{hint}</p> : null}
-    </div>
-  );
-};
-
 function EmptyLocalState({
   onCreateAgent,
   onInstallFromMarket,
@@ -145,20 +119,6 @@ export function AgentLocalDetailPane({
 
   const builtinWorkspaceFiles = workspaceFiles.filter((file) => file.reserved);
   const runtimeStateLabel = t(`workbench.binding.runtimeStates.${gatewayState}`, { defaultValue: gatewayState });
-  const heroFacts = [
-    {
-      label: t('workbench.overview.modelLabel'),
-      value: agent.modelDisplay,
-      hint: agent.inheritedModel ? t('inherited') : undefined,
-      icon: Cpu,
-    },
-    {
-      label: t('workbench.overview.channelLabel'),
-      value: t('workbench.agentCard.channelsMeta', { count: activeChannels.length }),
-      icon: Link2,
-    },
-  ];
-
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
       <div className={cn(shellCardClasses, 'relative overflow-hidden p-5')}>
@@ -217,10 +177,18 @@ export function AgentLocalDetailPane({
               </DropdownMenu>
             </div>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {heroFacts.map((fact) => (
-              <HeroFactCard key={fact.label} label={fact.label} value={fact.value} hint={fact.hint} icon={fact.icon} />
-            ))}
+          <div className="flex flex-wrap items-center gap-2.5 text-[12.5px] text-foreground/62">
+            <div className="inline-flex min-w-0 items-center gap-2 rounded-full border border-border/60 bg-[hsl(var(--surface-panel)/0.88)] px-3 py-1.5">
+              <Cpu className="h-3.5 w-3.5 shrink-0 text-foreground/46" />
+              <span className="text-foreground/52">{t('workbench.overview.modelLabel')}</span>
+              <span className="truncate font-medium text-foreground">{agent.modelDisplay}</span>
+              {agent.inheritedModel ? <span className="text-foreground/42">· {t('inherited')}</span> : null}
+            </div>
+            <div className="inline-flex min-w-0 items-center gap-2 rounded-full border border-border/60 bg-[hsl(var(--surface-panel)/0.88)] px-3 py-1.5">
+              <Link2 className="h-3.5 w-3.5 shrink-0 text-foreground/46" />
+              <span className="text-foreground/52">{t('workbench.overview.channelLabel')}</span>
+              <span className="font-medium text-foreground">{t('workbench.agentCard.channelsMeta', { count: activeChannels.length })}</span>
+            </div>
           </div>
         </div>
 
@@ -294,15 +262,19 @@ export function AgentLocalDetailPane({
             )}
           </div>
 
-          <div className="grid gap-3 lg:grid-cols-[minmax(220px,0.72fr)_minmax(0,1.28fr)]">
-            <div className={compactInsightSurfaceClasses}>
-              <p className={summaryLabelClasses}>{t('workbench.overview.runtimeStateLabel')}</p>
-              <p className="mt-1.5 text-[14px] font-semibold tracking-tight text-foreground">{runtimeStateLabel}</p>
+          <div className={compactInsightSurfaceClasses}>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className={summaryLabelClasses}>{t('workbench.overview.runtimeStateLabel')}</p>
+                <p className="mt-1.5 text-[14px] font-semibold tracking-tight text-foreground">{runtimeStateLabel}</p>
+              </div>
+              <div className="min-w-0 text-left sm:max-w-[52%] sm:text-right">
+                <p className={summaryLabelClasses}>{t('workbench.overview.agentDirLabel')}</p>
+                <p className="mt-1.5 text-[12.5px] font-medium tracking-tight text-foreground/72">{getPathLeaf(agent.agentDir)}</p>
+              </div>
             </div>
-            <div className={compactInsightSurfaceClasses}>
-              <p className={summaryLabelClasses}>{t('workbench.overview.agentDirLabel')}</p>
-              <p className="mt-1.5 text-[14px] font-semibold tracking-tight text-foreground">{getPathLeaf(agent.agentDir)}</p>
-              <p className="mt-1.5 break-all text-[11.5px] leading-[1.55] text-foreground/46">{agent.agentDir}</p>
+            <div className="mt-3 border-t border-border/45 pt-2.5">
+              <p className="text-[11px] leading-[1.55] text-foreground/42">{agent.agentDir}</p>
             </div>
           </div>
         </div>
@@ -316,30 +288,24 @@ export function AgentLocalDetailPane({
           ) : workspaceFilesError ? (
             <div className="py-4 text-[12.5px] text-destructive">{workspaceFilesError}</div>
           ) : builtinWorkspaceFiles.length > 0 ? (
-            <div className="mt-4 grid gap-3">
+            <div className="mt-4 grid gap-2.5">
               {builtinWorkspaceFiles.map((file) => {
                 const selected = file.relativePath === selectedWorkspaceFilePath;
                 return (
                   <div
                     key={file.relativePath}
                     className={cn(
-                      'flex items-center justify-between gap-3 rounded-[18px] border px-4 py-3.5',
+                      'group flex items-center justify-between gap-3 rounded-[16px] border px-3.5 py-3 transition-[border-color,background-color,box-shadow,transform] motion-safe:duration-150 motion-safe:hover:-translate-y-[1px]',
                       selected
-                        ? 'border-[hsl(var(--primary)/0.16)] bg-[linear-gradient(180deg,hsl(var(--surface-elevated)/1)_0%,hsl(var(--surface-panel)/0.97)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.74),0_8px_18px_rgba(15,23,42,0.035)]'
-                        : 'border-border/55 bg-[hsl(var(--surface-panel)/0.94)]',
+                        ? 'border-[hsl(var(--primary)/0.16)] bg-[hsl(var(--surface-elevated)/0.985)] shadow-[inset_0_1px_0_rgba(255,255,255,0.68),0_8px_18px_rgba(15,23,42,0.028)]'
+                        : 'border-border/55 bg-[hsl(var(--surface-panel)/0.92)] hover:border-border/70 hover:bg-[hsl(var(--surface-elevated)/0.965)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.62),0_8px_16px_rgba(15,23,42,0.025)]',
                     )}
                   >
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="truncate text-[12.75px] font-medium text-foreground">{file.displayName}</p>
-                        <Badge variant="outline" className={badgeClasses}>
-                          {t('workbench.persona.bootstrapBadge')}
-                        </Badge>
-                      </div>
-                      <p className="mt-1 text-[11.5px] leading-[1.5] text-foreground/46">{file.relativePath}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[12.75px] font-medium text-foreground">{file.displayName}</p>
                     </div>
-                    <Button variant="outline" className={actionButtonClasses} onClick={() => onEditWorkspaceFile(file.relativePath)}>
-                      <FilePenLine className="mr-2 h-3.5 w-3.5" />
+                    <Button variant="outline" className={cn(actionButtonClasses, 'h-8 px-3')} onClick={() => onEditWorkspaceFile(file.relativePath)}>
+                      <FilePenLine className="mr-1.5 h-3.5 w-3.5" />
                       {t('workbench.persona.editAction')}
                     </Button>
                   </div>

@@ -632,7 +632,14 @@ function registerUnifiedRequestHandlers(
             break;
           }
           if (request.action === 'create') {
-            type CronCreateInput = { name: string; message: string; schedule: string; enabled?: boolean; agentId?: string };
+            type CronCreateInput = {
+              name: string;
+              message: string;
+              schedule: string;
+              enabled?: boolean;
+              agentId?: string;
+              target?: unknown;
+            };
             const payload = request.payload as
               | { input?: CronCreateInput }
               | [CronCreateInput]
@@ -649,6 +656,7 @@ function registerUnifiedRequestHandlers(
             if (!input) throw new Error('Invalid cron.create payload');
             const agentId = typeof input.agentId === 'string' ? input.agentId.trim() : '';
             if (!agentId) throw new Error('agentId is required');
+            const target = normalizeCronTarget(input.target);
             const gatewayInput = {
               agentId,
               name: input.name,
@@ -657,7 +665,7 @@ function registerUnifiedRequestHandlers(
               enabled: input.enabled ?? true,
               wakeMode: 'next-heartbeat',
               sessionTarget: 'isolated',
-              delivery: { mode: 'none' },
+              delivery: buildCronDelivery(target),
             };
             const created = await gatewayManager.rpc('cron.add', gatewayInput);
             data = created && typeof created === 'object' ? transformCronJob(created as GatewayCronJob) : created;
@@ -682,6 +690,11 @@ function registerUnifiedRequestHandlers(
             if (typeof patch.message === 'string') {
               patch.payload = { kind: 'agentTurn', message: patch.message };
               delete patch.message;
+            }
+            if ('target' in patch) {
+              const target = patch.target == null ? null : normalizeCronTarget(patch.target);
+              patch.delivery = buildCronDelivery(target);
+              delete patch.target;
             }
             data = await gatewayManager.rpc('cron.update', { id, patch });
             break;
@@ -869,7 +882,7 @@ interface GatewayCronJob {
   updatedAtMs: number;
   schedule: { kind: string; expr?: string; everyMs?: number; at?: string; tz?: string };
   payload: { kind: string; message?: string; text?: string };
-  delivery?: { mode: string; channel?: string; to?: string };
+  delivery?: { mode: string; channel?: string; to?: string; accountId?: string };
   sessionTarget?: string;
   state: {
     nextRunAtMs?: number;
@@ -888,9 +901,15 @@ function transformCronJob(job: GatewayCronJob) {
   const message = job.payload?.message || job.payload?.text || '';
 
   // Build target from delivery info — only if a delivery channel is specified
-  const channelType = job.delivery?.channel;
+  const channelType = job.delivery?.channel?.trim();
+  const accountId = job.delivery?.accountId?.trim() || 'default';
+  const recipientId = job.delivery?.to?.trim() || '';
   const target = channelType
-    ? { channelType, channelId: channelType, channelName: channelType }
+    ? {
+      channelType,
+      accountId,
+      ...(recipientId ? { recipientId } : {}),
+    }
     : undefined;
 
   // Build lastRun from state
@@ -920,6 +939,46 @@ function transformCronJob(job: GatewayCronJob) {
     updatedAt: new Date(job.updatedAtMs).toISOString(),
     lastRun,
     nextRun,
+  };
+}
+
+type CronTargetInput = {
+  channelType: string;
+  accountId: string;
+  recipientId: string;
+};
+
+function normalizeCronTarget(input: unknown): CronTargetInput {
+  if (!input || typeof input !== 'object') {
+    throw new Error('target is required');
+  }
+
+  const target = input as Record<string, unknown>;
+  const channelType = typeof target.channelType === 'string' ? target.channelType.trim() : '';
+  const accountId = typeof target.accountId === 'string' ? target.accountId.trim() : '';
+  const recipientId = typeof target.recipientId === 'string' ? target.recipientId.trim() : '';
+
+  if (!channelType) throw new Error('target.channelType is required');
+  if (!accountId) throw new Error('target.accountId is required');
+  if (!recipientId) throw new Error('target.recipientId is required');
+
+  return {
+    channelType,
+    accountId,
+    recipientId,
+  };
+}
+
+function buildCronDelivery(target: CronTargetInput | null | undefined) {
+  if (!target) {
+    return { mode: 'none' as const };
+  }
+
+  return {
+    mode: 'announce' as const,
+    channel: target.channelType,
+    accountId: target.accountId,
+    to: target.recipientId,
   };
 }
 
@@ -977,20 +1036,18 @@ function registerCronHandlers(gatewayManager: GatewayManager): void {
     }
   });
 
-  // Create a new cron job
-  // UI-created tasks have no delivery target — results go to the XClaw chat page.
-  // Tasks created via external channels (Feishu, Discord, etc.) are handled
-  // directly by the OpenClaw Gateway and do not pass through this IPC handler.
   ipcMain.handle('cron:create', async (_, input: {
     agentId?: string;
     name: string;
     message: string;
     schedule: string;
     enabled?: boolean;
+    target?: unknown;
   }) => {
     try {
       const agentId = typeof input.agentId === 'string' ? input.agentId.trim() : '';
       if (!agentId) throw new Error('agentId is required');
+      const target = normalizeCronTarget(input.target);
       const gatewayInput = {
         agentId,
         name: input.name,
@@ -999,14 +1056,9 @@ function registerCronHandlers(gatewayManager: GatewayManager): void {
         enabled: input.enabled ?? true,
         wakeMode: 'next-heartbeat',
         sessionTarget: 'isolated',
-        // UI-created jobs deliver results via XClaw WebSocket chat events,
-        // not external messaging channels.  Setting mode='none' prevents
-        // the Gateway from attempting channel delivery (which would fail
-        // with "Channel is required" when no channels are configured).
-        delivery: { mode: 'none' },
+        delivery: buildCronDelivery(target),
       };
       const result = await gatewayManager.rpc('cron.add', gatewayInput);
-      // Transform the returned job to frontend format
       if (result && typeof result === 'object') {
         return transformCronJob(result as GatewayCronJob);
       }
@@ -1034,7 +1086,15 @@ function registerCronHandlers(gatewayManager: GatewayManager): void {
         patch.payload = { kind: 'agentTurn', message: patch.message };
         delete patch.message;
       }
+      if ('target' in patch) {
+        const target = patch.target == null ? null : normalizeCronTarget(patch.target);
+        patch.delivery = buildCronDelivery(target);
+        delete patch.target;
+      }
       const result = await gatewayManager.rpc('cron.update', { id, patch });
+      if (result && typeof result === 'object') {
+        return transformCronJob(result as GatewayCronJob);
+      }
       return result;
     } catch (error) {
       console.error('Failed to update cron job:', error);

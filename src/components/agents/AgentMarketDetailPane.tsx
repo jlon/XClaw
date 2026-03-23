@@ -1,11 +1,10 @@
 import { Store } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { AgentAvatar } from '@/components/agents/AgentAvatar';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { resolveMarketItemCopy } from '@/lib/agent-market-copy';
+import { resolveMarketCategoryLabel, resolveMarketItemCopy } from '@/lib/agent-market-copy';
 import { cn } from '@/lib/utils';
 import type { AgentMarketCatalogItem } from '@/types/agent-market';
 
@@ -19,9 +18,6 @@ export interface AgentMarketDetailPaneProps {
 
 const shellCardClasses =
   'rounded-[24px] border border-border/70 bg-[linear-gradient(180deg,hsl(var(--surface-elevated)/0.998)_0%,hsl(var(--surface-panel)/0.972)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.72),0_14px_28px_rgba(15,23,42,0.04)]';
-const surfaceCardClasses = 'rounded-[20px] border border-border/60 bg-[hsl(var(--surface-panel)/0.92)]';
-const badgeClasses =
-  'h-5 rounded-[10px] border border-border/70 bg-background/70 px-2 text-[10px] font-medium text-foreground/70 shadow-none';
 const actionButtonClasses =
   'h-10 rounded-[13px] border-transparent bg-primary px-5 text-[13px] font-semibold text-primary-foreground shadow-[0_10px_22px_rgba(15,23,42,0.12)] transition-colors hover:bg-primary/92';
 const summaryLabelClasses = 'text-[11px] font-medium uppercase tracking-[0.08em] text-foreground/44';
@@ -30,13 +26,6 @@ const fieldInputClasses =
 const installPanelClasses =
   'rounded-[22px] border border-[hsl(var(--primary)/0.12)] bg-[linear-gradient(180deg,hsl(var(--surface-elevated)/1)_0%,hsl(var(--surface-panel)/0.968)_100%)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.76),0_16px_28px_rgba(15,23,42,0.05)]';
 
-const SectionLabel = ({ label, description }: { label: string; description?: string }) => (
-  <div className="border-b border-border/55 pb-3">
-    <p className="text-[13px] font-semibold tracking-tight text-foreground">{label}</p>
-    {description ? <p className="mt-1 text-[12px] leading-[1.55] text-foreground/52">{description}</p> : null}
-  </div>
-);
-
 export function AgentMarketDetailPane({
   marketItem,
   marketInstallName,
@@ -44,7 +33,8 @@ export function AgentMarketDetailPane({
   onInstall,
   onInstallNameChange,
 }: AgentMarketDetailPaneProps) {
-  const { t } = useTranslation('agents');
+  const { t, i18n } = useTranslation('agents');
+  const resolvedLanguage = i18n?.resolvedLanguage;
 
   if (!marketItem) {
     return (
@@ -61,7 +51,7 @@ export function AgentMarketDetailPane({
     );
   }
 
-  const copy = resolveMarketItemCopy(t, marketItem);
+  const copy = resolveMarketItemCopy(t, marketItem, resolvedLanguage);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
@@ -71,17 +61,19 @@ export function AgentMarketDetailPane({
           <div className="flex min-w-0 items-start gap-4">
             <AgentAvatar agentId={`${marketItem.id}:${marketItem.category}`} size={60} />
             <div className="min-w-0 space-y-3">
-              <Badge variant="outline" className={cn(badgeClasses, 'w-fit bg-[hsl(var(--surface-panel)/0.94)]')}>
-                {marketItem.category}
-              </Badge>
               <div className="space-y-1.5">
                 <h2 className="text-[24px] font-semibold tracking-tight text-foreground">
                   {copy.name}
                 </h2>
-                <p className="text-[13px] font-medium text-foreground/62">{copy.headline}</p>
                 <p className="max-w-2xl text-[13px] leading-[1.68] text-foreground/60">
                   {copy.summary || t('workbench.market.noRole')}
                 </p>
+                <div className="flex flex-wrap items-center gap-2 text-[11.5px] text-foreground/46">
+                  <span className="inline-flex h-5 items-center rounded-full border border-border/55 bg-[hsl(var(--surface-panel)/0.9)] px-2 font-medium text-foreground/52 shadow-[inset_0_1px_0_rgba(255,255,255,0.62)]">
+                    {resolveMarketCategoryLabel(t, marketItem.category)}
+                  </span>
+                  {copy.headline && copy.headline !== copy.name ? <span>{copy.headline}</span> : null}
+                </div>
               </div>
             </div>
           </div>
@@ -113,15 +105,15 @@ export function AgentMarketDetailPane({
         </div>
       </div>
 
-      <div className="grid gap-4">
-        <div className={cn(shellCardClasses, 'p-4')}>
-          <SectionLabel label={t('workbench.market.highlightsTitle')} />
-          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+      <div className={cn(shellCardClasses, 'space-y-5 p-4')}>
+        <div className="border-b border-border/55 pb-4">
+          <p className="text-[13px] font-semibold tracking-tight text-foreground">{t('workbench.market.highlightsTitle')}</p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
             {copy.highlights.length > 0 ? (
               copy.highlights.map((highlight) => (
                 <div
                   key={`${marketItem.id}:${highlight}`}
-                  className="flex min-h-[48px] items-start gap-2 rounded-[14px] border border-border/55 bg-[hsl(var(--surface-panel)/0.92)] px-3 py-2.5 text-[12px] text-foreground/68 shadow-[inset_0_1px_0_rgba(255,255,255,0.54)]"
+                  className="flex min-h-[44px] items-start gap-2 rounded-[14px] border border-border/55 bg-[hsl(var(--surface-panel)/0.9)] px-3 py-2.5 text-[12px] text-foreground/68 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]"
                 >
                   <span className="mt-[5px] h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/24" />
                   <span className="leading-[1.55]">{highlight}</span>
@@ -133,18 +125,16 @@ export function AgentMarketDetailPane({
           </div>
         </div>
 
-        <div className={cn(shellCardClasses, 'flex min-h-0 flex-col p-4')}>
-          <SectionLabel label={t('workbench.market.detailsTitle')} />
-          <div className="mt-4 grid gap-3">
-            {copy.detailSections.map((section) => (
+        <div className="border-b border-border/55 pb-4">
+          <p className="text-[13px] font-semibold tracking-tight text-foreground">{t('workbench.market.detailsTitle')}</p>
+          <div className="mt-3 grid gap-4">
+            {copy.detailSections.map((section, index) => (
               <div
                 key={`${marketItem.id}:${section.kind}:${section.title}`}
-                className={cn(surfaceCardClasses, 'p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.56)]')}
+                className={cn(index > 0 && 'border-t border-border/50 pt-4')}
               >
                 <p className="text-[13px] font-semibold tracking-tight text-foreground">{section.title}</p>
-                {section.body ? (
-                  <p className="mt-2 text-[12.5px] leading-[1.65] text-foreground/58">{section.body}</p>
-                ) : null}
+                {section.body ? <p className="mt-2 text-[12.5px] leading-[1.65] text-foreground/58">{section.body}</p> : null}
                 {section.items.length > 0 ? (
                   <ul className="mt-3 space-y-2 text-[12.5px] leading-[1.6] text-foreground/62">
                     {section.items.map((entry) => (
@@ -159,16 +149,17 @@ export function AgentMarketDetailPane({
             ))}
           </div>
         </div>
-        <div className={cn(shellCardClasses, 'p-4')}>
-          <SectionLabel label={t('workbench.market.sourceSummaryTitle')} />
-          <div className="mt-4 grid gap-2 text-[12.5px] leading-[1.6] text-foreground/58">
-            <div className={cn(surfaceCardClasses, 'px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]')}>
+
+        <div>
+          <p className="text-[13px] font-semibold tracking-tight text-foreground">{t('workbench.market.sourceSummaryTitle')}</p>
+          <div className="mt-3 space-y-2 text-[12.5px] leading-[1.6] text-foreground/58">
+            <div className="flex items-start justify-between gap-3 rounded-[14px] border border-border/55 bg-[hsl(var(--surface-panel)/0.9)] px-3.5 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]">
               <p className={summaryLabelClasses}>{t('workbench.market.sourcePathLabel')}</p>
-              <p className="mt-1 font-medium text-foreground/74">{marketItem.sourcePath}</p>
+              <p className="min-w-0 flex-1 break-all text-right text-foreground/64">{marketItem.sourcePath}</p>
             </div>
-            <div className={cn(surfaceCardClasses, 'px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]')}>
+            <div className="flex items-start justify-between gap-3 rounded-[14px] border border-border/55 bg-[hsl(var(--surface-panel)/0.9)] px-3.5 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]">
               <p className={summaryLabelClasses}>Raw URL</p>
-              <p className="mt-1 break-all text-foreground/62">{marketItem.rawUrl}</p>
+              <p className="min-w-0 flex-1 break-all text-right text-foreground/58">{marketItem.rawUrl}</p>
             </div>
           </div>
         </div>

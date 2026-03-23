@@ -102,10 +102,21 @@ export interface CreatedAgentResult {
   createdAgentId: string;
 }
 
+interface CreateAgentOptions {
+  bootstrapMode?: 'clone-main' | 'empty';
+  modelRef?: string | null;
+}
+
 export interface AgentSettingsUpdateResult {
   snapshot: AgentsSnapshot;
   nameChanged: boolean;
   modelChanged: boolean;
+}
+
+export interface DeletedAgentConfigResult {
+  snapshot: AgentsSnapshot;
+  removedEntry: { id: string; workspace?: string };
+  rollbackConfig: Record<string, unknown>;
 }
 
 export interface AgentWorkspaceFileSummary {
@@ -370,7 +381,7 @@ async function listExistingAgentIdsOnDisk(): Promise<Set<string>> {
   return ids;
 }
 
-async function removeAgentRuntimeDirectory(agentId: string): Promise<void> {
+export async function removeAgentRuntimeDirectory(agentId: string): Promise<void> {
   const runtimeDir = join(getOpenClawConfigDir(), 'agents', agentId);
   try {
     await rm(runtimeDir, { recursive: true, force: true });
@@ -441,7 +452,11 @@ async function copyRuntimeFiles(sourceAgentDir: string, targetAgentDir: string):
   }
 }
 
-async function provisionAgentFilesystem(config: AgentConfigDocument, agent: AgentListEntry): Promise<void> {
+async function provisionAgentFilesystem(
+  config: AgentConfigDocument,
+  agent: AgentListEntry,
+  options: CreateAgentOptions = {},
+): Promise<void> {
   const { entries } = normalizeAgentsConfig(config);
   const mainEntry = entries.find((entry) => entry.id === MAIN_AGENT_ID) ?? createImplicitMainEntry(config);
   const sourceWorkspace = expandPath(mainEntry.workspace || getDefaultWorkspacePath(config));
@@ -454,7 +469,7 @@ async function provisionAgentFilesystem(config: AgentConfigDocument, agent: Agen
   await ensureDir(targetAgentDir);
   await ensureDir(targetSessionsDir);
 
-  if (targetWorkspace !== sourceWorkspace) {
+  if (options.bootstrapMode !== 'empty' && targetWorkspace !== sourceWorkspace) {
     await copyBootstrapFiles(sourceWorkspace, targetWorkspace);
   }
   if (targetAgentDir !== sourceAgentDir) {
@@ -540,8 +555,31 @@ export async function listAgentWorkspaceFiles(agentId: string): Promise<AgentWor
     .filter((entry) => entry.isFile())
     .map((entry) => entry.name)
     .filter(isAllowedWorkspaceRootFile);
-  const orderedNames = Array.from(new Set([...AGENT_BOOTSTRAP_FILES, ...discoveredNames]))
-    .filter(Boolean);
+  const config = await readOpenClawConfig() as AgentConfigDocument;
+  const mainWorkspacePath = expandPath(getWorkspacePathForAgent(config, MAIN_AGENT_ID));
+  const visibleNames = await Promise.all(
+    discoveredNames.map(async (fileName) => {
+      if (agentId === MAIN_AGENT_ID || fileName === 'SOUL.md' || !AGENT_BOOTSTRAP_FILES.includes(fileName)) {
+        return fileName;
+      }
+      const mainFile = join(mainWorkspacePath, fileName);
+      if (!(await fileExists(mainFile))) {
+        return fileName;
+      }
+      const currentFile = join(workspacePath, fileName);
+      const [currentContent, mainContent] = await Promise.all([
+        readFile(currentFile, 'utf8'),
+        readFile(mainFile, 'utf8'),
+      ]);
+      return currentContent === mainContent ? null : fileName;
+    }),
+  );
+  const orderedNames = Array.from(
+    new Set([
+      ...AGENT_BOOTSTRAP_FILES.filter((fileName) => visibleNames.includes(fileName)),
+      ...visibleNames.filter((fileName): fileName is string => Boolean(fileName) && !AGENT_BOOTSTRAP_FILES.includes(fileName)),
+    ]),
+  );
 
   return orderedNames.map((fileName) => ({
     relativePath: fileName,
@@ -718,7 +756,11 @@ export async function listConfiguredAgentIds(): Promise<string[]> {
   return ids.length > 0 ? ids : [MAIN_AGENT_ID];
 }
 
-async function createAgentLocked(config: AgentConfigDocument, name: string): Promise<{ snapshot: AgentsSnapshot; createdAgent: AgentListEntry }> {
+async function createAgentLocked(
+  config: AgentConfigDocument,
+  name: string,
+  options: CreateAgentOptions = {},
+): Promise<{ snapshot: AgentsSnapshot; createdAgent: AgentListEntry }> {
   const { agentsConfig, entries, syntheticMain } = normalizeAgentsConfig(config);
   const normalizedName = normalizeAgentName(name);
   const existingIds = new Set(entries.map((entry) => entry.id));
@@ -739,6 +781,10 @@ async function createAgentLocked(config: AgentConfigDocument, name: string): Pro
     workspace: `~/.openclaw/workspace-${nextId}`,
     agentDir: getDefaultAgentDirPath(nextId),
   };
+  const nextModelRef = normalizeModelRef(options.modelRef);
+  if (nextModelRef) {
+    createdAgent.model = buildNextAgentModelConfig(undefined, nextModelRef);
+  }
 
   if (!nextEntries.some((entry) => entry.id === MAIN_AGENT_ID) && syntheticMain) {
     nextEntries.unshift(createImplicitMainEntry(config));
@@ -750,7 +796,7 @@ async function createAgentLocked(config: AgentConfigDocument, name: string): Pro
     list: nextEntries,
   };
 
-  await provisionAgentFilesystem(config, createdAgent);
+  await provisionAgentFilesystem(config, createdAgent, options);
   await writeOpenClawConfig(config);
   logger.info('Created agent config entry', { agentId: nextId });
   return {
@@ -759,10 +805,10 @@ async function createAgentLocked(config: AgentConfigDocument, name: string): Pro
   };
 }
 
-export async function createAgentWithId(name: string): Promise<CreatedAgentResult> {
+export async function createAgentWithId(name: string, options: CreateAgentOptions = {}): Promise<CreatedAgentResult> {
   return withConfigLock(async () => {
     const config = await readOpenClawConfig() as AgentConfigDocument;
-    const { snapshot, createdAgent } = await createAgentLocked(config, name);
+    const { snapshot, createdAgent } = await createAgentLocked(config, name, options);
     return {
       snapshot,
       createdAgentId: createdAgent.id,
@@ -773,6 +819,14 @@ export async function createAgentWithId(name: string): Promise<CreatedAgentResul
 export async function createAgent(name: string): Promise<AgentsSnapshot> {
   const result = await createAgentWithId(name);
   return result.snapshot;
+}
+
+export async function restoreAgentsConfigSnapshot(config: Record<string, unknown>): Promise<AgentsSnapshot> {
+  return withConfigLock(async () => {
+    const rollbackConfig = JSON.parse(JSON.stringify(config)) as AgentConfigDocument;
+    await writeOpenClawConfig(rollbackConfig);
+    return buildSnapshotFromConfig(rollbackConfig);
+  });
 }
 
 export async function updateAgentName(agentId: string, name: string): Promise<AgentsSnapshot> {
@@ -858,13 +912,14 @@ export async function updateAgentSettings(
   });
 }
 
-export async function deleteAgentConfig(agentId: string): Promise<{ snapshot: AgentsSnapshot; removedEntry: AgentListEntry }> {
+export async function deleteAgentConfig(agentId: string): Promise<DeletedAgentConfigResult> {
   return withConfigLock(async () => {
     if (agentId === MAIN_AGENT_ID) {
       throw new Error('The main agent cannot be deleted');
     }
 
     const config = await readOpenClawConfig() as AgentConfigDocument;
+    const rollbackConfig = JSON.parse(JSON.stringify(config)) as AgentConfigDocument;
     const { agentsConfig, entries, defaultAgentId } = normalizeAgentsConfig(config);
     const snapshotBeforeDeletion = await buildSnapshotFromConfig(config);
     const removedEntry = entries.find((entry) => entry.id === agentId);
@@ -902,7 +957,6 @@ export async function deleteAgentConfig(agentId: string): Promise<{ snapshot: Ag
 
     await writeOpenClawConfig(config);
     await deleteAgentChannelAccounts(agentId, ownedLegacyAccounts);
-    await removeAgentRuntimeDirectory(agentId);
     // NOTE: workspace directory is NOT deleted here intentionally.
     // The caller (route handler) defers workspace removal until after
     // the Gateway process has fully restarted, so that any in-flight
@@ -910,7 +964,7 @@ export async function deleteAgentConfig(agentId: string): Promise<{ snapshot: Ag
     // disappears (otherwise process.cwd() throws ENOENT for the rest
     // of the Gateway's lifetime).
     logger.info('Deleted agent config entry', { agentId });
-    return { snapshot: await buildSnapshotFromConfig(config), removedEntry };
+    return { snapshot: await buildSnapshotFromConfig(config), removedEntry, rollbackConfig };
   });
 }
 

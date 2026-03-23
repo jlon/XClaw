@@ -35,6 +35,7 @@ export interface AgentCardsPaneProps {
   onCreateAgent: () => void;
   onInstallFromMarket: () => void;
   actionButtonClassName: string;
+  primaryActionButtonClassName: string;
   badgeClassName: string;
   toolbarSlot?: ReactNode;
   className?: string;
@@ -57,6 +58,7 @@ export function AgentCardsPane({
   onCreateAgent,
   onInstallFromMarket,
   actionButtonClassName,
+  primaryActionButtonClassName,
   badgeClassName,
   toolbarSlot,
   className,
@@ -67,7 +69,7 @@ export function AgentCardsPane({
     return value === key ? fallback : value;
   };
   const searchLabel = resolveText('workbench.sourceList.searchPlaceholder', '搜索智能体、模型、工作区');
-  const gridClassName = 'grid auto-rows-fr gap-3 min-[1600px]:grid-cols-2';
+  const gridClassName = 'grid gap-3 min-[1600px]:grid-cols-2';
 
   return (
     <div className={className}>
@@ -103,14 +105,14 @@ export function AgentCardsPane({
                   onClick={() => onSelectAgent(agent)}
                   aria-pressed={selected}
                   className={cn(
-                    'group relative flex h-full min-h-[136px] w-full flex-col overflow-hidden rounded-[22px] border px-4 py-4 text-left transition-[border-color,background-color,box-shadow,transform] duration-150',
+                    'group relative flex w-full flex-col overflow-hidden rounded-[22px] border px-4 py-4 text-left transition-[border-color,background-color,box-shadow,transform] duration-150',
                     selected
                       ? 'border-[hsl(var(--primary)/0.18)] bg-[linear-gradient(180deg,hsl(var(--surface-elevated)/1)_0%,hsl(var(--surface-panel)/0.984)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_16px_28px_rgba(15,23,42,0.05)]'
                       : 'border-border/60 bg-[linear-gradient(180deg,hsl(var(--surface-elevated)/0.995)_0%,hsl(var(--surface-panel)/0.972)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.76),0_10px_20px_rgba(15,23,42,0.03)] hover:-translate-y-[1px] hover:border-border/74 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.82),0_14px_24px_rgba(15,23,42,0.04)]',
                   )}
                 >
                   <div className="absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-foreground/8 to-transparent" />
-                  <div className="flex min-w-0 flex-1 flex-col gap-2">
+                  <div className="flex min-w-0 flex-col gap-2">
                     <div className="flex items-start gap-3">
                       <AgentAvatar agentId={agent.id} size={46} className="mt-0.5" />
                       <div className="min-w-0 flex-1">
@@ -157,7 +159,7 @@ export function AgentCardsPane({
               </p>
             </div>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-              <Button onClick={onCreateAgent} className="h-9 rounded-[12px] px-4 text-[13px] font-medium shadow-none">
+              <Button onClick={onCreateAgent} className={cn(primaryActionButtonClassName, 'px-4')}>
                 <Plus className="mr-2 h-3.5 w-3.5" />
                 {t('workbench.actions.createAgent')}
               </Button>

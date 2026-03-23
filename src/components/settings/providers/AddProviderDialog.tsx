@@ -26,6 +26,7 @@ import {
   shouldInvertInDark,
   shouldShowProviderModelId,
   type ProviderType,
+  type ProviderTypeInfo,
 } from '@/lib/providers';
 import { useProviderStore, type ProviderAccount, type ProviderVendorInfo } from '@/stores/providers';
 import { cn } from '@/lib/utils';

@@ -39,7 +39,7 @@ export function ExecApprovalOverlay({
       <div className="pointer-events-auto w-full max-w-[44rem] rounded-[24px] border border-[hsl(var(--border)/0.78)] bg-[hsl(var(--background)/0.92)] p-5 shadow-[0_26px_80px_rgba(15,23,42,0.14)] backdrop-blur-xl">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgba(248,113,113,0.14),rgba(251,191,36,0.16))] text-[hsl(var(--foreground))] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[hsl(var(--warning)/0.18)] bg-[hsl(var(--warning)/0.12)] text-[hsl(var(--warning))] shadow-none">
               <ShieldAlert className="h-5 w-5" />
             </div>
             <div className="space-y-1">
@@ -58,7 +58,7 @@ export function ExecApprovalOverlay({
           ) : null}
         </div>
 
-        <div className="mt-4 rounded-[18px] border border-[hsl(var(--border)/0.82)] bg-[linear-gradient(180deg,rgba(248,250,252,0.72),rgba(241,245,249,0.92))] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.45),rgba(15,23,42,0.72))]">
+        <div className="mt-4 rounded-[18px] border border-[hsl(var(--border)/0.82)] bg-[hsl(var(--surface-panel)/0.92)] px-4 py-3 shadow-none">
           <div className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
             {t('execApproval.commandLabel')}
           </div>
@@ -85,7 +85,7 @@ export function ExecApprovalOverlay({
         </div>
 
         {error ? (
-          <div className="mt-4 rounded-2xl border border-[rgba(239,68,68,0.18)] bg-[rgba(239,68,68,0.08)] px-4 py-3 text-sm text-[rgb(185,28,28)] dark:text-[rgb(254,202,202)]">
+          <div className="mt-4 rounded-2xl border border-[hsl(var(--danger)/0.22)] bg-[hsl(var(--danger)/0.1)] px-4 py-3 text-sm text-destructive">
             {error}
           </div>
         ) : null}
@@ -95,7 +95,7 @@ export function ExecApprovalOverlay({
             type="button"
             variant="outline"
             disabled={busy}
-            className="h-11 rounded-2xl border-[rgba(220,38,38,0.22)] bg-[rgba(255,255,255,0.72)] px-4 text-[rgb(185,28,28)] hover:bg-[rgba(254,242,242,0.95)]"
+            className="h-11 rounded-2xl border-[hsl(var(--danger)/0.24)] bg-[hsl(var(--danger)/0.08)] px-4 text-destructive hover:bg-[hsl(var(--danger)/0.12)]"
             onClick={() => onDecision('deny')}
           >
             {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
@@ -105,7 +105,7 @@ export function ExecApprovalOverlay({
             type="button"
             variant="outline"
             disabled={busy}
-            className="h-11 rounded-2xl border-[hsl(var(--border)/0.8)] bg-[rgba(255,255,255,0.78)] px-4 hover:bg-[rgba(248,250,252,0.96)]"
+            className="h-11 rounded-2xl border-[hsl(var(--border)/0.8)] bg-[hsl(var(--surface-elevated)/0.98)] px-4 hover:bg-[hsl(var(--surface-hover)/0.7)]"
             onClick={() => onDecision('allow-always')}
           >
             {busy && <Loader2 className={cn('mr-2 h-4 w-4 animate-spin')} />}
@@ -114,7 +114,7 @@ export function ExecApprovalOverlay({
           <Button
             type="button"
             disabled={busy}
-            className="h-11 rounded-2xl bg-[linear-gradient(135deg,#1f2937,#374151)] px-5 text-white shadow-[0_16px_40px_rgba(15,23,42,0.18)] hover:opacity-95"
+            className="h-11 rounded-2xl bg-primary px-5 text-primary-foreground shadow-none hover:bg-primary/92"
             onClick={() => onDecision('allow-once')}
           >
             {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

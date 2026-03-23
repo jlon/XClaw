@@ -59,112 +59,110 @@ function TakeoverStartContent({
     : activePlan?.warnings ?? [];
 
   return (
-    <div className="space-y-6">
-      <div className="app-setup-hero rounded-[2rem] p-6 xl:p-8">
-        <div className="space-y-2">
-          <div className="app-setup-kicker">{t('wizard.rail.title')}</div>
-          <h2 className="text-[2rem] font-semibold tracking-[-0.04em] text-foreground xl:text-[2.6rem]">{t('takeover.title')}</h2>
-          <p className="max-w-3xl text-sm leading-7 text-muted-foreground xl:text-[15px]">
-            {t('takeover.description')}
-          </p>
-        </div>
-
-        <div className="mt-6 grid gap-3 md:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => onModeChange('takeover')}
-            className={cn(
-              'rounded-[1.4rem] border px-5 py-4 text-left transition-all',
-              mode === 'takeover'
-                ? 'border-primary/35 app-field-surface shadow-sm ring-1 ring-primary/10'
-                : 'border-border/70 bg-[hsl(var(--surface-elevated)/0.5)] hover:border-primary/20 hover:bg-[hsl(var(--surface-elevated)/0.72)]',
-            )}
-            aria-pressed={mode === 'takeover'}
-          >
-            <div className="font-medium">{t('takeover.choice.takeover')}</div>
-            <div className="mt-1 text-sm leading-6 text-muted-foreground">
-              {t('takeover.choice.takeoverDescription')}
-            </div>
-            <div className="mt-3 break-all text-xs font-mono text-muted-foreground/80">
-              {inspection?.openClawDir || inspection?.defaultWorkspacePath}
-            </div>
-          </button>
-          <button
-            type="button"
-            onClick={() => onModeChange('fresh')}
-            className={cn(
-              'rounded-[1.4rem] border px-5 py-4 text-left transition-all',
-              mode === 'fresh'
-                ? 'border-primary/35 app-field-surface shadow-sm ring-1 ring-primary/10'
-                : 'border-border/70 bg-[hsl(var(--surface-elevated)/0.5)] hover:border-primary/20 hover:bg-[hsl(var(--surface-elevated)/0.72)]',
-            )}
-            aria-pressed={mode === 'fresh'}
-          >
-            <div className="font-medium">{t('takeover.choice.fresh')}</div>
-            <div className="mt-1 text-sm leading-6 text-muted-foreground">
-              {t('takeover.choice.freshDescription')}
-            </div>
-            <div className="mt-3 break-all text-xs font-mono text-muted-foreground/80">
-              {activePlan?.workspace?.defaultPath || inspection?.defaultWorkspacePath}
-            </div>
-          </button>
-        </div>
+    <div className="space-y-5">
+      <div className="space-y-2">
+        <div className="app-setup-kicker">{t('wizard.rail.title')}</div>
+        <h2 className="text-[1.9rem] font-semibold tracking-[-0.04em] text-foreground xl:text-[2.35rem]">{t('takeover.title')}</h2>
+        <p className="max-w-3xl text-sm leading-7 text-muted-foreground xl:text-[15px]">
+          {t('takeover.description')}
+        </p>
       </div>
 
-      <div className="rounded-[20px] app-insight-surface p-5">
-        <div className="space-y-1">
-          <h3 className="text-lg font-semibold">
-            {mode === 'takeover' ? t('takeover.mode.takeoverTitle') : t('takeover.mode.freshTitle')}
-          </h3>
-          <p className="text-sm leading-6 text-muted-foreground">
-            {mode === 'takeover' ? t('takeover.mode.takeoverDescription') : t('takeover.mode.freshDescription')}
-          </p>
+      <div className="grid gap-3 md:grid-cols-2">
+        <button
+          type="button"
+          onClick={() => onModeChange('takeover')}
+          className={cn(
+            'rounded-[1.35rem] border px-5 py-4 text-left transition-all',
+            mode === 'takeover'
+              ? 'border-primary/35 app-field-surface shadow-sm ring-1 ring-primary/10'
+              : 'border-border/70 bg-[hsl(var(--surface-elevated)/0.55)] hover:border-primary/20 hover:bg-[hsl(var(--surface-elevated)/0.75)]',
+          )}
+          aria-pressed={mode === 'takeover'}
+        >
+          <div className="font-medium">{t('takeover.choice.takeover')}</div>
+          <div className="mt-1 text-sm leading-6 text-muted-foreground">
+            {t('takeover.choice.takeoverDescription')}
+          </div>
+          <div className="mt-3 break-all text-xs font-mono text-muted-foreground/80">
+            {inspection?.openClawDir || inspection?.defaultWorkspacePath}
+          </div>
+        </button>
+        <button
+          type="button"
+          onClick={() => onModeChange('fresh')}
+          className={cn(
+            'rounded-[1.35rem] border px-5 py-4 text-left transition-all',
+            mode === 'fresh'
+              ? 'border-primary/35 app-field-surface shadow-sm ring-1 ring-primary/10'
+              : 'border-border/70 bg-[hsl(var(--surface-elevated)/0.55)] hover:border-primary/20 hover:bg-[hsl(var(--surface-elevated)/0.75)]',
+          )}
+          aria-pressed={mode === 'fresh'}
+        >
+          <div className="font-medium">{t('takeover.choice.fresh')}</div>
+          <div className="mt-1 text-sm leading-6 text-muted-foreground">
+            {t('takeover.choice.freshDescription')}
+          </div>
+          <div className="mt-3 break-all text-xs font-mono text-muted-foreground/80">
+            {activePlan?.workspace?.defaultPath || inspection?.defaultWorkspacePath}
+          </div>
+        </button>
+      </div>
+
+      <div className="rounded-[1.5rem] border border-border/70 app-insight-surface p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3 className="text-base font-semibold">
+              {mode === 'takeover' ? t('takeover.mode.takeoverTitle') : t('takeover.mode.freshTitle')}
+            </h3>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              {mode === 'takeover' ? t('takeover.mode.takeoverDescription') : t('takeover.mode.freshDescription')}
+            </p>
+          </div>
+          {submitting ? (
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-[hsl(var(--surface-elevated)/0.92)] px-3 py-1.5 text-xs font-medium text-foreground">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              {t('takeover.running')}
+            </div>
+          ) : null}
         </div>
 
         {mode === 'takeover' ? (
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl border border-border/70 app-field-surface p-4">
-              <div className="text-sm text-muted-foreground">{t('takeover.summary.providers')}</div>
-              <div className="mt-1 text-2xl font-semibold">{inspection?.counts?.runtimeProviders ?? 0}</div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-[1.1rem] border border-border/70 bg-[hsl(var(--surface-elevated)/0.86)] px-4 py-3">
+              <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground/90">{t('takeover.summary.providers')}</div>
+              <div className="mt-2 text-lg font-semibold text-foreground">{inspection?.counts?.runtimeProviders ?? 0}</div>
             </div>
-            <div className="rounded-2xl border border-border/70 app-field-surface p-4">
-              <div className="text-sm text-muted-foreground">{t('takeover.summary.skills')}</div>
-              <div className="mt-1 text-2xl font-semibold">{inspection?.counts?.skills ?? 0}</div>
+            <div className="rounded-[1.1rem] border border-border/70 bg-[hsl(var(--surface-elevated)/0.86)] px-4 py-3">
+              <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground/90">{t('takeover.summary.skills')}</div>
+              <div className="mt-2 text-lg font-semibold text-foreground">{inspection?.counts?.skills ?? 0}</div>
             </div>
-            <div className="rounded-2xl border border-border/70 app-field-surface p-4">
-              <div className="text-sm text-muted-foreground">{t('takeover.summary.extensions')}</div>
-              <div className="mt-1 text-2xl font-semibold">{inspection?.counts?.extensions ?? 0}</div>
+            <div className="rounded-[1.1rem] border border-border/70 bg-[hsl(var(--surface-elevated)/0.86)] px-4 py-3">
+              <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground/90">{t('takeover.summary.extensions')}</div>
+              <div className="mt-2 text-lg font-semibold text-foreground">{inspection?.counts?.extensions ?? 0}</div>
             </div>
-            <div className="rounded-2xl border border-border/70 app-field-surface p-4">
-              <div className="text-sm text-muted-foreground">{t('takeover.summary.workspace')}</div>
-              <div className="mt-1 break-all text-sm font-medium">{currentWorkspace}</div>
+            <div className="rounded-[1.1rem] border border-border/70 bg-[hsl(var(--surface-elevated)/0.86)] px-4 py-3">
+              <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground/90">{t('takeover.summary.workspace')}</div>
+              <div className="mt-2 break-all text-sm font-medium text-foreground">{currentWorkspace}</div>
             </div>
           </div>
         ) : (
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl border border-border/70 app-field-surface p-4">
-              <div className="text-sm text-muted-foreground">{t('takeover.mode.currentWorkspace')}</div>
-              <div className="mt-2 break-all text-sm font-medium">{currentWorkspace}</div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-[1.1rem] border border-border/70 bg-[hsl(var(--surface-elevated)/0.86)] px-4 py-3">
+              <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground/90">{t('takeover.mode.recommendedWorkspace')}</div>
+              <div className="mt-2 break-all text-sm font-medium text-foreground">{recommendedWorkspace}</div>
             </div>
-            <div className="rounded-2xl border border-border/70 app-field-surface p-4">
-              <div className="text-sm text-muted-foreground">{t('takeover.mode.recommendedWorkspace')}</div>
-              <div className="mt-2 break-all text-sm font-medium">{recommendedWorkspace}</div>
-              <p className="mt-3 text-xs leading-5 text-muted-foreground">{t('takeover.mode.workspaceHint')}</p>
-            </div>
-            <div className="rounded-2xl border border-border/70 app-field-surface p-4">
-              <div className="text-sm text-muted-foreground">{t('takeover.mode.currentPort')}</div>
-              <div className="mt-2 text-2xl font-semibold">{currentPort}</div>
-            </div>
-            <div className="rounded-2xl border border-border/70 app-field-surface p-4">
-              <div className="text-sm text-muted-foreground">{t('takeover.mode.recommendedPort')}</div>
-              <div className="mt-2 text-2xl font-semibold">{recommendedPort}</div>
-              <p className="mt-3 text-xs leading-5 text-muted-foreground">{t('takeover.mode.portHint')}</p>
+            <div className="rounded-[1.1rem] border border-border/70 bg-[hsl(var(--surface-elevated)/0.86)] px-4 py-3">
+              <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground/90">{t('takeover.mode.recommendedPort')}</div>
+              <div className="mt-2 text-lg font-semibold text-foreground">{recommendedPort}</div>
             </div>
           </div>
         )}
 
-        {mode === 'fresh' ? (
-          <p className="mt-4 text-sm text-muted-foreground">{t('takeover.mode.nextHint')}</p>
+        {status?.state === 'running' && status.step ? (
+          <div className="mt-4 rounded-[1.1rem] border border-primary/15 bg-[hsl(var(--surface-elevated)/0.88)] px-4 py-3 text-sm text-muted-foreground">
+            {t(`takeover.progress.${status.step}`)}
+          </div>
         ) : null}
       </div>
 
@@ -197,27 +195,6 @@ function TakeoverStartContent({
       {status?.error ? (
         <div className="rounded-[18px] border border-red-500/20 bg-[hsl(var(--danger)/0.08)] p-4 text-sm leading-6 text-destructive">
           {status.error}
-        </div>
-      ) : null}
-
-      {submitting ? (
-        <div className="rounded-[18px] border border-primary/18 app-insight-surface p-4">
-          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            {t('takeover.running')}
-          </div>
-          {status ? (
-            <div className="mt-2 text-sm text-muted-foreground">
-              {t(`takeover.progress.${status.step}`)}
-            </div>
-          ) : null}
-          {status?.warnings.length ? (
-            <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
-              {status.warnings.map((warning) => (
-                <li key={warning}>{warning}</li>
-              ))}
-            </ul>
-          ) : null}
         </div>
       ) : null}
     </div>

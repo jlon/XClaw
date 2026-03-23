@@ -164,6 +164,7 @@
       "available": "更新あり: v{{version}}",
       "downloaded": "インストール準備完了: v{{version}}",
       "autoInstalling": "{{seconds}} 秒後に再起動して更新をインストールします...",
+      "packagedOnly": "開発ビルドでは更新を確認しません",
       "failed": "更新の確認に失敗しました",
       "latest": "最新バージョンです",
       "check": "更新を確認して最新の機能を入手"
@@ -174,6 +175,7 @@
       "download": "更新をダウンロード",
       "install": "インストールして再起動",
       "cancelAutoInstall": "キャンセル",
+      "packagedOnly": "パッケージ版のみ",
       "retry": "再試行",
       "check": "更新を確認"
     },
@@ -182,6 +184,7 @@
     "progressComplete": "{{percent}}% 完了",
     "whatsNew": "更新内容：",
     "errorDetails": "エラー詳細：",
+    "packagedOnlyDetail": "現在は未パッケージの開発ビルドで実行中です。自動更新は配布用のパッケージ版でのみ利用できます。",
     "help": "自動アップデートが有効な場合、更新は自動的にダウンロードされインストールされます。"
   },
   "advanced": {

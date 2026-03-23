@@ -2,7 +2,7 @@
  * Settings Page
  * Application configuration
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Sun,
   Moon,
@@ -15,14 +15,16 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { useSettingsStore } from '@/stores/settings';
 import { useGatewayStore } from '@/stores/gateway';
 import { useUpdateStore } from '@/stores/update';
 import { WorkspacePageFrame, WorkspacePageScrollArea, WorkspacePageShell } from '@/components/layout/WorkspacePage';
 import { UpdateSettings } from '@/components/settings/UpdateSettings';
+import { WorkbenchSummaryStrip } from '@/components/layout/WorkbenchSummaryStrip';
 import {
   getGatewayWsDiagnosticEnabled,
   invokeIpc,
@@ -46,53 +48,42 @@ type ControlUiInfo = {
   port: number;
 };
 
-const settingsPageHeaderClass =
-  'mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between';
-const settingsPageTitleClass =
-  'text-[24px] leading-tight md:text-[28px] font-semibold tracking-tight text-foreground';
-const settingsPageSubtitleClass =
-  'max-w-[64ch] text-[13px] md:text-[14px] text-muted-foreground';
-const settingsSectionClass =
-  'space-y-4 rounded-[18px] border border-border/65 bg-[hsl(var(--surface-elevated)/0.98)] p-4 md:p-5';
-const settingsSubPanelClass =
-  'rounded-[14px] border border-border/60 bg-[hsl(var(--surface-panel)/0.96)] p-4';
-const settingsHeadingClass = 'text-[12px] font-semibold uppercase tracking-[0.18em] text-foreground/64';
+const settingsPaneClass =
+  'space-y-3 rounded-[18px] border border-border/65 bg-[hsl(var(--surface-elevated)/0.98)] p-4';
 const settingsLabelClass = 'text-[13px] font-medium text-foreground/84';
-const settingsHintClass = 'text-[12px] text-muted-foreground';
-const settingsSectionHeaderClass = 'flex flex-col gap-1.5';
-const settingsSectionTitleTextClass = 'text-[16px] font-semibold tracking-tight text-foreground';
-const settingsSectionDescriptionClass = 'max-w-[72ch] text-[13px] text-muted-foreground';
-const settingsPillClass =
-  'inline-flex h-9 items-center gap-2 rounded-[11px] border border-border/70 bg-[hsl(var(--surface-panel)/0.96)] px-4 text-[12px] font-medium shadow-none';
-const settingsPillActiveClass =
-  'bg-[hsl(var(--foreground)/0.05)] text-foreground border-border/80';
-const settingsPillIdleClass =
-  'bg-transparent text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground';
+const settingsChoiceButtonBaseClass =
+  'h-9 flex-1 items-center justify-center gap-1.5 rounded-[13px] border px-3.5 text-[13px] font-semibold shadow-none transition-colors md:flex-none';
+const settingsChoiceButtonActiveClass =
+  'border-[hsl(var(--primary)/0.18)] bg-[hsl(var(--primary)/0.12)] text-primary shadow-none hover:bg-[hsl(var(--primary)/0.16)] hover:text-primary';
+const settingsChoiceButtonIdleClass =
+  'border-border/65 bg-[hsl(var(--surface-elevated)/0.94)] text-foreground/74 hover:bg-[hsl(var(--surface-hover)/0.42)] hover:text-foreground';
 const settingsInputClass =
   'h-9 rounded-[11px] border-border/70 bg-[hsl(var(--surface-panel)/0.98)] text-[13px] text-foreground shadow-none placeholder:text-muted-foreground';
 const settingsCodeInputClass =
   'h-9 rounded-[11px] border-border/70 bg-[hsl(var(--surface-panel)/0.98)] font-mono text-[13px] text-foreground shadow-none placeholder:text-muted-foreground';
+const settingsSegmentedShellClass =
+  'inline-flex w-full flex-wrap gap-2 md:w-fit';
+const settingsCompactControlRowClass =
+  'grid gap-3 py-1.5 md:grid-cols-[minmax(0,160px)_minmax(0,1fr)] md:items-center';
+const settingsCompactRowTextClass = 'min-w-0 max-w-[220px] space-y-0 md:pr-2';
+const settingsCompactRowLabelClass = 'text-[13px] font-medium text-foreground/86';
+const settingsCompactToggleRowClass =
+  'grid gap-3 py-1.5 md:grid-cols-[minmax(0,160px)_minmax(0,1fr)] md:items-center';
 const settingsGhostButtonClass =
-  'rounded-[10px] border-border/70 bg-transparent hover:bg-[hsl(var(--foreground)/0.04)]';
-const settingsNavPanelClass =
-  'app-pane-surface sticky top-0 rounded-[16px] border border-border/60 bg-[hsl(var(--surface-panel)/0.95)] p-2';
-const settingsNavItemClass =
-  'flex w-full items-center rounded-[11px] px-3 py-2 text-left text-[13px] font-medium transition-[background-color,color] duration-150';
-const settingsNavItemActiveClass =
-  'bg-[hsl(var(--foreground)/0.07)] text-foreground';
-const settingsNavItemIdleClass =
-  'text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground';
-const settingsMetricGridClass = 'grid gap-3 sm:grid-cols-2 xl:grid-cols-3';
-const settingsMetricCardClass =
-  'rounded-[14px] border border-border/60 bg-[hsl(var(--surface-base)/0.9)] p-4';
-const settingsMiniMetricGridClass = 'grid gap-3 sm:grid-cols-3';
-const settingsMiniMetricCardClass =
-  'rounded-[12px] border border-border/60 bg-[hsl(var(--surface-panel)/0.94)] px-3 py-3';
-const settingsToggleRowClass = 'flex items-start justify-between gap-4 rounded-[14px] border border-border/60 bg-[hsl(var(--surface-panel)/0.96)] p-4';
-const settingsUtilityRowClass =
-  'flex flex-col gap-3 rounded-[14px] border border-border/60 bg-[hsl(var(--surface-base)/0.9)] p-4 sm:flex-row sm:items-start sm:justify-between';
+  'rounded-[13px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.98)] text-[13px] font-semibold text-foreground/78 shadow-none hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
+const settingsFactsStripClass =
+  'border-[hsl(var(--border-subtle)/0.74)] bg-[hsl(var(--surface-panel)/0.82)]';
+const settingsTabsSurfaceClass =
+  'border-b border-border/50 pb-2.5';
+const settingsTabsListClass =
+  'h-auto w-full flex-wrap justify-start gap-2 bg-transparent p-0 md:w-auto';
+const settingsTabsTriggerClass =
+  'h-9 rounded-[13px] border border-border/65 bg-[hsl(var(--surface-elevated)/0.94)] px-4 text-[13px] font-semibold text-foreground/72 shadow-none transition-colors hover:bg-[hsl(var(--surface-hover)/0.42)] hover:text-foreground data-[state=active]:border-[hsl(var(--primary)/0.18)] data-[state=active]:bg-[hsl(var(--primary)/0.12)] data-[state=active]:text-primary data-[state=active]:shadow-none';
+const settingsPaneDividerClass = 'border-t border-border/55 pt-4';
+const settingsControlDockClass = 'flex w-full items-center justify-start md:justify-end';
+const settingsControlTrackClass = 'w-full md:max-w-[320px]';
 
-type SettingsSectionId = 'appearance' | 'runtime' | 'updates' | 'about' | 'developer';
+type SettingsSectionId = 'appearance' | 'runtime' | 'updates' | 'developer';
 
 export function Settings() {
   const { t } = useTranslation('settings');
@@ -128,7 +119,6 @@ export function Settings() {
   } = useSettingsStore();
 
   const { status: gatewayStatus, restart: restartGateway } = useGatewayStore();
-  const currentVersion = useUpdateStore((state) => state.currentVersion);
   const updateSetAutoDownload = useUpdateStore((state) => state.setAutoDownload);
   const [controlUiInfo, setControlUiInfo] = useState<ControlUiInfo | null>(null);
   const [openclawCliCommand, setOpenclawCliCommand] = useState('');
@@ -166,13 +156,6 @@ export function Settings() {
     timedOut?: boolean;
     error?: string;
   } | null>(null);
-  const sectionRefs = useRef<Record<SettingsSectionId, HTMLElement | null>>({
-    appearance: null,
-    runtime: null,
-    updates: null,
-    about: null,
-    developer: null,
-  });
   const [activeSection, setActiveSection] = useState<SettingsSectionId>('appearance');
 
   const handleShowLogs = async () => {
@@ -541,552 +524,473 @@ export function Settings() {
       { id: 'appearance' as const, label: t('appearance.title') },
       { id: 'runtime' as const, label: t('gateway.title') },
       { id: 'updates' as const, label: t('updates.title') },
-      { id: 'about' as const, label: t('about.title') },
       ...(devModeUnlocked ? [{ id: 'developer' as const, label: t('developer.title') }] : []),
     ]
   ), [devModeUnlocked, t]);
 
   useEffect(() => {
-    const root = document.querySelector('[data-settings-scroll-root="true"]');
-    if (!(root instanceof HTMLDivElement)) return;
-
-    const updateActiveSection = () => {
-      const threshold = root.getBoundingClientRect().top + 112;
-      let nextSection = settingsSections[0]?.id ?? 'appearance';
-      for (const section of settingsSections) {
-        const node = sectionRefs.current[section.id];
-        if (!node) continue;
-        if (node.getBoundingClientRect().top <= threshold) {
-          nextSection = section.id;
-        }
-      }
-      setActiveSection((current) => (current === nextSection ? current : nextSection));
-    };
-
-    updateActiveSection();
-    root.addEventListener('scroll', updateActiveSection, { passive: true });
-    return () => {
-      root.removeEventListener('scroll', updateActiveSection);
-    };
-  }, [settingsSections]);
-
-  const scrollToSection = (sectionId: SettingsSectionId) => {
-    setActiveSection(sectionId);
-    sectionRefs.current[sectionId]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
+    if (settingsSections.some((section) => section.id === activeSection)) return;
+    setActiveSection(settingsSections[0]?.id ?? 'appearance');
+  }, [activeSection, settingsSections]);
 
   const gatewayStateLabel = gatewayStatus.state === 'running'
     ? t('common:status.running')
     : gatewayStatus.state === 'error'
       ? t('common:status.error')
       : t('common:status.stopped');
+  const gatewayAutoStartLabel = gatewayAutoStart ? t('common:status.enabled') : t('common:status.disabled');
+  const runtimeSummaryItems = useMemo(() => {
+    const stateTone = gatewayStatus.state === 'running'
+      ? 'success'
+      : gatewayStatus.state === 'error'
+        ? 'danger'
+        : 'warning';
+    const autoStartTone = gatewayAutoStart ? 'success' : 'warning';
 
+    return [
+      {
+        id: 'status',
+        icon: <span className="h-2.5 w-2.5 rounded-full bg-current" aria-hidden="true" />,
+        label: t('gateway.status'),
+        value: gatewayStateLabel,
+        tone: stateTone as 'success' | 'warning' | 'danger',
+      },
+      {
+        id: 'port',
+        icon: <span className="text-[10px] font-semibold leading-none">#</span>,
+        label: t('gateway.port'),
+        value: gatewayStatus.port,
+        tone: 'neutral' as const,
+      },
+      {
+        id: 'auto-start',
+        icon: <span className="text-[10px] font-semibold leading-none">A</span>,
+        label: t('gateway.autoStart'),
+        value: gatewayAutoStartLabel,
+        tone: autoStartTone as 'success' | 'warning',
+      },
+    ];
+  }, [gatewayAutoStart, gatewayAutoStartLabel, gatewayStateLabel, gatewayStatus.port, gatewayStatus.state, t]);
+  const doctorSummaryItems = useMemo(() => {
+    if (!doctorResult) {
+      return [];
+    }
+
+    return [
+      {
+        id: 'doctor-status',
+        icon: <span className="h-2.5 w-2.5 rounded-full bg-current" aria-hidden="true" />,
+        label: doctorResult.mode === 'fix' ? t('developer.runDoctorFix') : t('developer.runDoctor'),
+        value: doctorResult.success
+          ? (doctorResult.mode === 'fix' ? t('developer.doctorFixOk') : t('developer.doctorOk'))
+          : (doctorResult.mode === 'fix' ? t('developer.doctorFixIssue') : t('developer.doctorIssue')),
+        tone: doctorResult.success ? 'success' as const : 'danger' as const,
+      },
+      {
+        id: 'doctor-exit',
+        icon: <span className="text-[10px] font-semibold leading-none">#</span>,
+        label: t('developer.doctorExitCode'),
+        value: doctorResult.exitCode ?? 'null',
+        tone: 'neutral' as const,
+      },
+      {
+        id: 'doctor-duration',
+        icon: <span className="text-[10px] font-semibold leading-none">T</span>,
+        label: t('developer.doctorDuration'),
+        value: `${Math.round(doctorResult.durationMs)}ms`,
+        tone: 'neutral' as const,
+      },
+    ];
+  }, [doctorResult, t]);
+  const telemetrySummaryItems = useMemo(() => [
+    {
+      id: 'telemetry-total',
+      icon: <span className="text-[10px] font-semibold leading-none">N</span>,
+      label: t('developer.telemetryTotal'),
+      value: telemetryStats.total,
+      tone: 'neutral' as const,
+    },
+    {
+      id: 'telemetry-errors',
+      icon: <span className="h-2.5 w-2.5 rounded-full bg-current" aria-hidden="true" />,
+      label: t('developer.telemetryErrors'),
+      value: telemetryStats.errorCount,
+      tone: telemetryStats.errorCount > 0 ? 'danger' as const : 'success' as const,
+    },
+    {
+      id: 'telemetry-slow',
+      icon: <span className="text-[10px] font-semibold leading-none">S</span>,
+      label: t('developer.telemetrySlow'),
+      value: telemetryStats.slowCount,
+      tone: telemetryStats.slowCount > 0 ? 'warning' as const : 'neutral' as const,
+    },
+  ], [t, telemetryStats.errorCount, telemetryStats.slowCount, telemetryStats.total]);
   return (
     <WorkspacePageFrame>
       <WorkspacePageShell>
-
-        {/* Header */}
-        <div className={settingsPageHeaderClass}>
-          <div className="max-w-[820px]">
-            <h1 className={settingsPageTitleClass}>
-              {t('title')}
-            </h1>
-            <p className={settingsPageSubtitleClass}>
-              {t('subtitle')}
-            </p>
-          </div>
-        </div>
-
-        {/* Content Area */}
         <WorkspacePageScrollArea
           className="space-y-6"
           platform={isWindows ? 'win32' : 'darwin'}
-          data-settings-scroll-root="true"
         >
-          <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,760px)] xl:max-w-[1040px] 2xl:grid-cols-[220px_minmax(0,820px)] 2xl:max-w-[1100px]">
-            <aside className="hidden lg:block">
-              <div className={settingsNavPanelClass}>
-                <div className="px-3 pb-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-foreground/52">
-                  {t('title')}
-                </div>
-                <div className="space-y-1">
+          <div className="mx-auto max-w-[840px] space-y-4 xl:max-w-[860px]">
+            <Tabs
+              value={activeSection}
+              onValueChange={(value) => setActiveSection(value as SettingsSectionId)}
+              className="space-y-4"
+            >
+              <div className={settingsTabsSurfaceClass}>
+                <TabsList className={settingsTabsListClass}>
                   {settingsSections.map((section) => (
-                    <button
+                    <TabsTrigger
                       key={section.id}
-                      type="button"
-                      className={cn(
-                        settingsNavItemClass,
-                        activeSection === section.id ? settingsNavItemActiveClass : settingsNavItemIdleClass,
-                      )}
-                      onClick={() => scrollToSection(section.id)}
+                      value={section.id}
+                      className={settingsTabsTriggerClass}
                     >
                       {section.label}
-                    </button>
+                    </TabsTrigger>
                   ))}
-                </div>
-              </div>
-            </aside>
-
-            <div className="space-y-6">
-          <section
-            ref={(node) => { sectionRefs.current.appearance = node; }}
-            id="settings-appearance"
-            className={settingsSectionClass}
-          >
-            <div className={settingsSectionHeaderClass}>
-              <h2 className={settingsSectionTitleTextClass}>
-                {t('appearance.title')}
-              </h2>
-              <p className={settingsSectionDescriptionClass}>
-                {t('appearance.description')}
-              </p>
-            </div>
-            <div className="grid gap-4 xl:grid-cols-2">
-              <div className={settingsSubPanelClass}>
-                <Label className={settingsLabelClass}>{t('appearance.theme')}</Label>
-                <p className="mt-1 text-[13px] text-muted-foreground">
-                  {t('appearance.description')}
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Button
-                    variant={theme === 'light' ? 'secondary' : 'outline'}
-                    className={cn(settingsPillClass, theme === 'light' ? settingsPillActiveClass : settingsPillIdleClass)}
-                    onClick={() => setTheme('light')}
-                  >
-                    <Sun className="h-4 w-4 mr-2" />
-                    {t('appearance.light')}
-                  </Button>
-                  <Button
-                    variant={theme === 'dark' ? 'secondary' : 'outline'}
-                    className={cn(settingsPillClass, theme === 'dark' ? settingsPillActiveClass : settingsPillIdleClass)}
-                    onClick={() => setTheme('dark')}
-                  >
-                    <Moon className="h-4 w-4 mr-2" />
-                    {t('appearance.dark')}
-                  </Button>
-                  <Button
-                    variant={theme === 'system' ? 'secondary' : 'outline'}
-                    className={cn(settingsPillClass, theme === 'system' ? settingsPillActiveClass : settingsPillIdleClass)}
-                    onClick={() => setTheme('system')}
-                  >
-                    <Monitor className="h-4 w-4 mr-2" />
-                    {t('appearance.system')}
-                  </Button>
-                </div>
+                </TabsList>
               </div>
 
-              <div className={settingsSubPanelClass}>
-                <Label className={settingsLabelClass}>{t('appearance.language')}</Label>
-                <p className="mt-1 text-[13px] text-muted-foreground">
-                  {t('appearance.description')}
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {SUPPORTED_LANGUAGES.map((lang) => (
-                    <Button
-                      key={lang.code}
-                      variant={language === lang.code ? 'secondary' : 'outline'}
-                      className={cn(settingsPillClass, language === lang.code ? settingsPillActiveClass : settingsPillIdleClass)}
-                      onClick={() => setLanguage(lang.code)}
-                    >
-                      {lang.label}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="space-y-3">
-              <div className={settingsToggleRowClass}>
-                <div>
-                  <Label className={settingsLabelClass}>{t('appearance.launchAtStartup')}</Label>
-                  <p className="mt-1 text-[13px] text-muted-foreground">
-                    {t('appearance.launchAtStartupDesc')}
-                  </p>
-                </div>
-                <Switch checked={launchAtStartup} onCheckedChange={setLaunchAtStartup} />
-              </div>
-              <div className={settingsToggleRowClass}>
-                <div>
-                  <Label className={settingsLabelClass}>{t('advanced.telemetry')}</Label>
-                  <p className="mt-1 text-[13px] text-muted-foreground">
-                    {t('advanced.telemetryDesc')}
-                  </p>
-                </div>
-                <Switch checked={telemetryEnabled} onCheckedChange={setTelemetryEnabled} />
-              </div>
-              <div className={settingsToggleRowClass}>
-                <div>
-                  <Label className={settingsLabelClass}>{t('advanced.devMode')}</Label>
-                  <p className="mt-1 text-[13px] text-muted-foreground">
-                    {t('advanced.devModeDesc')}
-                  </p>
-                </div>
-                <Switch checked={devModeUnlocked} onCheckedChange={setDevModeUnlocked} />
-              </div>
-            </div>
-          </section>
-
-          {/* Gateway */}
-          <section
-            ref={(node) => { sectionRefs.current.runtime = node; }}
-            id="settings-runtime"
-            className={settingsSectionClass}
-          >
-            <div className={settingsSectionHeaderClass}>
-              <h2 className={settingsSectionTitleTextClass}>
-                {t('gateway.title')}
-              </h2>
-              <p className={settingsSectionDescriptionClass}>
-                {t('gateway.description')}
-              </p>
-            </div>
-            <div className="space-y-5">
-              <div className={settingsMetricGridClass}>
-                <div className={settingsMetricCardClass}>
-                  <p className={settingsHeadingClass}>{t('gateway.status')}</p>
-                  <div className="mt-3 flex items-center gap-2">
-                    <div className={cn("h-2 w-2 rounded-full",
-                      gatewayStatus.state === 'running' ? "bg-emerald-500" :
-                        gatewayStatus.state === 'error' ? "bg-red-500" : "bg-muted-foreground"
-                    )} />
-                    <span className="text-[15px] font-semibold text-foreground">{gatewayStateLabel}</span>
-                  </div>
-                  <p className="mt-1 text-[12px] text-muted-foreground">
-                    {t('gateway.port')}: {gatewayStatus.port}
-                  </p>
-                </div>
-                <div className={settingsMetricCardClass}>
-                  <p className={settingsHeadingClass}>{t('gateway.port')}</p>
-                  <p className="mt-3 text-[15px] font-semibold text-foreground">
-                    {gatewayStatus.port}
-                  </p>
-                  <p className="mt-1 text-[12px] text-muted-foreground">
-                    {t('gateway.portDesc')}
-                  </p>
-                </div>
-                <div className={settingsMetricCardClass}>
-                  <p className={settingsHeadingClass}>{t('gateway.autoStart')}</p>
-                  <p className="mt-3 text-[15px] font-semibold text-foreground">
-                    {gatewayAutoStart ? t('common:status.enabled') : t('common:status.disabled')}
-                  </p>
-                  <p className="mt-1 text-[12px] text-muted-foreground">
-                    {t('gateway.autoStartDesc')}
-                  </p>
-                </div>
-              </div>
-
-              <div className={settingsSubPanelClass}>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <Label className={settingsLabelClass}>{t('gateway.title')}</Label>
-                    <p className="mt-1 text-[13px] text-muted-foreground">
-                      {t('gateway.description')}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={restartGateway} className={cn('h-8 px-4', settingsGhostButtonClass)}>
-                      <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
-                      {t('common:actions.restart')}
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={handleShowLogs} className={cn('h-8 px-4', settingsGhostButtonClass)}>
-                      <FileText className="h-3.5 w-3.5 mr-1.5" />
-                      {showLogs ? t('common:actions.hide') : t('gateway.logs')}
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={handleOpenLogDir} className={cn('h-8 px-4', settingsGhostButtonClass)}>
-                      <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
-                      {t('gateway.openFolder')}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {showLogs && (
-                <div className={settingsSubPanelClass}>
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <Label className={settingsLabelClass}>{t('gateway.appLogs')}</Label>
-                      <p className="mt-1 text-[13px] text-muted-foreground">
-                        {t('gateway.logsRecent')}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <Button variant="outline" size="sm" className={cn('h-8 px-4', settingsGhostButtonClass)} onClick={handleCopyLogContent}>
-                        <Copy className="h-3.5 w-3.5 mr-1.5" />
-                        {t('common:actions.copy')}
-                      </Button>
-                      <Button variant="outline" size="sm" className={cn('h-8 px-4', settingsGhostButtonClass)} onClick={handleOpenLogDir}>
-                        <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
-                        {t('gateway.openFolder')}
-                      </Button>
-                      <Button variant="outline" size="sm" className={cn('h-8 px-4', settingsGhostButtonClass)} onClick={() => setShowLogs(false)}>
-                        {t('common:actions.close')}
-                      </Button>
-                    </div>
-                  </div>
-                  <pre className="max-h-60 overflow-auto rounded-[10px] border border-border/60 bg-[hsl(var(--surface-base)/0.9)] p-4 font-mono text-[12px] whitespace-pre-wrap text-muted-foreground shadow-none">
-                    {logContent || t('chat:noLogs')}
-                  </pre>
-                </div>
-              )}
-
-              <div className={settingsToggleRowClass}>
-                <div>
-                  <Label className={settingsLabelClass}>{t('gateway.autoStart')}</Label>
-                  <p className="mt-1 text-[13px] text-muted-foreground">
-                    {t('gateway.autoStartDesc')}
-                  </p>
-                </div>
-                <Switch checked={gatewayAutoStart} onCheckedChange={setGatewayAutoStart} />
-              </div>
-            </div>
-          </section>
-
-
-          {/* Developer */}
-          {devModeUnlocked && (
-            <>
-              <section
-                ref={(node) => { sectionRefs.current.developer = node; }}
-                id="settings-developer"
-                className={settingsSectionClass}
-              >
-                <div className={settingsSectionHeaderClass}>
-                  <h2 className={settingsSectionTitleTextClass}>
-                    {t('developer.title')}
-                  </h2>
-                  <p className={settingsSectionDescriptionClass}>
-                    {t('developer.description')}
-                  </p>
-                </div>
-                <div className="space-y-6">
-                  {/* Gateway Proxy */}
-                  <div className={settingsSubPanelClass}>
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <Label className={settingsLabelClass}>{t('gateway.proxyTitle')}</Label>
-                        <p className={settingsHintClass}>
-                          {t('gateway.proxyDesc')}
-                        </p>
+              <TabsContent value="appearance" className="mt-0">
+                <section className={settingsPaneClass}>
+                  <div className="space-y-3">
+                    <div className={settingsCompactControlRowClass}>
+                      <div className={settingsCompactRowTextClass}>
+                        <Label className={settingsCompactRowLabelClass}>{t('appearance.theme')}</Label>
                       </div>
-                      <Switch checked={proxyEnabledDraft} onCheckedChange={setProxyEnabledDraft} />
+                      <div className={settingsControlDockClass}>
+                        <div className={cn(settingsSegmentedShellClass, settingsControlTrackClass)}>
+                          <Button
+                            variant="ghost"
+                            className={cn(
+                              settingsChoiceButtonBaseClass,
+                              theme === 'light' ? settingsChoiceButtonActiveClass : settingsChoiceButtonIdleClass,
+                            )}
+                            onClick={() => setTheme('light')}
+                          >
+                            <Sun className="mr-1.5 h-3.5 w-3.5" />
+                            {t('appearance.light')}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            className={cn(
+                              settingsChoiceButtonBaseClass,
+                              theme === 'dark' ? settingsChoiceButtonActiveClass : settingsChoiceButtonIdleClass,
+                            )}
+                            onClick={() => setTheme('dark')}
+                          >
+                            <Moon className="mr-1.5 h-3.5 w-3.5" />
+                            {t('appearance.dark')}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            className={cn(
+                              settingsChoiceButtonBaseClass,
+                              theme === 'system' ? settingsChoiceButtonActiveClass : settingsChoiceButtonIdleClass,
+                            )}
+                            onClick={() => setTheme('system')}
+                          >
+                            <Monitor className="mr-1.5 h-3.5 w-3.5" />
+                            {t('appearance.system')}
+                          </Button>
+                        </div>
+                      </div>
                     </div>
+                    <div className="h-px bg-border/50" />
+                    <div className={settingsCompactControlRowClass}>
+                      <div className={settingsCompactRowTextClass}>
+                        <Label className={settingsCompactRowLabelClass}>{t('appearance.language')}</Label>
+                      </div>
+                      <div className={settingsControlDockClass}>
+                        <div className={cn(settingsSegmentedShellClass, settingsControlTrackClass)}>
+                          {SUPPORTED_LANGUAGES.map((lang) => (
+                            <Button
+                              key={lang.code}
+                              variant="ghost"
+                              className={cn(
+                                settingsChoiceButtonBaseClass,
+                                language === lang.code ? settingsChoiceButtonActiveClass : settingsChoiceButtonIdleClass,
+                              )}
+                              onClick={() => setLanguage(lang.code)}
+                            >
+                              {lang.label}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className={settingsPaneDividerClass}>
+                    <div className="space-y-3">
+                      <div className={settingsCompactToggleRowClass}>
+                        <div className={settingsCompactRowTextClass}>
+                          <Label className={settingsCompactRowLabelClass}>{t('appearance.launchAtStartup')}</Label>
+                        </div>
+                        <div className={settingsControlDockClass}>
+                          <div className="flex w-full md:max-w-[320px] md:justify-end">
+                            <Switch checked={launchAtStartup} onCheckedChange={setLaunchAtStartup} />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="h-px bg-border/50" />
+                      <div className={settingsCompactToggleRowClass}>
+                        <div className={settingsCompactRowTextClass}>
+                          <Label className={settingsCompactRowLabelClass}>{t('advanced.telemetry')}</Label>
+                        </div>
+                        <div className={settingsControlDockClass}>
+                          <div className="flex w-full md:max-w-[320px] md:justify-end">
+                            <Switch checked={telemetryEnabled} onCheckedChange={setTelemetryEnabled} />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="h-px bg-border/50" />
+                      <div className={settingsCompactToggleRowClass}>
+                        <div className={settingsCompactRowTextClass}>
+                          <Label className={settingsCompactRowLabelClass}>{t('advanced.devMode')}</Label>
+                        </div>
+                        <div className={settingsControlDockClass}>
+                          <div className="flex w-full md:max-w-[320px] md:justify-end">
+                            <Switch checked={devModeUnlocked} onCheckedChange={setDevModeUnlocked} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </TabsContent>
 
-                    {proxyEnabledDraft && (
-                      <div className="space-y-4 pt-4">
+              <TabsContent value="runtime" className="mt-0">
+                <section className={settingsPaneClass}>
+                  <WorkbenchSummaryStrip
+                    items={runtimeSummaryItems}
+                    className={settingsFactsStripClass}
+                  />
+
+                  <div className={settingsPaneDividerClass}>
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Button variant="outline" size="sm" onClick={restartGateway} className={cn('h-8 px-4', settingsGhostButtonClass)}>
+                          <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+                          {t('common:actions.restart')}
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={handleShowLogs} className={cn('h-8 px-4', settingsGhostButtonClass)}>
+                          <FileText className="mr-1.5 h-3.5 w-3.5" />
+                          {t('gateway.logs')}
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={handleOpenLogDir} className={cn('h-8 px-4', settingsGhostButtonClass)}>
+                          <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+                          {t('gateway.openFolder')}
+                        </Button>
+                      </div>
+                      <div className="inline-flex w-fit items-center gap-3 rounded-full border border-border/60 bg-[hsl(var(--surface-base)/0.88)] px-3 py-1.5">
+                        <p className="text-[12px] font-medium text-foreground/82">{t('gateway.autoStart')}</p>
+                        <Switch checked={gatewayAutoStart} onCheckedChange={setGatewayAutoStart} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={settingsPaneDividerClass}>
+                    <div className="space-y-3">
+                      <div className={settingsCompactToggleRowClass}>
+                        <div className={settingsCompactRowTextClass}>
+                          <Label className={settingsCompactRowLabelClass}>{t('gateway.proxyTitle')}</Label>
+                        </div>
+                        <div className={settingsControlDockClass}>
+                          <div className="flex w-full md:max-w-[320px] md:justify-start">
+                            <Switch checked={proxyEnabledDraft} onCheckedChange={setProxyEnabledDraft} />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="h-px bg-border/50" />
+                      <div className={settingsCompactControlRowClass}>
+                        <div className={settingsCompactRowTextClass}>
+                          <Label htmlFor="proxy-server" className={settingsCompactRowLabelClass}>{t('gateway.proxyServer')}</Label>
+                        </div>
                         <div className="space-y-2">
-                          <div className="flex items-center justify-between gap-3">
-                            <Label htmlFor="proxy-server" className="text-[13px] font-medium text-foreground/85">{t('gateway.proxyServer')}</Label>
+                          <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-center">
+                            <Input
+                              id="proxy-server"
+                              value={proxyServerDraft}
+                              onChange={(event) => setProxyServerDraft(event.target.value)}
+                              placeholder="http://127.0.0.1:7890"
+                              className={settingsInputClass}
+                            />
                             <Button
                               type="button"
-                              variant="ghost"
+                              variant="outline"
                               onClick={() => setShowAdvancedProxyFields((current) => !current)}
-                              className="h-8 rounded-[10px] px-3 text-[12px] text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground"
+                              className={cn('h-9 px-4', settingsGhostButtonClass)}
                             >
                               {showAdvancedProxyFields ? t('gateway.hideAdvancedProxy') : t('gateway.showAdvancedProxy')}
                             </Button>
+                            <Button
+                              variant="outline"
+                              onClick={handleSaveProxySettings}
+                              disabled={savingProxy}
+                              className={cn('h-9 px-4', settingsGhostButtonClass)}
+                            >
+                              <RefreshCw className={`mr-2 h-4 w-4${savingProxy ? ' animate-spin' : ''}`} />
+                              {savingProxy ? t('common:status.saving') : t('common:actions.save')}
+                            </Button>
                           </div>
-                          <Input
-                            id="proxy-server"
-                            value={proxyServerDraft}
-                            onChange={(event) => setProxyServerDraft(event.target.value)}
-                            placeholder="http://127.0.0.1:7890"
-                            className={settingsInputClass}
-                          />
-                          <p className="text-[11px] text-muted-foreground">
-                            {t('gateway.proxyServerHelp')}
-                          </p>
-                        </div>
-
-                        {showAdvancedProxyFields && (
-                          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <div className="space-y-2">
-                              <Label htmlFor="proxy-http-server" className="text-[13px] font-medium text-foreground/85">{t('gateway.proxyHttpServer')}</Label>
-                              <Input
-                                id="proxy-http-server"
-                                value={proxyHttpServerDraft}
-                                onChange={(event) => setProxyHttpServerDraft(event.target.value)}
-                                placeholder={proxyServerDraft || 'http://127.0.0.1:7890'}
-                                className={settingsInputClass}
-                              />
-                              <p className="text-[11px] text-muted-foreground">
-                                {t('gateway.proxyHttpServerHelp')}
-                              </p>
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label htmlFor="proxy-https-server" className="text-[13px] font-medium text-foreground/85">{t('gateway.proxyHttpsServer')}</Label>
-                              <Input
-                                id="proxy-https-server"
-                                value={proxyHttpsServerDraft}
-                                onChange={(event) => setProxyHttpsServerDraft(event.target.value)}
-                                placeholder={proxyServerDraft || 'http://127.0.0.1:7890'}
-                                className={settingsInputClass}
-                              />
-                              <p className="text-[11px] text-muted-foreground">
-                                {t('gateway.proxyHttpsServerHelp')}
-                              </p>
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label htmlFor="proxy-all-server" className="text-[13px] font-medium text-foreground/85">{t('gateway.proxyAllServer')}</Label>
-                              <Input
-                                id="proxy-all-server"
-                                value={proxyAllServerDraft}
-                                onChange={(event) => setProxyAllServerDraft(event.target.value)}
-                                placeholder={proxyServerDraft || 'socks5://127.0.0.1:7891'}
-                                className={settingsInputClass}
-                              />
-                              <p className="text-[11px] text-muted-foreground">
-                                {t('gateway.proxyAllServerHelp')}
-                              </p>
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label htmlFor="proxy-bypass" className="text-[13px] font-medium text-foreground/85">{t('gateway.proxyBypass')}</Label>
-                              <Input
-                                id="proxy-bypass"
-                                value={proxyBypassRulesDraft}
-                                onChange={(event) => setProxyBypassRulesDraft(event.target.value)}
-                                placeholder="<local>;localhost;127.0.0.1;::1"
-                                className={settingsInputClass}
-                              />
-                              <p className="text-[11px] text-muted-foreground">
-                                {t('gateway.proxyBypassHelp')}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="flex items-center gap-4 pt-2">
-                          <Button
-                            variant="outline"
-                            onClick={handleSaveProxySettings}
-                            disabled={savingProxy}
-                            className={cn('h-10 px-5', settingsGhostButtonClass)}
-                          >
-                            <RefreshCw className={`h-4 w-4 mr-2${savingProxy ? ' animate-spin' : ''}`} />
-                            {savingProxy ? t('common:status.saving') : t('common:actions.save')}
-                          </Button>
-                          <p className="text-[12px] text-muted-foreground">
-                            {t('gateway.proxyRestartNote')}
-                          </p>
                         </div>
                       </div>
-                    )}
-                  </div>
-                  <div className={settingsSubPanelClass}>
-                    <div className="space-y-4">
-                      <div className={settingsUtilityRowClass}>
-                        <div className="space-y-1.5">
-                          <Label className={settingsLabelClass}>{t('developer.console')}</Label>
-                          <p className={settingsHintClass}>
-                            {t('developer.consoleDesc')}
-                          </p>
-                          <p className="text-[11px] text-muted-foreground/90">
-                            {t('developer.consoleNote')}
-                          </p>
+
+                      {showAdvancedProxyFields && (
+                        <div className="grid grid-cols-1 gap-4 rounded-[12px] border border-border/60 bg-[hsl(var(--surface-base)/0.88)] p-4 sm:grid-cols-2">
+                          <div className="space-y-2">
+                            <Label htmlFor="proxy-http-server" className={settingsLabelClass}>{t('gateway.proxyHttpServer')}</Label>
+                            <Input
+                              id="proxy-http-server"
+                              value={proxyHttpServerDraft}
+                              onChange={(event) => setProxyHttpServerDraft(event.target.value)}
+                              placeholder={proxyServerDraft || 'http://127.0.0.1:7890'}
+                              className={settingsInputClass}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="proxy-https-server" className={settingsLabelClass}>{t('gateway.proxyHttpsServer')}</Label>
+                            <Input
+                              id="proxy-https-server"
+                              value={proxyHttpsServerDraft}
+                              onChange={(event) => setProxyHttpsServerDraft(event.target.value)}
+                              placeholder={proxyServerDraft || 'http://127.0.0.1:7890'}
+                              className={settingsInputClass}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="proxy-all-server" className={settingsLabelClass}>{t('gateway.proxyAllServer')}</Label>
+                            <Input
+                              id="proxy-all-server"
+                              value={proxyAllServerDraft}
+                              onChange={(event) => setProxyAllServerDraft(event.target.value)}
+                              placeholder={proxyServerDraft || 'socks5://127.0.0.1:7891'}
+                              className={settingsInputClass}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="proxy-bypass" className={settingsLabelClass}>{t('gateway.proxyBypass')}</Label>
+                            <Input
+                              id="proxy-bypass"
+                              value={proxyBypassRulesDraft}
+                              onChange={(event) => setProxyBypassRulesDraft(event.target.value)}
+                              placeholder="<local>;localhost;127.0.0.1;::1"
+                              className={settingsInputClass}
+                            />
+                          </div>
                         </div>
-                        <div className="flex shrink-0 items-center gap-2">
+                      )}
+                    </div>
+                  </div>
+                </section>
+              </TabsContent>
+
+
+              {devModeUnlocked && (
+                <TabsContent value="developer" className="mt-0">
+                  <section className={settingsPaneClass}>
+                    <div className="space-y-3">
+                      <div className={settingsCompactControlRowClass}>
+                        <div className={settingsCompactRowTextClass}>
+                          <Label className={settingsCompactRowLabelClass}>{t('developer.console')}</Label>
+                        </div>
+                        <div className={settingsControlDockClass}>
                           <Button
                             type="button"
                             variant="outline"
                             onClick={() => void handleOpenControlConsole()}
-                            className={cn('h-10 px-4', settingsGhostButtonClass)}
+                            className={cn('h-9 px-4', settingsGhostButtonClass, 'w-full md:w-auto')}
                           >
-                            <ExternalLink className="h-4 w-4 mr-2" />
+                            <ExternalLink className="mr-2 h-4 w-4" />
                             {controlUiInfo?.url ? t('developer.openConsole') : t('common:actions.load')}
                           </Button>
                         </div>
                       </div>
-                    </div>
-
-                    <div className="mt-5 space-y-4 border-t border-border/60 pt-5">
-                      <div>
-                        <Label className={settingsLabelClass}>{t('developer.gatewayToken')}</Label>
-                        <p className={settingsHintClass}>
-                          {t('developer.gatewayTokenDesc')}
-                        </p>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        <Input
-                          readOnly
-                          value={controlUiInfo?.token || ''}
-                          placeholder={t('developer.tokenUnavailable')}
-                          className={cn(settingsCodeInputClass, 'flex-1 min-w-[200px]')}
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={refreshControlUiInfo}
-                          disabled={!devModeUnlocked}
-                          className={cn('h-10 px-4', settingsGhostButtonClass)}
-                        >
-                          <RefreshCw className="h-4 w-4 mr-2" />
-                          {t('common:actions.load')}
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={handleCopyGatewayToken}
-                          disabled={!controlUiInfo?.token}
-                          className={cn('h-10 px-4', settingsGhostButtonClass)}
-                        >
-                          <Copy className="h-4 w-4 mr-2" />
-                          {t('common:actions.copy')}
-                        </Button>
-                      </div>
-                    </div>
-
-                    {showCliTools && (
-                      <div className="mt-5 space-y-3 border-t border-border/60 pt-5">
-                        <Label className={settingsLabelClass}>{t('developer.cli')}</Label>
-                        <p className={settingsHintClass}>
-                          {t('developer.cliDesc')}
-                        </p>
-                        {isWindows && (
-                          <p className="text-[12px] text-muted-foreground">
-                            {t('developer.cliPowershell')}
-                          </p>
-                        )}
-                        <div className="flex flex-wrap gap-2">
-                          <Input
-                            readOnly
-                            value={openclawCliCommand}
-                            placeholder={openclawCliError || t('developer.cmdUnavailable')}
-                            className={cn(settingsCodeInputClass, 'flex-1 min-w-[200px]')}
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={handleCopyCliCommand}
-                            disabled={!openclawCliCommand}
-                            className={cn('h-10 px-4', settingsGhostButtonClass)}
-                          >
-                            <Copy className="h-4 w-4 mr-2" />
-                            {t('common:actions.copy')}
-                          </Button>
+                      <div className="h-px bg-border/50" />
+                      <div className={settingsCompactControlRowClass}>
+                        <div className={settingsCompactRowTextClass}>
+                          <Label className={settingsCompactRowLabelClass}>{t('developer.gatewayToken')}</Label>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-center">
+                            <Input
+                              readOnly
+                              value={controlUiInfo?.token || ''}
+                              placeholder={t('developer.tokenUnavailable')}
+                              className={cn(settingsCodeInputClass, 'min-w-0')}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={refreshControlUiInfo}
+                              disabled={!devModeUnlocked}
+                              className={cn('h-9 px-4', settingsGhostButtonClass)}
+                            >
+                              <RefreshCw className="mr-2 h-4 w-4" />
+                              {t('common:actions.load')}
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={handleCopyGatewayToken}
+                              disabled={!controlUiInfo?.token}
+                              className={cn('h-9 px-4', settingsGhostButtonClass)}
+                            >
+                              <Copy className="mr-2 h-4 w-4" />
+                              {t('common:actions.copy')}
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                    )}
-                  </div>
 
-                  <div className="space-y-4">
-                    <div className={settingsSubPanelClass}>
+                      {showCliTools && (
+                        <>
+                          <div className="h-px bg-border/50" />
+                          <div className={settingsCompactControlRowClass}>
+                            <div className={settingsCompactRowTextClass}>
+                              <Label className={settingsCompactRowLabelClass}>{t('developer.cli')}</Label>
+                            </div>
+                            <div className="space-y-2">
+                              <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+                                <Input
+                                  readOnly
+                                  value={openclawCliCommand}
+                                  placeholder={openclawCliError || t('developer.cmdUnavailable')}
+                                  className={cn(settingsCodeInputClass, 'min-w-0')}
+                                />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={handleCopyCliCommand}
+                                  disabled={!openclawCliCommand}
+                                  className={cn('h-9 px-4', settingsGhostButtonClass)}
+                                >
+                                  <Copy className="mr-2 h-4 w-4" />
+                                  {t('common:actions.copy')}
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    <div className={settingsPaneDividerClass}>
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                          <Label className={settingsLabelClass}>{t('developer.doctor')}</Label>
-                          <p className="mt-1 text-[13px] text-muted-foreground">
-                            {t('developer.doctorDesc')}
-                          </p>
-                        </div>
+                        <Label className={settingsCompactRowLabelClass}>{t('developer.doctor')}</Label>
                         <div className="flex flex-wrap gap-2">
                           <Button
                             type="button"
                             variant="outline"
                             onClick={() => void handleRunOpenClawDoctor('diagnose')}
                             disabled={doctorRunningMode !== null}
-                            className={cn('h-10 px-4', settingsGhostButtonClass)}
+                            className={cn('h-9 px-4', settingsGhostButtonClass)}
                           >
-                            <RefreshCw className={`h-4 w-4 mr-2${doctorRunningMode === 'diagnose' ? ' animate-spin' : ''}`} />
+                            <RefreshCw className={`mr-2 h-4 w-4${doctorRunningMode === 'diagnose' ? ' animate-spin' : ''}`} />
                             {doctorRunningMode === 'diagnose' ? t('common:status.running') : t('developer.runDoctor')}
                           </Button>
                           <Button
@@ -1094,9 +998,9 @@ export function Settings() {
                             variant="outline"
                             onClick={() => void handleRunOpenClawDoctor('fix')}
                             disabled={doctorRunningMode !== null}
-                            className={cn('h-10 px-4', settingsGhostButtonClass)}
+                            className={cn('h-9 px-4', settingsGhostButtonClass)}
                           >
-                            <RefreshCw className={`h-4 w-4 mr-2${doctorRunningMode === 'fix' ? ' animate-spin' : ''}`} />
+                            <RefreshCw className={`mr-2 h-4 w-4${doctorRunningMode === 'fix' ? ' animate-spin' : ''}`} />
                             {doctorRunningMode === 'fix' ? t('common:status.running') : t('developer.runDoctorFix')}
                           </Button>
                           <Button
@@ -1104,9 +1008,9 @@ export function Settings() {
                             variant="outline"
                             onClick={handleCopyDoctorOutput}
                             disabled={!doctorResult}
-                            className={cn('h-10 px-4', settingsGhostButtonClass)}
+                            className={cn('h-9 px-4', settingsGhostButtonClass)}
                           >
-                            <Copy className="h-4 w-4 mr-2" />
+                            <Copy className="mr-2 h-4 w-4" />
                             {t('common:actions.copy')}
                           </Button>
                         </div>
@@ -1114,102 +1018,77 @@ export function Settings() {
 
                       {doctorResult && (
                         <div className="mt-4 space-y-3 rounded-[12px] border border-border/60 bg-[hsl(var(--surface-base)/0.92)] p-4">
-                          <div className={settingsMiniMetricGridClass}>
-                            <div className={settingsMiniMetricCardClass}>
-                              <p className={settingsHeadingClass}>
-                                {doctorResult.mode === 'fix' ? t('developer.runDoctorFix') : t('developer.runDoctor')}
-                              </p>
-                              <div className="mt-2">
-                                <Badge variant={doctorResult.success ? 'secondary' : 'destructive'} className="rounded-[10px] px-3 py-1">
-                                  {doctorResult.mode === 'fix'
-                                    ? (doctorResult.success ? t('developer.doctorFixOk') : t('developer.doctorFixIssue'))
-                                    : (doctorResult.success ? t('developer.doctorOk') : t('developer.doctorIssue'))}
-                                </Badge>
-                              </div>
+                        <WorkbenchSummaryStrip
+                          items={doctorSummaryItems}
+                          className={settingsFactsStripClass}
+                        />
+                        <div className="space-y-1 text-[12px] font-mono text-muted-foreground break-all">
+                          <p>{t('developer.doctorCommand')}: {doctorResult.command}</p>
+                          <p>{t('developer.doctorWorkingDir')}: {doctorResult.cwd || '-'}</p>
+                          {doctorResult.error && <p>{t('developer.doctorError')}: {doctorResult.error}</p>}
+                        </div>
+                        <div className="flex justify-end">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowDoctorRawOutput((prev) => !prev)}
+                            className={cn('h-8 px-4', settingsGhostButtonClass)}
+                          >
+                            {showDoctorRawOutput ? t('common:actions.hide') : t('common:actions.show')} {t('developer.rawDoctorOutput')}
+                          </Button>
+                        </div>
+                        {showDoctorRawOutput && (
+                          <div className="grid gap-3 md:grid-cols-2">
+                            <div className="space-y-2">
+                              <p className="text-[12px] font-semibold text-foreground/85">{t('developer.doctorStdout')}</p>
+                              <pre className="max-h-72 overflow-auto rounded-[10px] border border-border/60 bg-[hsl(var(--surface-panel)/0.94)] p-3 text-[11px] font-mono whitespace-pre-wrap break-words text-foreground">
+                                {doctorResult.stdout.trim() || t('developer.doctorOutputEmpty')}
+                              </pre>
                             </div>
-                            <div className={settingsMiniMetricCardClass}>
-                              <p className={settingsHeadingClass}>{t('developer.doctorExitCode')}</p>
-                              <p className="mt-2 text-[15px] font-semibold text-foreground">
-                                {doctorResult.exitCode ?? 'null'}
-                              </p>
-                            </div>
-                            <div className={settingsMiniMetricCardClass}>
-                              <p className={settingsHeadingClass}>{t('developer.doctorDuration')}</p>
-                              <p className="mt-2 text-[15px] font-semibold text-foreground">
-                                {Math.round(doctorResult.durationMs)}ms
-                              </p>
+                            <div className="space-y-2">
+                              <p className="text-[12px] font-semibold text-foreground/85">{t('developer.doctorStderr')}</p>
+                              <pre className="max-h-72 overflow-auto rounded-[10px] border border-border/60 bg-[hsl(var(--surface-panel)/0.94)] p-3 text-[11px] font-mono whitespace-pre-wrap break-words text-foreground">
+                                {doctorResult.stderr.trim() || t('developer.doctorOutputEmpty')}
+                              </pre>
                             </div>
                           </div>
-                          <div className="space-y-1 text-[12px] text-muted-foreground font-mono break-all">
-                            <p>{t('developer.doctorCommand')}: {doctorResult.command}</p>
-                            <p>{t('developer.doctorWorkingDir')}: {doctorResult.cwd || '-'}</p>
-                            {doctorResult.error && <p>{t('developer.doctorError')}: {doctorResult.error}</p>}
-                          </div>
-                          <div className="flex justify-end">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setShowDoctorRawOutput((prev) => !prev)}
-                              className={cn('h-8 px-4', settingsGhostButtonClass)}
-                            >
-                              {showDoctorRawOutput ? t('common:actions.hide') : t('common:actions.show')} {t('developer.rawDoctorOutput')}
-                            </Button>
-                          </div>
-                          {showDoctorRawOutput && (
-                            <div className="grid gap-3 md:grid-cols-2">
-                              <div className="space-y-2">
-                                <p className="text-[12px] font-semibold text-foreground/85">{t('developer.doctorStdout')}</p>
-                                <pre className="max-h-72 overflow-auto rounded-[10px] border border-border/60 bg-[hsl(var(--surface-panel)/0.94)] p-3 text-[11px] font-mono whitespace-pre-wrap break-words text-foreground">
-                                  {doctorResult.stdout.trim() || t('developer.doctorOutputEmpty')}
-                                </pre>
-                              </div>
-                              <div className="space-y-2">
-                                <p className="text-[12px] font-semibold text-foreground/85">{t('developer.doctorStderr')}</p>
-                                <pre className="max-h-72 overflow-auto rounded-[10px] border border-border/60 bg-[hsl(var(--surface-panel)/0.94)] p-3 text-[11px] font-mono whitespace-pre-wrap break-words text-foreground">
-                                  {doctorResult.stderr.trim() || t('developer.doctorOutputEmpty')}
-                                </pre>
-                              </div>
-                            </div>
-                          )}
+                        )}
                         </div>
                       )}
                     </div>
-                  </div>
 
-                  <div className="space-y-4">
-                    <div className={cn(settingsToggleRowClass)}>
-                      <div>
-                        <Label className={settingsLabelClass}>{t('developer.wsDiagnostic')}</Label>
-                        <p className="mt-1 text-[13px] text-muted-foreground">
-                          {t('developer.wsDiagnosticDesc')}
-                        </p>
-                      </div>
-                      <Switch
-                        checked={wsDiagnosticEnabled}
-                        onCheckedChange={handleWsDiagnosticToggle}
-                      />
-                    </div>
-
-                    <div className={settingsSubPanelClass}>
-                      <div className="flex items-center justify-between gap-4">
-                        <div>
-                          <Label className="text-[14px] font-medium text-foreground">{t('developer.telemetryViewer')}</Label>
-                          <p className="text-[13px] text-muted-foreground mt-1">
-                            {t('developer.telemetryViewerDesc')}
-                          </p>
+                    <div className={settingsPaneDividerClass}>
+                      <div className={settingsCompactToggleRowClass}>
+                        <div className={settingsCompactRowTextClass}>
+                          <Label className={settingsCompactRowLabelClass}>{t('developer.wsDiagnostic')}</Label>
                         </div>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setShowTelemetryViewer((prev) => !prev)}
-                          className={cn('h-9 px-5', settingsGhostButtonClass)}
-                        >
-                          {showTelemetryViewer
-                            ? t('common:actions.hide')
-                            : t('common:actions.show')}
-                        </Button>
+                        <div className={settingsControlDockClass}>
+                          <div className="flex w-full md:max-w-[320px] md:justify-start">
+                            <Switch
+                              checked={wsDiagnosticEnabled}
+                              onCheckedChange={handleWsDiagnosticToggle}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className={settingsPaneDividerClass}>
+                      <div className={settingsCompactControlRowClass}>
+                        <div className={settingsCompactRowTextClass}>
+                          <Label className={settingsCompactRowLabelClass}>{t('developer.telemetryViewer')}</Label>
+                        </div>
+                        <div className={settingsControlDockClass}>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowTelemetryViewer((prev) => !prev)}
+                            className={cn('h-8 px-4', settingsGhostButtonClass)}
+                          >
+                            {showTelemetryViewer ? t('common:actions.hide') : t('common:actions.show')}
+                          </Button>
+                        </div>
                       </div>
 
                       {showTelemetryViewer && (
@@ -1217,29 +1096,17 @@ export function Settings() {
                           <div className="flex flex-col gap-3">
                             <div className="flex justify-end gap-2">
                               <Button type="button" variant="outline" size="sm" onClick={handleCopyTelemetry} className={cn('h-8 px-4', settingsGhostButtonClass)}>
-                                <Copy className="h-3.5 w-3.5 mr-1.5" />
+                                <Copy className="mr-1.5 h-3.5 w-3.5" />
                                 {t('common:actions.copy')}
                               </Button>
                               <Button type="button" variant="outline" size="sm" onClick={handleClearTelemetry} className={cn('h-8 px-4', settingsGhostButtonClass)}>
                                 {t('common:actions.clear')}
                               </Button>
                             </div>
-                            <div className={settingsMiniMetricGridClass}>
-                              <div className={settingsMiniMetricCardClass}>
-                                <p className={settingsHeadingClass}>{t('developer.telemetryTotal')}</p>
-                                <p className="mt-2 text-[15px] font-semibold text-foreground">{telemetryStats.total}</p>
-                              </div>
-                              <div className={settingsMiniMetricCardClass}>
-                                <p className={settingsHeadingClass}>{t('developer.telemetryErrors')}</p>
-                                <p className={cn('mt-2 text-[15px] font-semibold', telemetryStats.errorCount > 0 ? 'text-destructive' : 'text-foreground')}>
-                                  {telemetryStats.errorCount}
-                                </p>
-                              </div>
-                              <div className={settingsMiniMetricCardClass}>
-                                <p className={settingsHeadingClass}>{t('developer.telemetrySlow')}</p>
-                                <p className="mt-2 text-[15px] font-semibold text-foreground">{telemetryStats.slowCount}</p>
-                              </div>
-                            </div>
+                            <WorkbenchSummaryStrip
+                              items={telemetrySummaryItems}
+                              className={settingsFactsStripClass}
+                            />
                             <div className="flex justify-end">
                               <Button
                                 type="button"
@@ -1280,7 +1147,7 @@ export function Settings() {
                             {showTelemetryRawEvents && (
                               <div className="space-y-2 border-t border-border/60 p-3 font-mono text-[12px]">
                                 {telemetryEntries.length === 0 ? (
-                                  <div className="text-muted-foreground text-center py-4">{t('developer.telemetryEmpty')}</div>
+                                  <div className="py-4 text-center text-muted-foreground">{t('developer.telemetryEmpty')}</div>
                                 ) : (
                                   telemetryEntries
                                     .slice()
@@ -1303,124 +1170,74 @@ export function Settings() {
                         </div>
                       )}
                     </div>
+                  </section>
+                </TabsContent>
+              )}
+
+              <TabsContent value="updates" className="mt-0">
+                <section className={settingsPaneClass}>
+                  <UpdateSettings />
+                  <div className={settingsPaneDividerClass}>
+                    <div className="space-y-3">
+                      <div className={settingsCompactToggleRowClass}>
+                        <div className={settingsCompactRowTextClass}>
+                          <Label className={settingsCompactRowLabelClass}>{t('updates.autoCheck')}</Label>
+                        </div>
+                        <div className={settingsControlDockClass}>
+                          <div className="flex w-full md:max-w-[320px] md:justify-end">
+                            <Switch checked={autoCheckUpdate} onCheckedChange={setAutoCheckUpdate} />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="h-px bg-border/50" />
+                      <div className={settingsCompactToggleRowClass}>
+                        <div className={settingsCompactRowTextClass}>
+                          <Label className={settingsCompactRowLabelClass}>{t('updates.autoDownload')}</Label>
+                        </div>
+                        <div className={settingsControlDockClass}>
+                          <div className="flex w-full md:max-w-[320px] md:justify-end">
+                            <Switch
+                              checked={autoDownloadUpdate}
+                              onCheckedChange={(value) => {
+                                setAutoDownloadUpdate(value);
+                                updateSetAutoDownload(value);
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </TabsContent>
+            </Tabs>
+
+          <Dialog open={showLogs} onOpenChange={setShowLogs}>
+            <DialogContent className="flex h-[min(74vh,700px)] max-h-[min(74vh,700px)] max-w-[920px] flex-col gap-0 overflow-hidden rounded-[24px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.995)] p-0 shadow-[0_20px_48px_rgba(15,23,42,0.12)]">
+              <DialogHeader className="border-b border-border/60 px-5 py-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <DialogTitle className="text-[18px] font-semibold tracking-tight text-foreground">
+                    {t('gateway.appLogs')}
+                  </DialogTitle>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" className={cn('h-8 px-4', settingsGhostButtonClass)} onClick={handleCopyLogContent}>
+                      <Copy className="mr-1.5 h-3.5 w-3.5" />
+                      {t('common:actions.copy')}
+                    </Button>
+                    <Button variant="outline" size="sm" className={cn('h-8 px-4', settingsGhostButtonClass)} onClick={handleOpenLogDir}>
+                      <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+                      {t('gateway.openFolder')}
+                    </Button>
                   </div>
                 </div>
-              </section>
-            </>
-          )}
-
-          {/* Updates */}
-          <section
-            ref={(node) => { sectionRefs.current.updates = node; }}
-            id="settings-updates"
-            className={settingsSectionClass}
-          >
-            <div className={settingsSectionHeaderClass}>
-              <h2 className={settingsSectionTitleTextClass}>
-                {t('updates.title')}
-              </h2>
-              <p className={settingsSectionDescriptionClass}>
-                {t('updates.description')}
-              </p>
-            </div>
-            <div className="space-y-5">
-              <UpdateSettings />
-
-              <div className={settingsToggleRowClass}>
-                <div>
-                  <Label className={settingsLabelClass}>{t('updates.autoCheck')}</Label>
-                  <p className="mt-1 text-[13px] text-muted-foreground">
-                    {t('updates.autoCheckDesc')}
-                  </p>
-                </div>
-                <Switch checked={autoCheckUpdate} onCheckedChange={setAutoCheckUpdate} />
+              </DialogHeader>
+              <div className="min-h-0 flex-1 p-5">
+                <pre className="h-full overflow-auto rounded-[14px] border border-border/60 bg-[hsl(var(--surface-base)/0.92)] px-4 py-3 font-mono text-[12px] whitespace-pre-wrap text-muted-foreground shadow-none">
+                  {logContent || t('chat:noLogs')}
+                </pre>
               </div>
-
-              <div className={settingsToggleRowClass}>
-                <div>
-                  <Label className={settingsLabelClass}>{t('updates.autoDownload')}</Label>
-                  <p className="mt-1 text-[13px] text-muted-foreground">
-                    {t('updates.autoDownloadDesc')}
-                  </p>
-                </div>
-                <Switch
-                  checked={autoDownloadUpdate}
-                  onCheckedChange={(value) => {
-                    setAutoDownloadUpdate(value);
-                    updateSetAutoDownload(value);
-                  }}
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* About */}
-          <section
-            ref={(node) => { sectionRefs.current.about = node; }}
-            id="settings-about"
-            className={settingsSectionClass}
-          >
-            <div className={settingsSectionHeaderClass}>
-              <h2 className={settingsSectionTitleTextClass}>
-                {t('about.title')}
-              </h2>
-              <p className={settingsSectionDescriptionClass}>
-                {t('about.tagline')}
-              </p>
-            </div>
-            <div className="space-y-4">
-              <div className={settingsMetricGridClass}>
-                <div className={settingsMetricCardClass}>
-                  <p className={settingsHeadingClass}>{t('about.appName')}</p>
-                  <p className="mt-3 text-[15px] font-semibold text-foreground">
-                    {t('about.tagline')}
-                  </p>
-                </div>
-                <div className={settingsMetricCardClass}>
-                  <p className={settingsHeadingClass}>{t('about.title')}</p>
-                  <p className="mt-3 text-[15px] font-semibold text-foreground">
-                    {t('about.version', { version: currentVersion })}
-                  </p>
-                </div>
-                <div className={settingsMetricCardClass}>
-                  <p className={settingsHeadingClass}>{t('about.basedOn')}</p>
-                  <p className="mt-3 text-[15px] font-semibold text-foreground">OpenClaw</p>
-                </div>
-              </div>
-              <div className={settingsSubPanelClass}>
-                <div className="space-y-2 text-[14px] text-muted-foreground">
-                  <p>
-                    <strong className="text-foreground font-semibold">{t('about.appName')}</strong> - {t('about.tagline')}
-                  </p>
-                  <p>{t('about.basedOn')}</p>
-                </div>
-                <div className="flex flex-wrap gap-4 pt-4">
-                  <Button
-                    variant="link"
-                    className="h-auto p-0 text-[14px] text-primary hover:text-primary/80 font-medium"
-                    onClick={() => window.electron.openExternal('https://claw-x.com')}
-                  >
-                    {t('about.docs')}
-                  </Button>
-                  <Button
-                    variant="link"
-                    className="h-auto p-0 text-[14px] text-primary hover:text-primary/80 font-medium"
-                    onClick={() => window.electron.openExternal('https://github.com/jlon/XClaw')}
-                  >
-                    {t('about.github')}
-                  </Button>
-                  <Button
-                    variant="link"
-                    className="h-auto p-0 text-[14px] text-primary hover:text-primary/80 font-medium"
-                    onClick={() => window.electron.openExternal('https://icnnp7d0dymg.feishu.cn/wiki/UyfOwQ2cAiJIP6kqUW8cte5Bnlc')}
-                  >
-                    {t('about.faq')}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </section>
-            </div>
+            </DialogContent>
+          </Dialog>
           </div>
         </WorkspacePageScrollArea>
       </WorkspacePageShell>

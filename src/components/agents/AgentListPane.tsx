@@ -186,7 +186,7 @@ export function AgentListPane({
     >
       <div className="shrink-0 border-b border-border/55 px-4 py-4">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-[15px] border border-border/65 bg-[hsl(var(--surface-panel)/0.98)] px-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition-colors focus-within:border-ring/50 focus-within:bg-white">
+          <div className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-[15px] border border-border/65 bg-[hsl(var(--surface-panel)/0.98)] px-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition-colors focus-within:border-ring/50 focus-within:bg-[hsl(var(--surface-elevated)/1)]">
             <Search className="h-4 w-4 shrink-0 text-foreground/34" />
             <Input
               value={activeSearchValue}
@@ -233,7 +233,7 @@ export function AgentListPane({
                         className={cn(
                           'group flex w-full items-center gap-3 rounded-[16px] border px-3 py-2.5 text-left transition-[background-color,border-color,box-shadow,transform] duration-150 ease-out',
                           selected
-                            ? 'border-[rgba(72,126,255,0.35)] bg-[rgba(72,126,255,0.08)] shadow-[inset_0_1px_0_rgba(255,255,255,0.72),0_1px_4px_rgba(15,23,42,0.03)]'
+                            ? 'border-[hsl(var(--primary)/0.24)] bg-[hsl(var(--primary)/0.1)] shadow-none'
                             : 'border-transparent hover:border-border/55 hover:bg-[hsl(var(--surface-hover)/0.48)]',
                         )}
                       >
@@ -284,7 +284,7 @@ export function AgentListPane({
           </div>
         ) : (
           <div className="flex min-h-[240px] flex-col items-center justify-center rounded-[22px] border border-dashed border-border/50 bg-[hsl(var(--surface-panel)/0.6)] px-6 py-10 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-[18px] border border-border/60 bg-white text-foreground/34 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-[18px] border border-border/60 bg-[hsl(var(--surface-elevated)/0.98)] text-foreground/34 shadow-none">
               <Search className="h-5 w-5" />
             </div>
             <div className="mt-4 space-y-1">
@@ -300,7 +300,7 @@ export function AgentListPane({
                 variant="outline"
                 size="sm"
                 onClick={onCreateAgent}
-                className="mt-5 h-9 rounded-[14px] border-border/65 bg-white px-3.5 text-[13px] font-medium text-foreground/76 shadow-none hover:bg-[hsl(var(--surface-hover)/0.55)] hover:text-foreground"
+                className="mt-5 h-9 rounded-[14px] border-border/65 bg-[hsl(var(--surface-elevated)/0.98)] px-3.5 text-[13px] font-medium text-foreground/76 shadow-none hover:bg-[hsl(var(--surface-hover)/0.55)] hover:text-foreground"
               >
                 <Plus className="mr-1.5 h-3.5 w-3.5" />
                 {createLabel}

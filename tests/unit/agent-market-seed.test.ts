@@ -3,8 +3,9 @@ import agentMarketSeed from '@electron/shared/agent-market-seed.json';
 
 describe('agent market seed metadata', () => {
   it('ships enriched market metadata for every bundled agent', () => {
-    expect(agentMarketSeed.items.length).toBe(50);
+    expect(agentMarketSeed.items.length).toBe(58);
     expect(agentMarketSeed.source.note.match(/Metadata fields are derived from upstream SOUL\.md templates\./g)?.length ?? 0).toBe(1);
+    expect(agentMarketSeed.items.some((item) => item.category === 'management')).toBe(true);
     agentMarketSeed.items.forEach((item) => {
       expect(item.localeKey).toBe(item.id);
       expect(item.avatarSeed).toContain(item.id);

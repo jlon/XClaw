@@ -85,28 +85,38 @@ function TakeoverPreparationContent({
   const blockingIssues = uniq([...(plan?.blockingIssues ?? []), ...(status?.blockingIssues ?? [])]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="space-y-2">
         <h2 className="text-xl font-semibold">{t('takeover.preparation.title')}</h2>
         <p className="text-muted-foreground">{t('takeover.preparation.description')}</p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-2xl border border-border/70 app-field-surface p-4">
-          <div className="text-sm text-muted-foreground">{t('takeover.summary.providers')}</div>
-          <div className="mt-2 text-2xl font-semibold">{inspection?.counts?.runtimeProviders ?? 0}</div>
-        </div>
-        <div className="rounded-2xl border border-border/70 app-field-surface p-4">
-          <div className="text-sm text-muted-foreground">{t('takeover.summary.skills')}</div>
-          <div className="mt-2 text-2xl font-semibold">{inspection?.counts?.skills ?? 0}</div>
-        </div>
-        <div className="rounded-2xl border border-border/70 app-field-surface p-4">
-          <div className="text-sm text-muted-foreground">{t('takeover.summary.extensions')}</div>
-          <div className="mt-2 text-2xl font-semibold">{inspection?.counts?.extensions ?? 0}</div>
-        </div>
-        <div className="rounded-2xl border border-border/70 app-field-surface p-4">
-          <div className="text-sm text-muted-foreground">{t('takeover.summary.workspace')}</div>
-          <div className="mt-2 break-all text-sm font-medium">{inspection?.defaultWorkspacePath || inspection?.openClawDir || '-'}</div>
+      <div className="rounded-[1.5rem] border border-border/70 app-insight-surface p-5">
+        <div className="space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-[1.1rem] border border-border/70 bg-[hsl(var(--surface-elevated)/0.86)] px-4 py-3">
+              <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground/90">{t('takeover.summary.providers')}</div>
+              <div className="mt-2 text-lg font-semibold text-foreground">{inspection?.counts?.runtimeProviders ?? 0}</div>
+            </div>
+            <div className="rounded-[1.1rem] border border-border/70 bg-[hsl(var(--surface-elevated)/0.86)] px-4 py-3">
+              <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground/90">{t('takeover.summary.skills')}</div>
+              <div className="mt-2 text-lg font-semibold text-foreground">{inspection?.counts?.skills ?? 0}</div>
+            </div>
+            <div className="rounded-[1.1rem] border border-border/70 bg-[hsl(var(--surface-elevated)/0.86)] px-4 py-3">
+              <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground/90">{t('takeover.summary.extensions')}</div>
+              <div className="mt-2 text-lg font-semibold text-foreground">{inspection?.counts?.extensions ?? 0}</div>
+            </div>
+            <div className="rounded-[1.1rem] border border-border/70 bg-[hsl(var(--surface-elevated)/0.86)] px-4 py-3">
+              <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground/90">{t('takeover.summary.workspace')}</div>
+              <div className="mt-2 break-all text-sm font-medium text-foreground">{inspection?.defaultWorkspacePath || inspection?.openClawDir || '-'}</div>
+            </div>
+          </div>
+
+          {!submitting ? (
+            <div className="rounded-[1.1rem] border border-border/70 bg-[hsl(var(--surface-elevated)/0.84)] px-4 py-3 text-sm leading-6 text-muted-foreground">
+              {t('takeover.preparation.pendingHint')}
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -157,11 +167,7 @@ function TakeoverPreparationContent({
             </ul>
           ) : null}
         </div>
-      ) : (
-        <div className="rounded-[18px] app-insight-surface p-4 text-sm leading-6 text-muted-foreground">
-          {t('takeover.preparation.pendingHint')}
-        </div>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -458,7 +464,7 @@ function RuntimePreparationContent({
   ] as const;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {setupMode === 'fresh' ? (
         <div className="space-y-4 rounded-[20px] app-insight-surface p-5">
           <div className="space-y-1">
@@ -534,14 +540,16 @@ function RuntimePreparationContent({
               : t('runtime.summary.attention')}
           </div>
         </div>
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="grid gap-3">
           {readinessSummary.map((item) => (
-            <div key={item.key} className="rounded-2xl border border-border/70 app-field-surface p-4">
-              <div className="text-sm text-muted-foreground">{item.label}</div>
-              <div className={cn('mt-2 text-sm font-medium', readinessToneClass(item.status))}>
+            <div key={item.key} className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 rounded-[1.15rem] border border-border/70 app-field-surface px-4 py-3">
+              <div className="min-w-0">
+                <div className="text-sm font-medium text-foreground">{item.label}</div>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">{item.message}</p>
+              </div>
+              <div className={cn('mt-0.5 rounded-full border px-2.5 py-1 text-xs font-medium', readinessToneClass(item.status))}>
                 {readinessLabel(item.status)}
               </div>
-              <p className="mt-3 text-xs leading-5 text-muted-foreground">{item.message}</p>
             </div>
           ))}
         </div>

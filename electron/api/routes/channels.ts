@@ -3,6 +3,7 @@ import {
   deleteChannelAccountConfig,
   deleteChannelConfig,
   getChannelEditorValues,
+  getChannelRecipientHintValues,
   getChannelFormValues,
   listConfiguredChannelAccounts,
   listConfiguredChannels,
@@ -538,6 +539,20 @@ export async function handleChannelRoutes(
       sendJson(res, 200, {
         success: true,
         values: await getChannelEditorValues(channelType, accountId),
+      });
+    } catch (error) {
+      sendJson(res, 500, { success: false, error: String(error) });
+    }
+    return true;
+  }
+
+  if (url.pathname.startsWith('/api/channels/recipient-hints/') && req.method === 'GET') {
+    try {
+      const channelType = decodeURIComponent(url.pathname.slice('/api/channels/recipient-hints/'.length));
+      const accountId = url.searchParams.get('accountId') || undefined;
+      sendJson(res, 200, {
+        success: true,
+        hint: await getChannelRecipientHintValues(channelType, accountId),
       });
     } catch (error) {
       sendJson(res, 500, { success: false, error: String(error) });

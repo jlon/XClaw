@@ -22,6 +22,8 @@
 - `pnpm exec vitest run tests/unit/theme-application.test.tsx tests/unit/workspace-page-layout.test.tsx tests/unit/ui-primitives-theme.test.tsx tests/unit/chat-layout.test.tsx tests/unit/theme-second-wave-pages.test.ts tests/unit/channel-config-modal.test.tsx tests/unit/setup-wizard-layout.test.tsx --testTimeout=15000`
 - `pnpm exec vitest run tests/unit/theme-second-wave-pages.test.ts tests/unit/channels-page.test.tsx tests/unit/chat-theme-shell.test.ts --testTimeout=15000`
 - `pnpm exec vitest run tests/unit/theme-second-wave-pages.test.ts tests/unit/channels-page.test.tsx tests/unit/chat-theme-shell.test.ts --testTimeout=15000 --reporter=dot`
+- `pnpm exec vitest run tests/unit/dark-theme-compatibility.test.ts --reporter=dot`
+- `pnpm exec vitest run tests/unit/dark-theme-compatibility.test.ts tests/unit/chat-layout.test.tsx tests/unit/settings-layout.test.tsx tests/unit/channels-page.test.tsx tests/unit/setup-wizard-layout.test.tsx --testTimeout=15000 --reporter=dot`
 - `pnpm exec vitest run tests/unit/channel-config-modal.test.tsx --testTimeout=15000`
 - `pnpm exec vitest run tests/unit/theme-second-wave-pages.test.ts --testTimeout=15000`
 - `pnpm exec vitest run tests/unit/theme-second-wave-pages.test.ts -t "keeps the skills enabled switch on a token-driven accent in light theme instead of a hard black toggle" --reporter=dot`
@@ -29,12 +31,14 @@
 - `pnpm exec vitest run tests/unit/theme-second-wave-pages.test.ts --testTimeout=15000 --reporter=dot`
 - `pnpm exec vitest run tests/unit/channel-config-modal.test.tsx tests/unit/theme-second-wave-pages.test.ts tests/unit/chat-theme-shell.test.ts tests/unit/chat-input.test.tsx tests/unit/chat-humanized-actions.test.tsx --testTimeout=15000 --reporter=dot`
 - `pnpm exec eslint src/components/layout/MainLayout.tsx src/components/layout/WorkspacePage.tsx src/components/layout/Sidebar.tsx src/components/layout/TitleBar.tsx src/components/layout/ChatSessionsPane.tsx src/components/channels/ChannelConfigModal.tsx src/components/settings/ProvidersSettings.tsx src/components/setup/SetupStartStage.tsx src/components/setup/SetupPreparationStage.tsx src/components/setup/SetupProviderStage.tsx src/components/setup/SetupCompleteStage.tsx src/components/ui/button.tsx src/components/ui/input.tsx src/components/ui/select.tsx src/components/ui/textarea.tsx src/components/ui/card.tsx src/components/ui/confirm-dialog.tsx src/pages/Agents/index.tsx src/pages/Cron/index.tsx src/pages/Skills/index.tsx src/pages/Models/index.tsx src/pages/Settings/index.tsx src/pages/Channels/index.tsx src/pages/Chat/ChatInput.tsx tests/unit/theme-application.test.tsx tests/unit/workspace-page-layout.test.tsx tests/unit/ui-primitives-theme.test.tsx tests/unit/chat-layout.test.tsx tests/unit/theme-second-wave-pages.test.ts tests/unit/channel-config-modal.test.tsx tests/unit/setup-wizard-layout.test.tsx tests/unit/channels-page.test.tsx tests/unit/chat-theme-shell.test.ts --max-warnings=0`
+- `pnpm exec eslint src/components/layout/workbench-button-styles.ts src/components/layout/WorkbenchHeaderIcon.tsx src/pages/Settings/index.tsx src/components/layout/ChatSessionsPane.tsx src/pages/Chat/ExecApprovalOverlay.tsx src/components/agents/AgentListPane.tsx src/pages/Agents/index.tsx src/pages/Skills/index.tsx src/components/channels/ChannelConfigEditor.tsx src/components/setup/SetupCompleteStage.tsx tests/unit/dark-theme-compatibility.test.ts --max-warnings=0`
 - `pnpm exec eslint src/components/channels/ChannelConfigModal.tsx tests/unit/channel-config-modal.test.tsx --max-warnings=0`
 - `pnpm exec eslint src/components/channels/ChannelConfigModal.tsx src/components/settings/ProvidersSettings.tsx src/pages/Settings/index.tsx src/pages/Chat/ChatInput.tsx src/pages/Chat/ChatToolbar.tsx src/pages/Chat/ChatMessage.tsx src/pages/Chat/index.tsx src/pages/Agents/index.tsx src/pages/Skills/index.tsx src/pages/Cron/index.tsx src/pages/Setup/index.tsx tests/unit/channel-config-modal.test.tsx tests/unit/theme-second-wave-pages.test.ts tests/unit/chat-theme-shell.test.ts tests/unit/chat-input.test.tsx tests/unit/chat-humanized-actions.test.tsx --max-warnings=0`
 - `pnpm run typecheck`
 - 如果 `build:vite` 报 `./assets/e-*.js from index.html` 这类错误，先检查根 `index.html` 是否被参考产物污染，确认入口仍是 `/src/main.tsx`
 - `tests/unit/theme-second-wave-pages.test.ts` 现在同时锁住 `Settings / Providers` 的桌面 pane 语法，改动这两页时要同步维护这条回归锁
 - `tests/unit/theme-second-wave-pages.test.ts` 现在也锁住了 `Skills` 浅色主题启用开关的开启态语义，任何把开启态重新改成硬黑色的修改都应视为回归
+- `tests/unit/dark-theme-compatibility.test.ts` 现在额外锁住深色主题下最容易漏回去的残留浅色 hardcode：共享 workbench 主按钮、`Settings` 激活态、`ChatSessionsPane` 菜单与 utility、`ExecApprovalOverlay`、`Agents` 搜索/空态、`Skills` 图标壳、`ChannelConfigEditor` 开关和 `SetupCompleteStage` 的 pending 指示器
 
 ### 构建级
 

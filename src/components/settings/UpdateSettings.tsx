@@ -8,16 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useUpdateStore } from '@/stores/update';
 import { useTranslation } from 'react-i18next';
-
-const updatePanelClass = 'space-y-3';
-const summaryPanelClass =
-  'rounded-[14px] border border-border/60 bg-[hsl(var(--surface-panel)/0.96)] p-4';
-const statusRowClass =
-  'flex flex-col gap-3 rounded-[14px] border border-border/60 bg-[hsl(var(--surface-base)/0.92)] px-4 py-4 sm:flex-row sm:items-center sm:justify-between';
-const infoPanelClass =
-  'rounded-[14px] border border-border/60 bg-[hsl(var(--surface-base)/0.92)] p-4';
+const updatePanelClass = 'space-y-4';
 const errorPanelClass =
   'rounded-[14px] border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive';
+const neutralPanelClass =
+  'rounded-[14px] border border-border/60 bg-[hsl(var(--surface-base)/0.92)] p-4 text-[13px] leading-6 text-muted-foreground';
 const infoSectionTitleClass = 'text-[12px] font-semibold uppercase tracking-[0.16em] text-foreground/56';
 
 function formatBytes(bytes: number): string {
@@ -56,22 +51,6 @@ export function UpdateSettings() {
     await checkForUpdates();
   }, [checkForUpdates, clearError]);
 
-  const renderStatusIcon = () => {
-    switch (status) {
-      case 'checking':
-      case 'downloading':
-        return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />;
-      case 'available':
-        return <Download className="h-4 w-4 text-primary" />;
-      case 'downloaded':
-        return <Rocket className="h-4 w-4 text-primary" />;
-      case 'error':
-        return <RefreshCw className="h-4 w-4 text-destructive" />;
-      default:
-        return <RefreshCw className="h-4 w-4 text-muted-foreground" />;
-    }
-  };
-
   const renderStatusText = () => {
     if (status === 'downloaded' && autoInstallCountdown != null && autoInstallCountdown >= 0) {
       return t('updates.status.autoInstalling', { seconds: autoInstallCountdown });
@@ -85,6 +64,8 @@ export function UpdateSettings() {
         return t('updates.status.available', { version: updateInfo?.version });
       case 'downloaded':
         return t('updates.status.downloaded', { version: updateInfo?.version });
+      case 'unsupported':
+        return t('updates.status.packagedOnly');
       case 'error':
         return error || t('updates.status.failed');
       case 'not-available':
@@ -139,6 +120,12 @@ export function UpdateSettings() {
             {t('updates.action.retry')}
           </Button>
         );
+      case 'unsupported':
+        return (
+          <Button disabled variant="outline" size="sm">
+            {t('updates.action.packagedOnly')}
+          </Button>
+        );
       default:
         return (
           <Button onClick={handleCheckForUpdates} variant="outline" size="sm">
@@ -160,25 +147,21 @@ export function UpdateSettings() {
 
   return (
     <div className={updatePanelClass}>
-      <div className={summaryPanelClass}>
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1">
-            <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-foreground/56">
-              {t('updates.currentVersion')}
-            </p>
-            <p className="text-[26px] font-semibold tracking-tight text-foreground">v{currentVersion}</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-2">
+          <p className="text-[13px] font-medium text-foreground/86">{renderStatusText()}</p>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-muted-foreground">
+            <span>{t('updates.currentVersion')}: v{currentVersion}</span>
+            {updateInfo?.version ? (
+              <span>{t('updates.releaseVersion', { version: updateInfo.version })}</span>
+            ) : null}
           </div>
-          <div className="mt-1">{renderStatusIcon()}</div>
         </div>
-      </div>
-
-      <div className={statusRowClass}>
-        <p className="text-sm text-muted-foreground">{renderStatusText()}</p>
-        {renderAction()}
+        <div className="shrink-0">{renderAction()}</div>
       </div>
 
       {status === 'downloading' && progress && (
-        <div className={infoPanelClass}>
+        <div className="border-t border-border/55 pt-4">
           <div className="space-y-2">
             <p className={infoSectionTitleClass}>{t('updates.action.downloading')}</p>
             <div className="flex justify-between text-sm">
@@ -196,7 +179,7 @@ export function UpdateSettings() {
       )}
 
       {updateInfo && (status === 'available' || status === 'downloaded') && (
-        <div className={infoPanelClass}>
+        <div className="border-t border-border/55 pt-4">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <p className={infoSectionTitleClass}>{t('updates.whatsNew')}</p>
@@ -211,7 +194,7 @@ export function UpdateSettings() {
             )}
           </div>
           {updateInfo.releaseNotes && (
-            <div className="mt-4 rounded-[12px] border border-border/60 bg-[hsl(var(--surface-panel)/0.94)] p-4 text-[13px] leading-6 text-muted-foreground">
+            <div className="mt-4 rounded-[12px] border border-border/60 bg-[hsl(var(--surface-base)/0.92)] px-4 py-3 text-[13px] leading-6 text-muted-foreground">
               <p className="whitespace-pre-wrap">{updateInfo.releaseNotes}</p>
             </div>
           )}
@@ -225,9 +208,11 @@ export function UpdateSettings() {
         </div>
       )}
 
-      <p className="text-xs text-muted-foreground">
-        {t('updates.help')}
-      </p>
+      {status === 'unsupported' && (
+        <div className={neutralPanelClass}>
+          <p>{t('updates.packagedOnlyDetail')}</p>
+        </div>
+      )}
     </div>
   );
 }

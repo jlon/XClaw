@@ -174,6 +174,19 @@
             "sourceLanguageHint": "模板说明内容来自上游源文件；如果上游没有多语版本，这里会保留原始语言。",
             "emptyTitle": "没有匹配的模板",
             "emptySearchDescription": "换一个关键词，或者刷新一次市场目录。市场只接受受控 catalog，不接受任意 URL 安装。",
+            "categories": {
+                "automation": "自动化",
+                "business": "商业",
+                "creative": "创意",
+                "data": "数据",
+                "development": "开发",
+                "education": "教育",
+                "management": "管理",
+                "marketing": "营销",
+                "productivity": "效率",
+                "saas": "SaaS",
+                "security": "安全"
+            },
             "sectionKinds": {
                 "identity": "角色定位",
                 "responsibilities": "核心职责",
@@ -191,11 +204,19 @@
         }
     },
     "createDialog": {
-        "title": "新建智能体",
-        "description": "只需输入名称即可创建新智能体。XClaw 会复制主智能体的工作区引导文件和运行时认证配置。",
-        "nameLabel": "智能体名称",
-        "namePlaceholder": "Coding Helper"
-    },
+    "title": "新建智能体",
+    "description": "只需输入名称即可创建新智能体。XClaw 会复制主智能体的工作区引导文件和运行时认证配置。",
+    "nameLabel": "智能体名称",
+    "namePlaceholder": "Coding Helper",
+    "modelLabel": "模型",
+    "modelSearchPlaceholder": "搜索可用模型",
+    "useDefaultModel": "使用 OpenClaw 默认模型",
+    "useDefaultModelDescription": "移除当前智能体的模型覆盖。",
+    "modelsLoading": "正在读取可用模型…",
+    "modelsLoadFailed": "读取模型失败，请稍后重试。",
+    "modelsEmpty": "当前没有可选模型。",
+    "modelsEmptySearch": "没有匹配的模型。"
+  },
     "deleteDialog": {
         "title": "删除智能体",
         "message": "确认从 XClaw 删除 “{{name}}”？这会永久删除该智能体及其由 XClaw 管理的工作区、运行时和会话文件。"

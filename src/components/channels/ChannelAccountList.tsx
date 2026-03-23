@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { workbenchPrimaryToolbarButtonClasses } from '@/components/layout/workbench-button-styles';
 import { cn } from '@/lib/utils';
 import type { ChannelType } from '@/types/channel';
 import { Plus, Trash2 } from 'lucide-react';
@@ -203,8 +204,7 @@ export function ChannelAccountList({
           <p className="text-[11px] leading-5 text-muted-foreground/78">{emptyDescription}</p>
           <Button
             size="sm"
-            variant="outline"
-            className="mt-4 h-7 rounded-[10px] px-3 text-[11.5px] text-foreground/78 shadow-none hover:text-foreground"
+            className={cn(workbenchPrimaryToolbarButtonClasses, 'mt-4 h-[44px] px-4 text-[13px]')}
             onClick={onAddAccount}
           >
             <Plus className="mr-1 h-3.5 w-3.5" />

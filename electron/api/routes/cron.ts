@@ -15,7 +15,7 @@ interface GatewayCronJob {
   updatedAtMs: number;
   schedule: { kind: string; expr?: string; everyMs?: number; at?: string; tz?: string };
   payload: { kind: string; message?: string; text?: string };
-  delivery?: { mode: string; channel?: string; to?: string };
+  delivery?: { mode: string; channel?: string; to?: string; accountId?: string };
   sessionTarget?: string;
   state: {
     nextRunAtMs?: number;
@@ -266,7 +266,13 @@ function transformCronJob(job: GatewayCronJob) {
   const message = job.payload?.message || job.payload?.text || '';
   const channelType = job.delivery?.channel;
   const target = channelType
-    ? { channelType, channelId: channelType, channelName: channelType }
+    ? {
+      channelType,
+      accountId: job.delivery?.accountId || 'default',
+      ...(typeof job.delivery?.to === 'string' && job.delivery.to.trim()
+        ? { recipientId: job.delivery.to.trim() }
+        : {}),
+    }
     : undefined;
   const lastRun = job.state?.lastRunAtMs
     ? {
@@ -292,6 +298,46 @@ function transformCronJob(job: GatewayCronJob) {
     updatedAt: new Date(job.updatedAtMs).toISOString(),
     lastRun,
     nextRun,
+  };
+}
+
+type CronTargetInput = {
+  channelType: string;
+  accountId: string;
+  recipientId: string;
+};
+
+function normalizeCronTarget(input: unknown): CronTargetInput {
+  if (!input || typeof input !== 'object') {
+    throw new Error('target is required');
+  }
+
+  const target = input as Record<string, unknown>;
+  const channelType = typeof target.channelType === 'string' ? target.channelType.trim() : '';
+  const accountId = typeof target.accountId === 'string' ? target.accountId.trim() : '';
+  const recipientId = typeof target.recipientId === 'string' ? target.recipientId.trim() : '';
+
+  if (!channelType) throw new Error('target.channelType is required');
+  if (!accountId) throw new Error('target.accountId is required');
+  if (!recipientId) throw new Error('target.recipientId is required');
+
+  return {
+    channelType,
+    accountId,
+    recipientId,
+  };
+}
+
+function buildCronDelivery(target: CronTargetInput | null | undefined) {
+  if (!target) {
+    return { mode: 'none' as const };
+  }
+
+  return {
+    mode: 'announce' as const,
+    channel: target.channelType,
+    accountId: target.accountId,
+    to: target.recipientId,
   };
 }
 
@@ -380,11 +426,19 @@ export async function handleCronRoutes(
 
   if (url.pathname === '/api/cron/jobs' && req.method === 'POST') {
     try {
-      const input = await parseJsonBody<{ name: string; message: string; schedule: string; enabled?: boolean; agentId?: string }>(req);
+      const input = await parseJsonBody<{
+        name: string;
+        message: string;
+        schedule: string;
+        enabled?: boolean;
+        agentId?: string;
+        target?: unknown;
+      }>(req);
       const agentId = typeof input.agentId === 'string' ? input.agentId.trim() : '';
       if (!agentId) {
         throw new Error('agentId is required');
       }
+      const target = normalizeCronTarget(input.target);
       const result = await ctx.gatewayManager.rpc('cron.add', {
         agentId,
         name: input.name,
@@ -393,7 +447,7 @@ export async function handleCronRoutes(
         enabled: input.enabled ?? true,
         wakeMode: 'next-heartbeat',
         sessionTarget: 'isolated',
-        delivery: { mode: 'none' },
+        delivery: buildCronDelivery(target),
       });
       sendJson(res, 200, result && typeof result === 'object' ? transformCronJob(result as GatewayCronJob) : result);
     } catch (error) {
@@ -420,7 +474,13 @@ export async function handleCronRoutes(
         patch.payload = { kind: 'agentTurn', message: patch.message };
         delete patch.message;
       }
-      sendJson(res, 200, await ctx.gatewayManager.rpc('cron.update', { id, patch }));
+      if ('target' in patch) {
+        const target = patch.target == null ? null : normalizeCronTarget(patch.target);
+        patch.delivery = buildCronDelivery(target);
+        delete patch.target;
+      }
+      const result = await ctx.gatewayManager.rpc('cron.update', { id, patch });
+      sendJson(res, 200, result && typeof result === 'object' ? transformCronJob(result as GatewayCronJob) : result);
     } catch (error) {
       sendJson(res, 500, { success: false, error: String(error) });
     }

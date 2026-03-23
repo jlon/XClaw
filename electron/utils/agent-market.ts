@@ -1,4 +1,5 @@
 import agentMarketSeed from '../shared/agent-market-seed.json';
+import agentMarketTemplates from '../shared/agent-market-templates.json';
 import {
   createAgentWithId,
   deleteAgentConfig,
@@ -39,15 +40,11 @@ function assertSupportedCatalogItem(item: AgentMarketItem): void {
   }
 }
 
-async function fetchSoulTemplate(item: AgentMarketItem): Promise<string> {
+function getBundledSoulTemplate(item: AgentMarketItem): string {
   assertSupportedCatalogItem(item);
-  const response = await fetch(item.rawUrl);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch market template: ${response.status} ${response.statusText}`);
-  }
-  const content = await response.text();
+  const content = agentMarketTemplates[item.id as keyof typeof agentMarketTemplates];
   if (!content.trim()) {
-    throw new Error(`Market template is empty: ${item.id}`);
+    throw new Error(`Bundled market template is empty: ${item.id}`);
   }
   return content;
 }
@@ -62,9 +59,9 @@ export async function listAgentMarketCatalog(): Promise<AgentMarketCatalog> {
 
 export async function installAgentFromCatalog(catalogItemId: string, name?: string): Promise<AgentMarketInstallResult> {
   const item = getCatalogItem(catalogItemId);
-  const soulContent = await fetchSoulTemplate(item);
+  const soulContent = getBundledSoulTemplate(item);
   const targetName = (name ?? '').trim() || item.name || item.id;
-  const { snapshot, createdAgentId } = await createAgentWithId(targetName);
+  const { snapshot, createdAgentId } = await createAgentWithId(targetName, { bootstrapMode: 'empty' });
   try {
     await writeAgentWorkspaceFileContent(createdAgentId, 'SOUL.md', soulContent);
     return {

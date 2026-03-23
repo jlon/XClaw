@@ -444,7 +444,6 @@ export function ChannelConfigEditor({
                 </div>
                 <Switch
                   checked={selectedGroup?.enabled ?? true}
-                  className="data-[state=checked]:bg-foreground/75 dark:data-[state=checked]:bg-white/70"
                   disabled={!channelType || editorTogglingEnabled}
                   onCheckedChange={onToggleEnabled}
                 />
@@ -488,7 +487,6 @@ export function ChannelConfigEditor({
                 <Switch
                   data-testid="weixin-guardian-switch"
                   checked={weixinGuardianEnabled}
-                  className="data-[state=checked]:bg-foreground/75 dark:data-[state=checked]:bg-white/70"
                   disabled={weixinGuardianLoading || weixinGuardianSaving}
                   onCheckedChange={onWeixinGuardianToggle}
                 />

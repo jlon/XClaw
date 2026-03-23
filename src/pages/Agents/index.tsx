@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { AgentCardsPane } from '@/components/agents/AgentCardsPane';
 import { AgentLocalDetailPane } from '@/components/agents/AgentLocalDetailPane';
@@ -13,16 +13,20 @@ import { AgentMarketCardsPane } from '@/components/agents/AgentMarketCardsPane';
 import { AgentMarketDetailPane } from '@/components/agents/AgentMarketDetailPane';
 import { AgentModeSwitch } from '@/components/agents/AgentModeSwitch';
 import type { AgentBrowseMode } from '@/components/agents/AgentModeSwitch';
-import { ChannelIcon } from '@/components/channels/ChannelIcon';
+import {
+  workbenchPrimaryToolbarButtonClasses,
+  workbenchToolbarButtonClasses,
+} from '@/components/layout/workbench-button-styles';
 import { WorkspacePageFrame, WorkspacePageLoading, WorkspacePageScrollArea, WorkspacePageShell } from '@/components/layout/WorkspacePage';
 import { useAgentsStore } from '@/stores/agents';
 import { useGatewayStore } from '@/stores/gateway';
 import { hostApiFetch } from '@/lib/host-api';
 import { subscribeHostEvent } from '@/lib/host-events';
+import { resolveMarketCategoryLabel } from '@/lib/agent-market-copy';
 import { getModelOptionHint, getModelOptionLabel, normalizeModelOption, type ModelOption } from '@/lib/model-options';
 import { getProviderAccountRuntimeKey } from '@/lib/provider-accounts';
-import { CHANNEL_NAMES, type ChannelType } from '@/types/channel';
-import type { AgentSummary } from '@/types/agent';
+import type { AgentsSnapshot, AgentSummary } from '@/types/agent';
+import type { ChannelType } from '@/types/channel';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -83,13 +87,12 @@ const browsePaneClasses =
   'app-pane-surface min-h-[600px] rounded-[24px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.992)] p-4 shadow-[0_10px_24px_rgba(15,23,42,0.04),inset_0_1px_0_rgba(255,255,255,0.74)]';
 const detailWorkbenchClasses =
   'app-pane-surface min-h-[600px] rounded-[24px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.995)] p-4 shadow-[0_14px_32px_rgba(15,23,42,0.05),inset_0_1px_0_rgba(255,255,255,0.78)]';
-const actionButtonClasses =
-  'h-9 rounded-[12px] border-border/70 bg-transparent px-3.5 text-[13px] font-medium text-foreground/76 shadow-none transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
 const pageHeaderClasses =
   'mb-3 flex items-center justify-between gap-4';
 const pageTitleClasses =
   'text-[19px] md:text-[20px] font-semibold leading-[1.05] tracking-tight text-foreground';
 type DetailTab = 'persona' | 'binding';
+type PickerPlacement = 'top' | 'bottom';
 
 function getAssignedChannels(
   agentId: string,
@@ -132,6 +135,92 @@ function getPersistedAgentModelRef(agent: AgentSummary): string | null {
   return agent.inheritedModel ? null : agent.modelRef ?? null;
 }
 
+function usePickerPlacement(anchorRef: RefObject<HTMLElement | null>, open: boolean) {
+  const [placement, setPlacement] = useState<PickerPlacement>('bottom');
+  const [listMaxHeight, setListMaxHeight] = useState(288);
+
+  useEffect(() => {
+    if (!open || typeof window === 'undefined') {
+      return;
+    }
+
+    const updatePlacement = () => {
+      const rect = anchorRef.current?.getBoundingClientRect();
+      if (!rect) {
+        return;
+      }
+      const viewportPadding = 16;
+      const panelGap = 8;
+      const listChromeHeight = 68;
+      const spaceAbove = rect.top - viewportPadding;
+      const spaceBelow = window.innerHeight - rect.bottom - viewportPadding;
+      const nextPlacement: PickerPlacement =
+        spaceBelow >= 320 || spaceBelow >= spaceAbove ? 'bottom' : 'top';
+      const availableSpace = Math.max(
+        160,
+        (nextPlacement === 'bottom' ? spaceBelow : spaceAbove) - panelGap,
+      );
+      setPlacement(nextPlacement);
+      setListMaxHeight(Math.max(120, Math.min(288, availableSpace - listChromeHeight)));
+    };
+
+    updatePlacement();
+    window.addEventListener('resize', updatePlacement);
+    window.addEventListener('scroll', updatePlacement, true);
+    return () => {
+      window.removeEventListener('resize', updatePlacement);
+      window.removeEventListener('scroll', updatePlacement, true);
+    };
+  }, [anchorRef, open]);
+
+  return { placement, listMaxHeight };
+}
+
+function useAvailableModelOptions(enabled: boolean) {
+  const gatewayRpc = useGatewayStore((state) => state.rpc);
+  const [models, setModels] = useState<ModelOption[]>([]);
+  const [modelsLoading, setModelsLoading] = useState(false);
+  const [modelsLoadError, setModelsLoadError] = useState<string | null>(null);
+
+  const loadModels = useCallback(async () => {
+    setModelsLoading(true);
+    setModelsLoadError(null);
+    try {
+      const [response, providerAccounts] = await Promise.all([
+        gatewayRpc<{ models?: unknown[] }>('models.list', {}),
+        hostApiFetch<ProviderAccount[]>('/api/provider-accounts').catch(() => []),
+      ]);
+      const providerLabelMap = new Map(
+        (providerAccounts ?? []).map((account) => [getProviderAccountRuntimeKey(account), account.label]),
+      );
+      const nextModels = Array.isArray(response?.models)
+        ? response.models
+            .map((model, index) => ({
+              model: normalizeModelOption(model, providerLabelMap),
+              index,
+            }))
+            .filter((entry): entry is { model: ModelOption; index: number } => Boolean(entry.model))
+            .sort((left, right) => left.index - right.index)
+            .map((entry) => entry.model)
+        : [];
+      setModels(nextModels);
+    } catch (error) {
+      setModelsLoadError(String(error));
+    } finally {
+      setModelsLoading(false);
+    }
+  }, [gatewayRpc]);
+
+  useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+    void loadModels();
+  }, [enabled, loadModels]);
+
+  return { models, modelsLoading, modelsLoadError };
+}
+
 function getMarketSearchText(item: AgentMarketCatalogItem) {
   return [
     item.id,
@@ -161,6 +250,7 @@ export function Agents() {
     agents,
     loading,
     error,
+    applySnapshot,
     fetchAgents,
     createAgent,
     deleteAgent,
@@ -310,8 +400,8 @@ export function Agents() {
     () =>
       marketCategoryStats
         .slice(5)
-        .map((entry) => ({ value: entry.category, label: `${entry.category} (${entry.count})` })),
-    [marketCategoryStats],
+        .map((entry) => ({ value: entry.category, label: `${resolveMarketCategoryLabel(t, entry.category)} (${entry.count})` })),
+    [marketCategoryStats, t],
   );
   const filteredAgents = useMemo(
     () => agents.filter((agent) => !normalizedAgentQuery || getAgentSearchText(agent).includes(normalizedAgentQuery)),
@@ -587,7 +677,7 @@ export function Agents() {
     }
     setMarketInstalling(true);
     try {
-      const response = await hostApiFetch<{ success: boolean; createdAgentId: string }>(
+      const response = await hostApiFetch<AgentsSnapshot & { success: boolean; createdAgentId: string }>(
         '/api/agent-market/install',
         {
           method: 'POST',
@@ -597,7 +687,7 @@ export function Agents() {
           }),
         },
       );
-      await fetchAgents();
+      applySnapshot(response);
       setBrowseMode('agents');
       setActiveAgentId(response.createdAgentId);
       setDetailTab('persona');
@@ -608,7 +698,7 @@ export function Agents() {
     } finally {
       setMarketInstalling(false);
     }
-  }, [fetchAgents, marketInstallName, selectedMarketItem, t]);
+  }, [applySnapshot, marketInstallName, selectedMarketItem, t]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -693,14 +783,15 @@ export function Agents() {
                     onSelectAgent={handleSelectAgent}
                     onCreateAgent={() => setShowAddDialog(true)}
                     onInstallFromMarket={() => handleBrowseModeChange('market')}
-                    actionButtonClassName={actionButtonClasses}
+                    actionButtonClassName={workbenchToolbarButtonClasses}
+                    primaryActionButtonClassName={workbenchPrimaryToolbarButtonClasses}
                     badgeClassName={badgeClasses}
                     toolbarSlot={
                       <>
                         <Button
                           variant="outline"
                           onClick={handleRefresh}
-                          className={actionButtonClasses}
+                          className={workbenchToolbarButtonClasses}
                         >
                           <RefreshCw className="mr-2 h-3.5 w-3.5" />
                           {t('refresh')}
@@ -728,7 +819,7 @@ export function Agents() {
                   <div className="space-y-4">
                     <section className="sticky top-0 z-[1] rounded-[20px] border border-border/60 bg-[hsl(var(--surface-panel)/0.99)] px-4 py-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.52),0_12px_24px_rgba(15,23,42,0.03)] backdrop-blur-sm">
                       <div className="flex flex-wrap items-center gap-2.5">
-                        <div className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-[14px] border border-border/65 bg-[hsl(var(--surface-elevated)/0.98)] px-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition-colors focus-within:border-ring/50 focus-within:bg-white">
+                        <div className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-[14px] border border-border/65 bg-[hsl(var(--surface-elevated)/0.98)] px-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition-colors focus-within:border-ring/50 focus-within:bg-[hsl(var(--surface-elevated)/1)]">
                           <Search className="h-4 w-4 shrink-0 text-foreground/34" />
                           <Input
                             value={marketSearchValue}
@@ -740,7 +831,7 @@ export function Agents() {
                         </div>
                         <Button
                           variant="outline"
-                          className={actionButtonClasses}
+                          className={workbenchToolbarButtonClasses}
                           onClick={() => void loadMarketCatalog()}
                         >
                           <RefreshCw className="mr-2 h-3.5 w-3.5" />
@@ -772,7 +863,7 @@ export function Agents() {
                                 : 'border-border/55 bg-[hsl(var(--surface-panel)/0.86)] text-foreground/58 hover:text-foreground',
                             )}
                           >
-                            {category}
+                            {resolveMarketCategoryLabel(t, category)}
                           </button>
                         ))}
                         {marketSecondaryCategoryOptions.length > 0 ? (
@@ -867,8 +958,8 @@ export function Agents() {
       {showAddDialog && (
         <AddAgentDialog
           onClose={() => setShowAddDialog(false)}
-          onCreate={async (name) => {
-            const createdAgentId = await createAgent(name);
+          onCreate={async (name, modelRef) => {
+            const createdAgentId = await createAgent(name, modelRef);
             if (createdAgentId) {
               setBrowseMode('agents');
               setActiveAgentId(createdAgentId);
@@ -883,7 +974,6 @@ export function Agents() {
       {settingsAgentId && agents.find((agent) => agent.id === settingsAgentId) ? (
         <AgentSettingsModal
           agent={agents.find((agent) => agent.id === settingsAgentId)!}
-          channelGroups={channelGroups}
           onClose={() => setSettingsAgentId(null)}
         />
       ) : null}
@@ -968,7 +1058,7 @@ function CreateAgentLauncher({
     <div ref={menuRef} className="relative">
       <Button
         onClick={onToggle}
-        className="h-9 rounded-[12px] px-4 text-[13px] font-medium shadow-none"
+        className={cn(workbenchPrimaryToolbarButtonClasses, 'px-4')}
       >
         <Plus className="mr-2 h-3.5 w-3.5" />
         {triggerLabel}
@@ -1001,10 +1091,6 @@ function CreateAgentLauncher({
 const inputClasses = fieldInputClasses;
 const labelClasses = 'text-[14px] font-semibold text-foreground/80';
 
-function ChannelLogo({ type }: { type: ChannelType }) {
-  return <ChannelIcon type={type} size={20} />;
-}
-
 function WorkspaceFileEditorDialog({
   title,
   path,
@@ -1025,15 +1111,15 @@ function WorkspaceFileEditorDialog({
   onSave: () => void;
 }) {
   const { t } = useTranslation('agents');
+  const showPath = path.trim() && path.trim() !== title.trim();
 
   return (
     <div className="app-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className={cn(modalSurfaceClasses, 'max-w-3xl overflow-hidden')}>
         <div className="flex items-start justify-between gap-4 border-b border-border/70 px-6 py-5">
           <div>
-            <h2 className={modalTitleClasses}>{t('workbench.persona.editorDialog.title')}</h2>
-            <p className={modalDescriptionClasses}>{title}</p>
-            <p className="mt-1 text-[11.5px] leading-[1.5] text-foreground/46">{path}</p>
+            <h2 className={modalTitleClasses}>{title}</h2>
+            {showPath ? <p className={modalDescriptionClasses}>{path}</p> : null}
           </div>
           <Button variant="ghost" size="icon" onClick={onClose} className={dialogIconButtonClasses}>
             <X className="h-4 w-4" />
@@ -1132,17 +1218,101 @@ function AddAgentDialog({
   onCreate,
 }: {
   onClose: () => void;
-  onCreate: (name: string) => Promise<void>;
+  onCreate: (name: string, modelRef?: string | null) => Promise<void>;
 }) {
   const { t } = useTranslation('agents');
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
+  const [selectedModelRef, setSelectedModelRef] = useState<string | null>(null);
+  const [useDefaultModel, setUseDefaultModel] = useState(true);
+  const [modelPickerOpen, setModelPickerOpen] = useState(false);
+  const [modelSearchValue, setModelSearchValue] = useState('');
+  const modelPickerRef = useRef<HTMLDivElement | null>(null);
+  const { models, modelsLoading, modelsLoadError } = useAvailableModelOptions(modelPickerOpen);
+  const { placement: createDialogPickerPlacement, listMaxHeight: createDialogListMaxHeight } = usePickerPlacement(modelPickerRef, modelPickerOpen);
+  const modelPickerScrollClass =
+    typeof window !== 'undefined' && window.electron?.platform === 'win32'
+      ? 'subtle-scrollbar-win'
+      : 'subtle-scrollbar';
+
+  useEffect(() => {
+    if (!modelPickerOpen) {
+      return;
+    }
+    const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (!modelPickerRef.current?.contains(target)) {
+        setModelPickerOpen(false);
+        setModelSearchValue('');
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setModelPickerOpen(false);
+        setModelSearchValue('');
+      }
+    };
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [modelPickerOpen]);
+
+  const selectedModel = useMemo(
+    () => models.find((model) => model.ref === selectedModelRef) ?? null,
+    [models, selectedModelRef],
+  );
+  const filteredModels = useMemo(() => {
+    const normalizedQuery = modelSearchValue.trim().toLowerCase();
+    if (!normalizedQuery) {
+      return models;
+    }
+    return models.filter((model) =>
+      [
+        getModelOptionLabel(model),
+        getModelOptionHint(model) ?? '',
+        model.ref,
+        model.modelId ?? '',
+        model.vendorId ?? '',
+      ]
+        .join(' ')
+        .toLowerCase()
+        .includes(normalizedQuery),
+    );
+  }, [modelSearchValue, models]);
+  const orderedModels = useMemo(() => {
+    if (!selectedModelRef) {
+      return filteredModels;
+    }
+    const currentIndex = filteredModels.findIndex((model) => model.ref === selectedModelRef);
+    if (currentIndex <= 0) {
+      return filteredModels;
+    }
+    const nextModels = [...filteredModels];
+    const [currentModel] = nextModels.splice(currentIndex, 1);
+    return currentModel ? [currentModel, ...nextModels] : filteredModels;
+  }, [filteredModels, selectedModelRef]);
+  const currentModelLabel = useMemo(() => {
+    if (useDefaultModel) {
+      return t('createDialog.useDefaultModel');
+    }
+    if (selectedModel) {
+      return getModelOptionLabel(selectedModel);
+    }
+    if (selectedModelRef?.trim()) {
+      const parts = selectedModelRef.trim().split('/');
+      return parts[parts.length - 1] || selectedModelRef.trim();
+    }
+    return t('createDialog.modelLabel');
+  }, [selectedModel, selectedModelRef, t, useDefaultModel]);
 
   const handleSubmit = async () => {
     if (!name.trim()) return;
     setSaving(true);
     try {
-      await onCreate(name.trim());
+      await onCreate(name.trim(), useDefaultModel ? null : (selectedModelRef?.trim() || null));
     } catch (error) {
       toast.error(t('toast.agentCreateFailed', { error: String(error) }));
       setSaving(false);
@@ -1153,7 +1323,7 @@ function AddAgentDialog({
 
   return (
     <div className="app-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className={cn(modalSurfaceClasses, 'max-w-md overflow-hidden')}>
+      <div className={cn(modalSurfaceClasses, 'max-w-lg overflow-visible')}>
         <div className="flex items-start justify-between gap-4 border-b border-border/70 px-6 py-5">
           <div>
             <h2 className={modalTitleClasses}>{t('createDialog.title')}</h2>
@@ -1174,6 +1344,108 @@ function AddAgentDialog({
               className={inputClasses}
             />
           </div>
+          <div className="space-y-1.5">
+            <p className="text-[11px] font-medium text-muted-foreground/72">
+              {t('createDialog.modelLabel')}
+            </p>
+            <div ref={modelPickerRef} className="relative z-30">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setModelPickerOpen((open) => {
+                  if (open) {
+                    setModelSearchValue('');
+                  }
+                  return !open;
+                })}
+                disabled={saving}
+                className="h-10 w-full justify-between rounded-[12px] border-border/70 bg-[hsl(var(--surface-elevated)/0.96)] px-3 text-left text-[13px] font-medium text-foreground shadow-none transition-colors hover:bg-[hsl(var(--surface-hover)/0.42)]"
+              >
+                <span className="truncate">{currentModelLabel}</span>
+                <ChevronDown className="ml-2 h-3.5 w-3.5 shrink-0 text-foreground/48" />
+              </Button>
+              {modelPickerOpen ? (
+                <div
+                  className={cn(
+                    'absolute left-0 z-40 w-full overflow-hidden rounded-[14px] border border-border/70 bg-[hsl(var(--surface-elevated)/1)] p-1.5 shadow-[0_18px_42px_rgba(15,23,42,0.12)]',
+                    createDialogPickerPlacement === 'top' ? 'bottom-full mb-2' : 'top-full mt-2',
+                  )}
+                >
+                  <div className="px-2 pb-2">
+                    <div className="relative">
+                      <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/55" />
+                      <input
+                        aria-label={t('createDialog.modelSearchPlaceholder')}
+                        value={modelSearchValue}
+                        placeholder={t('createDialog.modelSearchPlaceholder')}
+                        onChange={(event) => setModelSearchValue(event.target.value)}
+                        className="h-8 w-full rounded-[10px] border border-border/65 bg-[hsl(var(--surface-panel)/0.95)] pl-8.5 pr-3 text-[12px] text-foreground outline-none placeholder:text-foreground/36 focus:border-ring/55"
+                      />
+                    </div>
+                  </div>
+                  <div className={cn('overflow-y-auto pr-0.5', modelPickerScrollClass)} style={{ maxHeight: `${createDialogListMaxHeight}px` }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUseDefaultModel(true);
+                        setModelPickerOpen(false);
+                        setModelSearchValue('');
+                      }}
+                      className={cn(
+                        'flex w-full items-center justify-between rounded-[10px] px-3 py-2 text-left transition-[background-color,color] hover:bg-[hsl(var(--foreground)/0.032)]',
+                        useDefaultModel && 'bg-[hsl(var(--foreground)/0.032)]',
+                      )}
+                    >
+                      <span className="text-[12.5px] font-medium text-foreground/92">{t('createDialog.useDefaultModel')}</span>
+                    </button>
+                    {modelsLoading ? (
+                      <div className="px-3 py-6 text-center text-[12px] text-muted-foreground">
+                        {t('createDialog.modelsLoading')}
+                      </div>
+                    ) : null}
+                    {!modelsLoading && modelsLoadError ? (
+                      <div className="px-3 py-6 text-center text-[12px] text-destructive">
+                        {t('createDialog.modelsLoadFailed')}
+                      </div>
+                    ) : null}
+                    {!modelsLoading && !modelsLoadError
+                      ? orderedModels.map((model) => (
+                          <button
+                            key={model.ref}
+                            type="button"
+                            onClick={() => {
+                              setSelectedModelRef(model.ref);
+                              setUseDefaultModel(false);
+                              setModelPickerOpen(false);
+                              setModelSearchValue('');
+                            }}
+                            className={cn(
+                              'flex w-full flex-col items-start rounded-[10px] px-3 py-2 text-left transition-[background-color,color] hover:bg-[hsl(var(--foreground)/0.032)]',
+                              !useDefaultModel && model.ref === selectedModelRef && 'bg-[hsl(var(--foreground)/0.032)]',
+                            )}
+                          >
+                            <span className="text-[12.5px] font-medium text-foreground/92">{getModelOptionLabel(model)}</span>
+                            {getModelOptionHint(model) ? (
+                              <span className="text-[10.5px] text-muted-foreground/72">{getModelOptionHint(model)}</span>
+                            ) : null}
+                          </button>
+                        ))
+                      : null}
+                    {!modelsLoading && !modelsLoadError && models.length === 0 ? (
+                      <div className="px-3 py-6 text-center text-[12px] text-muted-foreground">
+                        {t('createDialog.modelsEmpty')}
+                      </div>
+                    ) : null}
+                    {!modelsLoading && !modelsLoadError && models.length > 0 && orderedModels.length === 0 ? (
+                      <div className="px-3 py-6 text-center text-[12px] text-muted-foreground">
+                        {t('createDialog.modelsEmptySearch')}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
           <div className="flex justify-end gap-2">
             <Button
               variant="outline"
@@ -1184,7 +1456,7 @@ function AddAgentDialog({
             </Button>
             <Button
               onClick={() => void handleSubmit()}
-              disabled={saving || !name.trim()}
+              disabled={saving || !name.trim() || (!useDefaultModel && !selectedModelRef)}
               className="h-9 rounded-[12px] px-4 text-[13px] font-medium shadow-none"
             >
               {saving ? (
@@ -1205,27 +1477,27 @@ function AddAgentDialog({
 
 function AgentSettingsModal({
   agent,
-  channelGroups,
   onClose,
 }: {
   agent: AgentSummary;
-  channelGroups: ChannelGroupItem[];
   onClose: () => void;
 }) {
   const { t } = useTranslation('agents');
-  const gatewayRpc = useGatewayStore((state) => state.rpc);
   const { updateAgent } = useAgentsStore();
   const [name, setName] = useState(agent.name);
   const [selectedModelRef, setSelectedModelRef] = useState<string | null>(getPersistedAgentModelRef(agent));
   const [useDefaultModel, setUseDefaultModel] = useState(getPersistedAgentModelRef(agent) === null);
   const [modelPickerOpen, setModelPickerOpen] = useState(false);
   const [modelSearchValue, setModelSearchValue] = useState('');
-  const [models, setModels] = useState<ModelOption[]>([]);
-  const [modelsLoading, setModelsLoading] = useState(false);
-  const [modelsLoadError, setModelsLoadError] = useState<string | null>(null);
   const [savingSettings, setSavingSettings] = useState(false);
   const modelPickerRef = useRef<HTMLDivElement | null>(null);
   const persistedModelRef = getPersistedAgentModelRef(agent);
+  const { models, modelsLoading, modelsLoadError } = useAvailableModelOptions(modelPickerOpen);
+  const { placement: settingsPickerPlacement, listMaxHeight: settingsListMaxHeight } = usePickerPlacement(modelPickerRef, modelPickerOpen);
+  const modelPickerScrollClass =
+    typeof window !== 'undefined' && window.electron?.platform === 'win32'
+      ? 'subtle-scrollbar-win'
+      : 'subtle-scrollbar';
 
   useEffect(() => {
     setName(agent.name);
@@ -1257,42 +1529,6 @@ function AgentSettingsModal({
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [modelPickerOpen]);
-
-  const loadModels = useCallback(async () => {
-    setModelsLoading(true);
-    setModelsLoadError(null);
-    try {
-      const [response, providerAccounts] = await Promise.all([
-        gatewayRpc<{ models?: unknown[] }>('models.list', {}),
-        hostApiFetch<ProviderAccount[]>('/api/provider-accounts').catch(() => []),
-      ]);
-      const providerLabelMap = new Map(
-        (providerAccounts ?? []).map((account) => [getProviderAccountRuntimeKey(account), account.label]),
-      );
-      const nextModels = Array.isArray(response?.models)
-        ? response.models
-            .map((model, index) => ({
-              model: normalizeModelOption(model, providerLabelMap),
-              index,
-            }))
-            .filter((entry): entry is { model: ModelOption; index: number } => Boolean(entry.model))
-            .sort((left, right) => left.index - right.index)
-            .map((entry) => entry.model)
-        : [];
-      setModels(nextModels);
-    } catch (error) {
-      setModelsLoadError(String(error));
-    } finally {
-      setModelsLoading(false);
-    }
-  }, [gatewayRpc]);
-
-  useEffect(() => {
-    if (!modelPickerOpen) {
-      return;
-    }
-    void loadModels();
-  }, [loadModels, modelPickerOpen]);
 
   useEffect(() => {
     if (modelPickerOpen) {
@@ -1348,12 +1584,6 @@ function AgentSettingsModal({
     }
     return agent.modelDisplay;
   }, [agent.modelDisplay, selectedModel, selectedModelRef, useDefaultModel]);
-  const currentModelHint = useMemo(() => {
-    if (useDefaultModel) {
-      return t('settingsDialog.useDefaultModelDescription');
-    }
-    return selectedModel ? getModelOptionHint(selectedModel) : selectedModelRef;
-  }, [selectedModel, selectedModelRef, t, useDefaultModel]);
   const trimmedName = name.trim() || agent.name;
   const nextModelRef = useDefaultModel ? null : (selectedModelRef?.trim() || null);
   const hasChanges = trimmedName !== agent.name || nextModelRef !== persistedModelRef;
@@ -1378,31 +1608,14 @@ function AgentSettingsModal({
     }
   };
 
-  const assignedChannels = channelGroups.flatMap((group) =>
-    group.accounts
-      .filter((account) => account.agentId === agent.id)
-      .map((account) => ({
-        channelType: group.channelType as ChannelType,
-        accountId: account.accountId,
-        name:
-          account.accountId === 'default'
-            ? t('settingsDialog.mainAccount')
-            : account.name || account.accountId,
-        error: account.lastError,
-      })),
-  );
-
   return (
     <div className="app-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
-      <Card className={cn(modalSurfaceClasses, 'max-h-[90vh] max-w-2xl flex flex-col overflow-hidden')}>
+      <Card className={cn(modalSurfaceClasses, 'max-h-[90vh] max-w-2xl flex flex-col overflow-visible')}>
         <CardHeader className="flex flex-row items-start justify-between border-b border-border/70 px-6 py-5 shrink-0">
           <div>
-            <CardTitle className="text-[20px] md:text-[22px] font-semibold tracking-tight">
+            <CardTitle className={modalTitleClasses}>
               {t('settingsDialog.title', { name: agent.name })}
             </CardTitle>
-            <CardDescription className="mt-1 text-[13px] font-medium leading-[1.6] text-foreground/68">
-              {t('settingsDialog.description')}
-            </CardDescription>
           </div>
           <Button
             variant="ghost"
@@ -1413,8 +1626,8 @@ function AgentSettingsModal({
             <X className="h-4 w-4" />
           </Button>
         </CardHeader>
-        <CardContent className="space-y-6 overflow-y-auto flex-1 px-6 py-5">
-          <div className="space-y-4">
+        <CardContent className="flex-1 space-y-4 overflow-visible px-6 py-5">
+          <div className="space-y-3.5">
             <div className="space-y-2.5">
               <Label htmlFor="agent-settings-name" className={labelClasses}>{t('settingsDialog.nameLabel')}</Label>
               <Input
@@ -1426,36 +1639,37 @@ function AgentSettingsModal({
               />
             </div>
 
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="space-y-1 rounded-[14px] app-insight-surface px-3.5 py-3">
+            <div className="grid gap-3 md:grid-cols-[136px_minmax(0,1fr)] md:items-end">
+              <div className="space-y-1.5">
                 <p className="text-[11px] font-medium text-muted-foreground/72">
                   {t('settingsDialog.agentIdLabel')}
                 </p>
-                <p className="font-mono text-[12.5px] text-foreground/82">{agent.id}</p>
+                <div className="flex h-10 items-center rounded-[12px] border border-border/60 bg-[hsl(var(--surface-panel)/0.6)] px-3 text-[12.5px] text-foreground/84">
+                  <span className="font-mono">{agent.id}</span>
+                </div>
               </div>
-              <div className="space-y-1 rounded-[14px] app-insight-surface px-3.5 py-3">
+              <div className="space-y-1.5">
                 <p className="text-[11px] font-medium text-muted-foreground/72">
                   {t('settingsDialog.modelLabel')}
                 </p>
-                <div ref={modelPickerRef} className="relative mt-1.5">
+                <div ref={modelPickerRef} className="relative z-30">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setModelPickerOpen((open) => !open)}
                     disabled={savingSettings}
-                    className="h-[42px] w-full justify-between rounded-[12px] border-border/70 bg-[hsl(var(--surface-elevated)/0.96)] px-3 text-left text-[13px] font-medium text-foreground shadow-none transition-colors hover:bg-[hsl(var(--surface-hover)/0.42)]"
+                    className="h-10 w-full justify-between rounded-[12px] border-border/70 bg-[hsl(var(--surface-elevated)/0.96)] px-3 text-left text-[13px] font-medium text-foreground shadow-none transition-colors hover:bg-[hsl(var(--surface-hover)/0.42)]"
                   >
                     <span className="truncate">{currentModelLabel}</span>
                     <ChevronDown className="ml-2 h-3.5 w-3.5 shrink-0 text-foreground/48" />
                   </Button>
-                  <p className="mt-2 text-[11.5px] leading-[1.55] text-foreground/54">
-                    {t('settingsDialog.modelDescription')}
-                  </p>
-                  {currentModelHint ? (
-                    <p className="mt-1 text-[11.5px] leading-[1.55] text-foreground/42">{currentModelHint}</p>
-                  ) : null}
                   {modelPickerOpen ? (
-                    <div className="absolute left-0 top-full z-20 mt-2 w-full overflow-hidden rounded-[14px] border border-border/70 bg-[hsl(var(--surface-elevated)/1)] p-1.5 shadow-[0_18px_42px_rgba(15,23,42,0.12)]">
+                    <div
+                      className={cn(
+                        'absolute left-0 z-40 w-full overflow-hidden rounded-[14px] border border-border/70 bg-[hsl(var(--surface-elevated)/1)] p-1.5 shadow-[0_18px_42px_rgba(15,23,42,0.12)]',
+                        settingsPickerPlacement === 'top' ? 'bottom-full mb-2' : 'top-full mt-2',
+                      )}
+                    >
                       <div className="px-2 pb-2">
                         <div className="relative">
                           <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/55" />
@@ -1468,7 +1682,7 @@ function AgentSettingsModal({
                           />
                         </div>
                       </div>
-                      <div className="max-h-72 overflow-y-auto pr-0.5">
+                      <div className={cn('overflow-y-auto pr-0.5', modelPickerScrollClass)} style={{ maxHeight: `${settingsListMaxHeight}px` }}>
                         <button
                           type="button"
                           onClick={() => {
@@ -1476,12 +1690,11 @@ function AgentSettingsModal({
                             setModelPickerOpen(false);
                           }}
                           className={cn(
-                            'flex w-full flex-col items-start rounded-[10px] px-3 py-2 text-left transition-[background-color,color] hover:bg-[hsl(var(--foreground)/0.032)]',
+                            'flex w-full items-center justify-between rounded-[10px] px-3 py-2 text-left transition-[background-color,color] hover:bg-[hsl(var(--foreground)/0.032)]',
                             useDefaultModel && 'bg-[hsl(var(--foreground)/0.032)]',
                           )}
                         >
                           <span className="text-[12.5px] font-medium text-foreground/92">{t('settingsDialog.useDefaultModel')}</span>
-                          <span className="text-[10.5px] text-muted-foreground/72">{t('settingsDialog.useDefaultModelDescription')}</span>
                         </button>
                         {modelsLoading ? (
                           <div className="px-3 py-6 text-center text-[12px] text-muted-foreground">
@@ -1533,49 +1746,6 @@ function AgentSettingsModal({
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h3 className="text-[16px] text-foreground font-semibold tracking-tight">
-                  {t('settingsDialog.channelsTitle')}
-                </h3>
-                <p className="mt-1 text-[12.5px] leading-[1.55] text-foreground/62">{t('settingsDialog.channelsDescription')}</p>
-              </div>
-            </div>
-
-            {assignedChannels.length === 0 && agent.channelTypes.length === 0 ? (
-              <div className="rounded-[14px] border border-dashed border-border/60 bg-[hsl(var(--surface-panel)/0.62)] px-3.5 py-3 text-[12.5px] text-muted-foreground">
-                {t('settingsDialog.noChannels')}
-              </div>
-            ) : (
-              <div className="space-y-2.5">
-                {assignedChannels.map((channel) => (
-                  <div key={`${channel.channelType}-${channel.accountId}`} className="flex items-center justify-between rounded-[13px] border border-transparent px-3 py-2.5 transition-colors hover:bg-[hsl(var(--surface-hover)/0.5)]">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border border-border/60 bg-[hsl(var(--surface-panel)/0.88)] text-foreground/68 shadow-none">
-                        <ChannelLogo type={channel.channelType} />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-[13.5px] font-semibold text-foreground">{channel.name}</p>
-                        <p className="text-[12.25px] text-muted-foreground">
-                          {CHANNEL_NAMES[channel.channelType]} · {channel.accountId === 'default' ? t('settingsDialog.mainAccount') : channel.accountId}
-                        </p>
-                        {channel.error && (
-                          <p className="mt-1 text-[11.5px] text-destructive">{channel.error}</p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="shrink-0" />
-                  </div>
-                ))}
-                {assignedChannels.length === 0 && agent.channelTypes.length > 0 && (
-                  <div className="rounded-[14px] border border-dashed border-border/60 bg-[hsl(var(--surface-panel)/0.62)] px-3.5 py-3 text-[12.5px] text-muted-foreground">
-                    {t('settingsDialog.channelsManagedInChannels')}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
         </CardContent>
         <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border/70 px-6 py-4">
           <Button variant="outline" onClick={onClose} className={dialogActionButtonClasses}>

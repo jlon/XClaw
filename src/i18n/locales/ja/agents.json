@@ -171,6 +171,19 @@
             "sourceLanguageHint": "テンプレート説明は上流のソースファイルから取得しています。上流に多言語版がない場合、ここでは原文を保持します。",
             "emptyTitle": "一致するテンプレートがありません",
             "emptySearchDescription": "別のキーワードで検索するか、カタログを更新してください。管理されたエントリのみを扱います。",
+            "categories": {
+                "automation": "自動化",
+                "business": "ビジネス",
+                "creative": "クリエイティブ",
+                "data": "データ",
+                "development": "開発",
+                "education": "教育",
+                "management": "管理",
+                "marketing": "マーケティング",
+                "productivity": "生産性",
+                "saas": "SaaS",
+                "security": "セキュリティ"
+            },
             "sectionKinds": {
                 "identity": "役割定位",
                 "responsibilities": "主な責務",
@@ -188,11 +201,19 @@
         }
     },
     "createDialog": {
-        "title": "Agent を新規作成",
-        "description": "名前だけで新しい Agent を作成できます。XClaw はメイン Agent のワークスペース初期ファイルと認証設定をコピーします。",
-        "nameLabel": "Agent 名",
-        "namePlaceholder": "Coding Helper"
-    },
+    "title": "Agent を新規作成",
+    "description": "名前だけで新しい Agent を作成できます。XClaw はメイン Agent のワークスペース初期ファイルと認証設定をコピーします。",
+    "nameLabel": "Agent 名",
+    "namePlaceholder": "Coding Helper",
+    "modelLabel": "Model",
+    "modelSearchPlaceholder": "利用可能な Model を検索",
+    "useDefaultModel": "OpenClaw のデフォルト Model を使う",
+    "useDefaultModelDescription": "現在の Agent の Model override を外します。",
+    "modelsLoading": "利用可能な Model を読み込み中…",
+    "modelsLoadFailed": "Model の読み込みに失敗しました。しばらくしてから再試行してください。",
+    "modelsEmpty": "現在利用できる Model はありません。",
+    "modelsEmptySearch": "条件に一致する Model はありません。"
+  },
     "deleteDialog": {
         "title": "Agent を削除",
         "message": "XClaw から「{{name}}」を削除しますか？この操作により Agent と、その XClaw 管理下のワークスペース、実行時ファイル、セッションファイルがディスクから完全に削除されます。"

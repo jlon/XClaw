@@ -1,4 +1,4 @@
-import { readFile, rm } from 'fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -308,5 +308,59 @@ describe('channel account rename', () => {
       expect.objectContaining({ appId: 'bot-default' }),
     );
     expect(channels.feishu.appId).toBe('bot-default');
+  });
+});
+
+describe('channel recipient hint values', () => {
+  beforeEach(async () => {
+    vi.resetAllMocks();
+    vi.resetModules();
+    await rm(testHome, { recursive: true, force: true });
+    await rm(testUserData, { recursive: true, force: true });
+  });
+
+  it('merges feishu pairing-store allowFrom into recipient hints', async () => {
+    const { saveChannelConfig, getChannelRecipientHintValues } = await import('@electron/utils/channel-config');
+
+    await saveChannelConfig('feishu', { appId: 'bot-app', appSecret: 'bot-secret', allowFrom: ['*'] }, 'bot2');
+    const credentialsDir = join(testHome, '.openclaw', 'credentials');
+    await mkdir(credentialsDir, { recursive: true });
+    await writeFile(
+      join(credentialsDir, 'feishu-bot2-allowFrom.json'),
+      JSON.stringify({ version: 1, allowFrom: ['ou_123'] }, null, 2),
+      'utf8',
+    );
+
+    await expect(getChannelRecipientHintValues('feishu', 'bot2')).resolves.toEqual(
+      expect.objectContaining({
+        pairingAllowFrom: ['ou_123'],
+        pairingRecipientId: 'ou_123',
+      }),
+    );
+  });
+
+  it('merges telegram default pairing-store allowFrom into recipient hints', async () => {
+    const { saveChannelConfig, getChannelRecipientHintValues } = await import('@electron/utils/channel-config');
+
+    await saveChannelConfig('telegram', { botToken: 'telegram-token' }, 'default');
+    const credentialsDir = join(testHome, '.openclaw', 'credentials');
+    await mkdir(credentialsDir, { recursive: true });
+    await writeFile(
+      join(credentialsDir, 'telegram-default-allowFrom.json'),
+      JSON.stringify({ version: 1, allowFrom: ['5937398060'] }, null, 2),
+      'utf8',
+    );
+    await writeFile(
+      join(credentialsDir, 'telegram-allowFrom.json'),
+      JSON.stringify({ version: 1, allowFrom: ['5937398060'] }, null, 2),
+      'utf8',
+    );
+
+    await expect(getChannelRecipientHintValues('telegram', 'default')).resolves.toEqual(
+      expect.objectContaining({
+        pairingAllowFrom: ['5937398060'],
+        pairingRecipientId: '5937398060',
+      }),
+    );
   });
 });

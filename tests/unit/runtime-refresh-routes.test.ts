@@ -6,6 +6,8 @@ const sendJsonMock = vi.fn();
 const createAgentWithIdMock = vi.fn();
 const updateAgentSettingsMock = vi.fn();
 const deleteAgentConfigMock = vi.fn();
+const restoreAgentsConfigSnapshotMock = vi.fn();
+const removeAgentRuntimeDirectoryMock = vi.fn();
 const removeAgentWorkspaceDirectoryMock = vi.fn();
 const writeAgentWorkspaceFileContentMock = vi.fn();
 const createAgentWorkspaceFileMock = vi.fn();
@@ -37,10 +39,12 @@ vi.mock('@electron/utils/agent-config', () => ({
   listAgentsSnapshot: vi.fn().mockResolvedValue({ entries: [], channelAccountOwners: {} }),
   listAgentWorkspaceFiles: vi.fn(),
   readAgentWorkspaceFileContent: vi.fn(),
+  removeAgentRuntimeDirectory: (...args: unknown[]) => removeAgentRuntimeDirectoryMock(...args),
   removeAgentWorkspaceDirectory: (...args: unknown[]) => removeAgentWorkspaceDirectoryMock(...args),
   renameChannelAccountBinding: vi.fn(),
   renameAgentWorkspaceFile: (...args: unknown[]) => renameAgentWorkspaceFileMock(...args),
   resolveAccountIdForAgent: vi.fn().mockReturnValue('default'),
+  restoreAgentsConfigSnapshot: (...args: unknown[]) => restoreAgentsConfigSnapshotMock(...args),
   updateAgentName: vi.fn(),
   updateAgentSettings: (...args: unknown[]) => updateAgentSettingsMock(...args),
   uploadAgentWorkspaceFile: (...args: unknown[]) => uploadAgentWorkspaceFileMock(...args),
@@ -105,7 +109,16 @@ describe('agent and channel runtime refresh routes', () => {
     deleteAgentConfigMock.mockResolvedValue({
       snapshot: { entries: [], channelAccountOwners: {} },
       removedEntry: { id: 'agent-a' },
+      rollbackConfig: { agents: { list: [{ id: 'main' }, { id: 'agent-a' }] } },
     });
+    restoreAgentsConfigSnapshotMock.mockResolvedValue({
+      agents: [],
+      defaultAgentId: 'main',
+      configuredChannelTypes: [],
+      channelOwners: {},
+      channelAccountOwners: {},
+    });
+    removeAgentRuntimeDirectoryMock.mockResolvedValue(undefined);
     removeAgentWorkspaceDirectoryMock.mockResolvedValue(undefined);
     writeAgentWorkspaceFileContentMock.mockResolvedValue(undefined);
     createAgentWorkspaceFileMock.mockResolvedValue(undefined);
@@ -123,6 +136,7 @@ describe('agent and channel runtime refresh routes', () => {
 
   it('routes agent create and delete through the runtime controller', async () => {
     const { handleAgentRoutes } = await import('@electron/api/routes/agents');
+    const requestStart = vi.fn().mockResolvedValue(undefined);
     const restartRuntime = vi.fn().mockResolvedValue(undefined);
     const replaceRuntime = vi.fn().mockResolvedValue(undefined);
     const gatewayManager = {
@@ -133,6 +147,7 @@ describe('agent and channel runtime refresh routes', () => {
     const ctx = {
       gatewayManager,
       gatewayRuntimeController: {
+        requestStart,
         restartRuntime,
         replaceRuntime,
       },
@@ -154,18 +169,60 @@ describe('agent and channel runtime refresh routes', () => {
     );
 
     expect(syncAllProviderAuthToRuntimeMock).toHaveBeenCalledTimes(1);
+    expect(requestStart).toHaveBeenCalledTimes(1);
     expect(restartRuntime).toHaveBeenCalledTimes(1);
     expect(replaceRuntime).toHaveBeenCalledTimes(1);
+    expect(removeAgentRuntimeDirectoryMock).toHaveBeenCalledWith('agent-a');
     expect(gatewayManager.debouncedReload).not.toHaveBeenCalled();
     expect(gatewayManager.restart).not.toHaveBeenCalled();
+  });
+
+  it('passes a provider-scoped modelRef through agent creation', async () => {
+    const { handleAgentRoutes } = await import('@electron/api/routes/agents');
+    const requestStart = vi.fn().mockResolvedValue(undefined);
+    const restartRuntime = vi.fn().mockResolvedValue(undefined);
+    const ctx = {
+      gatewayManager: {
+        getStatus: vi.fn().mockReturnValue({ state: 'running', pid: undefined, port: undefined }),
+      },
+      gatewayRuntimeController: {
+        requestStart,
+        restartRuntime,
+      },
+    } as never;
+
+    parseJsonBodyMock.mockResolvedValueOnce({
+      name: 'Thumbnail Designer',
+      modelRef: 'provider-998/gpt-5.4',
+    });
+
+    await handleAgentRoutes(
+      { method: 'POST' } as IncomingMessage,
+      {} as ServerResponse,
+      new URL('http://127.0.0.1:3210/api/agents'),
+      ctx,
+    );
+
+    expect(createAgentWithIdMock).toHaveBeenCalledWith('Thumbnail Designer', {
+      modelRef: 'provider-998/gpt-5.4',
+    });
+    expect(syncAllProviderAuthToRuntimeMock).toHaveBeenCalledTimes(1);
+    expect(requestStart).toHaveBeenCalledTimes(1);
+    expect(restartRuntime).toHaveBeenCalledTimes(1);
   });
 
   it('routes workspace file mutations and market install through runtime restart', async () => {
     const { handleAgentRoutes } = await import('@electron/api/routes/agents');
     const { handleAgentMarketRoutes } = await import('@electron/api/routes/agent-market');
+    const requestStart = vi.fn().mockResolvedValue(undefined);
     const restartRuntime = vi.fn().mockResolvedValue(undefined);
+    const gatewayManager = {
+      getStatus: vi.fn().mockReturnValue({ state: 'running', pid: undefined, port: undefined }),
+    };
     const ctx = {
+      gatewayManager,
       gatewayRuntimeController: {
+        requestStart,
         restartRuntime,
       },
     } as never;
@@ -191,7 +248,160 @@ describe('agent and channel runtime refresh routes', () => {
     expect(writeAgentWorkspaceFileContentMock).toHaveBeenCalledWith('main', 'SOUL.md', '# soul');
     expect(installAgentFromCatalogMock).toHaveBeenCalledWith('research/planner', 'Planner');
     expect(syncAllProviderAuthToRuntimeMock).toHaveBeenCalledTimes(1);
+    expect(requestStart).toHaveBeenCalledTimes(1);
     expect(restartRuntime).toHaveBeenCalledTimes(2);
+  });
+
+  it('rolls back agent creation when post-create runtime finalization fails', async () => {
+    const { handleAgentRoutes } = await import('@electron/api/routes/agents');
+    const requestStart = vi.fn().mockResolvedValue(undefined);
+    const restartRuntime = vi.fn().mockRejectedValue(new Error('runtime failed'));
+    const gatewayManager = {
+      getStatus: vi.fn().mockReturnValue({ state: 'running', pid: undefined, port: undefined }),
+    };
+    const ctx = {
+      gatewayManager,
+      gatewayRuntimeController: {
+        requestStart,
+        restartRuntime,
+      },
+    } as never;
+
+    parseJsonBodyMock.mockResolvedValueOnce({ name: 'My Agent' });
+    deleteAgentConfigMock.mockResolvedValueOnce({
+      snapshot: { agents: [], defaultAgentId: 'main', configuredChannelTypes: [], channelOwners: {}, channelAccountOwners: {} },
+      removedEntry: { id: 'agent-a', workspace: '~/.openclaw/workspace-agent-a' },
+    });
+
+    await handleAgentRoutes(
+      { method: 'POST' } as IncomingMessage,
+      {} as ServerResponse,
+      new URL('http://127.0.0.1:3210/api/agents'),
+      ctx,
+    );
+
+    expect(deleteAgentConfigMock).toHaveBeenCalledWith('agent-a');
+    expect(removeAgentWorkspaceDirectoryMock).toHaveBeenCalledWith({
+      id: 'agent-a',
+      workspace: '~/.openclaw/workspace-agent-a',
+    });
+    expect(sendJsonMock).toHaveBeenCalledWith(expect.anything(), 500, {
+      success: false,
+      error: 'Error: runtime failed',
+    });
+  });
+
+  it('rolls back market install when post-install runtime finalization fails', async () => {
+    const { handleAgentMarketRoutes } = await import('@electron/api/routes/agent-market');
+    const requestStart = vi.fn().mockResolvedValue(undefined);
+    const restartRuntime = vi.fn().mockRejectedValue(new Error('runtime failed'));
+    const gatewayManager = {
+      getStatus: vi.fn().mockReturnValue({ state: 'running', pid: undefined, port: undefined }),
+    };
+    const ctx = {
+      gatewayManager,
+      gatewayRuntimeController: {
+        requestStart,
+        restartRuntime,
+      },
+    } as never;
+
+    parseJsonBodyMock.mockResolvedValueOnce({ catalogItemId: 'research/planner', name: 'Planner' });
+    installAgentFromCatalogMock.mockResolvedValueOnce({
+      snapshot: { agents: [], defaultAgentId: 'main', configuredChannelTypes: [], channelOwners: {}, channelAccountOwners: {} },
+      createdAgentId: 'agent-b',
+    });
+    deleteAgentConfigMock.mockResolvedValueOnce({
+      snapshot: { agents: [], defaultAgentId: 'main', configuredChannelTypes: [], channelOwners: {}, channelAccountOwners: {} },
+      removedEntry: { id: 'agent-b', workspace: '~/.openclaw/workspace-agent-b' },
+    });
+
+    await handleAgentMarketRoutes(
+      { method: 'POST' } as IncomingMessage,
+      {} as ServerResponse,
+      new URL('http://127.0.0.1:3210/api/agent-market/install'),
+      ctx,
+    );
+
+    expect(deleteAgentConfigMock).toHaveBeenCalledWith('agent-b');
+    expect(removeAgentWorkspaceDirectoryMock).toHaveBeenCalledWith({
+      id: 'agent-b',
+      workspace: '~/.openclaw/workspace-agent-b',
+    });
+    expect(sendJsonMock).toHaveBeenCalledWith(expect.anything(), 500, {
+      success: false,
+      error: 'Error: runtime failed',
+    });
+  });
+
+  it('restores the deleted agent config when runtime replacement fails during deletion', async () => {
+    const { handleAgentRoutes } = await import('@electron/api/routes/agents');
+    const replaceRuntime = vi.fn().mockRejectedValue(new Error('replace failed'));
+    const ctx = {
+      gatewayRuntimeController: {
+        replaceRuntime,
+      },
+    } as never;
+
+    deleteAgentConfigMock.mockResolvedValueOnce({
+      snapshot: { agents: [], defaultAgentId: 'main', configuredChannelTypes: [], channelOwners: {}, channelAccountOwners: {} },
+      removedEntry: { id: 'agent-a', workspace: '~/.openclaw/workspace-agent-a' },
+      rollbackConfig: { agents: { list: [{ id: 'main' }, { id: 'agent-a' }] } },
+    });
+
+    await handleAgentRoutes(
+      { method: 'DELETE' } as IncomingMessage,
+      {} as ServerResponse,
+      new URL('http://127.0.0.1:3210/api/agents/agent-a'),
+      ctx,
+    );
+
+    expect(restoreAgentsConfigSnapshotMock).toHaveBeenCalledWith({
+      agents: { list: [{ id: 'main' }, { id: 'agent-a' }] },
+    });
+    expect(removeAgentRuntimeDirectoryMock).not.toHaveBeenCalled();
+    expect(removeAgentWorkspaceDirectoryMock).not.toHaveBeenCalled();
+    expect(sendJsonMock).toHaveBeenCalledWith(expect.anything(), 500, {
+      success: false,
+      error: 'Error: replace failed',
+    });
+  });
+
+  it('starts the runtime instead of silently skipping create/install finalization when gateway is stopped', async () => {
+    const { handleAgentRoutes } = await import('@electron/api/routes/agents');
+    const { handleAgentMarketRoutes } = await import('@electron/api/routes/agent-market');
+    const requestStart = vi.fn().mockResolvedValue(undefined);
+    const restartRuntime = vi.fn().mockResolvedValue(undefined);
+    const gatewayManager = {
+      getStatus: vi.fn().mockReturnValue({ state: 'stopped', pid: undefined, port: undefined }),
+    };
+    const ctx = {
+      gatewayManager,
+      gatewayRuntimeController: {
+        requestStart,
+        restartRuntime,
+      },
+    } as never;
+
+    parseJsonBodyMock
+      .mockResolvedValueOnce({ name: 'Stopped Agent' })
+      .mockResolvedValueOnce({ catalogItemId: 'research/planner', name: 'Planner' });
+
+    await handleAgentRoutes(
+      { method: 'POST' } as IncomingMessage,
+      {} as ServerResponse,
+      new URL('http://127.0.0.1:3210/api/agents'),
+      ctx,
+    );
+    await handleAgentMarketRoutes(
+      { method: 'POST' } as IncomingMessage,
+      {} as ServerResponse,
+      new URL('http://127.0.0.1:3210/api/agent-market/install'),
+      ctx,
+    );
+
+    expect(requestStart).toHaveBeenCalledTimes(2);
+    expect(restartRuntime).not.toHaveBeenCalled();
   });
 
   it('updates agent settings and only requests async restart when the model changes', async () => {

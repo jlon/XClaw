@@ -15,11 +15,13 @@ import { withConfigLock } from './config-mutex';
 
 const OPENCLAW_DIR = join(homedir(), '.openclaw');
 const CONFIG_FILE = join(OPENCLAW_DIR, 'openclaw.json');
+const CREDENTIALS_DIR = join(OPENCLAW_DIR, 'credentials');
 const WECOM_PLUGIN_ID = 'wecom';
 const WEIXIN_PLUGIN_ID = 'openclaw-weixin';
 const FEISHU_PLUGIN_ID_CANDIDATES = ['openclaw-lark', 'feishu-openclaw-plugin'] as const;
 const DEFAULT_ACCOUNT_ID = 'default';
 const CHANNEL_TOP_LEVEL_KEYS_TO_KEEP = new Set(['accounts', 'defaultAccount', 'enabled']);
+const CHANNELS_WITH_PAIRING_HINTS = new Set(['feishu', 'telegram', 'wecom']);
 
 // Channels that are managed as plugins (config goes under plugins.entries, not channels)
 const PLUGIN_CHANNELS = ['whatsapp'];
@@ -722,6 +724,42 @@ function isStringArray(value: unknown): value is string[] {
     return Array.isArray(value) && value.every((item) => typeof item === 'string');
 }
 
+function uniqueRecipientIds(values: unknown[]): string[] {
+    return [...new Set(values.filter((value): value is string => typeof value === 'string' && value.trim().length > 0).map((value) => value.trim()))];
+}
+
+function buildPairingHintPaths(channelType: string, accountId?: string): string[] {
+    const resolvedAccountId = typeof accountId === 'string' && accountId.trim().length > 0 ? accountId.trim() : DEFAULT_ACCOUNT_ID;
+    return [
+        join(CREDENTIALS_DIR, `${channelType}-${resolvedAccountId}-allowFrom.json`),
+        ...(resolvedAccountId === DEFAULT_ACCOUNT_ID ? [join(CREDENTIALS_DIR, `${channelType}-allowFrom.json`)] : []),
+    ];
+}
+
+async function readPairingRecipientIds(channelType: string, accountId?: string): Promise<string[]> {
+    if (!CHANNELS_WITH_PAIRING_HINTS.has(channelType)) {
+        return [];
+    }
+
+    const recipients: string[] = [];
+    for (const filePath of buildPairingHintPaths(channelType, accountId)) {
+        if (!(await fileExists(filePath))) {
+            continue;
+        }
+        try {
+            const raw = await readFile(filePath, 'utf-8');
+            const parsed = JSON.parse(raw) as { allowFrom?: unknown };
+            if (Array.isArray(parsed.allowFrom)) {
+                recipients.push(...uniqueRecipientIds(parsed.allowFrom));
+            }
+        } catch (error) {
+            logger.warn('Failed to read channel pairing hint file', { channelType, accountId, filePath, error });
+        }
+    }
+
+    return uniqueRecipientIds(recipients);
+}
+
 function extractEditorValues(channelType: string, saved: ChannelConfigData): Record<string, ChannelEditorValue> {
     const values: Record<string, ChannelEditorValue> = extractFormValues(channelType, saved);
 
@@ -756,6 +794,88 @@ export async function getChannelEditorValues(
 
     const values = extractEditorValues(channelType, saved);
     return Object.keys(values).length > 0 ? values : undefined;
+}
+
+type ChannelRecipientHintReason = 'derived' | 'wildcard' | 'multiple' | 'missing';
+
+export type ChannelRecipientHintValues = {
+    reason: ChannelRecipientHintReason;
+    recipientId?: string;
+    candidates?: string[];
+};
+
+function collectHintValues(value: unknown): string[] {
+    if (typeof value === 'string') {
+        return value
+            .split(/[,\n]/)
+            .map((item) => item.trim())
+            .filter(Boolean);
+    }
+    if (isStringArray(value)) {
+        return uniqueRecipientIds(value);
+    }
+    return [];
+}
+
+function resolveHintAllowListFields(channelType: string): string[] {
+    if (channelType === 'feishu' || channelType === 'wecom') {
+        return ['groupAllowFrom', 'allowFrom'];
+    }
+    if (channelType === 'telegram') {
+        return ['allowedUsers', 'allowFrom'];
+    }
+    return ['groupAllowFrom', 'allowFrom', 'allowedUsers'];
+}
+
+export async function getChannelRecipientHintValues(
+    channelType: string,
+    accountId?: string,
+): Promise<ChannelRecipientHintValues | undefined> {
+    const saved = await getChannelConfig(channelType, accountId);
+    const explicitFields = ['recipientId', 'pairingRecipientId', 'channelId', 'chatId', 'conversationId', 'groupId', 'roomId', 'threadId', 'peerId', 'openChatId', 'targetId'];
+    const explicitRecipientIds = uniqueRecipientIds(
+        explicitFields.flatMap((field) => collectHintValues(saved?.[field]))
+            .filter((value) => value !== '*'),
+    );
+    const pairingRecipients = await readPairingRecipientIds(channelType, accountId);
+    const configuredRecipients = uniqueRecipientIds(
+        resolveHintAllowListFields(channelType)
+            .flatMap((field) => collectHintValues(saved?.[field])),
+    );
+    const hasWildcardRecipient = configuredRecipients.includes('*');
+    const directPairingRecipients = uniqueRecipientIds(pairingRecipients.filter((value) => value !== '*'));
+    const candidateRecipients = uniqueRecipientIds(
+        [...configuredRecipients, ...pairingRecipients].filter((value) => value !== '*'),
+    );
+
+    if (explicitRecipientIds.length === 1) {
+        return { reason: 'derived', recipientId: explicitRecipientIds[0] };
+    }
+    if (explicitRecipientIds.length > 1) {
+        return { reason: 'multiple', candidates: explicitRecipientIds };
+    }
+    if (directPairingRecipients.length === 1) {
+        return { reason: 'derived', recipientId: directPairingRecipients[0] };
+    }
+    if (directPairingRecipients.length > 1) {
+        return { reason: 'multiple', candidates: directPairingRecipients };
+    }
+    if (hasWildcardRecipient) {
+        return {
+            reason: 'wildcard',
+            ...(candidateRecipients.length > 0 ? { candidates: candidateRecipients } : {}),
+        };
+    }
+    if (candidateRecipients.length === 1) {
+        return { reason: 'derived', recipientId: candidateRecipients[0] };
+    }
+    if (candidateRecipients.length > 1) {
+        return { reason: 'multiple', candidates: candidateRecipients };
+    }
+    if (saved) {
+        return { reason: 'missing' };
+    }
+    return undefined;
 }
 
 export async function deleteChannelAccountConfig(channelType: string, accountId: string): Promise<void> {

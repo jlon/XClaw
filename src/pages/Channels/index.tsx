@@ -14,6 +14,7 @@ import { WorkbenchHeader } from '@/components/layout/WorkbenchHeader';
 import { WorkbenchHeaderActions } from '@/components/layout/WorkbenchHeaderActions';
 import { WorkbenchHeaderTitleBlock } from '@/components/layout/WorkbenchHeaderTitleBlock';
 import { WorkbenchSummaryStrip } from '@/components/layout/WorkbenchSummaryStrip';
+import { workbenchToolbarButtonClasses } from '@/components/layout/workbench-button-styles';
 import { hostApiFetch } from '@/lib/host-api';
 import { subscribeHostEvent } from '@/lib/host-events';
 import { ChannelConfigModal } from '@/components/channels/ChannelConfigModal';
@@ -1239,7 +1240,7 @@ export function Channels() {
                       variant="outline"
                       onClick={handleRefresh}
                       disabled={gatewayStatus.state !== 'running' || refreshing}
-                      className="app-channels-header-refresh h-8 rounded-[12px] border-border/64 px-2.75 text-[11.5px] font-medium shadow-none transition-colors hover:bg-[hsl(var(--surface-hover)/0.52)] hover:text-foreground"
+                      className={cn('app-channels-header-refresh', workbenchToolbarButtonClasses)}
                     >
                       <RefreshCw className={cn('mr-2 h-3.5 w-3.5', refreshing && 'animate-spin')} />
                       {t('refresh')}

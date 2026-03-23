@@ -13,6 +13,7 @@ import { trackUiEvent } from '@/lib/telemetry';
 import { cn } from '@/lib/utils';
 import { buildProviderListItems, findProviderAccountsByRuntimeKey } from '@/lib/provider-accounts';
 import { WorkspacePageFrame, WorkspacePageScrollArea, WorkspacePageShell } from '@/components/layout/WorkspacePage';
+import { workbenchPrimaryToolbarButtonClasses } from '@/components/layout/workbench-button-styles';
 import { FeedbackState } from '@/components/common/FeedbackState';
 import { AddProviderDialog } from '@/components/settings/providers/AddProviderDialog';
 import type { ProviderType } from '@/lib/providers';
@@ -584,8 +585,7 @@ export function Models() {
           actions={(
             <Button
               type="button"
-              variant="outline"
-              className="rounded-full px-4"
+              className={workbenchPrimaryToolbarButtonClasses}
               onClick={() => setShowAddProviderDialog(true)}
             >
               {t('settings:aiProviders.add', '添加提供商')}

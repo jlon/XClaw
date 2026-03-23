@@ -35,6 +35,10 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { useSkillsStore } from '@/stores/skills';
 import { useGatewayStore } from '@/stores/gateway';
 import { WorkspacePageFrame, WorkspacePageLoading, WorkspacePageScrollArea, WorkspacePageShell } from '@/components/layout/WorkspacePage';
+import {
+  workbenchPrimaryToolbarButtonClasses,
+  workbenchToolbarIconButtonClasses,
+} from '@/components/layout/workbench-button-styles';
 import { cn } from '@/lib/utils';
 import { invokeIpc } from '@/lib/api-client';
 import { hostApiFetch } from '@/lib/host-api';
@@ -58,12 +62,8 @@ interface SkillDetailDialogProps {
   onOpenFolder?: (skill: Skill) => Promise<void> | void;
 }
 
-const headerButtonClasses =
-  'h-[44px] rounded-[14px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.98)] px-4 text-[13px] font-semibold shadow-none text-foreground/82 transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
 const compactOutlineButtonClasses =
   'h-8 rounded-[12px] border border-border/70 bg-transparent px-3 text-[12px] font-medium text-foreground/78 shadow-none transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
-const iconButtonClasses =
-  'h-8 w-8 rounded-[12px] border border-border/70 bg-transparent shadow-none text-muted-foreground transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
 const tokenInputClasses =
   'h-[44px] rounded-xl font-mono text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30';
 const compactInputClasses =
@@ -102,34 +102,34 @@ const skillVisualToneClasses: Record<SkillVisualTone, {
   halo: string;
 }> = {
   coral: {
-    shell: 'border-[#f3d4cb] bg-[linear-gradient(180deg,rgba(255,246,243,0.98)_0%,rgba(255,236,231,0.94)_100%)] text-[#e06f57]',
-    accent: 'text-[#d95d45]',
-    halo: 'bg-[#f3beb0]/60',
+    shell: 'border-[hsl(var(--primary)/0.2)] bg-[hsl(var(--primary)/0.12)] text-primary',
+    accent: 'text-primary',
+    halo: 'bg-[hsl(var(--primary)/0.32)]',
   },
   peach: {
-    shell: 'border-[#f4ddd4] bg-[linear-gradient(180deg,rgba(255,247,243,0.98)_0%,rgba(249,239,232,0.94)_100%)] text-[#d28362]',
-    accent: 'text-[#cf7a58]',
-    halo: 'bg-[#efc3ae]/52',
+    shell: 'border-[hsl(var(--primary)/0.16)] bg-[hsl(var(--primary)/0.08)] text-primary/90',
+    accent: 'text-primary/90',
+    halo: 'bg-[hsl(var(--primary)/0.24)]',
   },
   amber: {
-    shell: 'border-[#efe1c9] bg-[linear-gradient(180deg,rgba(255,249,239,0.98)_0%,rgba(247,238,219,0.94)_100%)] text-[#b88735]',
-    accent: 'text-[#b17824]',
-    halo: 'bg-[#e7c98e]/46',
+    shell: 'border-[hsl(var(--warning)/0.2)] bg-[hsl(var(--warning)/0.12)] text-[hsl(var(--warning))]',
+    accent: 'text-[hsl(var(--warning))]',
+    halo: 'bg-[hsl(var(--warning)/0.28)]',
   },
   slate: {
-    shell: 'border-[#dde3eb] bg-[linear-gradient(180deg,rgba(248,250,252,0.98)_0%,rgba(239,243,248,0.94)_100%)] text-[#637287]',
-    accent: 'text-[#5c6c81]',
-    halo: 'bg-[#c9d4e3]/44',
+    shell: 'border-[hsl(var(--runtime)/0.2)] bg-[hsl(var(--runtime)/0.12)] text-[hsl(var(--runtime))]',
+    accent: 'text-[hsl(var(--runtime))]',
+    halo: 'bg-[hsl(var(--runtime)/0.28)]',
   },
   teal: {
-    shell: 'border-[#d6e8e4] bg-[linear-gradient(180deg,rgba(244,250,248,0.98)_0%,rgba(233,244,241,0.94)_100%)] text-[#4f8d84]',
-    accent: 'text-[#427e75]',
-    halo: 'bg-[#bbddd5]/44',
+    shell: 'border-[hsl(var(--success)/0.2)] bg-[hsl(var(--success)/0.12)] text-[hsl(var(--success))]',
+    accent: 'text-[hsl(var(--success))]',
+    halo: 'bg-[hsl(var(--success)/0.28)]',
   },
   plum: {
-    shell: 'border-[#e5dded] bg-[linear-gradient(180deg,rgba(249,247,252,0.98)_0%,rgba(241,236,247,0.94)_100%)] text-[#7d6797]',
-    accent: 'text-[#705a8c]',
-    halo: 'bg-[#d3c6e6]/44',
+    shell: 'border-[hsl(var(--info)/0.2)] bg-[hsl(var(--info)/0.12)] text-[hsl(var(--info))]',
+    accent: 'text-[hsl(var(--info))]',
+    halo: 'bg-[hsl(var(--info)/0.28)]',
   },
 };
 
@@ -166,7 +166,7 @@ function SkillCardGlyph({
     <div
       data-testid={`skills-card-glyph-${skillId}`}
       className={cn(
-        'relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[16px] border shadow-[inset_0_1px_0_rgba(255,255,255,0.78)]',
+        'relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[16px] border shadow-none',
         toneClasses.shell,
       )}
     >
@@ -302,7 +302,7 @@ function SkillDetailDialog({ skill, isOpen, onClose, onToggle, togglePending = f
                   </DialogDescription>
                 ) : null}
               </DialogHeader>
-              <Button variant="ghost" size="icon" onClick={onClose} className={iconButtonClasses}>
+              <Button variant="ghost" size="icon" onClick={onClose} className={workbenchToolbarIconButtonClasses}>
                 <X className="h-4 w-4" />
               </Button>
             </div>
@@ -327,10 +327,10 @@ function SkillDetailDialog({ skill, isOpen, onClose, onToggle, togglePending = f
                 </div>
                 <div className="flex items-center gap-2">
                   <Input value={skill.baseDir || t('detail.pathUnavailable')} readOnly className={compactInputClasses} />
-                  <Button variant="outline" size="icon" className={iconButtonClasses} disabled={!skill.baseDir} onClick={handleCopyPath} title={t('detail.copyPath')}>
+                  <Button variant="outline" size="icon" className={workbenchToolbarIconButtonClasses} disabled={!skill.baseDir} onClick={handleCopyPath} title={t('detail.copyPath')}>
                     <Copy className="h-3.5 w-3.5" />
                   </Button>
-                  <Button variant="outline" size="icon" className={iconButtonClasses} disabled={!skill.baseDir} onClick={() => onOpenFolder?.(skill)} title={t('detail.openActualFolder')}>
+                  <Button variant="outline" size="icon" className={workbenchToolbarIconButtonClasses} disabled={!skill.baseDir} onClick={() => onOpenFolder?.(skill)} title={t('detail.openActualFolder')}>
                     <FolderOpen className="h-3.5 w-3.5" />
                   </Button>
                 </div>
@@ -1235,7 +1235,7 @@ export function Skills() {
 
             <DropdownMenu open={showAddMenu} onOpenChange={setShowAddMenu}>
               <DropdownMenuTrigger asChild>
-                <Button type="button" className={cn(headerButtonClasses, 'min-w-[148px] justify-center gap-2 rounded-[18px]')}>
+                <Button type="button" className={cn(workbenchPrimaryToolbarButtonClasses, 'min-w-[148px] justify-center gap-2')}>
                   <Plus className="h-4 w-4" />
                   {t('addSkill', { defaultValue: '添加技能' })}
                 </Button>
@@ -1285,7 +1285,7 @@ export function Skills() {
 
           {filteredSkills.length === 0 ? (
             <div className="flex min-h-[420px] flex-col items-center justify-center rounded-[28px] border border-dashed border-border/70 bg-[hsl(var(--surface-panel)/0.62)] px-6 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-[22px] border border-[#f4d7cf] bg-[linear-gradient(180deg,rgba(255,244,241,0.98)_0%,rgba(255,236,229,0.92)_100%)] text-[30px] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
+              <div className="flex h-16 w-16 items-center justify-center rounded-[22px] border border-[hsl(var(--primary)/0.18)] bg-[hsl(var(--primary)/0.1)] text-[30px] text-primary shadow-none">
                 🧩
               </div>
               <h2 className="mt-5 text-[18px] font-semibold tracking-tight text-foreground">

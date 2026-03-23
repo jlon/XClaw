@@ -1,6 +1,6 @@
 {
     "title": "定时任务",
-    "subtitle": "安排消息与任务按时执行",
+    "subtitle": "按时执行任务",
     "newTask": "新建任务",
     "refresh": "刷新",
     "gatewayWarning": "网关未运行。没有活跃的网关，无法管理定时任务。",
@@ -12,12 +12,15 @@
     },
     "empty": {
         "title": "暂无定时任务",
-        "description": "创建定时任务以自动化 AI 工作流。任务可以在指定时间发送消息、运行查询或执行操作。",
+        "description": "创建任务，在指定时间执行消息或操作。",
         "create": "创建第一个任务"
     },
     "card": {
         "agent": "智能体",
         "runNow": "立即运行",
+        "configureDelivery": "先配置投递目标",
+        "deliveryRequired": "待配置",
+        "deliveryMissing": "这条任务还没有配置投递目标。请编辑任务，选择当前智能体已绑定的频道账号，并填写目标会话 ID。",
         "deleteConfirm": "确定要删除此任务吗？",
         "last": "上次运行",
         "next": "下次运行"
@@ -25,7 +28,7 @@
     "dialog": {
         "createTitle": "创建任务",
         "editTitle": "编辑任务",
-        "description": "安排自动化的 AI 任务",
+        "description": "设置何时执行任务",
         "taskName": "任务名称",
         "taskNamePlaceholder": "例如：早间简报",
         "agent": "执行智能体",
@@ -36,13 +39,17 @@
         "cronPlaceholder": "Cron 表达式 (例如：0 9 * * *)",
         "usePresets": "使用预设",
         "useCustomCron": "使用自定义 Cron",
-        "targetChannel": "目标频道",
-        "noChannels": "无可用频道。请先添加频道。",
-        "discordChannelId": "Discord 频道 ID",
-        "discordChannelIdPlaceholder": "例如：1438452657525100686",
-        "discordChannelIdDesc": "右键点击 Discord 频道 → 复制频道 ID",
+        "targetChannel": "投递频道",
+        "noChannels": "当前智能体没有已绑定的频道账号。请先到频道页完成绑定。",
+        "targetRecipient": "目标会话 ID",
+        "targetRecipientPlaceholder": "例如：频道 / 群组 / 聊天 ID",
+        "targetRecipientDesc": "如果当前账号配置里存在唯一默认目标，会自动带出；否则仍需手动填写目标会话 ID。",
+        "targetRecipientAuto": "已根据当前频道账号配置自动带出默认目标：{{value}}。如有需要可以改成别的会话。",
+        "targetRecipientDetected": "当前频道账号可推导默认目标：{{value}}。当前保留的是你已填写的值。",
+        "targetRecipientWildcard": "当前账号允许任意来源，无法唯一推导默认目标；仍需手动填写目标会话 ID。",
+        "targetRecipientMultiple": "当前账号配置里存在多个候选目标，无法自动判断；仍需手动填写目标会话 ID。",
+        "targetRecipientUnavailable": "当前账号配置里没有可复用的默认目标；仍需手动填写目标会话 ID。",
         "enableImmediately": "立即启用",
-        "enableImmediatelyDesc": "创建后立即开始运行此任务",
         "saveChanges": "保存更改"
     },
     "presets": {
@@ -62,14 +69,16 @@
         "paused": "任务已暂停",
         "deleted": "任务已删除",
         "triggered": "任务已成功触发",
+        "alreadyRunning": "任务正在执行中",
+        "triggerQueued": "任务已提交，等待执行",
         "failedTrigger": "触发任务失败: {{error}}",
         "failedUpdate": "更新任务失败",
         "failedDelete": "删除任务失败",
         "nameRequired": "请输入任务名称",
         "agentRequired": "请选择执行智能体",
         "messageRequired": "请输入消息",
-        "channelRequired": "请选择频道",
-        "discordIdRequired": "请输入 Discord 频道 ID",
+        "channelRequired": "请选择投递频道",
+        "recipientRequired": "请输入目标会话 ID",
         "scheduleRequired": "请选择或输入调度计划"
     },
     "schedule": {

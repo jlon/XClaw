@@ -27,6 +27,7 @@ export type UpdateStatus =
   | 'not-available'
   | 'downloading'
   | 'downloaded'
+  | 'unsupported'
   | 'error';
 
 interface UpdateState {
@@ -164,7 +165,7 @@ export const useUpdateStore = create<UpdateState>((set, get) => ({
       // status may still be 'checking' or even 'idle'. Catch both.
       const currentStatus = get().status;
       if (currentStatus === 'checking' || currentStatus === 'idle') {
-        set({ status: 'error', error: 'Update check completed without a result. This usually means the app is running in dev mode.' });
+        set({ status: 'unsupported', error: 'Updates are available only in packaged builds.' });
       }
     }
   },

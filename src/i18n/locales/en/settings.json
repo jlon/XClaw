@@ -165,6 +165,7 @@
       "available": "Update available: v{{version}}",
       "downloaded": "Ready to install: v{{version}}",
       "autoInstalling": "Restarting to install update in {{seconds}}s...",
+      "packagedOnly": "Updates are unavailable in development builds",
       "failed": "Update check failed",
       "latest": "You have the latest version",
       "check": "Check for updates to get the latest features"
@@ -175,6 +176,7 @@
       "download": "Download Update",
       "install": "Install & Restart",
       "cancelAutoInstall": "Cancel",
+      "packagedOnly": "Packaged builds only",
       "retry": "Retry",
       "check": "Check for Updates"
     },
@@ -183,6 +185,7 @@
     "progressComplete": "{{percent}}% complete",
     "whatsNew": "What's New:",
     "errorDetails": "Error Details:",
+    "packagedOnlyDetail": "This app is running from an unpackaged development build. Auto-updates are only available in packaged releases.",
     "help": "When auto-update is enabled, updates are downloaded and installed automatically."
   },
   "advanced": {

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import bundledTemplates from '@electron/shared/agent-market-templates.json';
 
 const createAgentWithIdMock = vi.fn();
 const deleteAgentConfigMock = vi.fn();
@@ -29,26 +30,17 @@ describe('agent market install', () => {
   });
 
   it('installs a catalog agent and writes SOUL.md into the new workspace', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      text: vi.fn().mockResolvedValue('# planner'),
-    }));
-
     const { installAgentFromCatalog } = await import('@electron/utils/agent-market');
     const result = await installAgentFromCatalog('daily-standup', 'Planner');
 
-    expect(createAgentWithIdMock).toHaveBeenCalledWith('Planner');
-    expect(writeAgentWorkspaceFileContentMock).toHaveBeenCalledWith('planner', 'SOUL.md', '# planner');
+    expect(createAgentWithIdMock).toHaveBeenCalledWith('Planner', { bootstrapMode: 'empty' });
+    expect(writeAgentWorkspaceFileContentMock).toHaveBeenCalledWith('planner', 'SOUL.md', bundledTemplates['daily-standup']);
     expect(deleteAgentConfigMock).not.toHaveBeenCalled();
     expect(removeAgentWorkspaceDirectoryMock).not.toHaveBeenCalled();
     expect(result.createdAgentId).toBe('planner');
   });
 
   it('rolls back the created agent when writing SOUL.md fails', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      text: vi.fn().mockResolvedValue('# planner'),
-    }));
     writeAgentWorkspaceFileContentMock.mockRejectedValueOnce(new Error('disk full'));
 
     const { installAgentFromCatalog } = await import('@electron/utils/agent-market');

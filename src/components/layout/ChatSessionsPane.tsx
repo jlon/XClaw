@@ -222,14 +222,14 @@ export function ChatSessionsPane() {
                     setSearchOpen(false);
                   }
                 }}
-                className="h-full min-w-0 flex-1 bg-transparent pl-2 pr-0 text-[14px] font-normal leading-5 text-[#333] outline-none placeholder:text-[#bbb]"
+                className="h-full min-w-0 flex-1 bg-transparent pl-2 pr-0 text-[14px] font-normal leading-5 text-foreground outline-none placeholder:text-muted-foreground/58"
               />
             </div>
           ) : (
             <button
               type="button"
               aria-label={t('chat:sessionPane.searchLabel')}
-              className="app-chat-session-control app-chat-session-control--search flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full px-4 text-left text-[14px] font-normal leading-5 text-[#bbb] transition-[background-color,color,border-color,box-shadow] duration-150 focus-visible:outline-none"
+              className="app-chat-session-control app-chat-session-control--search flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full px-4 text-left text-[14px] font-normal leading-5 text-muted-foreground/62 transition-[background-color,color,border-color,box-shadow] duration-150 focus-visible:outline-none"
               onClick={() => setSearchOpen(true)}
             >
               <SessionPaneToneIcon tone="search">
@@ -252,7 +252,7 @@ export function ChatSessionsPane() {
           sessionBuckets.map((bucket) => (
             bucket.sessions.length > 0 ? (
               <div key={bucket.key} className="pt-1 first:pt-0">
-                <div className="px-3 pb-1 pt-1 text-[12px] font-normal leading-4 tracking-normal text-[#999]">
+                <div className="px-3 pb-1 pt-1 text-[12px] font-normal leading-4 tracking-normal text-muted-foreground/58">
                   {bucket.label}
                 </div>
                 <div className="space-y-1">
@@ -282,11 +282,11 @@ export function ChatSessionsPane() {
                             'app-chat-session-row flex h-10 w-full items-center rounded-full px-3 pr-8 text-left transition-[background-color,color,border-color,box-shadow] duration-150 focus-visible:outline-none',
                             isCurrent
                               ? 'app-chat-session-row--active text-foreground'
-                              : 'text-[#222]',
+                              : 'text-foreground/84',
                           )}
                         >
-                          <div className="min-w-0 flex-1 truncate text-[14px] font-normal leading-5 tracking-normal text-[#333]">
-                            <span className="truncate text-[#333]">{title}</span>
+                          <div className="min-w-0 flex-1 truncate text-[14px] font-normal leading-5 tracking-normal text-foreground/86">
+                            <span className="truncate text-foreground/86">{title}</span>
                           </div>
                         </button>
 
@@ -296,7 +296,7 @@ export function ChatSessionsPane() {
                             event.stopPropagation();
                             setSessionToDelete({ key: session.key, label: title });
                           }}
-                          className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md p-0 text-[#9ca3af] opacity-0 pointer-events-none transition-[opacity,color,background-color] duration-150 group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto hover:bg-[#0000000f] hover:text-[#4b5563] focus-visible:outline-none"
+                          className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md p-0 text-muted-foreground/58 opacity-0 pointer-events-none transition-[opacity,color,background-color] duration-150 group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto hover:bg-[hsl(var(--surface-hover)/0.76)] hover:text-foreground/68 focus-visible:outline-none"
                         >
                           <Trash2 className="h-[12px] w-[12px]" />
                         </button>
@@ -328,7 +328,7 @@ export function ChatSessionsPane() {
           <div ref={workspaceMenuRef} className="relative min-w-0 flex-1">
             <button
               type="button"
-              className="app-chat-session-footer-action flex h-8 w-full items-center gap-2.5 rounded-[10px] px-3 text-left text-[13px] font-normal leading-5 text-[#4b5563] transition-[background-color,color] duration-150 hover:text-[#1f2937]"
+              className="app-chat-session-footer-action flex h-8 w-full items-center gap-2.5 rounded-[10px] px-3 text-left text-[13px] font-normal leading-5 text-foreground/68 transition-[background-color,color] duration-150 hover:text-foreground"
               onClick={() => setWorkspaceMenuOpen((open) => !open)}
             >
               <SessionPaneToneIcon tone="workspace">
@@ -337,7 +337,7 @@ export function ChatSessionsPane() {
               <span className="truncate">{t('chat:sessionPane.workspaceLauncher')}</span>
             </button>
             {workspaceMenuOpen ? (
-              <div className="absolute bottom-[calc(100%+8px)] left-0 z-30 w-[188px] rounded-[15px] border border-[#ececee] bg-white p-1.5 shadow-[0_10px_24px_rgba(15,23,42,0.08)]">
+              <div className="absolute bottom-[calc(100%+8px)] left-0 z-30 w-[188px] rounded-[15px] border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] p-1.5 shadow-[var(--shadow-sm)]">
                 <div className="space-y-0.5">
                   {workspaceItems.map((item) => {
                     const Icon = item.icon;
@@ -345,7 +345,7 @@ export function ChatSessionsPane() {
                       <button
                         key={item.to}
                         type="button"
-                        className="app-chat-session-workspace-item flex h-8 w-full items-center gap-2.5 rounded-[10px] px-2.5 text-left text-[12.5px] text-[#333] transition-[background-color,color] duration-150 hover:text-[#1f2937]"
+                        className="app-chat-session-workspace-item flex h-8 w-full items-center gap-2.5 rounded-[10px] px-2.5 text-left text-[12.5px] text-foreground/76 transition-[background-color,color] duration-150 hover:text-foreground"
                         onClick={() => {
                           setWorkspaceMenuOpen(false);
                           navigate(item.to);
@@ -358,10 +358,10 @@ export function ChatSessionsPane() {
                       </button>
                     );
                   })}
-                  <div className="my-1 border-t border-[#f0f0f0]" />
+                  <div className="my-1 border-t border-[hsl(var(--border-subtle)/0.78)]" />
                   <button
                     type="button"
-                    className="app-chat-session-workspace-item flex h-8 w-full items-center gap-2.5 rounded-[10px] px-2.5 text-left text-[12.5px] text-[#4b5563] transition-[background-color,color] duration-150 hover:text-[#1f2937]"
+                    className="app-chat-session-workspace-item flex h-8 w-full items-center gap-2.5 rounded-[10px] px-2.5 text-left text-[12.5px] text-foreground/68 transition-[background-color,color] duration-150 hover:text-foreground"
                     onClick={() => {
                       setWorkspaceMenuOpen(false);
                       void openDevConsole();
@@ -381,7 +381,7 @@ export function ChatSessionsPane() {
             type="button"
             aria-label={t('common:sidebar.settings')}
             title={t('common:sidebar.settings')}
-            className="app-chat-session-utility-button flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] text-[#70757d] transition-[background-color,color,border-color,box-shadow] duration-150 hover:text-[#1f2937] focus-visible:outline-none"
+            className="app-chat-session-utility-button flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] text-foreground/62 transition-[background-color,color,border-color,box-shadow] duration-150 hover:text-foreground focus-visible:outline-none"
             onClick={() => navigate('/settings')}
           >
             <SessionPaneToneIcon tone="settings">

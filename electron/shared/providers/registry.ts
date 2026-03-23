@@ -76,10 +76,6 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
       baseUrl: 'https://openrouter.ai/api/v1',
       api: 'openai-completions',
       apiKeyEnv: 'OPENROUTER_API_KEY',
-      headers: {
-        'HTTP-Referer': 'https://claw-x.com',
-        'X-Title': 'XClaw',
-      },
     },
   },
   {

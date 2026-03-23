@@ -73,6 +73,18 @@ function translate(key: string, vars?: Record<string, unknown>): string {
   if (key === 'subtitle') return 'Agent 工作台';
   if (key === 'refresh') return '刷新';
   if (key === 'addAgent') return '新建';
+  if (key === 'createDialog.title') return '新建智能体';
+  if (key === 'createDialog.description') return '新建智能体';
+  if (key === 'createDialog.nameLabel') return '智能体名称';
+  if (key === 'createDialog.namePlaceholder') return 'Coding Helper';
+  if (key === 'createDialog.modelLabel') return '模型';
+  if (key === 'createDialog.modelSearchPlaceholder') return '搜索可用模型';
+  if (key === 'createDialog.useDefaultModel') return '使用 OpenClaw 默认模型';
+  if (key === 'createDialog.useDefaultModelDescription') return '移除当前智能体的模型覆盖。';
+  if (key === 'createDialog.modelsLoading') return '正在读取可用模型…';
+  if (key === 'createDialog.modelsLoadFailed') return '读取模型失败，请稍后重试。';
+  if (key === 'createDialog.modelsEmpty') return '当前没有可选模型。';
+  if (key === 'createDialog.modelsEmptySearch') return '没有匹配的模型。';
   if (key === 'gatewayWarning') return 'Gateway 服务未运行。';
   if (key === 'defaultBadge') return '默认';
   if (key === 'inherited') return '继承';
@@ -136,6 +148,12 @@ function translate(key: string, vars?: Record<string, unknown>): string {
   if (key === 'workbench.market.sourceHint') return '这里展示的是受控 catalog 里的固定来源，不支持任意地址直装。';
   if (key === 'workbench.market.sourceSummaryTitle') return '来源证据';
   if (key === 'workbench.market.sourceLanguageHint') return '模板说明内容来自上游源文件。';
+  if (key === 'workbench.market.categories.productivity') return '效率';
+  if (key === 'workbench.market.categories.development') return '开发';
+  if (key === 'workbench.market.categories.business') return '商业';
+  if (key === 'workbench.market.categories.creative') return '创意';
+  if (key === 'workbench.market.categories.data') return '数据';
+  if (key === 'workbench.market.categories.management') return '管理';
   if (key === 'workbench.market.sectionKinds.identity') return '角色定位';
   if (key === 'workbench.market.sectionKinds.responsibilities') return '核心职责';
   if (key === 'workbench.market.sectionKinds.behavior') return '行为边界';
@@ -241,14 +259,14 @@ describe('agents workbench layout', () => {
           items: [
             {
               id: 'operator-agent',
-              category: 'ops',
+              category: 'management',
               name: 'Operator Agent',
               role: '处理日常运营和排班。',
-              sourcePath: 'ops/operator-agent/SOUL.md',
+              sourcePath: 'management/operator-agent/SOUL.md',
               rawUrl: 'https://example.com/operator-agent.md',
               installMode: 'soul-template',
               localeKey: 'operator-agent',
-              avatarSeed: 'ops:operator-agent',
+              avatarSeed: 'management:operator-agent',
               headline: 'Operations Agent',
               summary: '负责日常运营调度、任务分发与排班协调。',
               highlights: ['运营值班', '任务分发', '排班协调'],
@@ -272,7 +290,7 @@ describe('agents workbench layout', () => {
                   items: ['优先明确值班优先级', '升级前先收敛事实'],
                 }
               ],
-              tags: ['ops', 'operator'],
+              tags: ['management', 'operator'],
             },
           ],
         };
@@ -308,6 +326,25 @@ describe('agents workbench layout', () => {
     expect(screen.getByRole('button', { name: '开始对话' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '人格文件' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '绑定与运行' })).toBeInTheDocument();
+  });
+
+  it('keeps local agent cards compact instead of stretching them into tall equal-height boards', async () => {
+    agentsState.agents = [
+      makeAgent({ id: 'pangtong', name: 'pangtong', isDefault: true }),
+      makeAgent({ id: 'wudaozi', name: 'wudaozi', mainSessionKey: 'agent:wudaozi:main' }),
+    ];
+
+    render(<Agents />);
+
+    await waitFor(() => {
+      expect(fetchAgentsMock).toHaveBeenCalledTimes(1);
+    });
+
+    const cardList = screen.getByTestId('agents-card-list');
+    expect(cardList.className).not.toContain('auto-rows-fr');
+
+    const localAgentCards = within(cardList).getAllByRole('button');
+    expect(localAgentCards[0]?.className).not.toContain('min-h-[136px]');
   });
 
   it('keeps bindings and runtime in a dedicated detail tab instead of mixing them into overview', async () => {
@@ -382,14 +419,14 @@ describe('agents workbench layout', () => {
           items: [
             {
               id: 'operator-agent',
-              category: 'ops',
+              category: 'management',
               name: 'Operator Agent',
               role: '处理日常运营和排班。',
-              sourcePath: 'ops/operator-agent/SOUL.md',
+              sourcePath: 'management/operator-agent/SOUL.md',
               rawUrl: 'https://example.com/operator-agent.md',
               installMode: 'soul-template',
               localeKey: 'operator-agent',
-              avatarSeed: 'ops:operator-agent',
+              avatarSeed: 'management:operator-agent',
               headline: 'Operations Agent',
               summary: '负责日常运营调度、任务分发与排班协调。',
               highlights: ['运营值班', '任务分发', '排班协调'],
@@ -407,18 +444,18 @@ describe('agents workbench layout', () => {
                   items: ['运营值班', '任务分发', '排班协调'],
                 },
               ],
-              tags: ['ops', 'operator'],
+              tags: ['management', 'operator'],
             },
             {
               id: 'research-agent',
-              category: 'research',
+              category: 'productivity',
               name: 'Research Agent',
               role: '做研究与分析。',
-              sourcePath: 'research/research-agent/SOUL.md',
+              sourcePath: 'productivity/research-agent/SOUL.md',
               rawUrl: 'https://example.com/research-agent.md',
               installMode: 'soul-template',
               localeKey: 'research-agent',
-              avatarSeed: 'research:research-agent',
+              avatarSeed: 'productivity:research-agent',
               headline: 'Research Agent',
               summary: '面向研究、资料整理与分析汇总。',
               highlights: ['课题拆解', '资料整理', '结论归纳'],
@@ -436,7 +473,7 @@ describe('agents workbench layout', () => {
                   items: ['课题拆解', '资料整理', '结论归纳'],
                 },
               ],
-              tags: ['research'],
+              tags: ['productivity'],
             },
           ],
         };
@@ -457,11 +494,30 @@ describe('agents workbench layout', () => {
       expect(within(screen.getByTestId('agents-detail-workbench')).getByRole('heading', { name: 'Operator Agent' })).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'ops' }));
+    fireEvent.click(screen.getByRole('button', { name: '管理' }));
 
     await waitFor(() => {
       expect(within(screen.getByTestId('agents-detail-workbench')).getByRole('heading', { name: 'Operator Agent' })).toBeInTheDocument();
       expect(within(screen.getByTestId('agents-market-grid')).queryByText('Research Agent')).not.toBeInTheDocument();
+    });
+  });
+
+  it('localizes market category chips and card badges in Chinese', async () => {
+    agentsState.agents = [makeAgent({ id: 'pangtong', name: 'pangtong' })];
+
+    render(<Agents />);
+
+    await waitFor(() => {
+      expect(fetchAgentsMock).toHaveBeenCalledTimes(1);
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '市场' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '管理' })).toBeInTheDocument();
+      expect(screen.getAllByText('管理').length).toBeGreaterThan(0);
+      expect(screen.queryByRole('button', { name: 'management' })).not.toBeInTheDocument();
+      expect(screen.queryByText('management')).not.toBeInTheDocument();
     });
   });
 
@@ -549,6 +605,56 @@ describe('agents workbench layout', () => {
         name: 'pangtong',
         modelRef: 'jayden/gpt-5.4',
       });
+    });
+  });
+
+  it('creates a new agent with a provider-scoped model ref selected from the picker', async () => {
+    agentsState.agents = [makeAgent({ id: 'main', name: 'Main Agent', isDefault: true })];
+    agentsState.createAgent = vi.fn().mockResolvedValue('thumbnail-designer');
+    gatewayState.rpc = vi.fn().mockResolvedValue({
+      models: [
+        { ref: 'openai/gpt-5.4', provider: 'openai', model: 'gpt-5.4' },
+        { ref: 'provider-998/gpt-5.4', provider: 'provider-998', model: 'gpt-5.4' },
+      ],
+    });
+    hostApiFetchMock.mockImplementation(async (path: string) => {
+      if (path === '/api/channels/accounts') {
+        return { success: true, channels: [] };
+      }
+      if (path === '/api/provider-accounts') {
+        return [
+          { id: 'openai', label: 'OpenAI', providerType: 'openai', runtimeKey: 'openai' },
+          { id: '998', label: '998', providerType: 'openai-compatible', runtimeKey: 'provider-998' },
+        ];
+      }
+      return { success: true };
+    });
+
+    render(<Agents />);
+
+    await waitFor(() => {
+      expect(fetchAgentsMock).toHaveBeenCalledTimes(1);
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '新建' }));
+    fireEvent.click(await screen.findByRole('button', { name: '空白创建' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: '新建智能体' })).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByLabelText('智能体名称'), {
+      target: { value: 'Thumbnail Designer' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '使用 OpenClaw 默认模型' }));
+    fireEvent.change(screen.getByRole('textbox', { name: '搜索可用模型' }), {
+      target: { value: '998' },
+    });
+    fireEvent.click(await screen.findByRole('button', { name: /998/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'common:actions.save' }));
+
+    await waitFor(() => {
+      expect(agentsState.createAgent).toHaveBeenCalledWith('Thumbnail Designer', 'provider-998/gpt-5.4');
     });
   });
 });

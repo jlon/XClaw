@@ -41,7 +41,7 @@ const renderMetricCard = (metric: SetupCompleteMetric) => (
 const statusIcon = (status: SetupCompleteSkill['status']) => {
   switch (status) {
     case 'pending':
-      return <div className="h-5 w-5 rounded-full border-2 border-slate-500" />;
+      return <div className="h-5 w-5 rounded-full border-2 border-border/70 bg-[hsl(var(--surface-panel)/0.86)]" />;
     case 'installing':
       return <Loader2 className="h-5 w-5 animate-spin text-primary" />;
     case 'completed':

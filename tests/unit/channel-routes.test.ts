@@ -9,6 +9,7 @@ const sendJsonMock = vi.fn();
 const parseJsonBodyMock = vi.fn();
 const renameChannelAccountConfigMock = vi.fn();
 const renameChannelAccountBindingMock = vi.fn();
+const getChannelRecipientHintValuesMock = vi.fn();
 const ensureWeixinPluginInstalledMock = vi.fn();
 const weixinLoginStartMock = vi.fn();
 const weixinLoginPollMock = vi.fn();
@@ -21,6 +22,7 @@ vi.mock('@electron/utils/channel-config', () => ({
   deleteChannelAccountConfig: vi.fn(),
   deleteChannelConfig: vi.fn(),
   getChannelEditorValues: vi.fn(),
+  getChannelRecipientHintValues: (...args: unknown[]) => getChannelRecipientHintValuesMock(...args),
   getChannelFormValues: vi.fn(),
   listConfiguredChannelAccounts: (...args: unknown[]) => listConfiguredChannelAccountsMock(...args),
   listConfiguredChannels: (...args: unknown[]) => listConfiguredChannelsMock(...args),
@@ -96,6 +98,7 @@ describe('handleChannelRoutes', () => {
     getWeixinGuardianEnabledMock.mockResolvedValue(false);
     setWeixinGuardianEnabledMock.mockResolvedValue(undefined);
     runWeixinGuardianCheckMock.mockResolvedValue(undefined);
+    getChannelRecipientHintValuesMock.mockResolvedValue(undefined);
     listAgentsSnapshotMock.mockResolvedValue({
       entries: [],
       channelAccountOwners: {},
@@ -240,6 +243,42 @@ describe('handleChannelRoutes', () => {
     );
 
     expect(rpc).toHaveBeenCalledWith('channels.status', { probe: true });
+  });
+
+  it('returns recipient hints for cron target inference', async () => {
+    getChannelRecipientHintValuesMock.mockResolvedValue({
+      pairingAllowFrom: ['ou_123'],
+      pairingRecipientId: 'ou_123',
+    });
+
+    const { handleChannelRoutes } = await import('@electron/api/routes/channels');
+    const handled = await handleChannelRoutes(
+      { method: 'GET' } as IncomingMessage,
+      {} as ServerResponse,
+      new URL('http://127.0.0.1:3210/api/channels/recipient-hints/feishu?accountId=bot2'),
+      {
+        gatewayManager: {
+          rpc: vi.fn(),
+          getStatus: () => ({ state: 'running' }),
+          debouncedReload: vi.fn(),
+          debouncedRestart: vi.fn(),
+        },
+      } as never,
+    );
+
+    expect(handled).toBe(true);
+    expect(getChannelRecipientHintValuesMock).toHaveBeenCalledWith('feishu', 'bot2');
+    expect(sendJsonMock).toHaveBeenCalledWith(
+      expect.anything(),
+      200,
+      expect.objectContaining({
+        success: true,
+        values: expect.objectContaining({
+          pairingAllowFrom: ['ou_123'],
+          pairingRecipientId: 'ou_123',
+        }),
+      }),
+    );
   });
 
   it('marks channel runtime as unavailable when the gateway is not running', async () => {

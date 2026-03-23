@@ -171,6 +171,19 @@
             "sourceLanguageHint": "Template content comes from the upstream source file. If the upstream template has no localized version, the original language is preserved here.",
             "emptyTitle": "No matching templates",
             "emptySearchDescription": "Try another keyword or refresh the catalog. Only controlled entries are accepted.",
+            "categories": {
+                "automation": "Automation",
+                "business": "Business",
+                "creative": "Creative",
+                "data": "Data",
+                "development": "Development",
+                "education": "Education",
+                "management": "Management",
+                "marketing": "Marketing",
+                "productivity": "Productivity",
+                "saas": "SaaS",
+                "security": "Security"
+            },
             "sectionKinds": {
                 "identity": "Core identity",
                 "responsibilities": "Core responsibilities",
@@ -188,11 +201,19 @@
         }
     },
     "createDialog": {
-        "title": "Create agent",
-        "description": "Create a new agent by name. XClaw will copy the main agent's workspace bootstrap files and runtime auth setup.",
-        "nameLabel": "Agent Name",
-        "namePlaceholder": "Coding Helper"
-    },
+    "title": "Create agent",
+    "description": "Create a new agent by name. XClaw will copy the main agent's workspace bootstrap files and runtime auth setup.",
+    "nameLabel": "Agent Name",
+    "namePlaceholder": "Coding Helper",
+    "modelLabel": "Model",
+    "modelSearchPlaceholder": "Search available models",
+    "useDefaultModel": "Use OpenClaw default model",
+    "useDefaultModelDescription": "Remove this agent model override.",
+    "modelsLoading": "Loading available models…",
+    "modelsLoadFailed": "Failed to load models. Try again shortly.",
+    "modelsEmpty": "No models are available right now.",
+    "modelsEmptySearch": "No models match this search."
+  },
     "deleteDialog": {
         "title": "Delete Agent",
         "message": "Delete \"{{name}}\" from XClaw? This permanently deletes the agent and its XClaw-managed workspace, runtime, and session files from disk."

@@ -115,6 +115,8 @@
 - 已开始把“高清感”从聊天侧栏扩展到主工作区：聊天画布、输入 dock、picker panel、回到底部按钮和正文/元信息对比已经从“发虚的浅层”纠正为更清晰的桌面层级，避免左侧对齐后右侧仍像低对比网页
 - 已修正 `Skills` 页浅色主题下启用开关仍使用硬黑渐变的问题：当前开启态已回到低饱和 accent 语义，不再偏离 `QClaw substrate, XClaw accent`
 - 已补齐 `Skills` 浅色主题启用开关的回归锁：开启态现在强制走 token 驱动的 accent 渐变，不允许再退回硬黑开关
+- 已完成一轮面向深色主题的残留 hardcode 审计，并把共享 workbench 主按钮、`Settings` 激活态、聊天侧栏菜单/utility、`ExecApprovalOverlay`、`Agents` 搜索与空态、`Skills` 图标壳、`ChannelConfigEditor` 开关和 `SetupCompleteStage` pending 指示器收回统一 token 体系
+- 已新增 `tests/unit/dark-theme-compatibility.test.ts`，专门锁住上述深色回归点，避免这些页面再次在 dark theme 下露出浅色暖梯度、白底或固定浅色文案色
 
 ## 完成判断
 

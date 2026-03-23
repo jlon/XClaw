@@ -22,6 +22,8 @@
 - 浏览区卡片渲染
 - 默认窗口 `1200 x 800` 下本地模式优先 `1` 列，本地 detail 常驻
 - `980 / 1200 / 1500` 三档阈值切换正确
+- `management` 分类、扩充后的 `development` 分类以及 58 条种子的中文内容覆盖都必须回归验证
+- 市场安装必须在断网/无代理条件下继续可用；安装模板不得依赖运行时网络拉取
 - 右侧 detail pane 跟随当前选中项变化
 - 空状态与已有数据状态切换
 - 本地 deterministic 头像 SVG 输出稳定
@@ -66,6 +68,10 @@
 - `绑定与运行` tab 切换
 - 安装成功
 - 安装失败回滚
+- 创建后置同步失败回滚
+- 安装后置同步失败回滚
+- 删除后置 runtime replacement 失败回滚
+- Gateway 处于 `stopped` 时，创建/安装仍会把新智能体真实应用到 runtime
 - 安装后跳回 `我的 Agents` 并选中新 Agent
 
 #### 手工
@@ -99,9 +105,14 @@
 
 - `workspace` 与 `agentDir` 权限边界
 - 市场安装失败回滚
+- 创建/市场安装不会留下“接口失败但配置已落盘”的脏状态
+- 删除不会留下“接口失败但智能体配置已删除”的脏状态
+- 非主智能体的工作区文件列表不能暴露与 `main` 完全一致的继承 bootstrap 文件
+- 智能体设置弹窗模型选择器不应暴露浏览器滚动条
 - unknown agent 不会创建 ghost workspace
 - symlink workspace root 被拒绝
 - mac / Windows / Linux 下卡片密度与 hover 语法不跑偏
+- 本地 Agent 卡片列表不得再使用等高白板布局；默认桌面窗口下，卡片高度必须由真实内容决定，不能出现被 `auto-rows-fr` 拉伸出的大片空白
 
 ## 验收标准
 
@@ -125,6 +136,7 @@
 - `tests/unit/agent-market-copy.test.ts`
 - `tests/unit/runtime-refresh-routes.test.ts`
 - `tests/unit/agent-config.test.ts`
+- `tests/unit/agent-market.test.ts`
 
 当前这三组已经覆盖：
 
@@ -138,6 +150,11 @@
 - 切换本地 Agent 时保留当前 detail tab，不会打断人格文件工作流
 - 每个内置市场模板已经带完整富元数据字段，不再只剩 `role/path`
 - 解析层已锁定：本地化覆盖存在时优先使用覆盖；不存在时继续回退到 seed 的真实内容
+- 创建/市场安装链的后置 provider sync 与 runtime 应用失败路径已经有自动回滚断言
+- 删除链的 runtime replacement 失败路径已经有配置恢复断言
+- Gateway 处于停止状态时，创建/安装会先启动 runtime，而不是静默 no-op
+- 市场安装已经直接消费 POST 返回的 `snapshot`，不再依赖二次 `fetchAgents()`
+- 市场模板现在从仓库内置模板资产读取，不再依赖运行时外网
 
 ## 本轮新增验证
 
@@ -145,6 +162,12 @@
 - `pnpm exec vitest run tests/unit/agents-workbench-layout.test.tsx tests/unit/agent-market.test.ts tests/unit/agent-market-seed.test.ts tests/unit/agent-market-copy.test.ts --reporter=dot`
 - `pnpm run typecheck`
 - `pnpm run build:vite`
+- `openclaw config validate`
+
+## 本轮补充验证
+
+- `pnpm exec vitest run tests/unit/agents-workbench-layout.test.tsx -t "keeps local agent cards compact instead of stretching them into tall equal-height boards"`
+- `pnpm exec eslint src/components/agents/AgentCardsPane.tsx tests/unit/agents-workbench-layout.test.tsx --max-warnings=0`
 
 这轮新增确认了：
 
@@ -175,6 +198,7 @@
 - 右侧 detail hero 现在把“开始对话”作为第一主动作，页面重心从“维护记录”转回“使用 Agent”
 - `summary / highlights / detailSections` 已接进市场卡片、详情和搜索链路
 - 内容层国际化当前采用“locale key 覆盖 + 源语言回退”策略，没有硬做假翻译
+- 中文环境下，`Agent 市场` 卡片与详情已优先读取受控中文内容资产；当内容资产缺失时才回退到原始 seed 内容
 - 本地模式浏览区的搜索壳层文案已对齐为 `搜索智能体、模型、工作区`
 - 本地卡片区不再重复展示模型信息；右侧 `概览` 中的频道管理入口已回到频道摘要卡头部
 - 本地卡片区已去掉底部重复频道 pill，只保留单条轻摘要
@@ -195,3 +219,13 @@
   - 回退默认模型
   - 保存后持久化 `modelRef`
   - 仅模型变更时请求后台异步 runtime refresh
+- 新建智能体弹窗现在支持：
+  - 搜索可用模型
+  - 在同名模型之间按 provider label/hint 区分来源
+  - 保存完整 `modelRef`，而不是只保存裸模型名
+  - 回退默认模型时不写 agent 级覆盖
+- 智能体设置弹窗已去掉头部说明与模型常驻解释，默认只保留一个模型主编辑面和一个轻只读的智能体 ID 区，避免再次回退成后台说明卡
+- 市场模板安装已切换到仓库内置模板内容，安装链不会再因为 GitHub raw 不可达而中断
+- 创建/市场安装在后置 provider sync 或 runtime 应用失败时会自动回滚，不再留下脏配置
+- `openclaw config validate` 已通过，当前本机 `~/.openclaw/openclaw.json` 仍是有效配置
+- 当前 `pnpm run typecheck` 仍被仓库既有的 `src/stores/cron.ts` 空值错误阻塞，这一项与智能体链路改动无关

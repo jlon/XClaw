@@ -10,7 +10,9 @@ import {
   listAgentsSnapshot,
   readAgentWorkspaceFileContent,
   renameAgentWorkspaceFile,
+  removeAgentRuntimeDirectory,
   removeAgentWorkspaceDirectory,
+  restoreAgentsConfigSnapshot,
   resolveAccountIdForAgent,
   updateAgentSettings,
   uploadAgentWorkspaceFile,
@@ -25,9 +27,24 @@ async function refreshAgentRuntime(ctx: HostApiContext): Promise<void> {
   await ctx.gatewayRuntimeController.restartRuntime();
 }
 
+async function ensureAgentRuntimeApplied(ctx: HostApiContext): Promise<void> {
+  const wasRunning = ctx.gatewayManager.getStatus().state !== 'stopped';
+  await ctx.gatewayRuntimeController.requestStart();
+  if (wasRunning) {
+    await ctx.gatewayRuntimeController.restartRuntime();
+  }
+}
+
+async function rollbackCreatedAgent(agentId: string): Promise<void> {
+  const rollback = await deleteAgentConfig(agentId).catch(() => null);
+  if (rollback) {
+    await removeAgentWorkspaceDirectory(rollback.removedEntry).catch(() => undefined);
+  }
+}
+
 async function finalizeAgentCreation(ctx: HostApiContext): Promise<void> {
   await syncAllProviderAuthToRuntime();
-  await refreshAgentRuntime(ctx);
+  await ensureAgentRuntimeApplied(ctx);
 }
 
 async function replaceGatewayForAgentDeletion(ctx: HostApiContext): Promise<void> {
@@ -163,9 +180,14 @@ export async function handleAgentRoutes(
 
   if (url.pathname === '/api/agents' && req.method === 'POST') {
     try {
-      const body = await parseJsonBody<{ name: string }>(req);
-      const result = await createAgentWithId(body.name);
-      await finalizeAgentCreation(ctx);
+      const body = await parseJsonBody<{ name: string; modelRef?: string | null }>(req);
+      const result = await createAgentWithId(body.name, { modelRef: body.modelRef });
+      try {
+        await finalizeAgentCreation(ctx);
+      } catch (error) {
+        await rollbackCreatedAgent(result.createdAgentId).catch(() => undefined);
+        throw error;
+      }
       sendJson(res, 200, { success: true, ...result.snapshot, createdAgentId: result.createdAgentId });
     } catch (error) {
       sendJson(res, 500, { success: false, error: String(error) });
@@ -233,11 +255,19 @@ export async function handleAgentRoutes(
     if (parts.length === 1) {
       try {
         const agentId = decodeURIComponent(parts[0]);
-        const { snapshot, removedEntry } = await deleteAgentConfig(agentId);
+        const { snapshot, removedEntry, rollbackConfig } = await deleteAgentConfig(agentId);
         // Await reload synchronously BEFORE responding to the client.
         // This ensures the Feishu plugin has disconnected the deleted bot
         // before the UI shows "delete success" and the user tries chatting.
-        await replaceGatewayForAgentDeletion(ctx);
+        try {
+          await replaceGatewayForAgentDeletion(ctx);
+        } catch (error) {
+          await restoreAgentsConfigSnapshot(rollbackConfig).catch(() => undefined);
+          throw error;
+        }
+        await removeAgentRuntimeDirectory(removedEntry.id).catch((err) => {
+          console.warn('[agents] Failed to remove runtime directory after agent deletion:', err);
+        });
         // Delete workspace after reload so the new config is already live.
         await removeAgentWorkspaceDirectory(removedEntry).catch((err) => {
           console.warn('[agents] Failed to remove workspace after agent deletion:', err);

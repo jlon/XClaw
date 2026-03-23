@@ -10,8 +10,8 @@ import { ChannelType } from './channel';
  */
 export interface CronJobTarget {
   channelType: ChannelType;
-  channelId: string;
-  channelName: string;
+  accountId: string;
+  recipientId?: string;
 }
 
 /**
@@ -59,6 +59,7 @@ export interface CronJobCreateInput {
   name: string;
   message: string;
   schedule: string;
+  target: CronJobTarget;
   enabled?: boolean;
 }
 
@@ -70,7 +71,15 @@ export interface CronJobUpdateInput {
   name?: string;
   message?: string;
   schedule?: string;
+  target?: CronJobTarget | null;
   enabled?: boolean;
+}
+
+export interface CronTriggerResult {
+  ok: boolean;
+  ran: boolean;
+  reason?: string;
+  enqueued?: boolean;
 }
 
 /**
