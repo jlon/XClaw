@@ -8,11 +8,15 @@
 
 - 固定四阶段骨架已写入设计文档
 - `fresh / takeover` 共用同一套步骤骨架
+- 只有检测到本地 OpenClaw 足迹时才允许显示接管选择
+- 空环境不得读取 takeover 状态，也不得被历史 takeover 状态推进阶段
 - 默认桌面宽度下必须稳定出现左轨
 - 右侧只承载当前一步的单任务工作面
 - 底部固定操作栏是唯一主动作入口
 - `takeover` 路径也必须经过完成页
 - 左侧步骤导航默认不允许直接跳步
+- `fresh` 不能复用已配置 OpenClaw workspace
+- `takeover-import` 只允许 `takeover` 模式
 - `完成` 阶段已明确拆成“应用变更中”和“完成摘要”两个子状态
 - 完成前关闭窗口不得写入 `setupComplete`
 - `complete.applying` 关闭窗口需要二次确认
@@ -22,7 +26,8 @@
 ### 代码级
 
 - `pnpm exec eslint src/pages/Setup/index.tsx src/components/setup/*.tsx tests/unit/setup-*.test.ts* --max-warnings=0`
-- `pnpm exec vitest run tests/unit/setup-wizard-layout.test.tsx tests/unit/setup-wizard-flow.test.ts tests/unit/setup-takeover.test.tsx`
+- `pnpm exec eslint electron/main/setup-inspection.ts tests/unit/setup-inspection.test.ts --max-warnings=0`
+- `pnpm exec vitest run tests/unit/setup-inspection.test.ts tests/unit/setup-wizard-layout.test.tsx tests/unit/setup-wizard-flow.test.ts tests/unit/setup-takeover.test.tsx`
 - `pnpm run typecheck`
 
 ### 构建级
@@ -36,9 +41,19 @@
 1. 首次进入 `Setup`
 2. 选择全新开始
 3. 确认开始页只看到“路径选择”
-4. 进入准备页，只看到目录/端口/环境就绪确认
-5. 完成 provider 接入
-5. 确认经过完成页再进入首页
+4. 确认 `/api/app/setup-inspection` 返回 `hasExistingOpenClaw=false`
+5. 进入准备页，只看到目录/端口/环境就绪确认
+6. 完成 provider 接入
+7. 确认经过完成页再进入首页
+
+补充：
+
+- fresh 路径首步不得出现“接管现有安装 / 从头创建”二选一
+- 空的 `.openclaw` 目录、默认工作区路径或隐式 `main` 推导都不得被当成 takeover 足迹
+- fresh 失败后不得留下新的 `openclaw.json`、新 workspace 或 takeover 指纹
+- fresh 不允许选择当前 OpenClaw 已配置的 workspace
+- Win / 默认 mac 大小写差异不得绕过 workspace 冲突校验
+- provider 步必须是“左侧选择提供商 + 右侧完成接入”的单任务面
 
 ### 2. takeover 路径
 
@@ -48,6 +63,8 @@
 4. 在准备页查看导入摘要、冲突和警告
 5. 如需 provider review，在“模型与接入”阶段完成
 6. 确认最终仍经过完成页
+7. takeover 开始后，不得再切换到 fresh
+8. `main / Main` 这类大小写差异不得导致智能体数量或 provider 账号数量双计
 
 ### 3. 高级路径
 
@@ -64,6 +81,7 @@
 4. 在默认窗口宽度下不依赖用户手动拉宽
 5. 不允许首步或准备页默认就出现内部滚动条
 6. `complete.applying` 中关闭窗口时出现二次确认，确认退出后不会进入首页
+7. Windows 的 `desktop.ini / Thumbs.db` 和 mac 的 `.DS_Store` 不得触发 takeover 检测
 
 ## 回归风险
 
@@ -74,10 +92,11 @@
 
 ## 最新验证
 
-- `pnpm exec eslint src/components/setup/SetupShell.tsx src/components/setup/SetupStepRail.tsx src/components/setup/SetupStartStage.tsx src/components/setup/SetupPreparationStage.tsx tests/unit/setup-wizard-layout.test.tsx --max-warnings=0`
-- `pnpm exec vitest run tests/unit/setup-wizard-layout.test.tsx tests/unit/setup-wizard-flow.test.ts --reporter=dot`
+- `pnpm exec eslint src/pages/Setup/index.tsx src/components/setup/SetupShell.tsx src/components/setup/SetupStepRail.tsx src/components/setup/SetupStartStage.tsx src/components/setup/SetupPreparationStage.tsx tests/unit/setup-wizard-layout.test.tsx --max-warnings=0`
+- `pnpm exec eslint electron/main/setup-inspection.ts tests/unit/setup-inspection.test.ts --max-warnings=0`
+- `pnpm exec vitest run tests/unit/setup-inspection.test.ts tests/unit/setup-wizard-layout.test.tsx tests/unit/setup-wizard-flow.test.ts --reporter=dot`
 
 结果：
 
 - `eslint` 通过
-- `setup-wizard-layout + setup-wizard-flow` 共 `6` 条测试通过
+- `setup-inspection + setup-wizard-layout + setup-wizard-flow` 共 `20` 条测试通过

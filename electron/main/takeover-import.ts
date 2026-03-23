@@ -193,10 +193,30 @@ const setStatus = (status: TakeoverImportStatus): TakeoverImportStatus => {
 
 export const getTakeoverImportStatus = (): TakeoverImportStatus => latestTakeoverImportStatus;
 
+export const resetTakeoverImportStatus = (): void => {
+  if (activeTakeoverImportPromise) {
+    return;
+  }
+
+  latestTakeoverImportStatus = {
+    state: 'idle',
+    step: 'idle',
+    importedAccountCount: 0,
+    defaultAccountId: null,
+    conflicts: [],
+    warnings: [],
+    blockingIssues: [],
+  };
+};
+
 export const runTakeoverImport = async (
   request: TakeoverImportRequest = {},
   dependencies: TakeoverImportDependencies = {},
 ): Promise<TakeoverImportStatus> => {
+  if (request.mode && request.mode !== 'takeover') {
+    throw new Error('接管导入只支持 takeover 模式');
+  }
+
   if (activeTakeoverImportPromise) {
     return activeTakeoverImportPromise;
   }
@@ -226,7 +246,7 @@ export const runTakeoverImport = async (
   try {
     const inspection = await inspectSetup();
     const plan = buildPlan(inspection, {
-      mode: request.mode ?? 'takeover',
+      mode: 'takeover',
     });
 
     planWarnings = [...(plan.warnings ?? [])];

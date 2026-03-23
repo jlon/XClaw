@@ -136,8 +136,9 @@ export function Setup() {
   const [installedSkills, setInstalledSkills] = useState<string[]>([]);
   // Runtime check status
   const [runtimeChecksPassed, setRuntimeChecksPassed] = useState(false);
-  const takeoverRequiresProviderReview = setupMode === 'takeover'
-    && Boolean(setupPlans.takeover?.providerImport?.requiresReview);
+  const takeoverRequiresProviderReview = Boolean(setupPlans.takeover?.providerImport?.requiresReview);
+  const takeoverTaskRunning = takeoverSubmitting || takeoverStatus?.state === 'running';
+  const takeoverModeLocked = takeoverTaskRunning || takeoverStatus?.state === 'complete';
   const setupStageOrder = getSetupStageOrder();
   const activeSetupPlan = setupMode === 'takeover'
     ? setupPlans.takeover
@@ -184,54 +185,59 @@ export function Setup() {
     setCompletePhase(stage === 'complete' ? phase : 'summary');
   }, []);
 
+  const handleSetupModeChange = useCallback((nextMode: SetupMode) => {
+    if (takeoverModeLocked) {
+      return;
+    }
+    setSetupMode(nextMode);
+  }, [takeoverModeLocked]);
+
   const loadSetupState = useCallback(async () => {
     setSetupStateLoading(true);
     setSetupStateError(null);
     try {
-      const [state, takeoverStatusSnapshot] = await Promise.all([
-        loadSetupTakeoverState(),
-        loadTakeoverImportStatus().catch(() => null),
-      ]);
+      const state = await loadSetupTakeoverState();
+      const takeoverStatusSnapshot = state.inspection.hasExistingOpenClaw
+        ? await loadTakeoverImportStatus().catch(() => null)
+        : null;
       const nextSetupMode = state.inspection.hasExistingOpenClaw
         ? (state.inspection.suggestedMode ?? 'takeover')
         : 'fresh';
-      const nextTakeoverRequiresProviderReview = nextSetupMode === 'takeover'
-        && Boolean(state.plans.takeover?.providerImport?.requiresReview);
+      const nextTakeoverRequiresProviderReview = Boolean(state.plans.takeover?.providerImport?.requiresReview);
+      const takeoverFlowActive = takeoverStatusSnapshot?.state === 'running' || takeoverStatusSnapshot?.state === 'complete';
 
       setSetupInspection(state.inspection);
       setSetupPlans(state.plans);
-      setSetupMode(nextSetupMode);
+      setSetupMode(takeoverFlowActive ? 'takeover' : nextSetupMode);
       setFreshWorkspacePath(state.plans.fresh?.workspace?.defaultPath ?? state.inspection.defaultWorkspacePath ?? '');
       setFreshGatewayPortInput(String(state.plans.fresh?.runtime?.gatewayPort ?? state.inspection.gatewayPort ?? settingsGatewayPort));
       goToStage('start');
-      if (takeoverStatusSnapshot) {
-        setTakeoverStatus(takeoverStatusSnapshot);
-        const snapshotRunning = takeoverStatusSnapshot.state === 'running';
-        setTakeoverSubmitting(snapshotRunning);
-        if (snapshotRunning) {
-          goToStage('preparation');
-        }
-        if (takeoverStatusSnapshot.state === 'complete' && nextTakeoverRequiresProviderReview) {
-          goToStage('provider');
-        }
-        if (takeoverStatusSnapshot.state === 'complete' && !nextTakeoverRequiresProviderReview) {
-          goToStage('complete', 'summary');
-        }
-        if (snapshotRunning) {
-          void loadTakeoverImportStatus().then((latestStatus) => {
-            setTakeoverStatus(latestStatus);
-            if (latestStatus.state === 'complete' && nextTakeoverRequiresProviderReview) {
-              goToStage('provider');
-            }
-            if (latestStatus.state === 'complete' && !nextTakeoverRequiresProviderReview) {
-              goToStage('complete', 'summary');
-            }
-            if (latestStatus.state !== 'running' && latestStatus.state !== 'idle') {
-              setTakeoverSubmitting(false);
-            }
-          }).catch(() => {
-          });
-        }
+      setTakeoverStatus(takeoverStatusSnapshot);
+      const snapshotRunning = takeoverStatusSnapshot?.state === 'running';
+      setTakeoverSubmitting(snapshotRunning);
+      if (snapshotRunning) {
+        goToStage('preparation');
+      }
+      if (takeoverStatusSnapshot?.state === 'complete' && nextTakeoverRequiresProviderReview) {
+        goToStage('provider');
+      }
+      if (takeoverStatusSnapshot?.state === 'complete' && !nextTakeoverRequiresProviderReview) {
+        goToStage('complete', 'summary');
+      }
+      if (snapshotRunning) {
+        void loadTakeoverImportStatus().then((latestStatus) => {
+          setTakeoverStatus(latestStatus);
+          if (latestStatus.state === 'complete' && nextTakeoverRequiresProviderReview) {
+            goToStage('provider');
+          }
+          if (latestStatus.state === 'complete' && !nextTakeoverRequiresProviderReview) {
+            goToStage('complete', 'summary');
+          }
+          if (latestStatus.state !== 'running' && latestStatus.state !== 'idle') {
+            setTakeoverSubmitting(false);
+          }
+        }).catch(() => {
+        });
       }
     } catch (error) {
       setSetupStateError(String(error));
@@ -474,6 +480,10 @@ export function Setup() {
   };
 
   const handleBack = () => {
+    if (setupMode === 'takeover' && takeoverTaskRunning) {
+      return;
+    }
+
     if (currentStage === 'preparation') {
       goToStage('start');
       return;
@@ -565,9 +575,10 @@ export function Setup() {
           inspection={setupInspection}
           activePlan={activeSetupPlan}
           mode={setupMode}
-          onModeChange={setSetupMode}
+          onModeChange={handleSetupModeChange}
           status={takeoverStatus}
           submitting={takeoverSubmitting}
+          modeLocked={takeoverModeLocked}
         />
       );
     }
@@ -647,7 +658,13 @@ export function Setup() {
               completePhase={completePhase}
               canProceed={canProceed}
               primaryLabel={footerPrimaryAction.label}
-              onBack={currentStage === 'start' || (currentStage === 'complete' && completePhase === 'applying') ? undefined : handleBack}
+              onBack={
+                currentStage === 'start'
+                || (currentStage === 'complete' && completePhase === 'applying')
+                || (currentStage === 'preparation' && setupMode === 'takeover' && takeoverTaskRunning)
+                  ? undefined
+                  : handleBack
+              }
               onPrimary={currentStage === 'complete' && completePhase === 'applying' ? undefined : () => { void handleNext(); }}
               onExit={currentStage === 'start' ? handleExitRequest : undefined}
             />
@@ -705,21 +722,24 @@ export function Setup() {
   }
 
   return renderShell(
-    <div className="flex h-full flex-col overflow-hidden">
-      <div className="flex-1 overflow-auto p-6 xl:p-8">
-        <div className="mx-auto flex w-full max-w-5xl flex-col">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`${currentStage}-${completePhase}-${setupMode}`}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              className="rounded-[2rem] border border-border/70 app-panel-surface-elevated p-6 text-card-foreground xl:p-8"
-            >
-              {renderStageContent()}
-            </motion.div>
-          </AnimatePresence>
-        </div>
+    <div className="p-6 xl:p-8">
+      <div className="mx-auto flex w-full max-w-5xl flex-col">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`${currentStage}-${completePhase}-${setupMode}`}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            className={cn(
+              'text-card-foreground',
+              currentStage === 'start'
+                ? 'p-0'
+                : 'rounded-[2rem] border border-border/70 app-panel-surface-elevated p-6 xl:p-8',
+            )}
+          >
+            {renderStageContent()}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>,
   );
@@ -1250,344 +1270,231 @@ function ProviderContent({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Provider selector — dropdown */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between gap-3">
-          <Label>{t('provider.label')}</Label>
-          {selectedProvider && providerDocsUrl && (
-            <a
-              href={providerDocsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-[13px] font-medium text-foreground/70 hover:text-foreground"
-            >
-              {t('settings:aiProviders.dialog.customDoc')}
-              <ExternalLink className="h-3 w-3" />
-            </a>
-          )}
-        </div>
-        <div className="relative" ref={providerMenuRef}>
-          <button
-            type="button"
-            aria-haspopup="listbox"
-            aria-expanded={providerMenuOpen}
-            onClick={() => setProviderMenuOpen((open) => !open)}
-            className={cn(
-              'w-full rounded-[12px] border border-border/65 app-field-surface px-3 py-2 text-sm',
-              'flex items-center justify-between gap-2',
-              'focus:outline-none focus:ring-2 focus:ring-ring/30'
-            )}
-          >
-            <div className="flex items-center gap-2 min-w-0">
-              {selectedProvider && selectedProviderData ? (
-                selectedProviderIconUrl ? (
-                  <img
-                    src={selectedProviderIconUrl}
-                    alt={selectedProviderData.name}
-                    className={cn('h-4 w-4 shrink-0', shouldInvertInDark(selectedProviderData.id) && 'dark:invert')}
-                  />
-                ) : (
-                  <span className="text-sm leading-none shrink-0">{selectedProviderData.icon}</span>
-                )
-              ) : (
-                <span className="text-xs text-muted-foreground shrink-0">—</span>
+    <SetupProviderStage
+      variant="configure"
+      title={t('provider.title')}
+      description={t('provider.description')}
+      className="space-y-5"
+    >
+      <div className="grid gap-4 xl:grid-cols-[18rem_minmax(0,1fr)]">
+        <div className="rounded-[1.5rem] border border-border/70 app-insight-surface p-5">
+          <div className="space-y-1">
+            <div className="text-sm font-medium text-foreground">{t('provider.selectionTitle')}</div>
+            <p className="text-sm leading-6 text-muted-foreground">{t('provider.selectProviderHint')}</p>
+          </div>
+          <div className="relative mt-4" ref={providerMenuRef}>
+            <button
+              type="button"
+              aria-haspopup="listbox"
+              aria-expanded={providerMenuOpen}
+              onClick={() => setProviderMenuOpen((open) => !open)}
+              className={cn(
+                'flex w-full items-center justify-between gap-2 rounded-[14px] border border-border/65 app-field-surface px-4 py-3 text-sm',
+                'focus:outline-none focus:ring-2 focus:ring-ring/30',
               )}
-              <span className={cn('truncate text-left', !selectedProvider && 'text-muted-foreground')}>
-                {selectedProviderData
-                  ? `${selectedProviderData.id === 'custom' ? t('settings:aiProviders.custom') : selectedProviderData.name}${selectedProviderData.model ? ` — ${selectedProviderData.model}` : ''}`
-                  : t('provider.selectPlaceholder')}
-              </span>
-            </div>
-            <ChevronDown className={cn('h-3.5 w-3.5 text-muted-foreground shrink-0 transition-transform', providerMenuOpen && 'rotate-180')} />
-          </button>
-
-          {providerMenuOpen && (
-            <div
-              role="listbox"
-              className="absolute z-20 mt-1 max-h-64 w-full overflow-auto rounded-[12px] border border-border/65 app-panel-surface-elevated"
             >
-              {providers.map((p) => {
-                const iconUrl = getProviderIconUrl(p.id);
-                const isSelected = selectedProvider === p.id;
+              <div className="flex min-w-0 items-center gap-2">
+                {selectedProvider && selectedProviderData ? (
+                  selectedProviderIconUrl ? (
+                    <img
+                      src={selectedProviderIconUrl}
+                      alt={selectedProviderData.name}
+                      className={cn('h-4 w-4 shrink-0', shouldInvertInDark(selectedProviderData.id) && 'dark:invert')}
+                    />
+                  ) : (
+                    <span className="shrink-0 text-sm leading-none">{selectedProviderData.icon}</span>
+                  )
+                ) : (
+                  <span className="shrink-0 text-xs text-muted-foreground">—</span>
+                )}
+                <span className={cn('truncate text-left', !selectedProvider && 'text-muted-foreground')}>
+                  {selectedProviderData
+                    ? `${selectedProviderData.id === 'custom' ? t('settings:aiProviders.custom') : selectedProviderData.name}${selectedProviderData.model ? ` — ${selectedProviderData.model}` : ''}`
+                    : t('provider.selectPlaceholder')}
+                </span>
+              </div>
+              <ChevronDown className={cn('h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform', providerMenuOpen && 'rotate-180')} />
+            </button>
 
-                return (
-                  <button
-                    key={p.id}
-                    type="button"
-                    role="option"
-                    aria-selected={isSelected}
-                    onClick={() => handleSelectProvider(p.id)}
-                    className={cn(
-                      'w-full px-3 py-2 text-left text-sm flex items-center justify-between gap-2',
-                      'hover:bg-[hsl(var(--foreground)/0.04)] transition-colors',
-                      isSelected && 'bg-[hsl(var(--foreground)/0.06)]'
-                    )}
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      {iconUrl ? (
-                        <img
-                          src={iconUrl}
-                          alt={p.name}
-                          className={cn('h-4 w-4 shrink-0', shouldInvertInDark(p.id) && 'dark:invert')}
-                        />
-                      ) : (
-                        <span className="text-sm leading-none shrink-0">{p.icon}</span>
+            {providerMenuOpen ? (
+              <div
+                role="listbox"
+                className="absolute z-20 mt-2 max-h-64 w-full overflow-auto rounded-[14px] border border-border/65 app-panel-surface-elevated"
+              >
+                {providers.map((p) => {
+                  const iconUrl = getProviderIconUrl(p.id);
+                  const isSelected = selectedProvider === p.id;
+
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      role="option"
+                      aria-selected={isSelected}
+                      onClick={() => handleSelectProvider(p.id)}
+                      className={cn(
+                        'flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm transition-colors',
+                        'hover:bg-[hsl(var(--foreground)/0.04)]',
+                        isSelected && 'bg-[hsl(var(--foreground)/0.06)]',
                       )}
-                      <span className="truncate">{p.id === 'custom' ? t('settings:aiProviders.custom') : p.name}{p.model ? ` — ${p.model}` : ''}</span>
-                    </div>
-                    {isSelected && <Check className="h-4 w-4 text-primary shrink-0" />}
-                  </button>
-                );
-              })}
-            </div>
-          )}
+                    >
+                      <div className="flex min-w-0 items-center gap-2">
+                        {iconUrl ? (
+                          <img
+                            src={iconUrl}
+                            alt={p.name}
+                            className={cn('h-4 w-4 shrink-0', shouldInvertInDark(p.id) && 'dark:invert')}
+                          />
+                        ) : (
+                          <span className="shrink-0 text-sm leading-none">{p.icon}</span>
+                        )}
+                        <span className="truncate">{p.id === 'custom' ? t('settings:aiProviders.custom') : p.name}{p.model ? ` — ${p.model}` : ''}</span>
+                      </div>
+                      {isSelected ? <Check className="h-4 w-4 shrink-0 text-primary" /> : null}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
+          </div>
         </div>
-      </div>
 
-      {/* Dynamic config fields based on selected provider */}
-      {selectedProvider && (
         <motion.div
-          key={selectedProvider}
+          key={selectedProvider || 'idle-provider'}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-4"
+          className="rounded-[1.5rem] border border-border/70 app-panel-surface-elevated p-5"
         >
-          {/* Base URL field (for siliconflow, ollama, custom) */}
-          {showBaseUrlField && (
-            <div className="space-y-2">
-              <Label htmlFor="baseUrl">{t('provider.baseUrl')}</Label>
-              <Input
-                id="baseUrl"
-                type="text"
-                placeholder={getProtocolBaseUrlPlaceholder(apiProtocol)}
-                value={baseUrl}
-                onChange={(e) => {
-                  setBaseUrl(e.target.value);
-                  onConfiguredChange(false);
-                }}
-                autoComplete="off"
-                className="app-field-surface"
-              />
-            </div>
-          )}
-
-          {/* Model ID field (for siliconflow etc.) */}
-          {showModelIdField && (
-            <div className="space-y-2">
-              <Label htmlFor="modelId">{t('provider.modelId')}</Label>
-              <Input
-                id="modelId"
-                type="text"
-                placeholder={selectedProviderData?.modelIdPlaceholder || 'e.g. deepseek-ai/DeepSeek-V3'}
-                value={modelId}
-                onChange={(e) => {
-                  setModelId(e.target.value);
-                  onConfiguredChange(false);
-                }}
-                autoComplete="off"
-                className="app-field-surface"
-              />
-              <p className="text-xs text-muted-foreground">
-                {t('provider.modelIdDesc')}
-              </p>
-            </div>
-          )}
-
-          {selectedProvider === 'custom' && (
-            <div className="space-y-2">
-              <Label>{t('provider.protocol')}</Label>
-              <div className="flex gap-2 text-sm">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setApiProtocol('openai-completions');
-                    onConfiguredChange(false);
-                  }}
-                  className={cn(
-                    'flex-1 rounded-[10px] border border-border/65 px-3 py-2 transition-colors',
-                    apiProtocol === 'openai-completions'
-                      ? 'app-field-surface font-medium'
-                      : 'bg-transparent text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground'
-                  )}
-                >
-                  {t('provider.protocols.openaiCompletions')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setApiProtocol('openai-responses');
-                    onConfiguredChange(false);
-                  }}
-                  className={cn(
-                    'flex-1 rounded-[10px] border border-border/65 px-3 py-2 transition-colors',
-                    apiProtocol === 'openai-responses'
-                      ? 'app-field-surface font-medium'
-                      : 'bg-transparent text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground'
-                  )}
-                >
-                  {t('provider.protocols.openaiResponses')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setApiProtocol('anthropic-messages');
-                    onConfiguredChange(false);
-                  }}
-                  className={cn(
-                    'flex-1 rounded-[10px] border border-border/65 px-3 py-2 transition-colors',
-                    apiProtocol === 'anthropic-messages'
-                      ? 'app-field-surface font-medium'
-                      : 'bg-transparent text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground'
-                  )}
-                >
-                  {t('provider.protocols.anthropic')}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Auth mode toggle for providers supporting both */}
-          {isOAuth && supportsApiKey && (
-            <div className="grid grid-cols-2 overflow-hidden rounded-[10px] border border-border/60 text-sm">
-              <button
-                onClick={() => setAuthMode('oauth')}
-                className={cn(
-                  'min-w-0 whitespace-nowrap px-2.5 py-2 text-center leading-none transition-colors sm:min-w-[112px]',
-                  authMode === 'oauth' ? 'bg-[hsl(var(--foreground)/0.07)] text-foreground' : 'text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground'
-                )}
-              >
-                {t('settings:aiProviders.oauth.loginMode')}
-              </button>
-              <button
-                onClick={() => setAuthMode('apikey')}
-                className={cn(
-                  'min-w-0 whitespace-nowrap px-2.5 py-2 text-center leading-none transition-colors sm:min-w-[112px]',
-                  authMode === 'apikey' ? 'bg-[hsl(var(--foreground)/0.07)] text-foreground' : 'text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground'
-                )}
-              >
-                {t('settings:aiProviders.oauth.apikeyMode')}
-              </button>
-            </div>
-          )}
-
-          {/* API Key field (hidden for ollama) */}
-          {(!isOAuth || (supportsApiKey && authMode === 'apikey')) && (
-            <div className="space-y-2">
-              <Label htmlFor="apiKey">{t('provider.apiKey')}</Label>
-              <div className="relative">
-                <Input
-                  id="apiKey"
-                  type={showKey ? 'text' : 'password'}
-                  placeholder={selectedProviderData?.placeholder}
-                  value={apiKey}
-                  onChange={(e) => {
-                    onApiKeyChange(e.target.value);
-                    onConfiguredChange(false);
-                    setKeyValid(null);
-                  }}
-                  autoComplete="off"
-                  className="pr-10 app-field-surface"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowKey(!showKey)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Device OAuth Trigger */}
-          {useOAuthFlow && (
-            <div className="space-y-4 pt-2">
-              <div className="rounded-[14px] border border-border/65 app-pane-surface p-4 text-center">
-                <p className="mb-3 block text-sm text-muted-foreground">
-                  This provider requires signing in via your browser.
-                </p>
-                <Button
-                  onClick={handleStartOAuth}
-                  disabled={oauthFlowing}
-                  className="w-full"
-                >
-                  {oauthFlowing ? (
-                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Waiting...</>
-                  ) : (
-                    'Login with Browser'
-                  )}
-                </Button>
+          {selectedProvider && selectedProviderData ? (
+            <div className="space-y-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/65 bg-[hsl(var(--surface-elevated)/0.82)]">
+                    {selectedProviderIconUrl ? (
+                      <img
+                        src={selectedProviderIconUrl}
+                        alt={selectedProviderData.name}
+                        className={cn('h-5 w-5', shouldInvertInDark(selectedProviderData.id) && 'dark:invert')}
+                      />
+                    ) : (
+                      <span className="text-base leading-none">{selectedProviderData.icon}</span>
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-sm font-medium text-foreground">{t('provider.connectionTitle')}</div>
+                    <div className="text-base font-semibold text-foreground">
+                      {selectedProviderData.id === 'custom' ? t('settings:aiProviders.custom') : selectedProviderData.name}
+                    </div>
+                    <div className="text-sm leading-6 text-muted-foreground">{t('provider.connectionDescription')}</div>
+                  </div>
+                </div>
+                {providerDocsUrl ? (
+                  <a
+                    href={providerDocsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[13px] font-medium text-foreground/70 hover:text-foreground"
+                  >
+                    {t('provider.docsLink')}
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                ) : null}
               </div>
 
-              {/* OAuth Active State Modal / Inline View */}
-              {oauthFlowing && (
-                <div className="relative mt-4 overflow-hidden rounded-[14px] border border-border/65 app-pane-surface p-4">
+              {isOAuth && supportsApiKey ? (
+                <div className="space-y-2">
+                  <Label>{t('provider.authModeLabel')}</Label>
+                  <div className="grid grid-cols-2 overflow-hidden rounded-[12px] border border-border/60 text-sm">
+                    <button
+                      type="button"
+                      onClick={() => setAuthMode('oauth')}
+                      className={cn(
+                        'min-w-0 whitespace-nowrap px-3 py-2.5 text-center transition-colors',
+                        authMode === 'oauth'
+                          ? 'bg-[hsl(var(--foreground)/0.07)] text-foreground'
+                          : 'text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground',
+                      )}
+                    >
+                      {t('settings:aiProviders.oauth.loginMode')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAuthMode('apikey')}
+                      className={cn(
+                        'min-w-0 whitespace-nowrap px-3 py-2.5 text-center transition-colors',
+                        authMode === 'apikey'
+                          ? 'bg-[hsl(var(--foreground)/0.07)] text-foreground'
+                          : 'text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground',
+                      )}
+                    >
+                      {t('settings:aiProviders.oauth.apikeyMode')}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
 
-                  <div className="relative z-10 flex flex-col items-center justify-center text-center space-y-4">
-                    {oauthError ? (
-                      <div className="space-y-2 text-destructive">
-                        <XCircle className="h-8 w-8 mx-auto" />
-                        <p className="font-medium">Authentication Failed</p>
-                        <p className="text-sm opacity-80">{oauthError}</p>
-                        <Button variant="outline" size="sm" onClick={handleCancelOAuth} className="mt-2">
-                          Try Again
+              {useOAuthFlow ? (
+                <div className="rounded-[1.2rem] border border-border/70 app-insight-surface p-4">
+                  <div className="space-y-1">
+                    <div className="text-sm font-medium text-foreground">{t('provider.oauthCardTitle')}</div>
+                    <p className="text-sm leading-6 text-muted-foreground">{t('provider.oauthCardDescription')}</p>
+                  </div>
+
+                  <div className="mt-4">
+                    {!oauthFlowing ? (
+                      <Button onClick={handleStartOAuth} disabled={oauthFlowing} className="w-full">
+                        {t('provider.oauthStart')}
+                      </Button>
+                    ) : oauthError ? (
+                      <div className="space-y-3 text-destructive">
+                        <div className="flex items-center gap-2">
+                          <XCircle className="h-4 w-4" />
+                          <span className="font-medium">{t('provider.oauthErrorTitle')}</span>
+                        </div>
+                        <p className="text-sm opacity-90">{oauthError}</p>
+                        <Button variant="outline" size="sm" onClick={handleCancelOAuth}>
+                          {t('provider.oauthRetry')}
                         </Button>
                       </div>
                     ) : !oauthData ? (
-                      <div className="space-y-3 py-4">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-                        <p className="animate-pulse text-sm text-muted-foreground">Requesting secure login code...</p>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        {t('provider.oauthRequesting')}
                       </div>
                     ) : oauthData.mode === 'manual' ? (
-                      <div className="space-y-4 w-full">
-                        <div className="space-y-1">
-                          <h3 className="font-medium text-lg">Complete OpenAI Login</h3>
-                          <p className="text-sm text-muted-foreground text-left mt-2">
-                            {oauthData.message || 'Open the authorization page, complete login, then paste the callback URL or code below.'}
-                          </p>
-                        </div>
-
+                      <div className="space-y-4">
                         <Button
                           variant="secondary"
                           className="w-full"
                           onClick={() => invokeIpc('shell:openExternal', oauthData.authorizationUrl)}
                         >
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          Open Authorization Page
+                          <ExternalLink className="mr-2 h-4 w-4" />
+                          {t('provider.oauthOpenAuthPage')}
                         </Button>
 
                         <Input
-                          placeholder="Paste callback URL or code"
+                          placeholder={t('provider.oauthManualPlaceholder')}
                           value={manualCodeInput}
                           onChange={(e) => setManualCodeInput(e.target.value)}
                         />
 
-                        <Button
-                          className="w-full"
-                          onClick={handleSubmitManualOAuthCode}
-                          disabled={!manualCodeInput.trim()}
-                        >
-                          Submit Code
-                        </Button>
-
-                        <Button variant="ghost" size="sm" className="w-full mt-2" onClick={handleCancelOAuth}>
-                          Cancel
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            className="flex-1"
+                            onClick={handleSubmitManualOAuthCode}
+                            disabled={!manualCodeInput.trim()}
+                          >
+                            {t('provider.oauthSubmit')}
+                          </Button>
+                          <Button variant="ghost" onClick={handleCancelOAuth}>
+                            {t('provider.oauthCancel')}
+                          </Button>
+                        </div>
                       </div>
                     ) : (
-                      <div className="space-y-4 w-full">
-                        <div className="space-y-1">
-                          <h3 className="font-medium text-lg">Approve Login</h3>
-                          <div className="text-sm text-muted-foreground text-left mt-2 space-y-1">
-                            <p>1. Copy the authorization code below.</p>
-                            <p>2. Open the login page in your browser.</p>
-                            <p>3. Paste the code to approve access.</p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-center gap-2 rounded-[10px] border border-border/65 app-field-surface p-3">
-                          <code className="text-2xl font-mono tracking-widest font-bold text-primary">
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-center gap-2 rounded-[12px] border border-border/65 app-field-surface p-3">
+                          <code className="text-2xl font-mono font-bold tracking-widest text-primary">
                             {oauthData.userCode}
                           </code>
                           <Button
@@ -1595,7 +1502,7 @@ function ProviderContent({
                             size="icon"
                             onClick={() => {
                               navigator.clipboard.writeText(oauthData.userCode);
-                              toast.success('Code copied to clipboard');
+                              toast.success(t('provider.oauthCodeCopied'));
                             }}
                           >
                             <Copy className="h-4 w-4" />
@@ -1607,38 +1514,164 @@ function ProviderContent({
                           className="w-full"
                           onClick={() => invokeIpc('shell:openExternal', oauthData.verificationUri)}
                         >
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          Open Login Page
+                          <ExternalLink className="mr-2 h-4 w-4" />
+                          {t('provider.oauthOpenLoginPage')}
                         </Button>
 
-                        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-2">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <Loader2 className="h-3 w-3 animate-spin" />
-                          <span>Waiting for approval in browser...</span>
+                          <span>{t('provider.oauthWaitingApproval')}</span>
                         </div>
 
-                        <Button variant="ghost" size="sm" className="w-full mt-2" onClick={handleCancelOAuth}>
-                          Cancel
+                        <Button variant="ghost" size="sm" onClick={handleCancelOAuth}>
+                          {t('provider.oauthCancel')}
                         </Button>
                       </div>
                     )}
                   </div>
                 </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className={cn('grid gap-4', showBaseUrlField && showModelIdField && 'sm:grid-cols-2')}>
+                    {showBaseUrlField ? (
+                      <div className="space-y-2">
+                        <Label htmlFor="baseUrl">{t('provider.baseUrl')}</Label>
+                        <Input
+                          id="baseUrl"
+                          type="text"
+                          placeholder={getProtocolBaseUrlPlaceholder(apiProtocol)}
+                          value={baseUrl}
+                          onChange={(e) => {
+                            setBaseUrl(e.target.value);
+                            onConfiguredChange(false);
+                          }}
+                          autoComplete="off"
+                          className="app-field-surface"
+                        />
+                      </div>
+                    ) : null}
+
+                    {showModelIdField ? (
+                      <div className="space-y-2">
+                        <Label htmlFor="modelId">{t('provider.modelId')}</Label>
+                        <Input
+                          id="modelId"
+                          type="text"
+                          placeholder={selectedProviderData?.modelIdPlaceholder || 'e.g. deepseek-ai/DeepSeek-V3'}
+                          value={modelId}
+                          onChange={(e) => {
+                            setModelId(e.target.value);
+                            onConfiguredChange(false);
+                          }}
+                          autoComplete="off"
+                          className="app-field-surface"
+                        />
+                        <p className="text-xs text-muted-foreground">{t('provider.modelIdDesc')}</p>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  {selectedProvider === 'custom' ? (
+                    <div className="space-y-2">
+                      <Label>{t('provider.protocol')}</Label>
+                      <div className="grid gap-2 sm:grid-cols-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setApiProtocol('openai-completions');
+                            onConfiguredChange(false);
+                          }}
+                          className={cn(
+                            'rounded-[10px] border border-border/65 px-3 py-2 transition-colors',
+                            apiProtocol === 'openai-completions'
+                              ? 'app-field-surface font-medium'
+                              : 'bg-transparent text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground',
+                          )}
+                        >
+                          {t('provider.protocols.openaiCompletions')}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setApiProtocol('openai-responses');
+                            onConfiguredChange(false);
+                          }}
+                          className={cn(
+                            'rounded-[10px] border border-border/65 px-3 py-2 transition-colors',
+                            apiProtocol === 'openai-responses'
+                              ? 'app-field-surface font-medium'
+                              : 'bg-transparent text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground',
+                          )}
+                        >
+                          {t('provider.protocols.openaiResponses')}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setApiProtocol('anthropic-messages');
+                            onConfiguredChange(false);
+                          }}
+                          className={cn(
+                            'rounded-[10px] border border-border/65 px-3 py-2 transition-colors',
+                            apiProtocol === 'anthropic-messages'
+                              ? 'app-field-surface font-medium'
+                              : 'bg-transparent text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground',
+                          )}
+                        >
+                          {t('provider.protocols.anthropic')}
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {!isOAuth || (supportsApiKey && authMode === 'apikey') ? (
+                    <div className="space-y-2">
+                      <Label htmlFor="apiKey">{t('provider.apikeyCardTitle')}</Label>
+                      <div className="relative">
+                        <Input
+                          id="apiKey"
+                          type={showKey ? 'text' : 'password'}
+                          placeholder={selectedProviderData?.placeholder}
+                          value={apiKey}
+                          onChange={(e) => {
+                            onApiKeyChange(e.target.value);
+                            onConfiguredChange(false);
+                            setKeyValid(null);
+                          }}
+                          autoComplete="off"
+                          className="pr-10 app-field-surface"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowKey(!showKey)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
               )}
+
+              {keyValid !== null ? (
+                <div className={cn('rounded-[1rem] border px-4 py-3 text-sm', keyValid ? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-700 dark:text-emerald-300' : 'border-red-500/20 bg-red-500/5 text-red-700 dark:text-red-300')}>
+                  {keyValid ? `✓ ${t('provider.valid')}` : `✗ ${t('provider.invalid')}`}
+                </div>
+              ) : null}
+
+              {!useOAuthFlow && (requiresKey || supportsApiKey) ? (
+                <p className="text-sm text-muted-foreground">{t('provider.storedLocally')}</p>
+              ) : null}
+            </div>
+          ) : (
+            <div className="flex min-h-[14rem] items-center justify-center rounded-[1.2rem] border border-dashed border-border/70 bg-[hsl(var(--surface-elevated)/0.55)] p-6 text-sm text-muted-foreground">
+              {t('provider.connectionIdle')}
             </div>
           )}
-
-          {keyValid !== null && (
-            <p className={cn('text-sm text-center', keyValid ? 'text-green-400' : 'text-red-400')}>
-              {keyValid ? `✓ ${t('provider.valid')}` : `✗ ${t('provider.invalid')}`}
-            </p>
-          )}
-
-          <p className="text-sm text-muted-foreground text-center">
-            {t('provider.storedLocally')}
-          </p>
         </motion.div>
-      )}
-    </div>
+      </div>
+    </SetupProviderStage>
   );
 }
 

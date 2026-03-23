@@ -30,6 +30,10 @@ interface SetupSettingsSnapshot {
   gatewayPort?: number;
 }
 
+type StatLike = {
+  isDirectory(): boolean;
+};
+
 interface AuthProfileEntryApiKey {
   type: 'api_key';
   provider: string;
@@ -152,6 +156,7 @@ export interface SetupInspectionDependencies {
   fileExists?: (path: string) => Promise<boolean>;
   readFile?: (path: string) => Promise<string>;
   readdirNames?: (path: string) => Promise<string[]>;
+  statPath?: (path: string) => Promise<StatLike>;
   listConfiguredAgentIds?: () => Promise<string[]>;
   listConfiguredChannels?: () => Promise<string[]>;
   checkPortAvailability?: (port: number) => Promise<boolean>;
@@ -160,11 +165,44 @@ export interface SetupInspectionDependencies {
   detectConfigChanging?: (paths: string[]) => Promise<boolean>;
 }
 
+const CASE_INSENSITIVE_FILESYSTEM = process.platform === 'win32' || process.platform === 'darwin';
+const IGNORED_DISK_ENTRY_NAMES = new Set(['desktop.ini', 'thumbs.db', '.ds_store']);
+
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return null;
   }
   return value as Record<string, unknown>;
+}
+
+function normalizeFilesystemKey(value: string): string {
+  return CASE_INSENSITIVE_FILESYSTEM ? value.toLocaleLowerCase() : value;
+}
+
+function normalizePathForFilesystemComparison(value: string): string {
+  return normalizeFilesystemKey(normalizeWorkspacePath(value));
+}
+
+function uniqByFilesystemIdentity(values: string[]): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const value of values) {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      continue;
+    }
+    const key = normalizeFilesystemKey(trimmed);
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    result.push(trimmed);
+  }
+  return result;
+}
+
+function isIgnoredDiskEntryName(name: string): boolean {
+  return !name || name.startsWith('.') || IGNORED_DISK_ENTRY_NAMES.has(name.toLocaleLowerCase());
 }
 
 function getConfiguredWorkspacePaths(config: unknown): string[] {
@@ -187,11 +225,66 @@ function getConfiguredWorkspacePaths(config: unknown): string[] {
     }
   }
 
-  if (paths.size === 0) {
-    paths.add(normalizeWorkspacePath(join(OPENCLAW_DIR, 'workspace')));
+  return uniqByFilesystemIdentity([...paths]);
+}
+
+function getConfiguredAgentIdsFromConfig(config: unknown): string[] {
+  const configRecord = asRecord(config);
+  const agents = asRecord(configRecord?.agents);
+  const entries = Array.isArray(agents?.list) ? agents.list : [];
+  const ids = entries
+    .map((entry) => {
+      const agent = asRecord(entry);
+      return typeof agent?.id === 'string' ? agent.id.trim() : '';
+    })
+    .filter(Boolean);
+  return uniqByFilesystemIdentity(ids);
+}
+
+function channelHasConfiguredAccounts(section: Record<string, unknown>): boolean {
+  const accounts = asRecord(section.accounts);
+  if (!accounts) {
+    return false;
   }
 
-  return [...paths];
+  return Object.values(accounts).some((entry) => {
+    const account = asRecord(entry);
+    return Boolean(account && Object.keys(account).length > 0);
+  });
+}
+
+async function getConfiguredChannelsFromConfig(
+  config: unknown,
+  deps: Required<Pick<SetupInspectionDependencies, 'fileExists' | 'readdirNames'>>,
+): Promise<string[]> {
+  const configRecord = asRecord(config);
+  const channelsRecord = asRecord(configRecord?.channels);
+  const channels = new Set<string>();
+
+  for (const [channelType, sectionValue] of Object.entries(channelsRecord ?? {})) {
+    const section = asRecord(sectionValue);
+    if (!section || section.enabled === false) {
+      continue;
+    }
+
+    const nonMetaKeys = Object.keys(section).filter((key) => !['enabled', 'accounts', 'defaultAccount'].includes(key));
+    if (channelHasConfiguredAccounts(section) || nonMetaKeys.length > 0) {
+      channels.add(channelType);
+    }
+  }
+
+  const whatsAppDir = join(OPENCLAW_DIR, 'credentials', 'whatsapp');
+  if (await deps.fileExists(whatsAppDir)) {
+    try {
+      if ((await deps.readdirNames(whatsAppDir)).some((name) => !isIgnoredDiskEntryName(name.trim()))) {
+        channels.add('whatsapp');
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  return [...channels].sort();
 }
 
 function getDefaultModelRef(config: unknown): string | null {
@@ -382,6 +475,10 @@ async function defaultReaddirNames(path: string): Promise<string[]> {
   return readdir(path);
 }
 
+async function defaultStatPath(path: string): Promise<StatLike> {
+  return stat(path);
+}
+
 export async function isLocalGatewayPortAvailable(port: number): Promise<boolean> {
   for (const host of LOCALHOST_HOSTS) {
     const available = await new Promise<boolean>((resolve) => {
@@ -505,16 +602,16 @@ function buildSuggestedFreshWorkspacePath(
   defaultWorkspacePath: string,
 ): string {
   const normalizedDefault = normalizeWorkspacePath(defaultWorkspacePath);
-  const existing = new Set(configuredWorkspacePaths.map((value) => normalizeWorkspacePath(value)));
+  const existing = new Set(configuredWorkspacePaths.map((value) => normalizePathForFilesystemComparison(value)));
 
-  if (!existing.has(normalizedDefault)) {
+  if (!existing.has(normalizePathForFilesystemComparison(normalizedDefault))) {
     return normalizedDefault;
   }
 
   for (let index = 1; index <= 20; index += 1) {
     const suffix = index === 1 ? '-xclaw' : `-xclaw-${index}`;
     const candidate = normalizeWorkspacePath(`${normalizedDefault}${suffix}`);
-    if (!existing.has(candidate)) {
+    if (!existing.has(normalizePathForFilesystemComparison(candidate))) {
       return candidate;
     }
   }
@@ -532,10 +629,47 @@ async function countManagedEntries(
 
   try {
     const names = await deps.readdirNames(path);
-    return names.filter((name) => !name.startsWith('.')).length;
+    return names
+      .map((name) => name.trim())
+      .filter((name) => !isIgnoredDiskEntryName(name))
+      .length;
   } catch {
     return 0;
   }
+}
+
+async function getManagedDirectoryNames(
+  path: string,
+  deps: Required<Pick<SetupInspectionDependencies, 'fileExists' | 'readdirNames' | 'statPath'>>,
+): Promise<string[]> {
+  if (!(await deps.fileExists(path))) {
+    return [];
+  }
+
+  try {
+    const names = await deps.readdirNames(path);
+    const directories = await Promise.all(
+      names
+        .map((name) => name.trim())
+        .filter((name) => !isIgnoredDiskEntryName(name))
+        .map(async (name) => {
+          try {
+            return (await deps.statPath(join(path, name))).isDirectory() ? name : null;
+          } catch {
+            return null;
+          }
+        }),
+    );
+    return uniqByFilesystemIdentity(directories.filter((value): value is string => Boolean(value)));
+  } catch {
+    return [];
+  }
+}
+
+async function getAgentIdsFromDisk(
+  deps: Required<Pick<SetupInspectionDependencies, 'fileExists' | 'readdirNames' | 'statPath'>>,
+): Promise<string[]> {
+  return getManagedDirectoryNames(OPENCLAW_AGENTS_DIR, deps);
 }
 
 async function readAuthProfilesByAgent(
@@ -579,14 +713,9 @@ export async function inspectLocalOpenClawSetup(
     fileExists: dependencies.fileExists ?? defaultFileExists,
     readFile: dependencies.readFile ?? defaultReadFile,
     readdirNames: dependencies.readdirNames ?? defaultReaddirNames,
-    listConfiguredAgentIds: dependencies.listConfiguredAgentIds ?? (async () => {
-      const { listConfiguredAgentIds } = await import('../utils/agent-config');
-      return listConfiguredAgentIds();
-    }),
-    listConfiguredChannels: dependencies.listConfiguredChannels ?? (async () => {
-      const { listConfiguredChannels } = await import('../utils/channel-config');
-      return listConfiguredChannels();
-    }),
+    statPath: dependencies.statPath ?? defaultStatPath,
+    listConfiguredAgentIds: dependencies.listConfiguredAgentIds ?? (async () => []),
+    listConfiguredChannels: dependencies.listConfiguredChannels ?? (async () => []),
     checkPortAvailability: dependencies.checkPortAvailability ?? isLocalGatewayPortAvailable,
     findSuggestedPort: dependencies.findSuggestedPort ?? defaultFindSuggestedPort,
     detectExternalGateway: dependencies.detectExternalGateway ?? defaultDetectExternalGateway,
@@ -612,18 +741,21 @@ export async function inspectLocalOpenClawSetup(
   const requestedWorkspaceValidation = typeof dependencies.requestedWorkspacePath === 'string'
     ? validateWorkspacePathInput(dependencies.requestedWorkspacePath)
     : { normalizedPath: null, error: null };
-  const configuredWorkspacePaths = requestedWorkspaceValidation.normalizedPath
-    ? uniq([requestedWorkspaceValidation.normalizedPath, ...baseWorkspacePaths])
-    : baseWorkspacePaths;
+  const configuredWorkspacePaths = baseWorkspacePaths;
   const defaultWorkspacePath = requestedWorkspaceValidation.normalizedPath
     ?? configuredWorkspacePaths[0]
     ?? join(OPENCLAW_DIR, 'workspace');
   const gatewayPort = parseRequestedGatewayPort(dependencies.requestedGatewayPort)
     ?? extractGatewayPort(config, settings.gatewayPort);
 
-  const [agentIds, channels, skillsCount, extensionsCount, portAvailable, suggestedGatewayPort, externalGatewayDetected] = await Promise.all([
-    deps.listConfiguredAgentIds().catch(() => []),
-    deps.listConfiguredChannels().catch(() => []),
+  const [configAgentIds, diskAgentIds, configChannels, skillsCount, extensionsCount, portAvailable, suggestedGatewayPort, externalGatewayDetected] = await Promise.all([
+    dependencies.listConfiguredAgentIds
+      ? deps.listConfiguredAgentIds().catch(() => [])
+      : Promise.resolve(getConfiguredAgentIdsFromConfig(config)),
+    getAgentIdsFromDisk(deps),
+    dependencies.listConfiguredChannels
+      ? deps.listConfiguredChannels().catch(() => [])
+      : getConfiguredChannelsFromConfig(config, deps),
     countManagedEntries(OPENCLAW_SKILLS_DIR, deps),
     countManagedEntries(OPENCLAW_EXTENSIONS_DIR, deps),
     deps.checkPortAvailability(gatewayPort),
@@ -631,6 +763,8 @@ export async function inspectLocalOpenClawSetup(
     deps.detectExternalGateway(gatewayPort),
   ]);
 
+  const agentIds = uniqByFilesystemIdentity([...configAgentIds, ...diskAgentIds]);
+  const channels = uniq(configChannels);
   const authProfilesByAgent = await readAuthProfilesByAgent(agentIds, deps, errors);
   const providerImport = summarizeProviderImport({ config, authProfilesByAgent });
   const configChanging = await deps.detectConfigChanging([
@@ -638,14 +772,13 @@ export async function inspectLocalOpenClawSetup(
     ...agentIds.map((agentId) => join(OPENCLAW_AGENTS_DIR, agentId, 'agent', 'auth-profiles.json')),
   ]);
 
-  const openClawDirExists = await deps.fileExists(OPENCLAW_DIR);
   const hasExistingOpenClaw = Boolean(
-    configFile.exists ||
-    openClawDirExists ||
+    providerImport.accounts.length > 0 ||
     skillsCount > 0 ||
     extensionsCount > 0 ||
     agentIds.length > 0 ||
-    channels.length > 0
+    channels.length > 0 ||
+    Object.keys(authProfilesByAgent).length > 0
   );
 
   if (providerImport.requiresReview) {
@@ -742,6 +875,14 @@ export function buildSetupPlan(
     if (request.workspacePath !== undefined && requestedWorkspaceValidation.error) {
       blockingIssues.push(requestedWorkspaceValidation.error);
     }
+    if (
+      freshWorkspacePath
+      && inspection.configuredWorkspacePaths.some(
+        (configuredPath) => normalizePathForFilesystemComparison(configuredPath) === normalizePathForFilesystemComparison(freshWorkspacePath),
+      )
+    ) {
+      blockingIssues.push('从头创建不能复用当前 OpenClaw 已配置的工作区路径，请选择新的工作区目录');
+    }
     if (request.gatewayPort !== undefined && !inspection.runtime.portAvailable) {
       blockingIssues.push(`网关端口 ${inspection.gatewayPort} 已被占用，请改用 ${inspection.runtime.suggestedGatewayPort}`);
     }
@@ -793,8 +934,8 @@ export function buildSetupPlan(
     writes: {
       immediateTargets: mode === 'takeover'
         ? ['主进程 settings.setupComplete', 'XClaw provider 派生状态']
-        : ['主进程 settings.setupComplete', '~/.openclaw/openclaw.json'],
-      deferredTargets: ['~/.openclaw/skills', '~/.openclaw/extensions', 'workspace bootstrap context'],
+        : ['主进程 settings.setupComplete', OPENCLAW_CONFIG_PATH],
+      deferredTargets: [OPENCLAW_SKILLS_DIR, OPENCLAW_EXTENSIONS_DIR, 'workspace bootstrap context'],
     },
   };
 }

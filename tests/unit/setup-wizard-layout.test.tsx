@@ -29,6 +29,18 @@ vi.mock('react-i18next', () => ({
       'wizard.footer.complete.secondary': '返回',
       'wizard.footer.applying.title': '正在应用变更',
       'wizard.footer.applying.body': '请保持窗口打开，完成后会自动进入摘要。',
+      'takeover.title': '检测到现有 OpenClaw',
+      'takeover.description': '你可以接管当前环境，或继续创建新的 XClaw 配置。',
+      'takeover.choice.takeover': '接管现有安装',
+      'takeover.choice.fresh': '从头创建',
+      'takeover.choice.takeoverDescription': '复用现有 OpenClaw 的 Provider、技能和工作区状态。',
+      'takeover.choice.freshDescription': '保留现有 OpenClaw，同时为 XClaw 创建一套新的默认配置。',
+      'takeover.mode.takeoverTitle': '将接管当前 OpenClaw 环境',
+      'takeover.mode.takeoverDescription': 'XClaw 会导入现有的 Provider、工作区和技能状态，并在完成后直接进入可用状态。',
+      'takeover.summary.providers': 'Provider',
+      'takeover.summary.skills': '技能',
+      'takeover.summary.extensions': '扩展',
+      'takeover.summary.workspace': '工作区',
       'welcome.title': '欢迎使用',
       'welcome.description': '一套更像桌面应用的浅色引导体验。',
       'welcome.features.noCommand': '不用命令行也能完成接入',
@@ -108,5 +120,45 @@ describe('setup wizard shell', () => {
 
     expect(screen.getByText('欢迎使用')).toBeInTheDocument();
     expect(screen.getByTestId('setup-start-hero')).toHaveClass('app-setup-hero');
+  });
+
+  it('only shows takeover choice when a local OpenClaw footprint exists', () => {
+    render(
+      <SetupStartStage
+        inspection={{
+          hasExistingOpenClaw: true,
+          suggestedMode: 'takeover',
+          openClawDir: '/tmp/.openclaw',
+          defaultWorkspacePath: '/tmp/.openclaw/workspace',
+          counts: { runtimeProviders: 2, skills: 4, extensions: 1 },
+          warnings: [],
+        }}
+        activePlan={{
+          mode: 'takeover',
+          canApply: true,
+          blockingIssues: [],
+          warnings: [],
+          workspace: {
+            defaultPath: '/tmp/.openclaw/workspace',
+            configuredPaths: ['/tmp/.openclaw/workspace'],
+          },
+          providerImport: {
+            defaultRuntimeProviderKey: null,
+            importableCount: 2,
+            conflictCount: 0,
+            unsupportedCount: 0,
+            requiresReview: false,
+          },
+        }}
+        mode="takeover"
+        onModeChange={vi.fn()}
+        status={null}
+        submitting={false}
+      />,
+    );
+
+    expect(screen.getByText('检测到现有 OpenClaw')).toBeInTheDocument();
+    expect(screen.getByText('接管现有安装')).toBeInTheDocument();
+    expect(screen.queryByText('欢迎使用')).not.toBeInTheDocument();
   });
 });

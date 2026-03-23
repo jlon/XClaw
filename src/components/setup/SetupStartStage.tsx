@@ -13,6 +13,7 @@ interface SetupStartStageProps {
   onModeChange: (mode: SetupMode) => void;
   status: TakeoverImportSummary | null;
   submitting: boolean;
+  modeLocked?: boolean;
 }
 
 const uniq = (values: string[]) => [...new Set(values)];
@@ -24,6 +25,7 @@ export function SetupStartStage({
   onModeChange,
   status,
   submitting,
+  modeLocked = false,
 }: SetupStartStageProps) {
   return inspection?.hasExistingOpenClaw ? (
     <TakeoverStartContent
@@ -33,6 +35,7 @@ export function SetupStartStage({
       onModeChange={onModeChange}
       status={status}
       submitting={submitting}
+      modeLocked={modeLocked}
     />
   ) : (
     <WelcomeStartContent />
@@ -46,14 +49,9 @@ function TakeoverStartContent({
   onModeChange,
   status,
   submitting,
+  modeLocked,
 }: SetupStartStageProps) {
   const { t } = useTranslation('setup');
-  const currentWorkspace = inspection?.defaultWorkspacePath || inspection?.openClawDir || '-';
-  const recommendedWorkspace = activePlan?.workspace?.defaultPath || currentWorkspace;
-  const currentPort = inspection?.gatewayPort ? String(inspection.gatewayPort) : '-';
-  const recommendedPort = activePlan?.runtime?.gatewayPort
-    ? String(activePlan.runtime.gatewayPort)
-    : currentPort;
   const warnings = mode === 'takeover'
     ? uniq([...(activePlan?.warnings ?? []), ...(inspection?.warnings ?? [])])
     : activePlan?.warnings ?? [];
@@ -72,11 +70,13 @@ function TakeoverStartContent({
         <button
           type="button"
           onClick={() => onModeChange('takeover')}
+          disabled={modeLocked}
           className={cn(
             'rounded-[1.35rem] border px-5 py-4 text-left transition-all',
             mode === 'takeover'
               ? 'border-primary/35 app-field-surface shadow-sm ring-1 ring-primary/10'
               : 'border-border/70 bg-[hsl(var(--surface-elevated)/0.55)] hover:border-primary/20 hover:bg-[hsl(var(--surface-elevated)/0.75)]',
+            modeLocked && 'cursor-not-allowed opacity-70',
           )}
           aria-pressed={mode === 'takeover'}
         >
@@ -91,11 +91,13 @@ function TakeoverStartContent({
         <button
           type="button"
           onClick={() => onModeChange('fresh')}
+          disabled={modeLocked}
           className={cn(
             'rounded-[1.35rem] border px-5 py-4 text-left transition-all',
             mode === 'fresh'
               ? 'border-primary/35 app-field-surface shadow-sm ring-1 ring-primary/10'
               : 'border-border/70 bg-[hsl(var(--surface-elevated)/0.55)] hover:border-primary/20 hover:bg-[hsl(var(--surface-elevated)/0.75)]',
+            modeLocked && 'cursor-not-allowed opacity-70',
           )}
           aria-pressed={mode === 'fresh'}
         >
@@ -107,63 +109,6 @@ function TakeoverStartContent({
             {activePlan?.workspace?.defaultPath || inspection?.defaultWorkspacePath}
           </div>
         </button>
-      </div>
-
-      <div className="rounded-[1.5rem] border border-border/70 app-insight-surface p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h3 className="text-base font-semibold">
-              {mode === 'takeover' ? t('takeover.mode.takeoverTitle') : t('takeover.mode.freshTitle')}
-            </h3>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">
-              {mode === 'takeover' ? t('takeover.mode.takeoverDescription') : t('takeover.mode.freshDescription')}
-            </p>
-          </div>
-          {submitting ? (
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-[hsl(var(--surface-elevated)/0.92)] px-3 py-1.5 text-xs font-medium text-foreground">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              {t('takeover.running')}
-            </div>
-          ) : null}
-        </div>
-
-        {mode === 'takeover' ? (
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-[1.1rem] border border-border/70 bg-[hsl(var(--surface-elevated)/0.86)] px-4 py-3">
-              <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground/90">{t('takeover.summary.providers')}</div>
-              <div className="mt-2 text-lg font-semibold text-foreground">{inspection?.counts?.runtimeProviders ?? 0}</div>
-            </div>
-            <div className="rounded-[1.1rem] border border-border/70 bg-[hsl(var(--surface-elevated)/0.86)] px-4 py-3">
-              <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground/90">{t('takeover.summary.skills')}</div>
-              <div className="mt-2 text-lg font-semibold text-foreground">{inspection?.counts?.skills ?? 0}</div>
-            </div>
-            <div className="rounded-[1.1rem] border border-border/70 bg-[hsl(var(--surface-elevated)/0.86)] px-4 py-3">
-              <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground/90">{t('takeover.summary.extensions')}</div>
-              <div className="mt-2 text-lg font-semibold text-foreground">{inspection?.counts?.extensions ?? 0}</div>
-            </div>
-            <div className="rounded-[1.1rem] border border-border/70 bg-[hsl(var(--surface-elevated)/0.86)] px-4 py-3">
-              <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground/90">{t('takeover.summary.workspace')}</div>
-              <div className="mt-2 break-all text-sm font-medium text-foreground">{currentWorkspace}</div>
-            </div>
-          </div>
-        ) : (
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-[1.1rem] border border-border/70 bg-[hsl(var(--surface-elevated)/0.86)] px-4 py-3">
-              <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground/90">{t('takeover.mode.recommendedWorkspace')}</div>
-              <div className="mt-2 break-all text-sm font-medium text-foreground">{recommendedWorkspace}</div>
-            </div>
-            <div className="rounded-[1.1rem] border border-border/70 bg-[hsl(var(--surface-elevated)/0.86)] px-4 py-3">
-              <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground/90">{t('takeover.mode.recommendedPort')}</div>
-              <div className="mt-2 text-lg font-semibold text-foreground">{recommendedPort}</div>
-            </div>
-          </div>
-        )}
-
-        {status?.state === 'running' && status.step ? (
-          <div className="mt-4 rounded-[1.1rem] border border-primary/15 bg-[hsl(var(--surface-elevated)/0.88)] px-4 py-3 text-sm text-muted-foreground">
-            {t(`takeover.progress.${status.step}`)}
-          </div>
-        ) : null}
       </div>
 
       {activePlan?.blockingIssues?.length ? (
@@ -192,9 +137,16 @@ function TakeoverStartContent({
         </div>
       ) : null}
 
-      {status?.error ? (
+      {mode === 'takeover' && status?.error ? (
         <div className="rounded-[18px] border border-red-500/20 bg-[hsl(var(--danger)/0.08)] p-4 text-sm leading-6 text-destructive">
           {status.error}
+        </div>
+      ) : null}
+
+      {mode === 'takeover' && submitting && status?.step ? (
+        <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-[hsl(var(--surface-elevated)/0.92)] px-3 py-1.5 text-xs font-medium text-foreground">
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          {t(`takeover.progress.${status.step}`)}
         </div>
       ) : null}
     </div>
@@ -212,7 +164,7 @@ function WelcomeStartContent() {
   ];
 
   return (
-    <div data-testid="setup-start-hero" className="app-setup-hero space-y-6 rounded-[2rem] p-6 xl:p-8">
+    <div data-testid="setup-start-hero" className="app-setup-hero space-y-5 rounded-[2rem] p-6 xl:p-8">
       <div className="flex items-center gap-4">
         <div className="app-field-surface flex h-16 w-16 items-center justify-center rounded-[1.4rem] shadow-sm">
           <img src={XClawIcon} alt="XClaw" className="h-10 w-10" />
@@ -245,15 +197,17 @@ function WelcomeStartContent() {
         ))}
       </div>
 
-      <div className="grid gap-3 pt-1 sm:grid-cols-2">
-        {features.map((feature) => (
-          <div key={feature} className="app-field-surface flex items-start gap-3 rounded-[1.35rem] p-4 text-left shadow-sm">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--glow-brand)/0.14)] text-primary">
-              <CheckCircle2 className="h-4.5 w-4.5" />
-            </span>
-            <span className="text-sm leading-6 text-foreground/86">{feature}</span>
-          </div>
-        ))}
+      <div className="rounded-[1.5rem] border border-border/70 app-insight-surface p-5">
+        <div className="space-y-3">
+          {features.map((feature) => (
+            <div key={feature} className="flex items-start gap-3 text-left">
+              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--glow-brand)/0.14)] text-primary">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+              </span>
+              <span className="text-sm leading-6 text-foreground/86">{feature}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

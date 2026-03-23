@@ -4,9 +4,9 @@ import { parseJsonBody } from '../route-utils';
 import { setCorsHeaders, sendJson, sendNoContent } from '../route-utils';
 import { runOpenClawDoctor, runOpenClawDoctorFix } from '../../utils/openclaw-doctor';
 import { buildSetupPlan, inspectLocalOpenClawSetup } from '../../main/setup-inspection';
-import { getTakeoverImportStatus, runTakeoverImport } from '../../main/takeover-import';
+import { getTakeoverImportStatus, resetTakeoverImportStatus, runTakeoverImport } from '../../main/takeover-import';
 import { runSetupActivationSideEffects } from '../../main/setup-activation';
-import { getSetting, setSetting } from '../../utils/store';
+import { getAllSettings, getSetting, replaceAllSettings, setSetting } from '../../utils/store';
 
 const hasTakeoverFingerprint = async (): Promise<boolean> => {
   const fingerprint = await getSetting('takeoverFingerprint');
@@ -62,6 +62,9 @@ export async function handleAppRoutes(
 
   if (url.pathname === '/api/app/takeover-import' && req.method === 'POST') {
     const body = await parseJsonBody<{ mode?: 'fresh' | 'takeover' }>(req);
+    if (body.mode && body.mode !== 'takeover') {
+      throw new Error('接管导入只支持 takeover 模式');
+    }
     sendJson(res, 200, await runTakeoverImport(body));
     return true;
   }
@@ -77,7 +80,15 @@ export async function handleAppRoutes(
       gatewayPort?: number;
       workspacePath?: string;
     }>(req);
-    if (body.mode === 'takeover') {
+    const inspection = await inspectLocalOpenClawSetup({
+      requestedGatewayPort: body.gatewayPort,
+      requestedWorkspacePath: body.workspacePath,
+    });
+    const plan = buildSetupPlan(inspection, body);
+    if (!plan.canApply) {
+      throw new Error(plan.blockingIssues[0] ?? '当前设置无法继续');
+    }
+    if (plan.mode === 'takeover') {
       const takeoverStatus = getTakeoverImportStatus();
       if (takeoverStatus.state !== 'complete' && !(await hasTakeoverFingerprint())) {
         throw new Error('接管导入尚未完成，不能提前完成安装');
@@ -88,8 +99,22 @@ export async function handleAppRoutes(
       runtimeController: ctx.gatewayRuntimeController,
       mainWindow: ctx.mainWindow,
       awaitCriticalTasks: true,
-      setup: body,
+      setup: plan.mode === 'fresh'
+        ? {
+          mode: 'fresh',
+          gatewayPort: body.gatewayPort,
+          workspacePath: body.workspacePath,
+        }
+        : {
+          mode: 'takeover',
+        },
     });
+    if (plan.mode === 'fresh') {
+      const settings = await getAllSettings();
+      delete settings.takeoverFingerprint;
+      await replaceAllSettings(settings);
+      resetTakeoverImportStatus();
+    }
     await setSetting('setupComplete', true);
     sendJson(res, 200, { success: true });
     return true;

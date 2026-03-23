@@ -83,6 +83,25 @@ function TakeoverPreparationContent({
   const { t } = useTranslation('setup');
   const warnings = uniq([...(plan?.warnings ?? []), ...(inspection?.warnings ?? [])]);
   const blockingIssues = uniq([...(plan?.blockingIssues ?? []), ...(status?.blockingIssues ?? [])]);
+  const summaryItems = [
+    {
+      label: t('takeover.summary.providers'),
+      value: String(inspection?.counts?.runtimeProviders ?? 0),
+    },
+    {
+      label: t('takeover.summary.skills'),
+      value: String(inspection?.counts?.skills ?? 0),
+    },
+    {
+      label: t('takeover.summary.extensions'),
+      value: String(inspection?.counts?.extensions ?? 0),
+    },
+    {
+      label: t('takeover.summary.workspace'),
+      value: inspection?.defaultWorkspacePath || inspection?.openClawDir || '-',
+      multiline: true,
+    },
+  ];
 
   return (
     <div className="space-y-5">
@@ -92,32 +111,21 @@ function TakeoverPreparationContent({
       </div>
 
       <div className="rounded-[1.5rem] border border-border/70 app-insight-surface p-5">
-        <div className="space-y-3">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-[1.1rem] border border-border/70 bg-[hsl(var(--surface-elevated)/0.86)] px-4 py-3">
-              <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground/90">{t('takeover.summary.providers')}</div>
-              <div className="mt-2 text-lg font-semibold text-foreground">{inspection?.counts?.runtimeProviders ?? 0}</div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {summaryItems.map((item) => (
+            <div key={item.label} className="rounded-[1.1rem] border border-border/70 bg-[hsl(var(--surface-elevated)/0.82)] px-4 py-3">
+              <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground/90">{item.label}</div>
+              <div className={cn('mt-2 font-semibold text-foreground', item.multiline ? 'break-all text-sm leading-6' : 'text-lg')}>
+                {item.value}
+              </div>
             </div>
-            <div className="rounded-[1.1rem] border border-border/70 bg-[hsl(var(--surface-elevated)/0.86)] px-4 py-3">
-              <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground/90">{t('takeover.summary.skills')}</div>
-              <div className="mt-2 text-lg font-semibold text-foreground">{inspection?.counts?.skills ?? 0}</div>
-            </div>
-            <div className="rounded-[1.1rem] border border-border/70 bg-[hsl(var(--surface-elevated)/0.86)] px-4 py-3">
-              <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground/90">{t('takeover.summary.extensions')}</div>
-              <div className="mt-2 text-lg font-semibold text-foreground">{inspection?.counts?.extensions ?? 0}</div>
-            </div>
-            <div className="rounded-[1.1rem] border border-border/70 bg-[hsl(var(--surface-elevated)/0.86)] px-4 py-3">
-              <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground/90">{t('takeover.summary.workspace')}</div>
-              <div className="mt-2 break-all text-sm font-medium text-foreground">{inspection?.defaultWorkspacePath || inspection?.openClawDir || '-'}</div>
-            </div>
-          </div>
-
-          {!submitting ? (
-            <div className="rounded-[1.1rem] border border-border/70 bg-[hsl(var(--surface-elevated)/0.84)] px-4 py-3 text-sm leading-6 text-muted-foreground">
-              {t('takeover.preparation.pendingHint')}
-            </div>
-          ) : null}
+          ))}
         </div>
+        {!submitting ? (
+          <p className="mt-4 text-sm leading-6 text-muted-foreground">
+            {t('takeover.preparation.pendingHint')}
+          </p>
+        ) : null}
       </div>
 
       {blockingIssues.length ? (

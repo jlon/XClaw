@@ -14,9 +14,30 @@
 
 当前这两步同时承载欢迎说明、路径选择、摘要卡、警告、日志和运行状态，违反引导页铁律。
 
-### 4. Win/mac 真机手工 smoke 还未完成
+### 4. fresh / takeover 路径边界曾经串台
+
+此前存在 4 个真实链路问题：
+
+- `fresh` 激活失败后会提前污染共享 `openclaw.json`
+- `fresh` 允许复用已配置的 OpenClaw 工作区
+- takeover 运行/完成状态会串进 fresh UI
+- inspection 和 takeover import 对智能体发现逻辑不一致
+
+这批问题本轮已按链路修复，但仍需后续再做一次手工 smoke。
+
+### 5. Win/mac 真机手工 smoke 还未完成
 
 当前仍需确认默认桌面窗口下的真实观感，而不是只看页面截图。
+
+### 6. Win/mac 文件系统语义需要持续守住
+
+默认 Windows 和大多数 macOS 卷是大小写不敏感文件系统，如果继续按字面字符串比较：
+
+- `fresh` 可能错误复用同一个 workspace
+- `main / Main` 可能被当成两个不同智能体
+- `desktop.ini / Thumbs.db / .DS_Store` 可能被误判成已有 OpenClaw 足迹
+
+本轮已补修，但后续涉及 setup / agent 目录探测时必须继续按文件系统语义处理。
 
 ## 设计阶段决议
 
@@ -25,6 +46,8 @@
 - `takeover provider review` 不再维持独立主步骤，合并进固定骨架
 - 运行时技术事实继续留在 takeover 文档，不再反向驱动页面版式
 - 日志和高级诊断进入折叠次级路径
+- `fresh` 只允许创建新的工作区路径，不能复用已配置 OpenClaw workspace
+- takeover 一旦开始执行或导入完成，前台模式必须锁定为 takeover，不能再切换到 fresh
 
 ## 未决问题
 

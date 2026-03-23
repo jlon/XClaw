@@ -377,6 +377,29 @@ describe('inspectLocalOpenClawSetup', () => {
     });
   });
 
+  it('does not treat an empty .openclaw directory as an existing installation', async () => {
+    const inspection = await inspectLocalOpenClawSetup({
+      now: () => new Date('2026-03-19T03:00:00.000Z'),
+      resolveBootstrapState: vi.fn().mockResolvedValue(pendingBootstrapState),
+      detectLegacyFootprint: vi.fn().mockResolvedValue(false),
+      getSettings: vi.fn().mockResolvedValue({ gatewayPort: 18789 }),
+      fileExists: vi.fn().mockImplementation(async (path: string) => path.endsWith('/.openclaw')),
+      readFile: vi.fn(),
+      readdirNames: vi.fn().mockResolvedValue([]),
+      listConfiguredAgentIds: vi.fn().mockResolvedValue([]),
+      listConfiguredChannels: vi.fn().mockResolvedValue([]),
+      checkPortAvailability: vi.fn().mockResolvedValue(true),
+      findSuggestedPort: vi.fn().mockResolvedValue(18789),
+      detectExternalGateway: vi.fn().mockResolvedValue(false),
+      detectConfigChanging: vi.fn().mockResolvedValue(false),
+    });
+
+    expect(inspection.hasExistingOpenClaw).toBe(false);
+    expect(inspection.suggestedMode).toBe('fresh');
+    expect(inspection.counts.agents).toBe(0);
+    expect(inspection.counts.channels).toBe(0);
+  });
+
   it('uses requested fresh setup overrides for gateway port and workspace path', async () => {
     const inspection = await inspectLocalOpenClawSetup({
       requestedGatewayPort: 19001,

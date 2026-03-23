@@ -1,5 +1,6 @@
-import { mkdir } from 'fs/promises';
-import { join } from 'path';
+import { constants } from 'fs';
+import { access, mkdir, readFile, rm, writeFile } from 'fs/promises';
+import { dirname, join } from 'path';
 import { homedir } from 'os';
 import type { BrowserWindow } from 'electron';
 import type { GatewayManager } from '../gateway/manager';
@@ -8,7 +9,7 @@ import { ensureBuiltinSkillsInstalled, ensurePreinstalledSkillsInstalled } from 
 import { ensureAllBundledPluginsInstalled } from '../utils/plugin-install';
 import { ensureXClawContext, repairXClawOnlyBootstrapFiles } from '../utils/openclaw-workspace';
 import { autoInstallCliIfNeeded, generateCompletionCache, installCompletionToProfile } from '../utils/openclaw-cli';
-import { getSetting, setSetting, type GatewayDesiredState } from '../utils/store';
+import { getAllSettings, getSetting, replaceAllSettings, setSetting, type AppSettings, type GatewayDesiredState } from '../utils/store';
 import { logger } from '../utils/logger';
 import { syncAllProviderAuthToRuntime } from '../services/providers/provider-runtime-sync';
 import { runTakeoverReconciler } from './takeover-reconciler';
@@ -31,6 +32,25 @@ type SetupActivationOptions = {
 const describeError = (error: unknown): string => (
   error instanceof Error ? error.message : String(error)
 );
+
+const OPENCLAW_CONFIG_PATH = join(homedir(), '.openclaw', 'openclaw.json');
+
+type FreshSetupRollbackSnapshot = {
+  settings: AppSettings;
+  configExisted: boolean;
+  configRaw: string | null;
+  workspacePath: string;
+  workspaceExisted: boolean;
+};
+
+async function fileExists(path: string): Promise<boolean> {
+  try {
+    await access(path, constants.F_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 function normalizeRequestedGatewayPort(value: unknown): number | null {
   return typeof value === 'number'
@@ -96,6 +116,57 @@ async function applyFreshSetupSelections(
   });
 }
 
+async function captureFreshSetupRollbackSnapshot(
+  options: Pick<SetupActivationOptions, 'setup'>,
+): Promise<FreshSetupRollbackSnapshot | null> {
+  if (options.setup?.mode !== 'fresh') {
+    return null;
+  }
+
+  const requestedWorkspace = options.setup.workspacePath ?? join(homedir(), '.openclaw', 'workspace');
+  const workspaceValidation = validateWorkspacePathInput(requestedWorkspace);
+  if (!workspaceValidation.normalizedPath) {
+    throw new Error(workspaceValidation.error ?? '工作区路径无效');
+  }
+
+  const [settings, configExisted, workspaceExisted] = await Promise.all([
+    getAllSettings(),
+    fileExists(OPENCLAW_CONFIG_PATH),
+    fileExists(workspaceValidation.normalizedPath),
+  ]);
+
+  return {
+    settings,
+    configExisted,
+    configRaw: configExisted ? await readFile(OPENCLAW_CONFIG_PATH, 'utf-8') : null,
+    workspacePath: workspaceValidation.normalizedPath,
+    workspaceExisted,
+  };
+}
+
+async function restoreFreshSetupRollbackSnapshot(
+  options: Pick<SetupActivationOptions, 'gatewayManager'>,
+  snapshot: FreshSetupRollbackSnapshot | null,
+): Promise<void> {
+  if (!snapshot) {
+    return;
+  }
+
+  await replaceAllSettings(snapshot.settings);
+  options.gatewayManager.setPort(snapshot.settings.gatewayPort);
+
+  if (snapshot.configExisted && snapshot.configRaw !== null) {
+    await mkdir(dirname(OPENCLAW_CONFIG_PATH), { recursive: true });
+    await writeFile(OPENCLAW_CONFIG_PATH, snapshot.configRaw, 'utf-8');
+  } else {
+    await rm(OPENCLAW_CONFIG_PATH, { force: true });
+  }
+
+  if (!snapshot.workspaceExisted) {
+    await rm(snapshot.workspacePath, { recursive: true, force: true });
+  }
+}
+
 async function applyTakeoverSetupSelections(
   options: Pick<SetupActivationOptions, 'gatewayManager' | 'setup'>,
 ): Promise<void> {
@@ -112,78 +183,82 @@ async function applyTakeoverSetupSelections(
 export async function runSetupActivationSideEffects(
   options: SetupActivationOptions,
 ): Promise<void> {
-  const { gatewayManager, runtimeController, mainWindow, awaitCriticalTasks = false } = options;
-  await applyFreshSetupSelections(options);
-  await applyTakeoverSetupSelections(options);
-  const runCriticalTask = async (task: () => Promise<void>, errorMessage: string): Promise<void> => {
-    if (awaitCriticalTasks) {
-      await task();
-      return;
+  const { runtimeController, mainWindow, awaitCriticalTasks = false } = options;
+  const freshRollbackSnapshot = await captureFreshSetupRollbackSnapshot(options);
+
+  try {
+    await applyFreshSetupSelections(options);
+    await applyTakeoverSetupSelections(options);
+    const runBackgroundTask = (task: () => Promise<void>, errorMessage: string): void => {
+      void task().catch((error) => {
+        logger.warn(errorMessage, error);
+      });
+    };
+
+    const gatewayDesiredState = await resolveSetupActivationDesiredState();
+    if (gatewayDesiredState === 'running') {
+      try {
+        await syncAllProviderAuthToRuntime();
+        logger.debug('Activating managed Gateway runtime...');
+        await runtimeController.activateManagedMode('running');
+        logger.info('Gateway auto-start succeeded');
+      } catch (error) {
+        logger.error('Gateway auto-start failed:', error);
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send('gateway:error', String(error));
+        }
+        if (awaitCriticalTasks) {
+          throw new Error(`网关自动启动失败：${describeError(error)}`, { cause: error });
+        }
+      }
+    } else {
+      await runtimeController.activateManagedMode('stopped');
+      logger.info('Gateway desired state is stopped; managed mode activated without auto-start');
     }
 
-    void task().catch((error) => {
-      logger.warn(errorMessage, error);
-    });
-  };
+    runBackgroundTask(
+      repairXClawOnlyBootstrapFiles,
+      'Failed to repair bootstrap files:',
+    );
 
-  await runCriticalTask(
-    repairXClawOnlyBootstrapFiles,
-    'Failed to repair bootstrap files:',
-  );
+    runBackgroundTask(
+      ensureBuiltinSkillsInstalled,
+      'Failed to install built-in skills:',
+    );
 
-  await runCriticalTask(
-    ensureBuiltinSkillsInstalled,
-    'Failed to install built-in skills:',
-  );
+    runBackgroundTask(
+      ensurePreinstalledSkillsInstalled,
+      'Failed to install preinstalled skills:',
+    );
 
-  await runCriticalTask(
-    ensurePreinstalledSkillsInstalled,
-    'Failed to install preinstalled skills:',
-  );
+    runBackgroundTask(
+      ensureAllBundledPluginsInstalled,
+      'Failed to install/upgrade bundled plugins:',
+    );
 
-  await runCriticalTask(
-    ensureAllBundledPluginsInstalled,
-    'Failed to install/upgrade bundled plugins:',
-  );
+    runBackgroundTask(
+      ensureXClawContext,
+      'Failed to merge XClaw context into workspace:',
+    );
 
-  const gatewayDesiredState = await resolveSetupActivationDesiredState();
-  if (gatewayDesiredState === 'running') {
-    try {
-      await syncAllProviderAuthToRuntime();
-      logger.debug('Activating managed Gateway runtime...');
-      await runtimeController.activateManagedMode('running');
-      logger.info('Gateway auto-start succeeded');
-    } catch (error) {
-      logger.error('Gateway auto-start failed:', error);
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('gateway:error', String(error));
-      }
-      if (awaitCriticalTasks) {
-        throw new Error(`网关自动启动失败：${describeError(error)}`);
-      }
+    runBackgroundTask(async () => {
+      await autoInstallCliIfNeeded((installedPath) => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send('openclaw:cli-installed', installedPath);
+        }
+      });
+      generateCompletionCache();
+      installCompletionToProfile();
+    }, 'CLI auto-install failed:');
+
+    if (options.setup?.mode === 'takeover') {
+      runBackgroundTask(
+        runTakeoverReconciler,
+        'Takeover reconciler failed:',
+      );
     }
-  } else {
-    await runtimeController.activateManagedMode('stopped');
-    logger.info('Gateway desired state is stopped; managed mode activated without auto-start');
+  } catch (error) {
+    await restoreFreshSetupRollbackSnapshot(options, freshRollbackSnapshot);
+    throw error;
   }
-
-  await runCriticalTask(
-    ensureXClawContext,
-    'Failed to merge XClaw context into workspace:',
-  );
-
-  void autoInstallCliIfNeeded((installedPath) => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('openclaw:cli-installed', installedPath);
-    }
-  }).then(() => {
-    generateCompletionCache();
-    installCompletionToProfile();
-  }).catch((error) => {
-    logger.warn('CLI auto-install failed:', error);
-  });
-
-  void runTakeoverReconciler().catch((error) => {
-    logger.warn('Takeover reconciler failed:', error);
-  });
 }

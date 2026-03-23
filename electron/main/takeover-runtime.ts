@@ -1,4 +1,4 @@
-import { access, readFile } from 'fs/promises';
+import { access, readFile, readdir, stat } from 'fs/promises';
 import { constants } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
@@ -29,6 +29,8 @@ export type TakeoverRuntimeState = {
 const OPENCLAW_DIR = join(homedir(), '.openclaw');
 const OPENCLAW_CONFIG_PATH = join(OPENCLAW_DIR, 'openclaw.json');
 const OPENCLAW_AGENTS_DIR = join(OPENCLAW_DIR, 'agents');
+const CASE_INSENSITIVE_FILESYSTEM = process.platform === 'win32' || process.platform === 'darwin';
+const IGNORED_DISK_ENTRY_NAMES = new Set(['desktop.ini', 'thumbs.db', '.ds_store']);
 
 const asRecord = (value: unknown): Record<string, unknown> | null => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -55,11 +57,76 @@ const readJsonIfExists = async (path: string): Promise<unknown> => {
   return JSON.parse(await readFile(path, 'utf-8'));
 };
 
+const normalizeFilesystemKey = (value: string): string => (
+  CASE_INSENSITIVE_FILESYSTEM ? value.toLocaleLowerCase() : value
+);
+
+const uniqByFilesystemIdentity = (values: string[]): string[] => {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const value of values) {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      continue;
+    }
+    const key = normalizeFilesystemKey(trimmed);
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    result.push(trimmed);
+  }
+  return result;
+};
+
+const isIgnoredDiskEntryName = (name: string): boolean => (
+  !name || name.startsWith('.') || IGNORED_DISK_ENTRY_NAMES.has(name.toLocaleLowerCase())
+);
+
+const getConfiguredAgentIdsFromConfig = (config: unknown): string[] => {
+  const configRecord = asRecord(config);
+  const agents = asRecord(configRecord?.agents);
+  const entries = Array.isArray(agents?.list) ? agents.list : [];
+  return uniqByFilesystemIdentity(
+    entries
+      .map((entry) => {
+        const agent = asRecord(entry);
+        return typeof agent?.id === 'string' ? agent.id.trim() : '';
+      })
+      .filter(Boolean),
+  );
+};
+
+const getAgentIdsFromDisk = async (): Promise<string[]> => {
+  if (!(await fileExists(OPENCLAW_AGENTS_DIR))) {
+    return [];
+  }
+
+  try {
+    const directories = await Promise.all(
+      (await readdir(OPENCLAW_AGENTS_DIR))
+        .map((name) => name.trim())
+        .filter((name) => !isIgnoredDiskEntryName(name))
+        .map(async (name) => {
+          try {
+            return (await stat(join(OPENCLAW_AGENTS_DIR, name))).isDirectory() ? name : null;
+          } catch {
+            return null;
+          }
+        }),
+    );
+    return uniqByFilesystemIdentity(directories.filter((value): value is string => Boolean(value)));
+  } catch {
+    return [];
+  }
+};
+
 export const loadTakeoverRuntimeState = async (): Promise<TakeoverRuntimeState> => {
-  const { listConfiguredAgentIds } = await import('../utils/agent-config');
   const config = await readJsonIfExists(OPENCLAW_CONFIG_PATH);
-  const discoveredAgentIds = await listConfiguredAgentIds().catch(() => []);
-  const agentIds = discoveredAgentIds.length > 0 ? discoveredAgentIds : ['main'];
+  const agentIds = uniqByFilesystemIdentity([
+    ...getConfiguredAgentIdsFromConfig(config),
+    ...(await getAgentIdsFromDisk()),
+  ]);
   const authProfilesByAgent = Object.fromEntries(
     (
       await Promise.all(
