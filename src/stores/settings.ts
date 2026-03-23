@@ -65,6 +65,7 @@ interface SettingsState {
 
   // Setup
   setupComplete: boolean;
+  initialized: boolean;
 
   // Actions
   init: () => Promise<void>;
@@ -114,6 +115,7 @@ const defaultSettings = {
   chatFocusMode: false,
   devModeUnlocked: false,
   setupComplete: false,
+  initialized: false,
 };
 
 export const useSettingsStore = create<SettingsState>()(
@@ -140,6 +142,7 @@ export const useSettingsStore = create<SettingsState>()(
             ...state,
             ...settings,
             setupComplete,
+            initialized: true,
             gatewayDesiredState,
             gatewayManagedMode,
             gatewayAutoStart: gatewayDesiredState === 'running',
@@ -149,6 +152,7 @@ export const useSettingsStore = create<SettingsState>()(
             i18n.changeLanguage(resolvedLanguage);
           }
         } catch {
+          set({ initialized: true });
           // Keep renderer-persisted settings as a fallback when the main
           // process store is not reachable.
         }
@@ -229,8 +233,9 @@ export const useSettingsStore = create<SettingsState>()(
     {
       name: 'XClaw-settings',
       partialize: (state) => {
-        const { setupComplete, ...rest } = state;
+        const { setupComplete, initialized, ...rest } = state;
         void setupComplete;
+        void initialized;
         return rest;
       },
       migrate: (persistedState) => {
@@ -239,6 +244,7 @@ export const useSettingsStore = create<SettingsState>()(
         }
         const nextState = { ...(persistedState as Record<string, unknown>) };
         delete nextState.setupComplete;
+        delete nextState.initialized;
         return nextState;
       },
     }

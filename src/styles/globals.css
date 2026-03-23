@@ -229,7 +229,8 @@
 }
 
 .desktop-app-sidebar-surface {
-  background: transparent;
+  background:
+    linear-gradient(180deg, hsl(var(--chrome) / 0.98) 0%, hsl(var(--chrome-strong) / 0.985) 100%);
 }
 
 .desktop-app-chat-nav-shell .desktop-app-shell-sidebar--rail,
@@ -2345,21 +2346,20 @@
 
 .app-sidebar-toned-icon {
   --sidebar-icon-ink: #7f8898;
-  --sidebar-icon-bg: rgb(128 137 152 / 0.1);
-  --sidebar-icon-bg-hover: rgb(128 137 152 / 0.16);
+  --sidebar-icon-bg: rgb(128 137 152 / 0.06);
+  --sidebar-icon-bg-hover: rgb(128 137 152 / 0.12);
   display: inline-flex;
-  height: 1.45rem;
-  width: 1.45rem;
+  height: 1.3rem;
+  width: 1.3rem;
   align-items: center;
   justify-content: center;
-  border-radius: 0.55rem;
+  border-radius: 0.42rem;
   color: var(--sidebar-icon-ink);
   background: var(--sidebar-icon-bg);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.48);
   transition:
     background-color 180ms ease,
     color 180ms ease,
-    box-shadow 180ms ease;
+    border-color 180ms ease;
 }
 
 .app-sidebar-toned-icon > svg {
@@ -2368,54 +2368,51 @@
 
 .app-sidebar-toned-icon--chat {
   --sidebar-icon-ink: #8e7f8e;
-  --sidebar-icon-bg: rgb(154 132 155 / 0.1);
-  --sidebar-icon-bg-hover: rgb(154 132 155 / 0.16);
+  --sidebar-icon-bg: rgb(154 132 155 / 0.06);
+  --sidebar-icon-bg-hover: rgb(154 132 155 / 0.12);
 }
 
 .app-sidebar-toned-icon--models {
   --sidebar-icon-ink: #6f83b0;
-  --sidebar-icon-bg: rgb(117 140 196 / 0.11);
-  --sidebar-icon-bg-hover: rgb(117 140 196 / 0.17);
+  --sidebar-icon-bg: rgb(117 140 196 / 0.07);
+  --sidebar-icon-bg-hover: rgb(117 140 196 / 0.13);
 }
 
 .app-sidebar-toned-icon--agents {
   --sidebar-icon-ink: #c47669;
-  --sidebar-icon-bg: rgb(222 127 112 / 0.11);
-  --sidebar-icon-bg-hover: rgb(222 127 112 / 0.17);
+  --sidebar-icon-bg: rgb(222 127 112 / 0.07);
+  --sidebar-icon-bg-hover: rgb(222 127 112 / 0.13);
 }
 
 .app-sidebar-toned-icon--channels {
   --sidebar-icon-ink: #4e8d8a;
-  --sidebar-icon-bg: rgb(91 161 155 / 0.12);
-  --sidebar-icon-bg-hover: rgb(91 161 155 / 0.18);
+  --sidebar-icon-bg: rgb(91 161 155 / 0.08);
+  --sidebar-icon-bg-hover: rgb(91 161 155 / 0.14);
 }
 
 .app-sidebar-toned-icon--skills {
   --sidebar-icon-ink: #a98956;
-  --sidebar-icon-bg: rgb(206 166 101 / 0.12);
-  --sidebar-icon-bg-hover: rgb(206 166 101 / 0.18);
+  --sidebar-icon-bg: rgb(206 166 101 / 0.08);
+  --sidebar-icon-bg-hover: rgb(206 166 101 / 0.14);
 }
 
 .app-sidebar-toned-icon--cron {
   --sidebar-icon-ink: #887bad;
-  --sidebar-icon-bg: rgb(149 131 191 / 0.11);
-  --sidebar-icon-bg-hover: rgb(149 131 191 / 0.18);
+  --sidebar-icon-bg: rgb(149 131 191 / 0.07);
+  --sidebar-icon-bg-hover: rgb(149 131 191 / 0.13);
 }
 
 .app-sidebar-toned-icon--settings,
 .app-sidebar-toned-icon--terminal {
   --sidebar-icon-ink: #72829d;
-  --sidebar-icon-bg: rgb(130 147 176 / 0.11);
-  --sidebar-icon-bg-hover: rgb(130 147 176 / 0.17);
+  --sidebar-icon-bg: rgb(130 147 176 / 0.07);
+  --sidebar-icon-bg-hover: rgb(130 147 176 / 0.13);
 }
 
 .app-sidebar-nav-link:hover .app-sidebar-toned-icon,
 .app-sidebar-nav-link:focus-visible .app-sidebar-toned-icon,
 .app-sidebar-nav-link[aria-current="page"] .app-sidebar-toned-icon {
   background: var(--sidebar-icon-bg-hover);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.56),
-    0 1px 1px rgb(15 23 42 / 0.04);
 }
 
 .dark .app-sidebar-toned-icon {
@@ -4119,10 +4116,10 @@
 .sidebar-brand-wordmark {
   display: inline-flex;
   align-items: baseline;
-  color: hsl(var(--foreground) / 0.74);
+  color: hsl(var(--foreground) / 0.78);
   font-family: var(--font-display);
   font-style: normal;
-  font-weight: 680;
+  font-weight: 660;
   letter-spacing: -0.015em;
   line-height: 1;
 }
@@ -4137,7 +4134,7 @@
 }
 
 .sidebar-brand-wordmark-rest {
-  color: hsl(var(--foreground) / 0.66);
+  color: hsl(var(--foreground) / 0.62);
   font-size: 0.9rem;
   letter-spacing: 0.01em;
   text-transform: none;

@@ -95,12 +95,12 @@ function NavItem({ to, icon, label, collapsed, tone }: NavItemProps) {
         className={({ isActive }) =>
           cn(
             'app-sidebar-nav-link flex w-full items-center rounded-[10px] border border-transparent px-2.5 py-2 text-[13px] font-normal tracking-[0.01em] transition-[background-color,color,border-color,box-shadow,padding,gap] duration-200 ease-out',
-            'text-foreground/68',
+            'text-foreground/72',
             collapsed
-              ? 'mx-auto h-8 w-8 justify-center gap-0 px-0 hover:border-transparent hover:bg-[hsl(var(--surface-hover)/0.96)] hover:text-foreground hover:shadow-none'
-              : 'gap-2 hover:border-transparent hover:bg-[hsl(var(--surface-hover)/0.96)] hover:text-foreground hover:shadow-none',
+              ? 'mx-auto h-8 w-8 justify-center gap-0 px-0 hover:border-border/55 hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground hover:shadow-none'
+              : 'gap-2 hover:border-border/55 hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground hover:shadow-none',
             isActive
-              ? 'border-transparent bg-[hsl(var(--foreground)/0.07)] text-foreground shadow-none'
+              ? 'border-border/65 bg-[hsl(var(--surface-elevated)/0.92)] text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.46)]'
               : '',
           )
         }
@@ -167,7 +167,7 @@ export function Sidebar({ railOnly = false, className }: SidebarProps) {
         className,
       )}
     >
-      <div className={cn('px-2 pb-2', collapsed ? 'pt-2' : 'pt-3')}>
+      <div className={cn('px-2 pb-1.5', collapsed ? 'pt-2' : 'pt-2.5')}>
         <AppBrandLockup collapsed={collapsed} testIdPrefix="sidebar-brand" />
       </div>
 
@@ -177,7 +177,7 @@ export function Sidebar({ railOnly = false, className }: SidebarProps) {
         ))}
       </nav>
 
-      <div className="mt-auto p-1.5">
+      <div className="mt-auto px-1.5 pb-1.5 pt-2">
         <NavItem
           to="/settings"
           icon={<SettingsIcon className="h-[18px] w-[18px]" strokeWidth={2} />}
@@ -192,10 +192,10 @@ export function Sidebar({ railOnly = false, className }: SidebarProps) {
             aria-label={collapsed ? t('sidebar.openClawPage') : undefined}
             className={cn(
               'app-sidebar-nav-link mt-1 flex h-auto w-full items-center rounded-[10px] border border-transparent px-2.5 py-2 text-[13px] font-normal tracking-[0.01em] transition-[background-color,color,border-color,box-shadow,padding,gap] duration-200 ease-out',
-              'text-foreground/64',
+              'text-foreground/68',
               collapsed
-                ? 'mx-auto h-8 w-8 justify-center gap-0 px-0 hover:border-transparent hover:bg-[hsl(var(--surface-hover)/0.96)] hover:text-foreground hover:shadow-none'
-                : 'justify-start gap-2 hover:border-transparent hover:bg-[hsl(var(--surface-hover)/0.96)] hover:text-foreground hover:shadow-none',
+                ? 'mx-auto h-8 w-8 justify-center gap-0 px-0 hover:border-border/55 hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground hover:shadow-none'
+                : 'justify-start gap-2 hover:border-border/55 hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground hover:shadow-none',
             )}
             onClick={openDevConsole}
           >
