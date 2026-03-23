@@ -90,6 +90,9 @@
 - Provider Inspector 查看态已从“四张信息卡”压成单一事实 pane + utility footer，编辑态与查看态的首层结构更接近桌面 inspector
 - Token Intelligence 现已继续退出双层摘要壳：摘要带、主指标切换、时间窗口共用一层 header；breakdown 与最近请求都已改成分隔资源行，而不是卡片列表
 - Add Provider Dialog 已退出“先选 provider 再进入下一步”的列表向导，改成宽桌面模态：左侧固定 provider 网格卡片，右侧固定紧凑配置 pane，默认桌面窗口下不再把主要流程压进窄滚动抽屉
+- Provider Board 卡片已进一步退出“浏览 + docs + footer 操作”混层，默认态回到“标题 + 一行元信息 + usage facts”的资源板语法
+- 默认未选中 provider 时，Token Intelligence 已降级为“紧凑摘要带 + 主趋势图 + 轻提示”，`breakdown / 最近请求` 不再与 Provider Board 首屏等权
+- breakdown 与最近请求已继续压成桌面资源行语法：弱化 chip / 彩点 / footer 操作，保留趋势判断和回溯所需最小事实
 
 ## 下一步
 

@@ -1,13 +1,11 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import type { UsageHistoryEntry } from '../usage-history';
 
 interface UsageRecentRequestsProps {
   entries: UsageHistoryEntry[];
   title: string;
   devModeUnlocked: boolean;
-  usageChipClass: string;
   unknownModelLabel: string;
   inputLabel: (value: string) => string;
   outputLabel: (value: string) => string;
@@ -45,7 +43,6 @@ export function UsageRecentRequests({
   entries,
   title,
   devModeUnlocked,
-  usageChipClass,
   unknownModelLabel,
   inputLabel,
   outputLabel,
@@ -65,7 +62,7 @@ export function UsageRecentRequests({
 }: UsageRecentRequestsProps) {
   return (
     <section className={sectionClass} data-testid="models-recent-requests">
-      <div className="mb-2.5 flex items-center justify-between gap-3">
+      <div className="mb-2 flex items-center justify-between gap-3">
         <div>
           <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">{title}</p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">{pageLabel(currentPage, totalPages)}</p>
@@ -112,7 +109,7 @@ export function UsageRecentRequests({
                     onSelectProvider ? (
                       <button
                         type="button"
-                        className="truncate rounded-full border border-[hsl(var(--border-subtle)/0.76)] px-2 py-0.5 text-[11px] font-medium text-foreground/80 transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)] hover:text-foreground"
+                        className="truncate font-medium text-foreground/80 transition-colors hover:text-foreground"
                         onClick={() => onSelectProvider(entry.provider!)}
                       >
                         {entry.provider}
@@ -124,32 +121,26 @@ export function UsageRecentRequests({
                   {[entry.agentId, entry.sessionId].filter(Boolean).map((value) => (
                     <span key={`${entry.sessionId}-${value}`} className="truncate">{value}</span>
                   ))}
+                  <span>{formatUsageTimestamp(entry.timestamp)}</span>
                 </div>
               </div>
               <div className="shrink-0 text-right">
                 <p className="text-[13px] font-semibold">{formatTokenCount(entry.totalTokens)}</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">
-                  {formatUsageTimestamp(entry.timestamp)}
-                </p>
+                {typeof entry.costUsd === 'number' && Number.isFinite(entry.costUsd) ? (
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">{costLabel(entry.costUsd.toFixed(4))}</p>
+                ) : null}
               </div>
             </div>
-            <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-medium text-muted-foreground">
-              <span className="flex items-center gap-1.5"><div className="h-2 w-2 rounded-full bg-sky-500" />{inputLabel(formatTokenCount(entry.inputTokens))}</span>
-              <span className="flex items-center gap-1.5"><div className="h-2 w-2 rounded-full bg-violet-500" />{outputLabel(formatTokenCount(entry.outputTokens))}</span>
-              {entry.cacheReadTokens > 0 ? (
-                <span className="flex items-center gap-1.5"><div className="h-2 w-2 rounded-full bg-[hsl(var(--warning))]" />{cacheReadLabel(formatTokenCount(entry.cacheReadTokens))}</span>
-              ) : null}
-              {entry.cacheWriteTokens > 0 ? (
-                <span className="flex items-center gap-1.5"><div className="h-2 w-2 rounded-full bg-[hsl(var(--warning))]" />{cacheWriteLabel(formatTokenCount(entry.cacheWriteTokens))}</span>
-              ) : null}
-              {typeof entry.costUsd === 'number' && Number.isFinite(entry.costUsd) ? (
-                <span className={cn('ml-auto flex items-center gap-1.5', usageChipClass)}>{costLabel(entry.costUsd.toFixed(4))}</span>
-              ) : null}
+            <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+              <span>{inputLabel(formatTokenCount(entry.inputTokens))}</span>
+              <span>{outputLabel(formatTokenCount(entry.outputTokens))}</span>
+              {entry.cacheReadTokens > 0 ? <span>{cacheReadLabel(formatTokenCount(entry.cacheReadTokens))}</span> : null}
+              {entry.cacheWriteTokens > 0 ? <span>{cacheWriteLabel(formatTokenCount(entry.cacheWriteTokens))}</span> : null}
               {devModeUnlocked && entry.content ? (
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
-                  className="app-field-surface h-6 rounded-[8px] px-2 text-[11px] shadow-none"
+                  className="ml-auto h-6 rounded-[8px] px-2 text-[11px] shadow-none"
                   onClick={() => onViewContent(entry)}
                 >
                   {viewContentLabel}

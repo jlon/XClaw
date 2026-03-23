@@ -58,14 +58,13 @@ const toggleActiveClass = 'rounded-[8px] border border-[hsl(var(--primary)/0.16)
 const toggleIdleClass = 'rounded-[8px] text-muted-foreground hover:bg-[hsl(var(--surface-hover)/0.84)] hover:text-foreground';
 const emptyStateClass = 'app-empty-surface flex items-center justify-center rounded-[20px] py-12 text-muted-foreground';
 const usageSurfaceClass = 'app-pane-surface rounded-[18px] border border-[hsl(var(--border-subtle)/0.82)] px-4 py-3';
-const usageChipClass = 'rounded-full border border-[hsl(var(--border-subtle)/0.76)] px-2 py-0.5 text-foreground/76';
 
 function normalizeUsageProviderKey(provider: string | null | undefined): string {
   return provider?.trim().toLowerCase() || 'unknown';
 }
 
 export function Models() {
-  const { t, i18n } = useTranslation(['dashboard', 'settings']);
+  const { t } = useTranslation(['dashboard', 'settings']);
   const gatewayStatus = useGatewayStore((state) => state.status);
   const providerAccounts = useProviderStore((state) => state.accounts);
   const providerStatuses = useProviderStore((state) => state.statuses);
@@ -429,12 +428,14 @@ export function Models() {
   const breakdownTitle = primaryBreakdownGroupBy === 'provider'
     ? t('dashboard:models.breakdown.provider', 'Provider breakdown')
     : t('dashboard:models.breakdown.model', 'Model breakdown');
+  const showScopedUsageDetails = Boolean(selectedRuntimeProviderKey);
+  const tokenIntelligenceDisplayLayout = showScopedUsageDetails ? tokenIntelligenceLayout : 'overview';
 
   const tokenIntelligenceSection = (
     <section
       className={usageSurfaceClass}
       data-testid="models-token-intelligence"
-      data-layout={tokenIntelligenceLayout}
+      data-layout={tokenIntelligenceDisplayLayout}
       data-primary-chart-visible="true"
     >
       <div className="space-y-3">
@@ -514,7 +515,7 @@ export function Models() {
             <FeedbackState state="empty" title={t('dashboard:recentTokenHistory.emptyForWindow')} />
           </div>
         ) : (
-          <div className={cn(tokenIntelligenceLayout === 'split' ? 'grid gap-4 xl:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)] xl:items-start' : 'space-y-4')}>
+          <div className={cn(showScopedUsageDetails && tokenIntelligenceLayout === 'split' ? 'grid gap-4 xl:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)] xl:items-start' : 'space-y-4')}>
             <div className="space-y-4">
               <UsageTrendChart
                 groups={trendGroups}
@@ -528,40 +529,45 @@ export function Models() {
               />
             </div>
 
-            <div className="space-y-4">
-              <UsageBreakdownChart
-                groups={breakdownGroups}
-                dimension={breakdownDimension}
-                metric={usageMetric}
-                emptyLabel={t('dashboard:recentTokenHistory.empty')}
-                costIncompleteLabel={t('dashboard:models.costIncomplete', '成本数据不完整')}
-                title={breakdownTitle}
-                requestsLabel={t('dashboard:models.windowRequests', 'Requests')}
-                onSelect={breakdownDimension === 'provider' ? handleSelectProviderScope : undefined}
-              />
-              <UsageRecentRequests
-                entries={pagedUsageHistory}
-                title={t('dashboard:recentTokenHistory.title', '最近请求')}
-                devModeUnlocked={devModeUnlocked}
-                usageChipClass={usageChipClass}
-                unknownModelLabel={t('dashboard:recentTokenHistory.unknownModel')}
-                inputLabel={(value) => t('dashboard:recentTokenHistory.input', { value })}
-                outputLabel={(value) => t('dashboard:recentTokenHistory.output', { value })}
-                cacheReadLabel={(value) => t('dashboard:recentTokenHistory.cacheRead', { value })}
-                cacheWriteLabel={(value) => t('dashboard:recentTokenHistory.cacheWrite', { value })}
-                costLabel={(value) => t('dashboard:recentTokenHistory.cost', { amount: value })}
-                viewContentLabel={t('dashboard:recentTokenHistory.viewContent')}
-                pageLabel={(current, total) => t('dashboard:recentTokenHistory.page', { current, total })}
-                prevLabel={t('dashboard:recentTokenHistory.prev')}
-                nextLabel={t('dashboard:recentTokenHistory.next')}
-                currentPage={safeUsagePage}
-                totalPages={usageTotalPages}
-                onPrevPage={() => setUsagePage((page) => Math.max(1, page - 1))}
-                onNextPage={() => setUsagePage((page) => Math.min(usageTotalPages, page + 1))}
-                onViewContent={setSelectedUsageEntry}
-                onSelectProvider={handleSelectProviderScope}
-              />
-            </div>
+            {showScopedUsageDetails ? (
+              <div className="space-y-4">
+                <UsageBreakdownChart
+                  groups={breakdownGroups}
+                  dimension={breakdownDimension}
+                  metric={usageMetric}
+                  emptyLabel={t('dashboard:recentTokenHistory.empty')}
+                  costIncompleteLabel={t('dashboard:models.costIncomplete', '成本数据不完整')}
+                  title={breakdownTitle}
+                  requestsLabel={t('dashboard:models.windowRequests', 'Requests')}
+                  onSelect={breakdownDimension === 'provider' ? handleSelectProviderScope : undefined}
+                />
+                <UsageRecentRequests
+                  entries={pagedUsageHistory}
+                  title={t('dashboard:recentTokenHistory.title', '最近请求')}
+                  devModeUnlocked={devModeUnlocked}
+                  unknownModelLabel={t('dashboard:recentTokenHistory.unknownModel')}
+                  inputLabel={(value) => t('dashboard:recentTokenHistory.input', { value })}
+                  outputLabel={(value) => t('dashboard:recentTokenHistory.output', { value })}
+                  cacheReadLabel={(value) => t('dashboard:recentTokenHistory.cacheRead', { value })}
+                  cacheWriteLabel={(value) => t('dashboard:recentTokenHistory.cacheWrite', { value })}
+                  costLabel={(value) => t('dashboard:recentTokenHistory.cost', { amount: value })}
+                  viewContentLabel={t('dashboard:recentTokenHistory.viewContent')}
+                  pageLabel={(current, total) => t('dashboard:recentTokenHistory.page', { current, total })}
+                  prevLabel={t('dashboard:recentTokenHistory.prev')}
+                  nextLabel={t('dashboard:recentTokenHistory.next')}
+                  currentPage={safeUsagePage}
+                  totalPages={usageTotalPages}
+                  onPrevPage={() => setUsagePage((page) => Math.max(1, page - 1))}
+                  onNextPage={() => setUsagePage((page) => Math.min(usageTotalPages, page + 1))}
+                  onViewContent={setSelectedUsageEntry}
+                  onSelectProvider={handleSelectProviderScope}
+                />
+              </div>
+            ) : (
+              <div className="app-insight-surface rounded-[14px] border border-[hsl(var(--border-subtle)/0.78)] px-3.5 py-3 text-[13px] text-muted-foreground">
+                {t('dashboard:models.selectProviderForDetails', '选择一个提供商，查看归因分布与最近请求。')}
+              </div>
+            )}
           </div>
         )}
         </div>
@@ -600,7 +606,6 @@ export function Models() {
                   presentation={providerBoardPresentation}
                   columns={providerBoardColumns}
                   maxVisibleRows={2}
-                  language={i18n.language}
                   clearLabel={t('dashboard:models.allProviders', '全部提供商')}
                   activeScopeLabel={t('dashboard:models.activeScope', '当前范围')}
                   boardTitle={t('dashboard:models.providersTitle', '模型提供商')}
@@ -611,10 +616,7 @@ export function Models() {
                   defaultLabel={t('dashboard:models.defaultProvider', '默认')}
                   tokensLabel={t('dashboard:models.windowTokens', `${usageWindowLabel} tokens`)}
                   requestsLabel={t('dashboard:models.windowRequests', `${usageWindowLabel} requests`)}
-                  docsLabel={t('dashboard:models.docs', 'docs')}
                   accountsLabel={t('dashboard:models.accounts', '账号')}
-                  openLabel={t('dashboard:models.openProvider', '进入配置')}
-                  viewingLabel={t('dashboard:models.viewingProvider', '正在查看')}
                   onSelect={handleSelectProviderAccount}
                   onClearSelection={() => handleSelectProviderAccount(null)}
                 />

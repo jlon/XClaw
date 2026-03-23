@@ -14,7 +14,6 @@ interface ProviderBoardProps {
   presentation: ProviderBoardPresentation;
   columns: 1 | 2 | 3 | 4;
   maxVisibleRows: number;
-  language: string;
   configuredLabel: string;
   defaultLabel: string;
   boardTitle: string;
@@ -23,10 +22,7 @@ interface ProviderBoardProps {
   emptyHint: string;
   tokensLabel: string;
   requestsLabel: string;
-  docsLabel: string;
   accountsLabel: string;
-  openLabel: string;
-  viewingLabel: string;
   clearLabel: string;
   activeScopeLabel: string;
   onSelect: (accountId: string) => void;
@@ -72,7 +68,6 @@ export const ProviderBoard = ({
   presentation,
   columns,
   maxVisibleRows,
-  language,
   configuredLabel,
   defaultLabel,
   boardTitle,
@@ -81,10 +76,7 @@ export const ProviderBoard = ({
   emptyHint,
   tokensLabel,
   requestsLabel,
-  docsLabel,
   accountsLabel,
-  openLabel,
-  viewingLabel,
   clearLabel,
   activeScopeLabel,
   onSelect,
@@ -242,15 +234,11 @@ export const ProviderBoard = ({
               account={account}
               defaultAccountId={defaultAccountId}
               selected={summary.selected}
-              language={language}
               configuredLabel={configuredLabel}
               defaultLabel={defaultLabel}
               tokensLabel={tokensLabel}
               requestsLabel={requestsLabel}
               accountsLabel={accountsLabel}
-              docsLabel={docsLabel}
-              openLabel={openLabel}
-              viewingLabel={viewingLabel}
               onSelect={onSelect}
             />
           );

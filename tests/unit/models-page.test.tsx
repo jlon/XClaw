@@ -493,7 +493,7 @@ describe('models page render contract', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('models-token-summary-strip')).toHaveAttribute('data-metric', 'cost');
-      expect(screen.getByTestId('models-breakdown-chart')).toHaveAttribute('data-metric', 'cost');
+      expect(screen.getByTestId('models-trend-chart')).toHaveAttribute('data-metric', 'cost');
     });
   });
 
@@ -677,21 +677,31 @@ describe('models page render contract', () => {
     expect(within(breakdownChart).queryByRole('button', { name: /openai/i })).not.toBeInTheDocument();
   });
 
-  it('lets breakdown rows select a provider and sync the board state', async () => {
+  it('keeps breakdown and recent requests out of the default overview until a provider is selected', async () => {
     const { Models } = await import('@/pages/Models');
     render(<Models />);
 
-    const breakdownChart = await screen.findByTestId('models-breakdown-chart');
-    fireEvent.click(within(breakdownChart).getByRole('button', { name: /openai/i }));
+    await screen.findByTestId('models-provider-card-select-openai');
+    expect(screen.getByTestId('models-token-intelligence')).toHaveAttribute('data-layout', 'overview');
+    expect(screen.queryByTestId('models-breakdown-chart')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('models-recent-requests')).not.toBeInTheDocument();
+  });
+
+  it('reveals breakdown and recent requests after entering provider focus', async () => {
+    const { Models } = await import('@/pages/Models');
+    render(<Models />);
+
+    await screen.findByTestId('models-provider-card-select-openai');
+    fireEvent.click(screen.getByTestId('models-provider-card-select-openai'));
 
     await waitFor(() => {
       expect(screen.getByTestId('models-page-root')).toHaveAttribute('data-workbench-mode', 'focused');
-      expect(screen.getByTestId('models-provider-focus-header')).toHaveTextContent('OpenAI');
-      expect(screen.getByTestId('models-provider-inspector')).toHaveAttribute('data-mode', 'view');
+      expect(screen.getByTestId('models-breakdown-chart')).toHaveAttribute('data-dimension', 'model');
+      expect(screen.getByTestId('models-recent-requests')).toBeInTheDocument();
     });
   });
 
-  it('keeps provider focus stable when historical usage points to an unconfigured provider', async () => {
+  it('keeps provider focus stable when a missing provider is requested from the light overview', async () => {
     hostApiFetchMock.mockImplementation(async (path: string) => {
       if (path === '/api/usage/recent-token-history') {
         return [
@@ -712,28 +722,24 @@ describe('models page render contract', () => {
     const { Models } = await import('@/pages/Models');
     render(<Models />);
 
-    const breakdownChart = await screen.findByTestId('models-breakdown-chart');
-    fireEvent.click(within(breakdownChart).getByRole('button', { name: /orphan-provider/i }));
+    await screen.findByTestId('models-provider-card-select-openai');
+    const selectProviderForScope = screen.getByText('选择一个提供商，查看归因分布与最近请求。');
+    expect(selectProviderForScope).toBeInTheDocument();
 
-    await waitFor(() => {
-      expect(toastErrorMock).toHaveBeenCalledWith('orphan-provider 已不在当前配置中，请先添加或恢复对应提供商。');
-    });
+    fireEvent.click(screen.getByTestId('models-provider-card-select-custom-prod'));
+    await screen.findByTestId('models-breakdown-chart');
+    fireEvent.click(within(screen.getByTestId('models-provider-board')).getByText('全部提供商'));
+
     expect(screen.getByTestId('models-page-root')).toHaveAttribute('data-workbench-mode', 'default');
     expect(screen.queryByTestId('models-provider-inspector')).not.toBeInTheDocument();
   });
 
-  it('lets recent requests rows drive the same provider focus chain', async () => {
+  it('keeps the default overview free of provider-driven request actions', async () => {
     const { Models } = await import('@/pages/Models');
     render(<Models />);
 
-    const recentRequests = await screen.findByTestId('models-recent-requests');
-    fireEvent.click(within(recentRequests).getByRole('button', { name: 'openai' }));
-
-    await waitFor(() => {
-      expect(screen.getByTestId('models-page-root')).toHaveAttribute('data-workbench-mode', 'focused');
-      expect(screen.getByTestId('models-provider-focus-header')).toHaveTextContent('OpenAI');
-      expect(screen.getByTestId('models-provider-inspector')).toHaveAttribute('data-mode', 'view');
-    });
+    await screen.findByTestId('models-provider-card-select-openai');
+    expect(screen.queryByTestId('models-recent-requests')).not.toBeInTheDocument();
   });
 
   it('switches into ultrawide mode and split token layout on wide containers', async () => {

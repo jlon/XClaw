@@ -191,9 +191,12 @@ describe('models workbench render chain', () => {
 
     expect(screen.getByTestId('models-page-root')).toHaveAttribute('data-workbench-mode', 'default');
     expect(screen.getByTestId('models-provider-board')).toHaveAttribute('data-columns', '3');
-    expect(screen.getByTestId('models-token-intelligence')).toHaveAttribute('data-layout', 'stack');
+    expect(screen.getByTestId('models-token-intelligence')).toHaveAttribute('data-layout', 'overview');
     expect(screen.getByTestId('models-token-summary-strip')).toBeInTheDocument();
     expect(screen.getByTestId('models-token-intelligence-header')).toBeInTheDocument();
+    expect(screen.getByTestId('models-trend-chart')).toBeInTheDocument();
+    expect(screen.queryByTestId('models-breakdown-chart')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('models-recent-requests')).not.toBeInTheDocument();
     expect(screen.queryByTestId('models-usage-kpis')).not.toBeInTheDocument();
     expect(screen.queryByTestId('models-provider-board-all')).not.toBeInTheDocument();
 

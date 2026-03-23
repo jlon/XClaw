@@ -15,8 +15,8 @@ interface UsageBreakdownChartProps {
 
 const formatTokenCount = (value: number): string => Intl.NumberFormat().format(value);
 const formatUsageCost = (value: number): string => `$${value.toFixed(2)}`;
-const surfaceClass = 'app-insight-surface rounded-[14px] border border-[hsl(var(--border-subtle)/0.78)] px-3.5 py-3';
-const rowBaseClass = 'space-y-1.5 border-t border-[hsl(var(--border-subtle)/0.62)] py-2.5 first:border-t-0 first:pt-0 last:pb-0';
+const surfaceClass = 'app-insight-surface rounded-[14px] border border-[hsl(var(--border-subtle)/0.78)] px-3 py-2.5';
+const rowBaseClass = 'border-t border-[hsl(var(--border-subtle)/0.62)] py-2 first:border-t-0 first:pt-0 last:pb-0';
 
 const hasIncompleteCost = (groups: UsageGroup[]): boolean =>
   groups.some((group) => group.requestCount > group.costEntryCount);
@@ -51,7 +51,7 @@ export function UsageBreakdownChart({
 
   return (
     <section className={surfaceClass} data-testid="models-breakdown-chart" data-metric={metric} data-dimension={dimension}>
-      <div className="mb-2.5 flex items-center justify-between gap-3">
+      <div className="mb-2 flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">{title}</p>
         </div>
@@ -73,14 +73,14 @@ export function UsageBreakdownChart({
                   {metric === 'cost' ? formatUsageCost(group.totalCostUsd) : formatTokenCount(group.totalTokens)}
                 </p>
               </div>
-              <svg viewBox="0 0 100 6" className="mt-1.5 h-1.5 w-full overflow-visible" preserveAspectRatio="none">
-                <rect x="0" y="0" width="100" height="6" rx="3" fill="hsl(var(--surface-hover) / 0.74)" />
+              <svg viewBox="0 0 100 4" className="mt-1.5 h-1 w-full overflow-visible" preserveAspectRatio="none">
+                <rect x="0" y="0" width="100" height="4" rx="2" fill="hsl(var(--surface-hover) / 0.74)" />
                 <rect
                   x="0"
                   y="0"
                   width={width}
-                  height="6"
-                  rx="3"
+                  height="4"
+                  rx="2"
                   fill={metric === 'cost' ? 'hsl(var(--success) / 0.82)' : 'hsl(var(--accent) / 0.74)'}
                 />
               </svg>
@@ -99,7 +99,7 @@ export function UsageBreakdownChart({
             <button
               key={group.label}
               type="button"
-              className={cn('w-full text-left transition-colors hover:text-foreground', rowBaseClass)}
+              className={cn('w-full rounded-[10px] px-1.5 -mx-1.5 text-left transition-colors hover:bg-[hsl(var(--surface-hover)/0.56)] hover:text-foreground', rowBaseClass)}
               data-testid="usage-breakdown-row"
               onClick={() => onSelect(group.label)}
             >

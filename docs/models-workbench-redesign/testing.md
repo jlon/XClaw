@@ -183,6 +183,8 @@
 - `pnpm exec eslint src/pages/Models/index.tsx src/pages/Models/components/UsageKpiStrip.tsx src/pages/Models/components/UsageMetricToggle.tsx src/pages/Models/components/UsageBreakdownChart.tsx src/pages/Models/components/UsageRecentRequests.tsx tests/unit/models-charts.test.tsx tests/unit/models-page.test.tsx tests/unit/models-workbench-render.test.tsx --max-warnings=0`
 - `pnpm exec eslint src/pages/Models/components/ModelsWorkbenchHeader.tsx src/pages/Models/components/ProviderBoard.tsx src/pages/Models/components/ProviderBoardCard.tsx src/pages/Models/components/ProviderInspector.tsx src/pages/Models/components/ProviderInspectorView.tsx src/pages/Models/components/UsageKpiStrip.tsx src/pages/Models/components/UsageMetricToggle.tsx src/pages/Models/components/UsageTrendChart.tsx src/pages/Models/components/UsageBreakdownChart.tsx src/pages/Models/components/UsageRecentRequests.tsx src/pages/Models/index.tsx --max-warnings=0`
 - `pnpm exec vitest run tests/unit/models-page.test.tsx tests/unit/models-workbench-render.test.tsx tests/unit/models-charts.test.tsx`
+- `pnpm exec eslint src/pages/Models/index.tsx src/pages/Models/components/ProviderBoard.tsx src/pages/Models/components/ProviderBoardCard.tsx src/pages/Models/components/UsageBreakdownChart.tsx src/pages/Models/components/UsageRecentRequests.tsx --max-warnings=0`
+- `pnpm exec vitest run tests/unit/models-page.test.tsx tests/unit/models-workbench-render.test.tsx`
 - `pnpm run build:vite`
 - `pnpm run typecheck`
 - 浏览器 fallback 手工验收：`/models` 在无 Electron preload 环境下不再崩溃，空 provider 态能正常显示

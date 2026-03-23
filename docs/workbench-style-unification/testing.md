@@ -9,7 +9,8 @@
 - 只有局部组件接近
 
 本轮重点验证“桌面工作台质感合同”是否被执行。  
-所有验收项都必须能映射回 `WU-01` 到 `WU-07`，否则不算铁律。
+所有验收项都必须能映射回 `WU-01` 到 `WU-08`，否则不算铁律。
+如果是 `/models`，还必须额外映射到 `MW-01` 到 `MW-05`。
 
 ## 自动化验证
 
@@ -24,11 +25,16 @@
 - `WU-01`：工作台页当前 mode 只有一个主任务路径
 - `WU-02`：浏览区和 detail pane 不出现第三层大摘要板
 - `WU-03`：搜索、切换、主动作属于同一条工具带 grammar
+- `WU-03`：搜索框属于固定工具域，不得回退成全宽网页横幅
 - `WU-04`：hero 区不再塞大事实卡和长说明
 - `WU-06`：空态不再复制第二个主 CTA
 - `WU-07`：市场详情不再把来源证据抬到第一视觉层
+- `WU-08`：默认基线视口下，主 pane / 主模态不依赖内部滚动条完成主任务
 - `WU-03`：header subtitle 与 summary strip 不得默认共存
 - `WU-06`：每个页面、每个 mode、每个空/非空状态，页级主 CTA 数量必须恰好为 `1`
+- `MW-01`：`Provider Board` 卡片不得再出现 `docs / footer 操作 / viewing 文案`
+- `MW-02`：未选中 provider 时，Token Intelligence 默认只允许轻分析态
+- `MW-04`：`Add Provider` 顶部 provider 选择区必须是小 tile 网格，不得退回大卡片选择器
 
 ### 密度断言
 
@@ -38,6 +44,11 @@
 - `WU-02`：不允许某一页把浏览区做回后台列表或目录树
 - `WU-05`：工作台首屏必须能区分 `workspace substrate / pane surface / field-or-selected-row`
 - `WU-03`：页级工具带不得使用 `rounded-full` 营销 pill 语法
+- `WU-05`：页头、工具带、通知条、空态、卡片/列表与模态必须共享同一条内容宽度轨道
+- `WU-05`：单项卡片场景不得出现半列空轨或横向拖满整窗
+- `WU-08`：默认视口下不得通过增加模态内部滚动条来掩盖布局失控
+- `MW-03`：`/models` provider 图标只能是“官方彩色”或“中性单色”，不得出现粉壳、伪彩色和字母占位
+- `MW-05`：`Breakdown / Recent Requests` 必须是资源行语法，不得重新长回报表卡片和彩色 chip 墙
 
 ## 状态矩阵
 
@@ -82,16 +93,20 @@
 - 五个页面都存在同一套 `页头 / 工具带 / 浏览区 / detail pane` 骨架
 - 任一页面都不会突然多出第三层大摘要板
 - 同一窗口尺寸下，五页的页头和工具带使用同一类控件高度与留白
+- 页头、工具带、通知条、空态与正文容器不会各走各的宽度轨道
 
 ### 2. 浏览区
 
 确认：
 
 - 搜索框像 utility field，不像网页表单
+- 搜索框宽度稳定，不能因为页面变宽就长成横幅
 - 分段切换像桌面 segmented control，不像标签页
 - 卡片/列表项默认稳、hover 清楚、选中明确
 - 浏览区不会因为说明文字过多而膨胀成摘要墙
 - 浏览项最多只保留 `标题 + 1 行元信息`
+- `/models` 的 Provider Board 单卡不得再有 footer utility row
+- 单项卡片场景仍保持 pane 感，不会出现半页空白或整窗拉伸
 
 ### 3. detail pane
 
@@ -102,6 +117,21 @@
 - 编辑区像工作区，不像后台表单
 - 绑定区像操作 pane，不像监控面板
 - 路径、来源路径、删除入口不会默认出现在第一视觉层
+- `/models` 在未选中 provider 时，分析区不会和 Provider Board 首屏争主任务
+- 默认基线视口下，主模态和主 pane 不靠内部滚动条完成主任务
+- 创建/编辑模态默认先减字、分栏、下沉说明，再允许出现内部滚动条
+
+### 3.1 模型工作台专项
+
+确认：
+
+- `Provider Board` 卡片只承担资源识别与轻事实
+- 未选中 provider 时，只看到摘要带、主趋势图和轻提示
+- 选中 provider 后，才看到完整 `breakdown / recent requests`
+- `Add Provider` 的 provider 选择区是 `4-5` 列小 tile，而不是大卡片墙
+- `Add Provider` 在默认桌面窗口下不允许用内部滚动条解决主流程布局
+- provider 图标不出现粉壳、品牌色底板、字母数字占位
+- `Breakdown / Recent Requests` 都回到资源行，而不是报表卡片
 
 ### 4. 高清感
 
@@ -128,6 +158,26 @@
   - 对应规则编号
   - 跑过的自动化命令
   - 至少一个对应状态的真实窗口截图或明确的手工验收结论
+
+## 本轮已留证据
+
+### 定时任务
+
+- 对应规则：
+  - `WU-03`：页头主动作与刷新降到同一工具带高度
+  - `WU-04`：副标题、空态、弹窗说明继续减字
+  - `WU-05`：任务列表改成卡片网格，单卡改成 `头 / 主消息 / 事实胶囊 / 底栏`
+  - `WU-03`：搜索/工具/主 CTA 回到一条桌面工具带语法
+  - `WU-05`：页头、通知条、卡片网格、空态与模态收回同一内容宽度轨道
+- 已跑命令：
+  - `pnpm exec eslint src/pages/Cron/index.tsx --max-warnings=0`
+  - `node -e "JSON.parse(...cron locale files...)"`
+  - `git diff --check -- src/pages/Cron/index.tsx src/styles/globals.css src/i18n/locales/zh/cron.json src/i18n/locales/en/cron.json src/i18n/locales/ja/cron.json docs/workbench-style-unification/progress.md docs/workbench-style-unification/testing.md`
+- 真实窗口证据：
+  - 页头已改成与 `技能` 对齐的 `标题区 + 工具带` 双层结构
+  - 任务列表已从横向后台 row 改成 pane 卡片网格，单卡不再拖满整窗
+  - 页头摘要已不再使用厚 summary strip，而是轻状态胶囊
+  - 创建/编辑模态已收成 pane 化双栏编辑器，并以无滚动为默认基线
 
 ## 需要补齐的自动化回归
 

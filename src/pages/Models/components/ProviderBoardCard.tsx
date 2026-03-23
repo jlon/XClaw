@@ -1,7 +1,6 @@
-import { Button } from '@/components/ui/button';
 import type { ProviderAccount } from '@/lib/providers';
 import { cn } from '@/lib/utils';
-import { getProviderDocsUrl, getProviderIconUrl, getProviderTypeInfo, shouldInvertInDark, usesNativeColorProviderIcon } from '@/lib/providers';
+import { getProviderIconUrl, getProviderTypeInfo, shouldInvertInDark, usesNativeColorProviderIcon } from '@/lib/providers';
 import type { ProviderUsageSummary } from '../workbench-view-model';
 
 interface ProviderBoardCardProps {
@@ -9,15 +8,11 @@ interface ProviderBoardCardProps {
   account: ProviderAccount | null;
   defaultAccountId: string | null;
   selected: boolean;
-  language: string;
   configuredLabel: string;
   defaultLabel: string;
   tokensLabel: string;
   requestsLabel: string;
   accountsLabel: string;
-  docsLabel: string;
-  openLabel: string;
-  viewingLabel: string;
   onSelect: (accountId: string) => void;
 }
 
@@ -29,24 +24,17 @@ export const ProviderBoardCard = ({
   account,
   defaultAccountId,
   selected,
-  language,
   configuredLabel,
   defaultLabel,
   tokensLabel,
   requestsLabel,
   accountsLabel,
-  docsLabel,
-  openLabel,
-  viewingLabel,
   onSelect,
 }: ProviderBoardCardProps) => {
   const primaryAccountId = account?.id ?? summary.accountIds[0] ?? null;
   const providerTypeInfo = account ? getProviderTypeInfo(account.vendorId) : undefined;
   const providerIconUrl = account ? getProviderIconUrl(account.vendorId) : undefined;
   const useNativeColorIcon = account ? usesNativeColorProviderIcon(account.vendorId) : false;
-  const docsUrl = providerTypeInfo
-    ? getProviderDocsUrl(providerTypeInfo, language) ?? providerTypeInfo.apiKeyUrl
-    : undefined;
   const isDefaultScope = defaultAccountId ? summary.accountIds.includes(defaultAccountId) : false;
   const formattedTokens = Intl.NumberFormat().format(summary.totalTokens);
   const formattedRequests = Intl.NumberFormat().format(summary.requestCount);
@@ -65,7 +53,7 @@ export const ProviderBoardCard = ({
     <article
       className={cn(
         cardClass,
-        'flex min-h-[124px] cursor-pointer flex-col gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20',
+        'flex min-h-[108px] cursor-pointer flex-col gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20',
         selected && selectedCardClass,
       )}
       role="button"
@@ -84,7 +72,7 @@ export const ProviderBoardCard = ({
         }
       }}
     >
-      <div data-testid={`models-provider-card-select-${summary.runtimeProviderKey}`} className="space-y-2.5">
+      <div data-testid={`models-provider-card-select-${summary.runtimeProviderKey}`} className="space-y-2">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[13px] border border-[hsl(var(--border-subtle)/0.76)] bg-[hsl(var(--surface-base)/0.92)]">
@@ -124,7 +112,7 @@ export const ProviderBoardCard = ({
             {summary.accountCount} {accountsLabel}
           </span>
         </div>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-[hsl(var(--border-subtle)/0.7)] pt-2 text-[12px] text-muted-foreground">
           <span>
             {tokensLabel}: {formattedTokens}
           </span>
@@ -133,24 +121,6 @@ export const ProviderBoardCard = ({
             {requestsLabel}: {formattedRequests}
           </span>
         </div>
-      </div>
-      <div className="mt-auto flex items-center justify-between gap-3 border-t border-[hsl(var(--border-subtle)/0.7)] pt-2.5">
-        {docsUrl ? (
-          <Button asChild variant="ghost" size="sm" className="h-7 rounded-full px-2 text-[12px] text-primary/86 hover:text-primary">
-            <a
-              href={docsUrl}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={`${summary.label} ${docsLabel}`}
-              onClick={(event) => event.stopPropagation()}
-            >
-              {docsLabel}
-            </a>
-          </Button>
-        ) : <span />}
-        <span className={cn('text-[12px] font-medium', selected ? 'text-primary/88' : 'text-muted-foreground/86')}>
-          {selected ? viewingLabel : openLabel}
-        </span>
       </div>
     </article>
   );

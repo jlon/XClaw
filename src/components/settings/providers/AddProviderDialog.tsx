@@ -40,7 +40,7 @@ const primaryButtonClass = 'rounded-[10px] h-8 px-4 bg-primary text-primary-fore
 const segmentedTrackClass = 'flex rounded-[10px] border border-border/60 bg-[hsl(var(--surface-base)/0.96)] p-0.5 gap-0.5';
 const segmentedActiveClass = 'border border-[hsl(var(--primary)/0.16)] bg-[hsl(var(--surface-elevated)/0.98)] text-primary shadow-none';
 const segmentedIdleClass = 'text-muted-foreground/82 hover:bg-[hsl(var(--foreground)/0.035)]';
-const listRowClass = 'flex flex-col items-start gap-2 rounded-[14px] border border-[hsl(var(--border-subtle)/0.62)] px-3 py-2.5 text-left transition-colors hover:border-[hsl(var(--border-strong)/0.24)] hover:bg-[hsl(var(--surface-hover)/0.68)]';
+const listRowClass = 'flex flex-col items-start gap-1.5 rounded-[14px] border border-[hsl(var(--border-subtle)/0.62)] px-2.5 py-2.5 text-left transition-colors hover:border-[hsl(var(--border-strong)/0.24)] hover:bg-[hsl(var(--surface-hover)/0.68)]';
 const panelSurfaceClass = 'app-insight-surface rounded-[12px] border border-[hsl(var(--border-subtle)/0.78)] bg-[hsl(var(--surface-elevated)/0.96)]';
 const setupGridClass = 'grid gap-3 md:grid-cols-2';
 const pickerCardActiveClass = 'border-[hsl(var(--border-strong)/0.34)] bg-[hsl(var(--surface-elevated)/1)] shadow-[0_8px_18px_rgba(15,23,42,0.04)]';
@@ -403,10 +403,10 @@ export function AddProviderDialog({
 
   return (
     <div className="app-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4" data-testid="provider-add-dialog">
-      <Card className={cn(modalSurfaceClasses, 'max-h-[90vh] max-w-[64rem] flex flex-col overflow-hidden')}>
-        <CardHeader className="relative shrink-0 border-b border-[hsl(var(--border-subtle)/0.72)] pb-3">
+      <Card className={cn(modalSurfaceClasses, 'max-w-[68rem] overflow-hidden')}>
+        <CardHeader className="relative shrink-0 border-b border-[hsl(var(--border-subtle)/0.72)] px-5 py-4">
           <CardTitle className="text-[15px] font-semibold tracking-tight text-foreground">{t('aiProviders.dialog.title')}</CardTitle>
-          <CardDescription className="mt-1 text-[11.5px] text-foreground/66">
+          <CardDescription className="mt-0.5 text-[11.5px] text-foreground/66">
             {t('aiProviders.dialog.desc')}
           </CardDescription>
           <Button
@@ -418,16 +418,14 @@ export function AddProviderDialog({
             <X className="h-4 w-4" />
           </Button>
         </CardHeader>
-        <CardContent className="flex-1 overflow-y-auto p-5 app-subtle-scrollbar">
-          <div className="flex flex-col gap-4">
-            <section className={cn(panelSurfaceClass, 'shrink-0 p-3')}>
+        <CardContent className="p-4">
+          <div className="flex flex-col gap-3.5">
+            <section className={cn(panelSurfaceClass, 'shrink-0 p-2.5')}>
               {availableTypes.length ? (
-                <div className="grid [grid-template-columns:repeat(auto-fill,minmax(11rem,1fr))] gap-2.5">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                   {availableTypes.map((type) => {
                     const selected = type.id === selectedType;
-                    const meta = type.model
-                      ? `${type.model} · ${type.id}`
-                      : `${type.supportsApiKey ? 'API Key' : 'OAuth'} · ${type.id}`;
+                    const meta = type.model || (type.supportsApiKey ? 'API Key' : 'OAuth');
                     return (
                       <button
                         key={type.id}
@@ -441,7 +439,7 @@ export function AddProviderDialog({
                         className={cn(
                           listRowClass,
                           selected && pickerCardActiveClass,
-                          'min-h-[88px] justify-center rounded-[14px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-60',
+                          'min-h-[74px] rounded-[14px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-60',
                         )}
                       >
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border border-[hsl(var(--border-subtle)/0.76)] bg-[hsl(var(--surface-base)/0.92)]">
@@ -452,10 +450,8 @@ export function AddProviderDialog({
                           )}
                         </div>
                         <div className="min-w-0 space-y-0.5">
-                          <p className="truncate text-[13px] font-semibold text-foreground">{type.id === 'custom' ? t('aiProviders.custom') : type.name}</p>
-                          <p className="line-clamp-1 text-[11px] leading-5 text-muted-foreground/72">
-                            {meta}
-                          </p>
+                          <p className="truncate text-[12.5px] font-semibold leading-none text-foreground">{type.id === 'custom' ? t('aiProviders.custom') : type.name}</p>
+                          <p className="line-clamp-1 text-[10.5px] leading-4 text-muted-foreground/72">{meta}</p>
                         </div>
                       </button>
                     );
@@ -471,18 +467,18 @@ export function AddProviderDialog({
             <section className={cn(panelSurfaceClass, 'flex flex-col')}>
               {selectedType && typeInfo ? (
                 <>
-                  <div className="flex shrink-0 items-start justify-between gap-4 border-b border-[hsl(var(--border-subtle)/0.72)] px-4 py-4">
+                  <div className="flex shrink-0 items-start justify-between gap-4 border-b border-[hsl(var(--border-subtle)/0.72)] px-4 py-3">
                     <div className="flex min-w-0 items-center gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] border border-[hsl(var(--border-subtle)/0.76)] bg-[hsl(var(--surface-base)/0.92)]">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] border border-[hsl(var(--border-subtle)/0.76)] bg-[hsl(var(--surface-base)/0.92)]">
                         {getProviderIconUrl(selectedType) ? (
-                          <img src={getProviderIconUrl(selectedType)} alt={typeInfo.name} className={cn('h-5 w-5', shouldInvertInDark(selectedType) && 'dark:invert')} />
+                          <img src={getProviderIconUrl(selectedType)} alt={typeInfo.name} className={cn('h-[18px] w-[18px]', shouldInvertInDark(selectedType) && 'dark:invert')} />
                         ) : (
                           <span className="text-lg">{typeInfo.icon}</span>
                         )}
                       </div>
                       <div className="min-w-0">
-                        <p className="truncate text-[14px] font-semibold text-foreground">{typeInfo.id === 'custom' ? t('aiProviders.custom') : typeInfo.name}</p>
-                        <p className="mt-1 text-[11.5px] text-muted-foreground">{typeInfo.id}</p>
+                        <p className="truncate text-[13.5px] font-semibold text-foreground">{typeInfo.id === 'custom' ? t('aiProviders.custom') : typeInfo.name}</p>
+                        <p className="mt-0.5 text-[11px] text-muted-foreground">{typeInfo.id}</p>
                       </div>
                     </div>
                     {providerDocsUrl ? (
@@ -498,8 +494,8 @@ export function AddProviderDialog({
                     ) : null}
                   </div>
 
-                  <div className="px-4 py-4">
-                    <div className="space-y-3">
+                  <div className="px-4 py-3.5">
+                    <div className="space-y-2.5">
                       <section className={panelSurfaceClass + ' space-y-3 p-3'}>
                         <div className="flex flex-col gap-2.5">
                           <p className="text-[12px] font-semibold text-foreground/82">{setupSectionTitle}</p>
@@ -523,7 +519,7 @@ export function AddProviderDialog({
                           ) : null}
                         </div>
 
-                        <div className={setupPaneGridClass}>
+                        <div className={cn(setupPaneGridClass, 'gap-2.5')}>
                           <div className="space-y-2">
                             <Label htmlFor="name" className={labelClasses}>{t('aiProviders.dialog.displayName')}</Label>
                             <Input
