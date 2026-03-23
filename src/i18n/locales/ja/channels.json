@@ -1,6 +1,6 @@
 {
     "title": "メッセージングチャンネル",
-    "subtitle": "チャンネル、アカウント、担当 Agent を管理します",
+    "subtitle": "メッセージ入口、アカウント、担当 Agent を管理します",
     "refresh": "更新",
     "addChannel": "チャンネルを追加",
     "searchPlaceholder": "チャンネルを検索",
@@ -24,7 +24,7 @@
     "available": "利用可能なチャンネル",
     "availableDesc": "新しいチャンネルを接続し、AI が外部サービスで送受信できるようにします",
     "configured": "設定済みチャンネル",
-    "configuredDesc": "すでに設定済みのチャンネルを管理",
+    "configuredDesc": "追加済みチャンネルを管理",
     "configuredBadge": "設定済み",
     "entryAccountCount": "{{count}} アカウント",
     "deleteConfirm": "このチャンネルを削除してもよろしいですか？",

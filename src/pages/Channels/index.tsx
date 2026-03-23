@@ -251,6 +251,26 @@ function getConfiguredChannelRailTone(enabled: boolean): string {
     : 'status-indicator status-indicator-idle';
 }
 
+function getChannelCardIndicatorTone(
+  status: ChannelGroupItem['status'],
+  runtimeAvailable: boolean,
+): string {
+  if (!runtimeAvailable) {
+    return 'status-indicator status-indicator-runtime';
+  }
+
+  switch (status) {
+    case 'connected':
+      return 'status-indicator status-indicator-connected';
+    case 'connecting':
+      return 'status-indicator status-indicator-connecting';
+    case 'error':
+      return 'status-indicator status-indicator-error';
+    default:
+      return 'status-indicator status-indicator-disconnected';
+  }
+}
+
 function getChannelConnectionLabel(channelType: ChannelType, t: (key: string) => string): string {
   switch (CHANNEL_META[channelType].connectionType) {
     case 'qr':
@@ -634,7 +654,7 @@ export function Channels() {
           { value: group.enabled ? t('enabledLabel') : t('disabledLabel') },
           { value: t('entryAccountCount', { count: group.accounts.length }) },
         ],
-        indicatorClassName: getRuntimeAwareStatusTone(group.status, runtimeAvailable),
+        indicatorClassName: getChannelCardIndicatorTone(group.status, runtimeAvailable),
       };
     }),
     [configuredFilteredChannelTypes, groupedByType, runtimeAvailable, t],
@@ -648,7 +668,7 @@ export function Channels() {
         description: getChannelEntryDescription(channelType, t),
         primaryActionLabel: t('addChannel'),
         summaryItems: [{ value: getChannelConnectionLabel(channelType, t) }],
-        indicatorClassName: 'status-indicator status-indicator-idle status-indicator-glow',
+        indicatorClassName: 'status-indicator status-indicator-idle',
       };
     }),
     [t, unconfiguredFilteredChannelTypes],

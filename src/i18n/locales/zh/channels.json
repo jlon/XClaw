@@ -1,6 +1,6 @@
 {
     "title": "消息频道",
-    "subtitle": "接入频道、账号与负责处理消息的智能体",
+    "subtitle": "管理消息入口、账号与负责处理的智能体",
     "refresh": "刷新",
     "addChannel": "添加频道",
     "searchPlaceholder": "搜索频道",
@@ -25,7 +25,7 @@
     "available": "可用频道",
     "availableDesc": "接入一个新频道，让 AI 在外部平台里收发消息",
     "configured": "已配置频道",
-    "configuredDesc": "管理已完成配置的频道",
+    "configuredDesc": "管理已接入频道",
     "configuredBadge": "已配置",
     "entryAccountCount": "{{count}} 个账号",
     "deleteConfirm": "确定要删除此频道吗？",

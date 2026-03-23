@@ -1,6 +1,6 @@
 {
     "title": "Messaging Channels",
-    "subtitle": "Manage channels, accounts, and the Agent that handles them.",
+    "subtitle": "Manage message entry points, accounts, and the Agent handling them.",
     "refresh": "Refresh",
     "addChannel": "Add Channel",
     "searchPlaceholder": "Search channels",
@@ -24,7 +24,7 @@
     "available": "Available Channels",
     "availableDesc": "Connect a new channel so AI can send and receive messages there.",
     "configured": "Configured Channels",
-    "configuredDesc": "Manage channels that are already configured",
+    "configuredDesc": "Manage added channels",
     "configuredBadge": "Configured",
     "entryAccountCount": "{{count}} accounts",
     "deleteConfirm": "Are you sure you want to delete this channel?",
