@@ -177,7 +177,6 @@ function translate(key: string, vars?: Record<string, unknown>): string {
   if (key === 'workbench.actions.revealWorkspace') return '显示工作区';
   if (key === 'workbench.actions.revealRuntimeDir') return '显示运行时目录';
   if (key === 'workbench.overview.runtimeStateLabel') return '运行状态';
-  if (key === 'workbench.binding.runtimeTitle') return '运行时事实';
   if (key === 'workbench.binding.runtimeDescription') return '这里只展示当前 Gateway 层的事实状态，不在这里做假控制台。';
   if (key === 'workbench.binding.channelDescription') return '频道仍然在 Channels 页面维护，这里只保留事实摘要和跳转。';
   if (key === 'workbench.binding.runtimeStates.running') return '运行中';
@@ -303,8 +302,8 @@ describe('agents workbench layout', () => {
     expect(within(screen.getByTestId('agents-browser-rail')).getByRole('textbox', { name: '搜索智能体、模型、工作区' })).toBeInTheDocument();
     expect(screen.getAllByText('pangtong').length).toBeGreaterThan(0);
     expect(within(screen.getByTestId('agents-detail-workbench')).getByRole('heading', { name: 'pangtong' })).toBeInTheDocument();
-    expect(screen.getByTestId('agents-workbench').className).toContain('min-[980px]:grid-cols-[minmax(320px,0.82fr)_minmax(460px,1.18fr)]');
-    expect(screen.getByTestId('agents-workbench').className).toContain('min-[1580px]:grid-cols-[minmax(0,1fr)_minmax(520px,1.1fr)]');
+    expect(screen.getByTestId('agents-workbench').className).toContain('min-[980px]:grid-cols-[minmax(340px,0.84fr)_minmax(500px,1.16fr)]');
+    expect(screen.getByTestId('agents-workbench').className).toContain('min-[1580px]:grid-cols-[minmax(360px,0.92fr)_minmax(540px,1.08fr)]');
     expect(screen.getByTestId('agents-card-list').className).toContain('min-[1600px]:grid-cols-2');
     expect(screen.getByRole('button', { name: '开始对话' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '人格文件' })).toBeInTheDocument();
@@ -323,7 +322,8 @@ describe('agents workbench layout', () => {
     fireEvent.click(screen.getByRole('button', { name: '绑定与运行' }));
 
     const detailWorkbench = screen.getByTestId('agents-detail-workbench');
-    expect(within(detailWorkbench).getByText('运行时事实')).toBeInTheDocument();
+    expect(within(detailWorkbench).getByText('运行状态')).toBeInTheDocument();
+    expect(within(detailWorkbench).getByText('agent')).toBeInTheDocument();
     expect(within(detailWorkbench).getAllByRole('button', { name: '前往频道绑定' }).length).toBeGreaterThan(0);
   });
 

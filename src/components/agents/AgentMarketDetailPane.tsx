@@ -30,10 +30,10 @@ const fieldInputClasses =
 const installPanelClasses =
   'rounded-[22px] border border-[hsl(var(--primary)/0.12)] bg-[linear-gradient(180deg,hsl(var(--surface-elevated)/1)_0%,hsl(var(--surface-panel)/0.968)_100%)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.76),0_16px_28px_rgba(15,23,42,0.05)]';
 
-const SectionLabel = ({ label, description }: { label: string; description: string }) => (
+const SectionLabel = ({ label, description }: { label: string; description?: string }) => (
   <div className="border-b border-border/55 pb-3">
     <p className="text-[13px] font-semibold tracking-tight text-foreground">{label}</p>
-    <p className="mt-1 text-[12px] leading-[1.55] text-foreground/52">{description}</p>
+    {description ? <p className="mt-1 text-[12px] leading-[1.55] text-foreground/52">{description}</p> : null}
   </div>
 );
 
@@ -86,15 +86,7 @@ export function AgentMarketDetailPane({
             </div>
           </div>
           <div className={installPanelClasses}>
-            <div className="flex flex-wrap items-center gap-2">
-              <p className={summaryLabelClasses}>{t('workbench.market.installPanelTitle')}</p>
-              <Badge variant="outline" className={cn(badgeClasses, 'bg-[hsl(var(--surface-panel)/0.94)]')}>
-                {t('workbench.market.installReadyTag')}
-              </Badge>
-            </div>
-            <p className="mt-1 text-[12.5px] leading-[1.55] text-foreground/54">
-              {t('workbench.market.installReadyDescription')}
-            </p>
+            <p className={summaryLabelClasses}>{t('workbench.market.installPanelTitle')}</p>
             <div className="mt-4 grid gap-3 min-[1320px]:grid-cols-[minmax(0,1fr)_168px] min-[1320px]:items-end">
               <div>
                 <Label htmlFor="market-install-name" className="text-[13px] font-semibold text-foreground/80">
@@ -123,10 +115,7 @@ export function AgentMarketDetailPane({
 
       <div className="grid gap-4">
         <div className={cn(shellCardClasses, 'p-4')}>
-          <SectionLabel
-            label={t('workbench.market.highlightsTitle')}
-            description={t('workbench.market.highlightsDescription')}
-          />
+          <SectionLabel label={t('workbench.market.highlightsTitle')} />
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             {copy.highlights.length > 0 ? (
               copy.highlights.map((highlight) => (
@@ -145,10 +134,7 @@ export function AgentMarketDetailPane({
         </div>
 
         <div className={cn(shellCardClasses, 'flex min-h-0 flex-col p-4')}>
-          <SectionLabel
-            label={t('workbench.market.detailsTitle')}
-            description={t('workbench.market.detailsDescription')}
-          />
+          <SectionLabel label={t('workbench.market.detailsTitle')} />
           <div className="mt-4 grid gap-3">
             {copy.detailSections.map((section) => (
               <div
@@ -174,10 +160,7 @@ export function AgentMarketDetailPane({
           </div>
         </div>
         <div className={cn(shellCardClasses, 'p-4')}>
-          <SectionLabel
-            label={t('workbench.market.sourceSummaryTitle')}
-            description={t('workbench.market.sourceHint')}
-          />
+          <SectionLabel label={t('workbench.market.sourceSummaryTitle')} />
           <div className="mt-4 grid gap-2 text-[12.5px] leading-[1.6] text-foreground/58">
             <div className={cn(surfaceCardClasses, 'px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]')}>
               <p className={summaryLabelClasses}>{t('workbench.market.sourcePathLabel')}</p>

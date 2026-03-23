@@ -52,8 +52,8 @@ const actionButtonClasses =
   'h-8 rounded-[12px] border-border/70 bg-transparent px-3.5 text-[12.5px] font-medium text-foreground/76 shadow-none transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
 const summaryLabelClasses = 'text-[11px] font-medium uppercase tracking-[0.08em] text-foreground/44';
 const tabButtonBaseClasses = 'h-8 rounded-[11px] px-3 text-[12.5px] font-medium transition-colors';
-const insightSurfaceClasses =
-  'rounded-[18px] border border-border/60 bg-[linear-gradient(180deg,hsl(var(--surface-panel)/0.965)_0%,hsl(var(--surface-elevated)/0.985)_100%)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.62)]';
+const compactInsightSurfaceClasses =
+  'rounded-[16px] border border-border/55 bg-[hsl(var(--surface-panel)/0.95)] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.62)]';
 
 const getPathLeaf = (value: string) => {
   const parts = value.split(/[/\\]/).filter(Boolean);
@@ -118,22 +118,6 @@ function EmptyLocalState({
     </div>
   );
 }
-
-const RuntimeSummaryCard = ({
-  label,
-  value,
-  hint,
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-}) => (
-  <div className={insightSurfaceClasses}>
-    <p className={summaryLabelClasses}>{label}</p>
-    <p className="mt-1.5 text-[14px] font-semibold tracking-tight text-foreground">{value}</p>
-    {hint ? <p className="mt-2 text-[12px] leading-[1.55] text-foreground/52">{hint}</p> : null}
-  </div>
-);
 
 export function AgentLocalDetailPane({
   agent,
@@ -310,21 +294,15 @@ export function AgentLocalDetailPane({
             )}
           </div>
 
-          <div className="grid gap-3 lg:grid-cols-[minmax(220px,0.64fr)_minmax(0,1.36fr)]">
-            <RuntimeSummaryCard
-              label={t('workbench.overview.runtimeStateLabel')}
-              value={runtimeStateLabel}
-            />
-            <div className={insightSurfaceClasses}>
+          <div className="grid gap-3 lg:grid-cols-[minmax(220px,0.72fr)_minmax(0,1.28fr)]">
+            <div className={compactInsightSurfaceClasses}>
+              <p className={summaryLabelClasses}>{t('workbench.overview.runtimeStateLabel')}</p>
+              <p className="mt-1.5 text-[14px] font-semibold tracking-tight text-foreground">{runtimeStateLabel}</p>
+            </div>
+            <div className={compactInsightSurfaceClasses}>
               <p className={summaryLabelClasses}>{t('workbench.overview.agentDirLabel')}</p>
-              <div className="mt-1 flex flex-wrap items-center gap-2">
-                <p className="text-[14px] font-semibold tracking-tight text-foreground">{getPathLeaf(agent.agentDir)}</p>
-                <Badge variant="outline" className={badgeClasses}>
-                  {t('workbench.binding.runtimeTitle')}
-                </Badge>
-              </div>
-              <p className="mt-2 break-all text-[11.5px] leading-[1.6] text-foreground/46">{agent.agentDir}</p>
-              <p className="mt-3 text-[12px] leading-[1.55] text-foreground/52">{t('workbench.overview.agentDirHint')}</p>
+              <p className="mt-1.5 text-[14px] font-semibold tracking-tight text-foreground">{getPathLeaf(agent.agentDir)}</p>
+              <p className="mt-1.5 break-all text-[11.5px] leading-[1.55] text-foreground/46">{agent.agentDir}</p>
             </div>
           </div>
         </div>

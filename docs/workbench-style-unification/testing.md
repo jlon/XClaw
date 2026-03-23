@@ -2,51 +2,37 @@
 
 ## 测试目标
 
-确认 `模型 / 智能体 / 频道 / 技能 / 定时任务` 五个工作台已经统一到同一套桌面级 header grammar，而不是只做了局部颜色调整。
+确认 `模型 / 智能体 / 频道 / 技能 / 定时任务` 已经进入同一套桌面工作台语法，而不是：
+
+- 只有颜色接近
+- 只有页头接近
+- 只有局部组件接近
+
+本轮重点验证“桌面工作台质感合同”是否被执行。
 
 ## 自动化验证
-
-### 代码级
-
-- 为五个页面补统一结构断言：
-  - 图标底盘存在
-  - 标题/副标题比例一致
-  - 动作按钮高度分级一致
-  - 同一视口只允许一个主 CTA
-  - summary strip 语义一致
-  - 副标题默认是一行或一行半，不允许重新膨胀成说明段落
-  - summary strip 优先是轻图标化状态单元，而不是完整解释句
-- 为共享 primitive 补断言：
-  - 不允许五页各自维护不同页头 class 组合
-  - `WorkbenchHeader` 相关结构必须成为单一来源
-- 为 motion 预算补断言：
-  - 工作台页头内不允许新增页面专属 keyframes
-  - 过渡时间必须落在统一 token 预算内
-- 针对 `WorkspacePage` 相关页面补 source-level 回归锁，避免某页重新长回 hero 或 toolbar-only 结构
-- 对统一按钮高度、图标底盘 class 和标题 class 做断言
 
 ### 必跑命令
 
 - `pnpm exec vitest run tests/unit/workbench-style-unification.test.tsx --reporter=dot`
-- `pnpm exec eslint src/components/layout/WorkbenchHeader.tsx src/components/layout/WorkbenchHeaderIcon.tsx src/components/layout/WorkbenchHeaderTitleBlock.tsx src/components/layout/WorkbenchHeaderActions.tsx src/components/layout/WorkbenchSummaryStrip.tsx src/pages/Cron/index.tsx tests/unit/workbench-style-unification.test.tsx --max-warnings=0`
+- `pnpm exec eslint src/components/layout/WorkbenchHeader.tsx src/components/layout/WorkbenchSummaryStrip.tsx src/pages/Models/index.tsx src/pages/Agents/index.tsx src/pages/Channels/index.tsx src/pages/Skills/index.tsx src/pages/Cron/index.tsx tests/unit/workbench-style-unification.test.tsx --max-warnings=0`
 - `pnpm run typecheck`
 
-## 当前已验证
+### 结构断言
 
-- `Cron` 已完成首个 shared header 迁移
-- `Cron` 已明确去掉空态重复主 CTA
-- `Cron` 新建/编辑链已显式透传 `agentId`
-- `Cron` host route / IPC 创建链会拒绝空 `agentId`
-- `Cron` 卡片已显式展示执行智能体
-- `Cron` 页头、summary strip、任务卡片已收紧到桌面工具页语法，不再保留大 hero 和空摘要条
-- 已实际通过：
-  - `pnpm exec eslint src/pages/Cron/index.tsx electron/api/routes/cron.ts electron/main/ipc-handlers.ts --max-warnings=0`
+- 工作台页只有一个主任务路径
+- 搜索、切换、主动作属于同一条工具带 grammar
+- 浏览区和 detail pane 不出现第三层大摘要板
+- hero 区不再塞大事实卡和长说明
+- 市场详情不再把来源证据抬到第一视觉层
+- 空态不再复制第二个主 CTA
 
-## 当前阻塞
+### 密度断言
 
-- `pnpm run typecheck` 仍被 `Models` 页的既有类型问题阻塞，与本轮 `Cron` 改动无关：
-  - `src/pages/Models/components/ProviderBoard.tsx`
-  - `src/pages/Models/index.tsx`
+- 标题、说明、元信息存在稳定的三级对比
+- utility field / segmented control / action button 高度预算一致
+- 不允许某一页重新长回松散 hero
+- 不允许某一页把浏览区做回后台列表或目录树
 
 ## 手工验收
 
@@ -62,54 +48,50 @@
 
 确认：
 
-- 图标底盘是同一套语言
-- 标题区比例一致
-- 动作区节奏一致
-- 页面没有突然变成 hero 或后台表格页
-- 说明文字明显减少，不再先靠大段说明建立页面语义
+- 感觉是在同一个产品里切页，不是在切五种风格
+- 每页都存在清晰的浏览区与工作区关系
+- 页头和工具带都是同一种桌面语法
 
-### 2. 头部权重
+### 2. 浏览区
 
 确认：
 
-- `模型` 不再过重
-- `频道` 不再过轻
-- `智能体` 不再只有裸标题
-- `技能 / 定时任务` 不再单独使用另一套页头语法
+- 搜索框像 utility field，不像网页表单
+- 分段切换像桌面 segmented control，不像标签页
+- 卡片/列表项默认稳、hover 清楚、选中明确
+- 浏览区不会因为说明文字过多而膨胀成摘要墙
 
-### 3. 动效
-
-确认：
-
-- hover 强度一致
-- loading 只在必要处 spin
-- 没有某页独有的浮动、缩放或强调表演
-
-### 4. 信息密度
+### 3. detail pane
 
 确认：
 
-- 副标题足够短，能删则删
-- summary strip 更像桌面状态条，而不是说明栏
-- 轻图标只帮助扫描，不形成装饰层
-- 页面不会因为“更统一”而更拥挤
+- hero 只表达身份、状态、主动作
+- 事实区不会重复 hero 已经表达的内容
+- 编辑区像工作区，不像后台表单
+- 绑定区像操作 pane，不像监控面板
+
+### 4. 高清感
+
+确认：
+
+- 页面不发虚、不扁平、不糊
+- 白底干净，但不是一整块死白板
+- 边界轻但准
+- 阴影短而稳
+- 字重和字号层次清楚，不靠 `font-medium` 滥堆
 
 ### 5. 平台
 
 确认：
 
 - mac 下足够轻、静、克制
-- Windows 下边界足够清楚
-- 两端保持同一工作台语言
+- Windows 下边界和控件轮廓足够清楚
+- 两端共用同一套工作台语言，没有平台特供布局分叉
 
-## 风险点
+## 高风险回退点
 
-- 只统一颜色，不统一结构
-- `模型` 继续保留 billboard hero
-- `频道` 继续保留工具栏级轻标题
-- `智能体` 继续缺副标题和图标锚点
-- 统一后把所有页面做成死板模板
-- 为了“更像桌面”而增加过多阴影和动画，反而回到网页感
-- 搜索框和主按钮重新变成两个互相争抢的视觉中心
-- 为了“更有细节”而重新塞回大量说明文字
-- 为了“更精致”而给每一行说明都补 icon，重新长回网页感
+- 把去网页感误做成去层级
+- 把桌面感误做成大卡片、大摘要、大留白
+- 为了“更精致”继续加 badge、图标和说明
+- 为了“更统一”把所有页面压成同一张模板皮
+- 让 `智能体` 页重新长回后台 inspector

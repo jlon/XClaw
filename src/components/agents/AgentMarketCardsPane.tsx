@@ -75,14 +75,9 @@ export function AgentMarketCardsPane({
                     <p className="line-clamp-3 min-h-[60px] text-[12.5px] leading-[1.6] text-foreground/60">
                       {copy.summary || t('workbench.market.noRole')}
                     </p>
-                    <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-foreground/46">
-                      <span className="inline-flex h-5 items-center rounded-full border border-border/55 bg-[hsl(var(--surface-panel)/0.9)] px-2 font-medium text-foreground/58 shadow-[inset_0_1px_0_rgba(255,255,255,0.62)]">
-                        {t('workbench.market.installReadyTag')}
-                      </span>
-                      <span className="inline-flex h-5 items-center rounded-full border border-border/55 bg-[hsl(var(--surface-panel)/0.9)] px-2 font-medium text-foreground/54 shadow-[inset_0_1px_0_rgba(255,255,255,0.62)]">
-                        {item.installMode}
-                      </span>
-                      <span className="min-w-0 truncate font-medium text-foreground/46">{copy.highlights[0] || getPathLeaf(item.sourcePath)}</span>
+                    <div className="mt-3 flex items-start gap-2 text-[11.5px] text-foreground/46">
+                      <span className="mt-[6px] h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/24" />
+                      <span className="min-w-0 truncate font-medium text-foreground/48">{copy.highlights[0] || getPathLeaf(item.sourcePath)}</span>
                     </div>
                   </div>
                 </button>
