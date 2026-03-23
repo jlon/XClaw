@@ -86,8 +86,8 @@ type EditorValue = string | boolean | number | string[];
 const FALLBACK_ACCOUNT_ID = 'default';
 
 const paneSurfaceClass = 'app-pane-surface min-w-0 rounded-[14px] border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] shadow-none';
-const searchFieldClass = 'h-8.5 rounded-[12px] border border-[hsl(var(--border-subtle)/0.48)] bg-[hsl(var(--surface-panel)/0.86)] pl-9 text-[12.5px] shadow-none placeholder:text-muted-foreground/52 hover:border-[hsl(var(--border-subtle)/0.72)] hover:bg-[hsl(var(--surface-elevated)/0.98)] focus-visible:border-[hsl(var(--border-strong)/0.52)] focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
-const railRowClass = 'group w-full rounded-[14px] border border-transparent px-2.5 py-2 text-left transition-[background-color,border-color,box-shadow,transform] duration-150';
+const searchFieldClass = 'workbench-motion-control h-8.5 rounded-[12px] border border-[hsl(var(--border-subtle)/0.48)] bg-[hsl(var(--surface-panel)/0.86)] pl-9 text-[12.5px] shadow-none placeholder:text-muted-foreground/52 hover:border-[hsl(var(--border-subtle)/0.72)] hover:bg-[hsl(var(--surface-elevated)/0.98)] focus-visible:border-[hsl(var(--border-strong)/0.52)] focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
+const railRowClass = 'workbench-motion-card group w-full rounded-[14px] border border-transparent px-2.5 py-2 text-left';
 const selectedRailCardClass = 'translate-y-[-1px] border-[hsl(var(--border-strong)/0.36)] bg-[hsl(var(--surface-elevated)/0.98)] text-foreground shadow-[0_6px_16px_hsl(var(--foreground)/0.035)]';
 const idleRailCardClass = 'bg-[hsl(var(--surface-panel)/0.58)] hover:border-[hsl(var(--border-subtle)/0.82)] hover:bg-[hsl(var(--surface-hover)/0.58)]';
 const railIconClass = 'flex h-9.5 w-9.5 shrink-0 items-center justify-center rounded-[13px] border border-[hsl(var(--border-subtle)/0.72)] bg-[hsl(var(--surface-elevated)/0.98)] shadow-none';

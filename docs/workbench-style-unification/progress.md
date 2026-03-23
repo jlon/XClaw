@@ -47,6 +47,10 @@
   - `频道` 页头刷新按钮已回到共享 secondary grammar
   - `模型` 页头“添加提供商”已回到共享 primary grammar
   - `频道账号` 空状态主按钮已回到共享 primary grammar
+- [x] 工作台动画合同已收成 `WM-01` 到 `WM-06`
+  - 统一范围只包含：导航反馈、资源卡 hover、工具带控件、pane 换挡、reduced motion
+  - 明确禁止 scale、bounce、blur 浮动和大面积呼吸
+  - 不再允许 `transition-all` 和分散的 `150/180/200ms` 各自为政
 
 ## 三轮 review 结论
 
@@ -105,6 +109,10 @@
   - hero 只放身份与主动作
   - `人格文件` 只展示内置文件，并走弹窗编辑
   - `绑定与运行` 不再重复铺运行时事实卡
+- 工作台动画这轮继续只做“统一语法”，不做“更多动效”：
+  - 侧边栏、工具带、资源卡、列表行都接回共享 motion grammar
+  - hover 位移统一收成 `motion-safe:hover:-translate-y-[1px]`
+  - `prefers-reduced-motion` 下不再允许偷偷上浮
 - 后续任何工作台实现如果无法映射到 `WU-01` 到 `WU-08`，一律视为未完成
 
 ## 本轮收口重点

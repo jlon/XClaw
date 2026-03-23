@@ -60,9 +60,9 @@ const textareaClasses =
 const modalSurfaceClasses =
   'app-modal-surface w-full rounded-[20px]';
 const cardSurfaceClasses =
-  'app-cron-task-card group relative flex min-h-[212px] flex-col overflow-hidden rounded-[24px] border border-border/70 px-[18px] py-[17px] transition-[transform,box-shadow,border-color] duration-200 cursor-pointer sm:px-5 sm:py-[18px]';
+  'app-cron-task-card workbench-motion-card group relative flex min-h-[212px] flex-col overflow-hidden rounded-[24px] border border-border/70 px-[18px] py-[17px] motion-safe:hover:-translate-y-[1px] cursor-pointer sm:px-5 sm:py-[18px]';
 const scheduleButtonBaseClasses =
-  'justify-start h-[38px] rounded-[12px] font-medium text-[13px] transition-all';
+  'workbench-motion-control justify-start h-[38px] rounded-[12px] font-medium text-[13px]';
 
 interface ChannelAccountItem {
   accountId: string;

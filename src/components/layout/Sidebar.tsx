@@ -94,7 +94,7 @@ function NavItem({ to, icon, label, collapsed, tone }: NavItemProps) {
         aria-label={collapsed ? label : undefined}
         className={({ isActive }) =>
           cn(
-            'app-sidebar-nav-link flex w-full items-center rounded-[10px] border border-transparent px-2.5 py-2 text-[13px] font-normal tracking-[0.01em] transition-[background-color,color,border-color,box-shadow,padding,gap] duration-200 ease-out',
+            'app-sidebar-nav-link workbench-motion-nav flex w-full items-center rounded-[10px] border border-transparent px-2.5 py-2 text-[13px] font-normal tracking-[0.01em]',
             'text-foreground/72',
             collapsed
               ? 'mx-auto h-8 w-8 justify-center gap-0 px-0 hover:border-border/55 hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground hover:shadow-none'
@@ -191,7 +191,7 @@ export function Sidebar({ railOnly = false, className }: SidebarProps) {
             type="button"
             aria-label={collapsed ? t('sidebar.openClawPage') : undefined}
             className={cn(
-              'app-sidebar-nav-link mt-1 flex h-auto w-full items-center rounded-[10px] border border-transparent px-2.5 py-2 text-[13px] font-normal tracking-[0.01em] transition-[background-color,color,border-color,box-shadow,padding,gap] duration-200 ease-out',
+              'app-sidebar-nav-link workbench-motion-nav mt-1 flex h-auto w-full items-center rounded-[10px] border border-transparent px-2.5 py-2 text-[13px] font-normal tracking-[0.01em]',
               'text-foreground/68',
               collapsed
                 ? 'mx-auto h-8 w-8 justify-center gap-0 px-0 hover:border-border/55 hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground hover:shadow-none'

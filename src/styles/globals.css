@@ -1514,9 +1514,9 @@
   font-weight: 600;
   line-height: 1;
   transition:
-    background-color 180ms ease,
-    border-color 180ms ease,
-    color 180ms ease;
+    background-color var(--motion-fast) ease-out,
+    border-color var(--motion-fast) ease-out,
+    color var(--motion-fast) ease-out;
 }
 
 .app-skills-card-status-pill--enabled {
@@ -1546,10 +1546,10 @@
   color: hsl(var(--foreground) / 0.36);
   box-shadow: none;
   transition:
-    background-color 180ms ease,
-    color 180ms ease,
-    border-color 180ms ease,
-    box-shadow 180ms ease;
+    background-color var(--motion-fast) ease-out,
+    color var(--motion-fast) ease-out,
+    border-color var(--motion-fast) ease-out,
+    box-shadow var(--motion-fast) ease-out;
 }
 
 .app-skills-card-menu-button:hover,
@@ -2357,9 +2357,11 @@
   color: var(--sidebar-icon-ink);
   background: var(--sidebar-icon-bg);
   transition:
-    background-color 180ms ease,
-    color 180ms ease,
-    border-color 180ms ease;
+    background-color var(--motion-fast) ease-out,
+    color var(--motion-fast) ease-out,
+    border-color var(--motion-fast) ease-out,
+    opacity var(--motion-fast) ease-out,
+    transform var(--motion-fast) ease-out;
 }
 
 .app-sidebar-toned-icon > svg {
@@ -3435,7 +3437,6 @@
     inset 0 1px 0 rgb(255 255 255 / 0.96),
     0 18px 36px rgb(18 24 33 / 0.072),
     0 4px 10px rgb(18 24 33 / 0.04);
-  transform: translateY(-1px);
 }
 
 .app-cron-task-head {
@@ -4190,6 +4191,49 @@
 /* Smooth transitions */
 .transition-theme {
   @apply transition-colors duration-200;
+}
+
+.workbench-motion-nav {
+  transition:
+    background-color var(--motion-fast) ease-out,
+    border-color var(--motion-fast) ease-out,
+    color var(--motion-fast) ease-out,
+    box-shadow var(--motion-fast) ease-out;
+}
+
+.workbench-motion-control {
+  transition:
+    background-color var(--motion-fast) ease-out,
+    border-color var(--motion-fast) ease-out,
+    color var(--motion-fast) ease-out,
+    box-shadow var(--motion-fast) ease-out,
+    opacity var(--motion-fast) ease-out;
+}
+
+.workbench-motion-card {
+  transition:
+    transform 160ms ease-out,
+    background-color 160ms ease-out,
+    border-color 160ms ease-out,
+    box-shadow 160ms ease-out,
+    color 160ms ease-out,
+    opacity 160ms ease-out;
+}
+
+.workbench-motion-pane {
+  transition:
+    opacity var(--motion-base) ease-out,
+    transform var(--motion-base) ease-out,
+    border-color var(--motion-base) ease-out,
+    box-shadow var(--motion-base) ease-out;
+}
+
+.workbench-motion-icon {
+  transition:
+    background-color var(--motion-fast) ease-out,
+    color var(--motion-fast) ease-out,
+    opacity var(--motion-fast) ease-out,
+    transform var(--motion-fast) ease-out;
 }
 
 /* Focus ring */

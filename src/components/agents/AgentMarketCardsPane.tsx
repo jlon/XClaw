@@ -41,10 +41,10 @@ export function AgentMarketCardsPane({
                   type="button"
                   onClick={() => onSelectMarketItem(item)}
                   className={cn(
-                    'group relative flex min-h-[172px] flex-col overflow-hidden rounded-[22px] border px-4 py-4 text-left transition-[border-color,background-color,box-shadow,transform] duration-150',
+                    'workbench-motion-card group relative flex min-h-[172px] flex-col overflow-hidden rounded-[22px] border px-4 py-4 text-left',
                     selected
                       ? 'border-[hsl(var(--primary)/0.18)] bg-[linear-gradient(180deg,hsl(var(--surface-elevated)/1)_0%,hsl(var(--surface-panel)/0.978)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_16px_28px_rgba(15,23,42,0.05)]'
-                      : 'border-border/60 bg-[linear-gradient(180deg,hsl(var(--surface-elevated)/0.997)_0%,hsl(var(--surface-panel)/0.97)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_10px_20px_rgba(15,23,42,0.03)] hover:-translate-y-[1px] hover:border-border/74 hover:bg-[linear-gradient(180deg,hsl(var(--surface-elevated)/1)_0%,hsl(var(--surface-panel)/0.978)_100%)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.84),0_14px_24px_rgba(15,23,42,0.04)]',
+                      : 'border-border/60 bg-[linear-gradient(180deg,hsl(var(--surface-elevated)/0.997)_0%,hsl(var(--surface-panel)/0.97)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_10px_20px_rgba(15,23,42,0.03)] motion-safe:hover:-translate-y-[1px] hover:border-border/74 hover:bg-[linear-gradient(180deg,hsl(var(--surface-elevated)/1)_0%,hsl(var(--surface-panel)/0.978)_100%)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.84),0_14px_24px_rgba(15,23,42,0.04)]',
                   )}
                 >
                   <div className="relative flex items-start justify-between gap-3">

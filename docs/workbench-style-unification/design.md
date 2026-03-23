@@ -293,6 +293,89 @@
   - 下沉次级动作
   再允许保留滚动
 
+## 工作台动画合同
+
+下面 6 条不是“加一点动效”，而是继续把工作台手感收成同一套桌面语法。
+它们服务于 `WU-03 / WU-05`，不单独追求存在感。
+
+### WM-01 导航反馈只做状态反馈
+
+侧边栏、rail row、list row 的动画只允许表达：
+
+- hover
+- active
+- focus-visible
+
+统一规则：
+
+- 只过渡 `background / border / color / shadow`
+- 默认时长固定为 `140ms`
+- 禁止 scale、bounce、弹簧感
+
+### WM-02 资源卡 hover 允许轻微上浮，但只升一级
+
+资源卡包括：
+
+- 智能体卡
+- 市场卡
+- Provider 卡
+- 技能卡
+- 频道入口卡
+- 定时任务卡
+
+统一规则：
+
+- 允许 `translateY(-1px)`
+- 只允许 `border / shadow / background / color / transform` 参与过渡
+- 默认时长固定为 `160ms`
+- 选中态和 hover 态必须是两个不同层级，不能 hover 比 selected 更重
+
+### WM-03 工具带控件统一为同一套轻过渡
+
+工具带里的这些控件必须统一：
+
+- 搜索框
+- segmented / mode switch
+- 刷新
+- 主 CTA
+- icon button
+
+统一规则：
+
+- 只过渡 `background / border / color / shadow / opacity`
+- 默认时长固定为 `140ms`
+- 禁止 `transition-all`
+- 禁止为了“更灵敏”做压缩、放大、位移
+
+### WM-04 pane 换挡只做低幅度淡入位移
+
+同一工作台里切 mode、切 pane、切 detail 内容时：
+
+- 允许 `opacity + 6px y`
+- 总时长固定在 `180-220ms`
+- 不能做全页级大入场
+
+它的目标是“连续”，不是“演示感”。
+
+### WM-05 reduced motion 必须自动降级
+
+所有会产生位移的 hover 或 pane 动画都必须：
+
+- 在 `prefers-reduced-motion` 下自动降级
+- 不再上浮
+- 只保留必要的颜色/边界反馈
+
+### WM-06 明确禁止的动效
+
+工作台里一律禁止：
+
+- scale 放大/缩小
+- bounce / spring
+- blur 浮动
+- 大面积呼吸光晕
+- 卡片漂浮感
+- 为了“高级”增加无意义的入场动画
+
 ## 模型工作台专项条款
 
 下面 5 条是 `/models` 的专项硬约束。

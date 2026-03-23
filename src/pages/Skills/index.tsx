@@ -63,7 +63,7 @@ interface SkillDetailDialogProps {
 }
 
 const compactOutlineButtonClasses =
-  'h-8 rounded-[12px] border border-border/70 bg-transparent px-3 text-[12px] font-medium text-foreground/78 shadow-none transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
+  'workbench-motion-control h-8 rounded-[12px] border border-border/70 bg-transparent px-3 text-[12px] font-medium text-foreground/78 shadow-none hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
 const tokenInputClasses =
   'h-[44px] rounded-xl font-mono text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30';
 const compactInputClasses =
@@ -71,11 +71,11 @@ const compactInputClasses =
 const badgeClasses =
   'rounded-[10px] border border-border/70 bg-background/65 px-2.5 py-0.5 text-[10.5px] font-medium text-foreground/65 shadow-none transition-colors';
 const searchFieldClasses =
-  'relative flex items-center rounded-[16px] border border-border/60 bg-[hsl(var(--surface-panel)/0.84)] px-3.5 py-2.5 transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] focus-within:border-border/55 focus-within:bg-[hsl(var(--surface-panel)/0.96)]';
+  'workbench-motion-control relative flex items-center rounded-[16px] border border-border/60 bg-[hsl(var(--surface-panel)/0.84)] px-3.5 py-2.5 hover:bg-[hsl(var(--surface-hover)/0.46)] focus-within:border-border/55 focus-within:bg-[hsl(var(--surface-panel)/0.96)]';
 const skillCardClasses =
-  'app-skills-card group relative flex min-h-[198px] flex-col rounded-[24px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.988)] px-[18px] py-[17px] shadow-[0_10px_24px_rgba(15,23,42,0.05)] transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-[1px] hover:border-border/90 hover:shadow-[0_16px_32px_rgba(15,23,42,0.08)] sm:px-5 sm:py-[18px]';
+  'app-skills-card workbench-motion-card group relative flex min-h-[198px] flex-col rounded-[24px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.988)] px-[18px] py-[17px] shadow-[0_10px_24px_rgba(15,23,42,0.05)] motion-safe:hover:-translate-y-[1px] hover:border-border/90 hover:shadow-[0_16px_32px_rgba(15,23,42,0.08)] sm:px-5 sm:py-[18px]';
 const providerResultClasses =
-  'group flex items-start gap-4 rounded-[20px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.985)] p-4 shadow-[0_8px_22px_rgba(15,23,42,0.04)] transition-[border-color,box-shadow] hover:border-border/85 hover:shadow-[0_14px_28px_rgba(15,23,42,0.07)]';
+  'workbench-motion-card group flex items-start gap-4 rounded-[20px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.985)] p-4 shadow-[0_8px_22px_rgba(15,23,42,0.04)] hover:border-border/85 hover:shadow-[0_14px_28px_rgba(15,23,42,0.07)]';
 const DEFAULT_PROVIDER_RESULT_LIMIT = 50;
 const SEARCH_PROVIDER_RESULT_LIMIT = 24;
 

@@ -118,10 +118,7 @@ export function ChannelAccountList({
                     onSelectAccount(account.accountId);
                   }
                 }}
-                className={cn(
-                  'group w-full rounded-[11px] border px-3 py-2.5 text-left transition-[background-color,border-color,box-shadow] duration-150',
-                  isSelected ? selectedItemClass : idleItemClass,
-                )}
+                className={cn('workbench-motion-nav group w-full rounded-[11px] border px-3 py-2.5 text-left', isSelected ? selectedItemClass : idleItemClass)}
               >
                 <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
                   <div className="min-w-0">
