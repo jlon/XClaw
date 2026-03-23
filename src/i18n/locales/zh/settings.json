@@ -131,6 +131,10 @@
     "appLogs": "应用日志",
     "logsRecent": "默认显示最近 100 行应用日志。",
     "logsCopied": "日志已复制",
+    "exportLogs": "导出日志包",
+    "logsExporting": "导出中...",
+    "logsExported": "已导出 {{count}} 份日志文件",
+    "logsExportFailed": "导出日志包失败",
     "openFolder": "打开文件夹",
     "autoStart": "自动启动网关",
     "autoStartDesc": "XClaw 启动时自动启动网关",
@@ -154,39 +158,12 @@
   },
   "updates": {
     "title": "更新",
-    "description": "保持 XClaw 最新",
-    "autoCheck": "自动检查更新",
-    "autoCheckDesc": "启动时检查更新",
-    "autoDownload": "自动更新",
-    "autoDownloadDesc": "自动下载并安装更新",
+    "description": "查看当前版本信息",
     "status": {
-      "checking": "正在检查更新...",
-      "downloading": "正在下载更新...",
-      "available": "可用更新：v{{version}}",
-      "downloaded": "准备安装：v{{version}}",
-      "autoInstalling": "将在 {{seconds}} 秒后重启并安装更新...",
-      "packagedOnly": "开发环境下不检查更新",
-      "failed": "检查更新失败",
-      "latest": "您已拥有最新版本",
-      "check": "检查更新以获取最新功能"
-    },
-    "action": {
-      "checking": "检查中...",
-      "downloading": "下载中...",
-      "download": "下载更新",
-      "install": "安装并重启",
-      "cancelAutoInstall": "取消",
-      "packagedOnly": "仅打包版可用",
-      "retry": "重试",
-      "check": "检查更新"
+      "disabled": "内置自动更新已禁用"
     },
     "currentVersion": "当前版本",
-    "releaseVersion": "版本 {{version}}",
-    "progressComplete": "已完成 {{percent}}%",
-    "whatsNew": "更新内容：",
-    "errorDetails": "错误详情：",
-    "packagedOnlyDetail": "当前运行的是未打包的开发环境。自动更新只在打包发布版本中可用。",
-    "help": "开启自动更新后，更新将自动下载并安装。"
+    "disabledDetail": "当前构建不包含内置自动更新。需要新版本时，请手动下载和安装。"
   },
   "advanced": {
     "title": "高级",
@@ -270,10 +247,10 @@
     "telemetryCopied": "埋点已复制",
     "telemetryCleared": "埋点已清空",
     "installCmd": "安装 \"openclaw\" 命令",
-    "installCmdDesc": "安装 ~/.local/bin/openclaw（无需管理员权限）",
+    "installCmdDesc": "为当前平台配置 openclaw 命令（通常无需管理员权限）",
     "installTitle": "安装 OpenClaw 命令",
     "installMessage": "安装 \"openclaw\" 命令？",
-    "installDetail": "这将创建 ~/.local/bin/openclaw。确保 ~/.local/bin 在您的 PATH 中。"
+    "installDetail": "XClaw 会按当前平台配置 openclaw 命令；如果终端暂未识别，请重新打开终端后再试。"
   },
   "about": {
     "title": "关于",

@@ -11,6 +11,7 @@ import {
   ExternalLink,
   Copy,
   FileText,
+  Download,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -21,7 +22,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { useSettingsStore } from '@/stores/settings';
 import { useGatewayStore } from '@/stores/gateway';
-import { useUpdateStore } from '@/stores/update';
 import { WorkspacePageFrame, WorkspacePageScrollArea, WorkspacePageShell } from '@/components/layout/WorkspacePage';
 import { UpdateSettings } from '@/components/settings/UpdateSettings';
 import { WorkbenchSummaryStrip } from '@/components/layout/WorkbenchSummaryStrip';
@@ -108,10 +108,6 @@ export function Settings() {
     setProxyHttpsServer,
     setProxyAllServer,
     setProxyBypassRules,
-    autoCheckUpdate,
-    setAutoCheckUpdate,
-    autoDownloadUpdate,
-    setAutoDownloadUpdate,
     devModeUnlocked,
     setDevModeUnlocked,
     telemetryEnabled,
@@ -119,7 +115,6 @@ export function Settings() {
   } = useSettingsStore();
 
   const { status: gatewayStatus, restart: restartGateway } = useGatewayStore();
-  const updateSetAutoDownload = useUpdateStore((state) => state.setAutoDownload);
   const [controlUiInfo, setControlUiInfo] = useState<ControlUiInfo | null>(null);
   const [openclawCliCommand, setOpenclawCliCommand] = useState('');
   const [openclawCliError, setOpenclawCliError] = useState<string | null>(null);
@@ -141,6 +136,7 @@ export function Settings() {
   const showCliTools = true;
   const [showLogs, setShowLogs] = useState(false);
   const [logContent, setLogContent] = useState('');
+  const [exportingLogBundle, setExportingLogBundle] = useState(false);
   const [showDoctorRawOutput, setShowDoctorRawOutput] = useState(false);
   const [showTelemetryRawEvents, setShowTelemetryRawEvents] = useState(false);
   const [doctorRunningMode, setDoctorRunningMode] = useState<'diagnose' | 'fix' | null>(null);
@@ -187,6 +183,30 @@ export function Settings() {
       toast.success(t('gateway.logsCopied'));
     } catch (error) {
       toast.error(`${t('common:status.error')}: ${String(error)}`);
+    }
+  };
+
+  const handleExportLogBundle = async () => {
+    setExportingLogBundle(true);
+    try {
+      const result = await hostApiFetch<{
+        success: boolean;
+        canceled?: boolean;
+        savedPath?: string;
+        fileCount?: number;
+      }>('/api/logs/export', {
+        method: 'POST',
+        body: JSON.stringify({}),
+      });
+      if (!result.success) {
+        return;
+      }
+      toast.success(t('gateway.logsExported', { count: result.fileCount ?? 0 }));
+    } catch (error) {
+      const message = toUserMessage(error) || t('gateway.logsExportFailed');
+      toast.error(message);
+    } finally {
+      setExportingLogBundle(false);
     }
   };
 
@@ -778,6 +798,16 @@ export function Settings() {
                           <FileText className="mr-1.5 h-3.5 w-3.5" />
                           {t('gateway.logs')}
                         </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleExportLogBundle}
+                          disabled={exportingLogBundle}
+                          className={cn('h-8 px-4', settingsGhostButtonClass)}
+                        >
+                          <Download className="mr-1.5 h-3.5 w-3.5" />
+                          {exportingLogBundle ? t('gateway.logsExporting') : t('gateway.exportLogs')}
+                        </Button>
                         <Button variant="outline" size="sm" onClick={handleOpenLogDir} className={cn('h-8 px-4', settingsGhostButtonClass)}>
                           <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
                           {t('gateway.openFolder')}
@@ -973,6 +1003,9 @@ export function Settings() {
                                   {t('common:actions.copy')}
                                 </Button>
                               </div>
+                              {isWindows ? (
+                                <p className="text-[12px] leading-5 text-muted-foreground">{t('developer.cliPowershell')}</p>
+                              ) : null}
                             </div>
                           </div>
                         </>
@@ -1177,37 +1210,6 @@ export function Settings() {
               <TabsContent value="updates" className="mt-0">
                 <section className={settingsPaneClass}>
                   <UpdateSettings />
-                  <div className={settingsPaneDividerClass}>
-                    <div className="space-y-3">
-                      <div className={settingsCompactToggleRowClass}>
-                        <div className={settingsCompactRowTextClass}>
-                          <Label className={settingsCompactRowLabelClass}>{t('updates.autoCheck')}</Label>
-                        </div>
-                        <div className={settingsControlDockClass}>
-                          <div className="flex w-full md:max-w-[320px] md:justify-end">
-                            <Switch checked={autoCheckUpdate} onCheckedChange={setAutoCheckUpdate} />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="h-px bg-border/50" />
-                      <div className={settingsCompactToggleRowClass}>
-                        <div className={settingsCompactRowTextClass}>
-                          <Label className={settingsCompactRowLabelClass}>{t('updates.autoDownload')}</Label>
-                        </div>
-                        <div className={settingsControlDockClass}>
-                          <div className="flex w-full md:max-w-[320px] md:justify-end">
-                            <Switch
-                              checked={autoDownloadUpdate}
-                              onCheckedChange={(value) => {
-                                setAutoDownloadUpdate(value);
-                                updateSetAutoDownload(value);
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 </section>
               </TabsContent>
             </Tabs>

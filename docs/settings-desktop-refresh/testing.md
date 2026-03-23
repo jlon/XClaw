@@ -15,7 +15,7 @@
 - Gateway 状态、日志、重启仍正常
 - `devMode / telemetry` 调整到通用偏好后，功能仍正常
 - 更新设置仍正常
-- `UpdateSettings` 收回统一 pane 后，检查/下载/安装链路仍正常
+- `UpdateSettings` 已改成版本信息 + 禁用说明，不再触发检查/下载/安装链路
 - dev mode 打开前不显示 `Developer`
 - dev mode 打开后显示 `Developer`，控制台/doctor/proxy/telemetry 仍可用
 - `OpenClaw 控制台` 在首次点击、尚未缓存 URL 时也能正常打开
@@ -24,8 +24,8 @@
 - 代理从 `Developer` 迁回 `运行时` 后，保存、重启提示与实际链路不变
 - 日志改为模态后，复制日志、打开日志目录、关闭日志仍正常
 - `Developer` 收成 `控制台接入 / Doctor / 调试工具` 三个 pane 后，原有控制台、Doctor、埋点查看器功能仍正常
-- `更新` 在状态、下载、安装、错误场景下仍保持正确动作和提示
-- `更新` 在未打包的开发环境下必须显示中性提示，不允许再出现红色错误块
+- `更新` 不再出现自动检查更新、自动下载更新开关
+- `更新` 默认只显示当前版本与禁用说明
 - 设置页不再显示 `关于` tab 与对应内容区
 - `通用偏好` 收成两个紧凑 pane 后，主题、语言、启动项、匿名使用数据、开发者模式的切换链路不变
 - `tabs` 切换时，`通用 / 运行环境 / 更新 / 开发者` 只显示当前激活 pane
@@ -50,7 +50,7 @@
 - `Gateway / 更新` 的信息优先级应接近 `QClaw` 的 row 组织，而不是后台控制台
 - `Developer` 的控制台、Doctor、埋点摘要应呈现为稳定的 row/card 组合，而不是徽章条和日志堆
 - `Doctor / 埋点` 的原始输出默认折叠，只有在用户主动展开时才出现
-- `更新` 面板中的发布说明、错误与下载进度应保持 pane 语法，不回退成网页文章或大段提示块
+- `更新` 面板必须维持单一 pane 语法，不允许再出现自动更新操作按钮和错误块
 - `运行时` 不再出现重复的状态/端口/自动启动摘要壳
 - 默认桌面窗口下，`运行时` 主路径不依赖内联日志块或内部滚动条
 - `运行时` 与 `开发者` 的主路径必须遵守 `标签 -> 值/控件 -> 动作` 的 inspector 语法，不允许再退回“说明文轨 + 控件轨”
@@ -73,4 +73,4 @@
 
 ### 本轮补充验证
 
-- `pnpm exec vitest run tests/unit/update-settings.test.tsx tests/unit/openrouter-branding.test.ts`
+- `pnpm exec vitest run tests/unit/update-settings.test.tsx tests/unit/settings-layout.test.tsx tests/unit/update-release-config.test.ts`

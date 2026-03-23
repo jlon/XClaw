@@ -42,7 +42,7 @@ import {
   validateChannelConfig,
   validateChannelCredentials,
 } from '../utils/channel-config';
-import { checkUvInstalled, installUv, setupManagedPython } from '../utils/uv-setup';
+import { checkUvInstalled, installUv, isPythonReady, setupManagedPython } from '../utils/uv-setup';
 import {
   ensureDingTalkPluginInstalled,
   ensureFeishuPluginInstalled,
@@ -1143,6 +1143,15 @@ function registerUvHandlers(): void {
   // Check if uv is installed
   ipcMain.handle('uv:check', async () => {
     return await checkUvInstalled();
+  });
+
+  ipcMain.handle('uv:status', async () => {
+    const uvInstalled = await checkUvInstalled();
+    const pythonReady = uvInstalled ? await isPythonReady() : false;
+    return {
+      uvInstalled,
+      pythonReady,
+    };
   });
 
   // Install uv and setup managed Python

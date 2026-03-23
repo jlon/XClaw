@@ -7,6 +7,7 @@ const {
   gatewayState,
   updateState,
   invokeIpcMock,
+  hostApiFetchMock,
 } = vi.hoisted(() => ({
   settingsState: {
     theme: 'system',
@@ -46,6 +47,7 @@ const {
     setAutoDownload: vi.fn(),
   },
   invokeIpcMock: vi.fn(),
+  hostApiFetchMock: vi.fn(),
 }));
 
 vi.mock('@/stores/settings', () => ({
@@ -77,7 +79,7 @@ vi.mock('@/components/layout/WorkbenchSummaryStrip', () => ({
 }));
 
 vi.mock('@/lib/host-api', () => ({
-  hostApiFetch: vi.fn().mockResolvedValue({}),
+  hostApiFetch: (...args: unknown[]) => hostApiFetchMock(...args),
 }));
 
 vi.mock('@/lib/api-client', () => ({
@@ -144,6 +146,10 @@ vi.mock('react-i18next', () => ({
       if (key === 'common:actions.show') return '显示';
       if (key === 'common:actions.hide') return '隐藏';
       if (key === 'gateway.logs') return '日志';
+      if (key === 'gateway.exportLogs') return '导出日志包';
+      if (key === 'gateway.logsExporting') return '导出中...';
+      if (key === 'gateway.logsExported') return `已导出 ${arg?.count ?? 0} 份日志文件`;
+      if (key === 'gateway.logsExportFailed') return '导出日志包失败';
       if (key === 'gateway.openFolder') return '打开文件夹';
       if (key === 'gateway.proxyTitle') return '代理';
       if (key === 'gateway.proxyDesc') return '让 Electron 和 Gateway 的网络请求都走本地代理客户端。';
@@ -180,6 +186,8 @@ describe('settings layout', () => {
     window.electron.platform = 'darwin';
     invokeIpcMock.mockReset();
     invokeIpcMock.mockResolvedValue(undefined);
+    hostApiFetchMock.mockReset();
+    hostApiFetchMock.mockResolvedValue({});
   });
 
   it('uses top tabs and shows only one active settings pane at a time', async () => {
@@ -199,6 +207,45 @@ describe('settings layout', () => {
     await waitFor(() => {
       expect(screen.getByText('代理')).toBeInTheDocument();
       expect(screen.queryByText('主题')).not.toBeInTheDocument();
+    });
+  });
+
+  it('removes auto-update toggles from the updates pane when built-in updater is disabled', async () => {
+    render(<Settings />);
+
+    const updatesTab = screen.getByRole('tab', { name: '更新' });
+    fireEvent.mouseDown(updatesTab, { button: 0, ctrlKey: false });
+    fireEvent.click(updatesTab);
+
+    await waitFor(() => {
+      expect(screen.getByText('更新面板')).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText('自动检查更新')).not.toBeInTheDocument();
+    expect(screen.queryByText('自动更新')).not.toBeInTheDocument();
+  });
+
+  it('exports a platform log bundle from the runtime pane', async () => {
+    hostApiFetchMock.mockImplementation(async (path: string) => {
+      if (path === '/api/logs/export') {
+        return { success: true, fileCount: 3, savedPath: '/tmp/xclaw-logs.zip' };
+      }
+      return {};
+    });
+
+    render(<Settings />);
+
+    const runtimeTab = screen.getByRole('tab', { name: '网关' });
+    fireEvent.mouseDown(runtimeTab, { button: 0, ctrlKey: false });
+    fireEvent.click(runtimeTab);
+
+    const exportButton = await screen.findByRole('button', { name: '导出日志包' });
+    fireEvent.click(exportButton);
+
+    await waitFor(() => {
+      expect(hostApiFetchMock).toHaveBeenCalledWith('/api/logs/export', expect.objectContaining({
+        method: 'POST',
+      }));
     });
   });
 });

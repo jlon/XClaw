@@ -7,16 +7,13 @@ import {
   Bot,
   Clock,
   Cpu,
-  ExternalLink,
   MessageSquareText,
   Network,
   Puzzle,
   Settings as SettingsIcon,
-  Terminal,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSettingsStore } from '@/stores/settings';
-import { hostApiFetch } from '@/lib/host-api';
 import { useTranslation } from 'react-i18next';
 import { AppBrandLockup } from './AppBrandLockup';
 
@@ -32,8 +29,7 @@ type SidebarTone =
   | 'channels'
   | 'skills'
   | 'cron'
-  | 'settings'
-  | 'terminal';
+  | 'settings';
 
 interface NavItemProps {
   to: string;
@@ -41,6 +37,16 @@ interface NavItemProps {
   label: string;
   collapsed?: boolean;
   tone: SidebarTone;
+}
+
+interface UtilityItemProps {
+  label: string;
+  icon: React.ReactNode;
+  collapsed?: boolean;
+  tone: SidebarTone;
+  to?: string;
+  onClick?: () => void;
+  trailing?: React.ReactNode;
 }
 
 function SidebarToneIcon({
@@ -127,27 +133,69 @@ function NavItem({ to, icon, label, collapsed, tone }: NavItemProps) {
   );
 }
 
+function UtilityItem({ label, icon, collapsed, tone, to, onClick, trailing }: UtilityItemProps) {
+  const baseClass = cn(
+    'app-sidebar-nav-link app-sidebar-utility-link workbench-motion-nav flex w-full items-center rounded-[12px] border border-transparent px-2.5 py-2 text-[13px] font-normal tracking-[0.01em]',
+    'text-foreground/70',
+    collapsed
+      ? 'mx-auto h-8 w-8 justify-center gap-0 px-0 hover:border-border/55 hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground hover:shadow-none'
+      : 'min-h-11 gap-2.5 hover:border-border/50 hover:bg-[hsl(var(--surface-hover)/0.84)] hover:text-foreground hover:shadow-none',
+  );
+  const content = (
+    <>
+      <div className="flex shrink-0 items-center justify-center">
+        <SidebarToneIcon tone={tone}>
+          {icon}
+        </SidebarToneIcon>
+      </div>
+      <span
+        className={cn(
+          'flex-1 overflow-hidden whitespace-nowrap transition-[max-width,opacity,transform] duration-300 ease-out',
+          collapsed ? 'max-w-0 -translate-x-1.5 opacity-0 pointer-events-none' : 'max-w-[160px] translate-x-0 opacity-100',
+        )}
+      >
+        <span className="block overflow-hidden text-ellipsis whitespace-nowrap">{label}</span>
+      </span>
+      {!collapsed && trailing ? (
+        <span className="app-sidebar-utility-trailing flex shrink-0 items-center justify-center text-muted-foreground/46">
+          {trailing}
+        </span>
+      ) : null}
+    </>
+  );
+
+  if (to) {
+    return (
+      <RailTooltip collapsed={collapsed} label={label}>
+        <NavLink
+          to={to}
+          aria-label={collapsed ? label : undefined}
+          className={({ isActive }) => cn(baseClass, isActive && 'border-border/65 bg-[hsl(var(--surface-elevated)/0.92)] text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.46)]')}
+        >
+          {content}
+        </NavLink>
+      </RailTooltip>
+    );
+  }
+
+  return (
+    <RailTooltip collapsed={collapsed} label={label}>
+      <button
+        type="button"
+        aria-label={collapsed ? label : undefined}
+        className={baseClass}
+        onClick={onClick}
+      >
+        {content}
+      </button>
+    </RailTooltip>
+  );
+}
+
 export function Sidebar({ railOnly = false, className }: SidebarProps) {
   const sidebarCollapsed = useSettingsStore((state) => state.sidebarCollapsed);
   const { t } = useTranslation('common');
   const collapsed = railOnly || sidebarCollapsed;
-
-  const openDevConsole = async () => {
-    try {
-      const result = await hostApiFetch<{
-        success: boolean;
-        url?: string;
-        error?: string;
-      }>('/api/gateway/control-ui');
-      if (result.success && result.url) {
-        window.electron.openExternal(result.url);
-      } else {
-        console.error('Failed to get Dev Console URL:', result.error);
-      }
-    } catch (err) {
-      console.error('Error opening Dev Console:', err);
-    }
-  };
 
   const navItems = [
     { to: '/', icon: <MessageSquareText className="h-[18px] w-[18px]" strokeWidth={2} />, label: t('sidebar.chat'), tone: 'chat' as const },
@@ -178,48 +226,15 @@ export function Sidebar({ railOnly = false, className }: SidebarProps) {
       </nav>
 
       <div className="mt-auto px-1.5 pb-1.5 pt-2">
-        <NavItem
-          to="/settings"
-          icon={<SettingsIcon className="h-[18px] w-[18px]" strokeWidth={2} />}
-          label={t('sidebar.settings')}
-          collapsed={collapsed}
-          tone="settings"
-        />
-
-        <RailTooltip collapsed={collapsed} label={t('sidebar.openClawPage')}>
-          <button
-            type="button"
-            aria-label={collapsed ? t('sidebar.openClawPage') : undefined}
-            className={cn(
-              'app-sidebar-nav-link workbench-motion-nav mt-1 flex h-auto w-full items-center rounded-[10px] border border-transparent px-2.5 py-2 text-[13px] font-normal tracking-[0.01em]',
-              'text-foreground/68',
-              collapsed
-                ? 'mx-auto h-8 w-8 justify-center gap-0 px-0 hover:border-border/55 hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground hover:shadow-none'
-                : 'justify-start gap-2 hover:border-border/55 hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground hover:shadow-none',
-            )}
-            onClick={openDevConsole}
-          >
-            <div className="flex shrink-0 items-center justify-center">
-              <SidebarToneIcon tone="terminal">
-                <Terminal className="h-[18px] w-[18px]" strokeWidth={2} />
-              </SidebarToneIcon>
-            </div>
-            <span
-              className={cn(
-                'flex-1 overflow-hidden text-left whitespace-nowrap transition-[max-width,opacity,transform] duration-300 ease-out',
-                collapsed ? 'max-w-0 -translate-x-1.5 opacity-0 pointer-events-none' : 'max-w-[160px] translate-x-0 opacity-100',
-              )}
-            >
-              <span className="block overflow-hidden text-ellipsis whitespace-nowrap">{t('sidebar.openClawPage')}</span>
-            </span>
-            <ExternalLink
-              className={cn(
-                'ml-auto h-3 w-3 shrink-0 text-muted-foreground transition-[opacity,transform,max-width] duration-300 ease-out',
-                collapsed ? 'max-w-0 translate-x-1 opacity-0 pointer-events-none' : 'max-w-4 opacity-50',
-              )}
-            />
-          </button>
-        </RailTooltip>
+        <div className={cn('border-t border-border/55 pt-2', collapsed ? 'space-y-1.5' : 'space-y-1')}>
+          <UtilityItem
+            to="/settings"
+            icon={<SettingsIcon className="h-[18px] w-[18px]" strokeWidth={2} />}
+            label={t('sidebar.settings')}
+            collapsed={collapsed}
+            tone="settings"
+          />
+        </div>
       </div>
     </aside>
   );

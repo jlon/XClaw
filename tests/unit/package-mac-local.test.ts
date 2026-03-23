@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildMacLocalBuilderArgs,
-  MAC_ARCH_ARGS,
-  LOCAL_COMPRESSION_ARGS,
   MIN_DARWIN_MAJOR_FOR_DMG,
   parseDarwinMajor,
+  resolveLocalElectronDist,
+  resolveMacLocalArchArg,
   resolveMacLocalTargets,
 } from '../../scripts/package-mac-local.mjs';
 
@@ -16,34 +16,59 @@ describe('package-mac-local', () => {
   });
 
   it('falls back to zip-only on hosts below the dmg minimum', () => {
-    expect(resolveMacLocalTargets({ platform: 'darwin', release: `${MIN_DARWIN_MAJOR_FOR_DMG - 1}.7.6` })).toEqual(['zip']);
+    expect(resolveMacLocalTargets({ platform: 'darwin', release: `${MIN_DARWIN_MAJOR_FOR_DMG - 1}.7.6` })).toEqual(['dir']);
   });
 
-  it('keeps dmg and zip on supported macOS hosts', () => {
-    expect(resolveMacLocalTargets({ platform: 'darwin', release: `${MIN_DARWIN_MAJOR_FOR_DMG}.1.0` })).toEqual(['dmg', 'zip']);
+  it('keeps dmg alongside unpacked output on supported macOS hosts', () => {
+    expect(resolveMacLocalTargets({ platform: 'darwin', release: `${MIN_DARWIN_MAJOR_FOR_DMG}.1.0` })).toEqual([
+      'dir',
+      'dmg',
+    ]);
   });
 
-  it('builds zip-only args with both mac architectures on older hosts', () => {
+  it('builds local packaging args with current host arch and local electron dist on older hosts', () => {
     expect(buildMacLocalBuilderArgs({ platform: 'darwin', release: `${MIN_DARWIN_MAJOR_FOR_DMG - 1}.7.6` })).toEqual([
       '--mac',
-      'zip',
-      ...MAC_ARCH_ARGS,
-      ...LOCAL_COMPRESSION_ARGS,
+      'dir',
+      resolveMacLocalArchArg({ arch: process.arch }),
       '--publish',
       'never',
+      '-c.mac.notarize=false',
+      `-c.electronDist=${resolveLocalElectronDist()}`,
     ]);
   });
 
-  it('builds dmg and zip args with both mac architectures on supported hosts', () => {
+  it('adds dmg on supported hosts while keeping current host arch and local electron dist', () => {
     expect(buildMacLocalBuilderArgs({ platform: 'darwin', release: `${MIN_DARWIN_MAJOR_FOR_DMG}.0.0` })).toEqual([
       '--mac',
+      'dir',
       'dmg',
-      'zip',
-      ...MAC_ARCH_ARGS,
-      ...LOCAL_COMPRESSION_ARGS,
+      resolveMacLocalArchArg({ arch: process.arch }),
       '--publish',
       'never',
+      '-c.mac.notarize=false',
+      `-c.electronDist=${resolveLocalElectronDist()}`,
     ]);
+  });
+
+  it('maps supported Node architectures to electron-builder arch flags', () => {
+    expect(resolveMacLocalArchArg({ arch: 'x64' })).toBe('--x64');
+    expect(resolveMacLocalArchArg({ arch: 'arm64' })).toBe('--arm64');
+  });
+
+  it('returns null when the local electron dist cannot be found', () => {
+    expect(resolveLocalElectronDist({ candidatePath: '/definitely-missing-electron-dist' })).toBeNull();
+  });
+
+  it('omits the electronDist override when no local Electron distribution is available', () => {
+    expect(
+      buildMacLocalBuilderArgs({
+        platform: 'darwin',
+        release: `${MIN_DARWIN_MAJOR_FOR_DMG - 1}.7.6`,
+        arch: 'x64',
+        electronDist: null,
+      }),
+    ).toEqual(['--mac', 'dir', '--x64', '--publish', 'never', '-c.mac.notarize=false']);
   });
 
   it('rejects non-macOS hosts', () => {

@@ -69,7 +69,7 @@ export function getOpenClawCliCommand(): string {
       const cliDir = join(process.resourcesPath, 'cli');
       const cmdPath = join(cliDir, 'openclaw.cmd');
       if (existsSync(cmdPath)) {
-        return quoteForPowerShell(cmdPath);
+        return `& ${quoteForPowerShell(cmdPath)}`;
       }
     }
 

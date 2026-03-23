@@ -35,9 +35,8 @@ case "$1" in
   update)
     echo "openclaw is managed by XClaw (bundled version)."
     echo ""
-    echo "To update openclaw, update XClaw:"
-    echo "  Open XClaw > Settings > Check for Updates"
-    echo "  Or download the latest version from https://claw-x.com"
+    echo "Built-in updates are disabled in this build."
+    echo "Download a newer XClaw package from your distribution channel."
     echo ""
     ELECTRON_RUN_AS_NODE=1 "$ELECTRON" "$CLI" --version 2>/dev/null || true
     exit 0

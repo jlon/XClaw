@@ -131,6 +131,10 @@
     "appLogs": "Application Logs",
     "logsRecent": "Shows the latest 100 lines of application logs by default.",
     "logsCopied": "Logs copied",
+    "exportLogs": "Export Log Bundle",
+    "logsExporting": "Exporting...",
+    "logsExported": "Exported {{count}} log files",
+    "logsExportFailed": "Failed to export log bundle",
     "openFolder": "Open Folder",
     "autoStart": "Auto-start Gateway",
     "autoStartDesc": "Start Gateway when XClaw launches",
@@ -154,39 +158,12 @@
   },
   "updates": {
     "title": "Updates",
-    "description": "Keep XClaw up to date",
-    "autoCheck": "Auto-check for updates",
-    "autoCheckDesc": "Check for updates on startup",
-    "autoDownload": "Auto-update",
-    "autoDownloadDesc": "Automatically download and install updates",
+    "description": "View the current build version",
     "status": {
-      "checking": "Checking for updates...",
-      "downloading": "Downloading update...",
-      "available": "Update available: v{{version}}",
-      "downloaded": "Ready to install: v{{version}}",
-      "autoInstalling": "Restarting to install update in {{seconds}}s...",
-      "packagedOnly": "Updates are unavailable in development builds",
-      "failed": "Update check failed",
-      "latest": "You have the latest version",
-      "check": "Check for updates to get the latest features"
-    },
-    "action": {
-      "checking": "Checking...",
-      "downloading": "Downloading...",
-      "download": "Download Update",
-      "install": "Install & Restart",
-      "cancelAutoInstall": "Cancel",
-      "packagedOnly": "Packaged builds only",
-      "retry": "Retry",
-      "check": "Check for Updates"
+      "disabled": "Built-in auto-updates are disabled"
     },
     "currentVersion": "Current Version",
-    "releaseVersion": "Version {{version}}",
-    "progressComplete": "{{percent}}% complete",
-    "whatsNew": "What's New:",
-    "errorDetails": "Error Details:",
-    "packagedOnlyDetail": "This app is running from an unpackaged development build. Auto-updates are only available in packaged releases.",
-    "help": "When auto-update is enabled, updates are downloaded and installed automatically."
+    "disabledDetail": "This build does not include built-in auto-updates. Download and install newer versions manually."
   },
   "advanced": {
     "title": "Advanced",
@@ -270,10 +247,10 @@
     "telemetryCopied": "Telemetry copied",
     "telemetryCleared": "Telemetry cleared",
     "installCmd": "Install \"openclaw\" Command",
-    "installCmdDesc": "Installs ~/.local/bin/openclaw (no admin required)",
+    "installCmdDesc": "Configures the openclaw command for the current platform (usually no admin required)",
     "installTitle": "Install OpenClaw Command",
     "installMessage": "Install the \"openclaw\" command?",
-    "installDetail": "This will create ~/.local/bin/openclaw. Ensure ~/.local/bin is on your PATH if you want to run it globally."
+    "installDetail": "XClaw will configure the openclaw command for your platform. If your terminal does not recognize it yet, reopen the terminal and try again."
   },
   "about": {
     "title": "About",

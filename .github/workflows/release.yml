@@ -11,7 +11,16 @@ on:
     inputs:
       version:
         description: 'Version to release (e.g., 1.0.0)'
-        required: true
+        required: false
+      channel:
+        description: 'Release channel when auto-generating a date version'
+        required: false
+        default: stable
+        type: choice
+        options:
+          - stable
+          - beta
+          - dev
 
 permissions:
   contents: write
@@ -45,6 +54,16 @@ jobs:
         with:
           node-version: '24'
           cache: 'pnpm'
+
+      - name: Resolve release version
+        id: version
+        shell: bash
+        env:
+          TZ: Asia/Shanghai
+        run: |
+          VERSION=$(node scripts/resolve-release-version.mjs --write-package --github-ref "${GITHUB_REF}" --input-version "${{ github.event.inputs.version || '' }}" --channel "${{ github.event.inputs.channel || 'stable' }}")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Resolved release version: $VERSION"
 
       - name: Install dependencies
         run: pnpm install
@@ -89,12 +108,8 @@ jobs:
         id: win-channel
         shell: bash
         run: |
-          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            TAG="${GITHUB_REF#refs/tags/v}"
-          else
-            TAG="${{ github.event.inputs.version }}"
-          fi
-          if [[ "$TAG" =~ (alpha|beta) ]]; then
+          TAG="${{ steps.version.outputs.version }}"
+          if [[ "$TAG" =~ (alpha|beta|dev) ]]; then
             echo "is_stable=false" >> $GITHUB_OUTPUT
             echo "Channel: prerelease ($TAG) — skipping code signing"
           else
@@ -254,6 +269,37 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Load release branding config
+        id: branding
+        run: node scripts/read-release-branding.mjs >> $GITHUB_OUTPUT
+
+      - name: Resolve release version
+        id: version
+        shell: bash
+        env:
+          TZ: Asia/Shanghai
+        run: |
+          VERSION=$(node scripts/resolve-release-version.mjs --github-ref "${GITHUB_REF}" --input-version "${{ github.event.inputs.version || '' }}" --channel "${{ github.event.inputs.channel || 'stable' }}")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Detect release kind
+        id: release-kind
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if [[ "$VERSION" =~ (alpha|beta|dev) ]]; then
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+            echo "make_latest=false" >> $GITHUB_OUTPUT
+          else
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+            echo "make_latest=true" >> $GITHUB_OUTPUT
+          fi
+
       - name: Download release artifacts only
         uses: actions/download-artifact@v4
         with:
@@ -277,6 +323,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
+          repository: ${{ steps.branding.outputs.github_repository }}
           files: |
             release-artifacts/**/*.dmg
             release-artifacts/**/*.zip
@@ -286,32 +333,32 @@ jobs:
             release-artifacts/**/*.rpm
             release-artifacts/**/*.yml
           draft: false
-          prerelease: true
-          make_latest: false
+          prerelease: ${{ steps.release-kind.outputs.is_prerelease }}
+          make_latest: ${{ steps.release-kind.outputs.make_latest }}
           generate_release_notes: true
           body: |
-            ## 🚀 XClaw ${{ github.ref_name }}
+            ## 🚀 ${{ steps.branding.outputs.product_name }} v${{ steps.version.outputs.version }}
             
-            XClaw - Graphical AI Assistant based on OpenClaw
+            ${{ steps.branding.outputs.release_summary }}
             
             ### 📦 Downloads
             
             Please select the appropriate installer for your operating system and architecture:
             
             #### macOS
-            - **Apple Silicon (M1/M2/M3/M4)**: `XClaw-*-mac-arm64.dmg`
-            - **Intel (x64)**: `XClaw-*-mac-x64.dmg`
+            - **Apple Silicon (M1/M2/M3/M4)**: `${{ steps.branding.outputs.product_name }}-*-mac-arm64.dmg`
+            - **Intel (x64)**: `${{ steps.branding.outputs.product_name }}-*-mac-x64.dmg`
             
             #### Windows
-            - **Installer (x64)**: `XClaw-*-win-x64.exe`
-            - **Installer (ARM64)**: `XClaw-*-win-arm64.exe`
+            - **Installer (x64)**: `${{ steps.branding.outputs.product_name }}-*-win-x64.exe`
+            - **Installer (ARM64)**: `${{ steps.branding.outputs.product_name }}-*-win-arm64.exe`
             
             #### Linux
-            - **AppImage (x64)**: `XClaw-*-linux-x86_64.AppImage` (Universal format, recommended)
-            - **AppImage (ARM64)**: `XClaw-*-linux-arm64.AppImage`
-            - **Debian/Ubuntu (x64)**: `XClaw-*-linux-amd64.deb`
-            - **Debian/Ubuntu (ARM64)**: `XClaw-*-linux-arm64.deb`
-            - **RPM (x64)**: `XClaw-*-linux-x86_64.rpm`
+            - **AppImage (x64)**: `${{ steps.branding.outputs.product_name }}-*-linux-x86_64.AppImage` (Universal format, recommended)
+            - **AppImage (ARM64)**: `${{ steps.branding.outputs.product_name }}-*-linux-arm64.AppImage`
+            - **Debian/Ubuntu (x64)**: `${{ steps.branding.outputs.product_name }}-*-linux-amd64.deb`
+            - **Debian/Ubuntu (ARM64)**: `${{ steps.branding.outputs.product_name }}-*-linux-arm64.deb`
+            - **RPM (x64)**: `${{ steps.branding.outputs.product_name }}-*-linux-x86_64.rpm`
             
             ### 📝 Release Notes
             
@@ -326,222 +373,47 @@ jobs:
             
             ---
             
-            💬 Found an issue? Please submit an [Issue](https://github.com/${{ github.repository }}/issues)
+            💬 Found an issue? Please submit an [Issue](${{ steps.branding.outputs.issue_url }})
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ──────────────────────────────────────────────────────────────
-  # Job: Upload to Alibaba Cloud OSS
-  # Uploads all release artifacts to OSS for:
-  #   - Official website downloads (via release-info.json)
-  #   - electron-updater auto-update (via {channel}-*.yml)
-  #
-  # Directory structure on OSS (channel-separated):
-  #   latest/          → stable releases (latest.yml, latest-mac.yml, …)
-  #   alpha/           → alpha  releases (alpha.yml,  alpha-mac.yml, …)
-  #   beta/            → beta   releases (beta.yml,   beta-mac.yml,  …)
-  #   releases/vX.Y.Z/ → permanent archive, never deleted
-  # ──────────────────────────────────────────────────────────────
-  upload-oss:
-    needs: release
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Download release artifacts only
-        uses: actions/download-artifact@v4
-        with:
-          path: release-artifacts
-          pattern: release-*
-
-      - name: Extract version and channel
-        id: version
-        run: |
-          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            VERSION="${GITHUB_REF#refs/tags/v}"
-          else
-            VERSION="${{ github.event.inputs.version }}"
-          fi
-
-          # Detect channel from semver prerelease tag
-          # e.g. 0.1.8-alpha.0 → alpha, 1.0.0-beta.1 → beta, 1.0.0 → latest
-          if [[ "$VERSION" =~ -([a-zA-Z]+) ]]; then
-            CHANNEL="${BASH_REMATCH[1]}"
-          else
-            CHANNEL="latest"
-          fi
-
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "tag=v${VERSION}" >> $GITHUB_OUTPUT
-          echo "channel=${CHANNEL}" >> $GITHUB_OUTPUT
-          echo "Detected version: ${VERSION}, channel: ${CHANNEL}"
-
-      - name: Prepare upload directories
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          TAG="${{ steps.version.outputs.tag }}"
-          CHANNEL="${{ steps.version.outputs.channel }}"
-
-          mkdir -p staging/${CHANNEL}
-          mkdir -p staging/releases/${TAG}
-
-          # Flatten all platform artifacts into staging directories
-          find release-artifacts/ -type f | while read file; do
-            filename=$(basename "$file")
-            cp "$file" "staging/${CHANNEL}/${filename}"
-            cp "$file" "staging/releases/${TAG}/${filename}"
-          done
-
-          echo "=== staging/${CHANNEL}/ ==="
-          ls -lh staging/${CHANNEL}/
-          echo ""
-          echo "=== staging/releases/${TAG}/ ==="
-          ls -lh staging/releases/${TAG}/
-
-      # Note: Do NOT rename yml files. electron-updater (generic provider) always
-      # requests "latest-mac.yml", "latest.yml", etc. regardless of feed URL.
-      # Channel separation is achieved by directory: /alpha/, /beta/, /latest/.
-      - name: Verify yml files present
-        run: |
-          CHANNEL="${{ steps.version.outputs.channel }}"
-          echo "=== staging/${CHANNEL}/ (update metadata) ==="
-          ls -la staging/${CHANNEL}/*.yml 2>/dev/null || echo "No yml files found (check electron-builder outputs)"
-
-      - name: Generate release-info.json
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          CHANNEL="${{ steps.version.outputs.channel }}"
-          BASE_URL="https://oss.intelli-spectrum.com/${CHANNEL}"
-
-          jq -n \
-            --arg version "$VERSION" \
-            --arg channel "$CHANNEL" \
-            --arg date "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-            --arg base "$BASE_URL" \
-            --arg changelog "https://github.com/${{ github.repository }}/releases/tag/v${VERSION}" \
-            '{
-              version: $version,
-              channel: $channel,
-              releaseDate: $date,
-              downloads: {
-                mac: {
-                  x64: ($base + "/XClaw-" + $version + "-mac-x64.dmg"),
-                  arm64: ($base + "/XClaw-" + $version + "-mac-arm64.dmg")
-                },
-                win: {
-                  x64: ($base + "/XClaw-" + $version + "-win-x64.exe"),
-                  arm64: ($base + "/XClaw-" + $version + "-win-arm64.exe")
-                },
-                linux: {
-                  deb_amd64: ($base + "/XClaw-" + $version + "-linux-amd64.deb"),
-                  deb_arm64: ($base + "/XClaw-" + $version + "-linux-arm64.deb"),
-                  appimage_x64: ($base + "/XClaw-" + $version + "-linux-x86_64.AppImage"),
-                  appimage_arm64: ($base + "/XClaw-" + $version + "-linux-arm64.AppImage"),
-                  rpm_x64: ($base + "/XClaw-" + $version + "-linux-x86_64.rpm")
-                }
-              },
-              changelog: $changelog
-            }' > staging/${CHANNEL}/release-info.json
-
-          echo "=== release-info.json ==="
-          cat staging/${CHANNEL}/release-info.json
-
-      - name: Install and configure ossutil
-        env:
-          OSS_ACCESS_KEY_ID: ${{ secrets.OSS_ACCESS_KEY_ID }}
-          OSS_ACCESS_KEY_SECRET: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
-        run: |
-          curl -sL https://gosspublic.alicdn.com/ossutil/install.sh | sudo bash
-
-          # Write config file for non-interactive use
-          cat > $HOME/.ossutilconfig << EOF
-          [Credentials]
-          language=EN
-          endpoint=oss-cn-hangzhou.aliyuncs.com
-          accessKeyID=${OSS_ACCESS_KEY_ID}
-          accessKeySecret=${OSS_ACCESS_KEY_SECRET}
-          EOF
-
-          ossutil --version
-
-      - name: "Upload to OSS: {channel}/ (overwrite)"
-        run: |
-          CHANNEL="${{ steps.version.outputs.channel }}"
-
-          # Only clean the current channel's directory — never touch other channels
-          ossutil rm -r -f oss://valuecell-XClaw/${CHANNEL}/ || true
-
-          # Upload all files with no-cache so clients always get the freshest version
-          ossutil cp -r -f \
-            --meta="Cache-Control:no-cache,no-store,must-revalidate" \
-            staging/${CHANNEL}/ \
-            oss://valuecell-XClaw/${CHANNEL}/
-
-          echo "Uploaded to ${CHANNEL}/"
-
-      - name: "Upload to OSS: releases/vX.Y.Z/ (archive)"
-        run: |
-          TAG="${{ steps.version.outputs.tag }}"
-
-          # Upload to permanent archive (long cache, immutable)
-          ossutil cp -r \
-            staging/releases/${TAG}/ \
-            oss://valuecell-XClaw/releases/${TAG}/ \
-            --meta "Cache-Control:public,max-age=31536000,immutable"
-
-          echo "Uploaded to releases/${TAG}/"
-
-      - name: Verify OSS upload
-        run: |
-          TAG="${{ steps.version.outputs.tag }}"
-          CHANNEL="${{ steps.version.outputs.channel }}"
-
-          echo "=== ${CHANNEL}/ ==="
-          ossutil ls oss://valuecell-XClaw/${CHANNEL}/ --short
-
-          echo ""
-          echo "=== releases/${TAG}/ ==="
-          ossutil ls oss://valuecell-XClaw/releases/${TAG}/ --short
-
-          echo ""
-          echo "=== Verify release-info.json ==="
-          ossutil cp oss://valuecell-XClaw/${CHANNEL}/release-info.json /tmp/release-info.json -f
-          jq . /tmp/release-info.json
-
-          echo ""
-          echo "=== Verify update yml ==="
-          if [ "${CHANNEL}" = "latest" ]; then
-            YML_PREFIX="latest"
-          else
-            YML_PREFIX="${CHANNEL}"
-          fi
-          echo "electron-updater expects ${YML_PREFIX}-mac.yml, ${YML_PREFIX}.yml, etc. in ${CHANNEL}/:"
-          ossutil ls oss://valuecell-XClaw/${CHANNEL}/ --short | grep "${YML_PREFIX}.*\\.yml" || echo "(none found)"
-          
-          echo ""
-          echo "All files uploaded and verified successfully!"
-
-  # ──────────────────────────────────────────────────────────────
   # Job: Finalize Release
-  # Promotes the GitHub Release from pre-release to latest AFTER
-  # both GitHub Release assets and OSS uploads are fully complete.
-  # This ensures /releases/latest API never returns an incomplete
-  # release — the website and electron-updater only see it when
-  # all platform artifacts are ready.
+  # Promotes the GitHub Release from pre-release to latest after
+  # all platform assets are uploaded to GitHub Releases.
   # ──────────────────────────────────────────────────────────────
   finalize:
-    needs: [publish, upload-oss]
+    needs: publish
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Load release branding config
+        id: branding
+        run: node scripts/read-release-branding.mjs >> $GITHUB_OUTPUT
+
+      - name: Resolve release version
+        id: version
+        shell: bash
+        env:
+          TZ: Asia/Shanghai
+        run: |
+          VERSION=$(node scripts/resolve-release-version.mjs --github-ref "${GITHUB_REF}" --input-version "${{ github.event.inputs.version || '' }}" --channel "${{ github.event.inputs.channel || 'stable' }}")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Promote release from pre-release to latest
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG="${GITHUB_REF#refs/tags/}"
+          TAG="v${{ steps.version.outputs.version }}"
           IS_PRERELEASE_CHANNEL=false
 
-          if [[ "$TAG" == *"alpha"* ]] || [[ "$TAG" == *"beta"* ]]; then
+          if [[ "$TAG" == *"alpha"* ]] || [[ "$TAG" == *"beta"* ]] || [[ "$TAG" == *"dev"* ]]; then
             IS_PRERELEASE_CHANNEL=true
           fi
 
@@ -552,6 +424,6 @@ jobs:
             gh release edit "$TAG" \
               --prerelease=false \
               --latest \
-              --repo "${{ github.repository }}"
+              --repo "${{ steps.branding.outputs.github_repository }}"
             echo "Release $TAG is now the latest release."
           fi

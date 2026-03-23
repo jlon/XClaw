@@ -3,7 +3,7 @@
  * Cross-platform path resolution helpers
  */
 import { app } from 'electron';
-import { join } from 'path';
+import { join, normalize as normalizePath } from 'path';
 import { homedir } from 'os';
 import { existsSync, mkdirSync, readFileSync, realpathSync } from 'fs';
 import { logger } from './logger';
@@ -19,11 +19,8 @@ export {
 /**
  * Expand ~ to home directory
  */
-export function expandPath(path: string): string {
-  if (path.startsWith('~')) {
-    return path.replace('~', homedir());
-  }
-  return path;
+export function expandPath(value: string): string {
+  return normalizePath(value.startsWith('~') ? value.replace('~', homedir()) : value);
 }
 
 /**

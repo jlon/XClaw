@@ -728,8 +728,8 @@ async function buildSnapshotFromConfig(config: AgentConfigDocument): Promise<Age
       modelRef: entryModelRef || defaultModelRef || null,
       defaultModelRef,
       inheritedModel,
-      workspace: entry.workspace || (entry.id === MAIN_AGENT_ID ? getDefaultWorkspacePath(config) : `~/.openclaw/workspace-${entry.id}`),
-      agentDir: entry.agentDir || getDefaultAgentDirPath(entry.id),
+      workspace: expandPath(entry.workspace || (entry.id === MAIN_AGENT_ID ? getDefaultWorkspacePath(config) : `~/.openclaw/workspace-${entry.id}`)),
+      agentDir: expandPath(entry.agentDir || getDefaultAgentDirPath(entry.id)),
       mainSessionKey: buildAgentMainSessionKey(config, entry.id),
       channelTypes: configuredChannels.filter((ct) => ownedChannels.has(ct)),
     };

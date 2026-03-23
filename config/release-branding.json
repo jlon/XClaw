@@ -1,0 +1,17 @@
+{
+  "appId": "app.XClaw.desktop",
+  "productName": "XClaw",
+  "executableName": "XClaw",
+  "vendor": "XClaw",
+  "teamName": "XClaw Team",
+  "maintainerEmail": "public@valuecell.ai",
+  "copyrightOwner": "XClaw",
+  "description": "XClaw - Graphical AI Assistant based on OpenClaw",
+  "releaseSummary": "XClaw - Graphical AI Assistant based on OpenClaw",
+  "synopsis": "AI Assistant powered by OpenClaw",
+  "desktopComment": "AI Assistant powered by OpenClaw",
+  "documentationLabel": "OpenClaw Documentation",
+  "documentationUrl": "https://docs.openclaw.ai",
+  "githubOwner": "jlon",
+  "githubRepo": "XClaw"
+}

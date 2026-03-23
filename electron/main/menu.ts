@@ -3,6 +3,7 @@
  * Creates the native application menu for macOS/Windows/Linux
  */
 import { Menu, app, shell, BrowserWindow } from 'electron';
+import releaseBranding from '../../config/release-branding.json';
 
 /**
  * Create application menu
@@ -174,22 +175,9 @@ export function createMenu(): void {
       role: 'help',
       submenu: [
         {
-          label: 'Documentation',
+          label: releaseBranding.documentationLabel,
           click: async () => {
-            await shell.openExternal('https://claw-x.com');
-          },
-        },
-        {
-          label: 'Report Issue',
-          click: async () => {
-            await shell.openExternal('https://github.com/jlon/XClaw/issues');
-          },
-        },
-        { type: 'separator' },
-        {
-          label: 'OpenClaw Documentation',
-          click: async () => {
-            await shell.openExternal('https://docs.openclaw.ai');
+            await shell.openExternal(releaseBranding.documentationUrl);
           },
         },
       ],

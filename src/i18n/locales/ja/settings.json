@@ -130,6 +130,10 @@
     "appLogs": "アプリケーションログ",
     "logsRecent": "既定では最近 100 行のアプリケーションログを表示します。",
     "logsCopied": "ログをコピーしました",
+    "exportLogs": "ログバンドルをエクスポート",
+    "logsExporting": "エクスポート中...",
+    "logsExported": "{{count}} 個のログファイルをエクスポートしました",
+    "logsExportFailed": "ログバンドルのエクスポートに失敗しました",
     "openFolder": "フォルダーを開く",
     "autoStart": "ゲートウェイ自動起動",
     "autoStartDesc": "XClaw 起動時にゲートウェイを自動起動",
@@ -153,39 +157,12 @@
   },
   "updates": {
     "title": "アップデート",
-    "description": "XClaw を最新に保つ",
-    "autoCheck": "自動更新チェック",
-    "autoCheckDesc": "起動時に更新を確認",
-    "autoDownload": "自動アップデート",
-    "autoDownloadDesc": "更新を自動的にダウンロードしてインストール",
+    "description": "現在のビルド情報を表示",
     "status": {
-      "checking": "更新を確認中...",
-      "downloading": "更新をダウンロード中...",
-      "available": "更新あり: v{{version}}",
-      "downloaded": "インストール準備完了: v{{version}}",
-      "autoInstalling": "{{seconds}} 秒後に再起動して更新をインストールします...",
-      "packagedOnly": "開発ビルドでは更新を確認しません",
-      "failed": "更新の確認に失敗しました",
-      "latest": "最新バージョンです",
-      "check": "更新を確認して最新の機能を入手"
-    },
-    "action": {
-      "checking": "確認中...",
-      "downloading": "ダウンロード中...",
-      "download": "更新をダウンロード",
-      "install": "インストールして再起動",
-      "cancelAutoInstall": "キャンセル",
-      "packagedOnly": "パッケージ版のみ",
-      "retry": "再試行",
-      "check": "更新を確認"
+      "disabled": "内蔵自動アップデートは無効です"
     },
     "currentVersion": "現在のバージョン",
-    "releaseVersion": "バージョン {{version}}",
-    "progressComplete": "{{percent}}% 完了",
-    "whatsNew": "更新内容：",
-    "errorDetails": "エラー詳細：",
-    "packagedOnlyDetail": "現在は未パッケージの開発ビルドで実行中です。自動更新は配布用のパッケージ版でのみ利用できます。",
-    "help": "自動アップデートが有効な場合、更新は自動的にダウンロードされインストールされます。"
+    "disabledDetail": "このビルドには内蔵自動アップデートが含まれていません。新しいバージョンは手動でダウンロードしてインストールしてください。"
   },
   "advanced": {
     "title": "詳細設定",
@@ -267,10 +244,10 @@
     "telemetryCopied": "テレメトリをコピーしました",
     "telemetryCleared": "テレメトリをクリアしました",
     "installCmd": "\"openclaw\" コマンドをインストール",
-    "installCmdDesc": "~/.local/bin/openclaw をインストール（管理者権限不要）",
+    "installCmdDesc": "現在のプラットフォーム向けに openclaw コマンドを設定（通常は管理者権限不要）",
     "installTitle": "OpenClaw コマンドをインストール",
     "installMessage": "\"openclaw\" コマンドをインストールしますか？",
-    "installDetail": "~/.local/bin/openclaw が作成されます。グローバルに実行するには ~/.local/bin が PATH に含まれていることを確認してください。"
+    "installDetail": "XClaw が現在のプラットフォーム向けに openclaw コマンドを設定します。端末でまだ認識されない場合は、端末を開き直してから再試行してください。"
   },
   "about": {
     "title": "バージョン情報",

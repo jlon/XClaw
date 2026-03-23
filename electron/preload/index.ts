@@ -112,6 +112,7 @@ const electronAPI = {
         'clawhub:openSkillReadme',
         // UV
         'uv:check',
+        'uv:status',
         'uv:install-all',
         // Skill config (direct file access)
         'skill:updateConfig',

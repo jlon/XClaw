@@ -323,12 +323,12 @@ export function ChatSessionsPane() {
         )}
       </div>
 
-      <div className="px-2 py-2">
-        <div className="flex items-center gap-1.5">
+      <div className="border-t border-[hsl(var(--border-subtle)/0.72)] px-2 pb-1.5 pt-1.5">
+        <div className="flex min-h-9 items-center gap-1.5">
           <div ref={workspaceMenuRef} className="relative min-w-0 flex-1">
             <button
               type="button"
-              className="app-chat-session-footer-action flex h-8 w-full items-center gap-2.5 rounded-[10px] px-3 text-left text-[13px] font-normal leading-5 text-foreground/68 transition-[background-color,color] duration-150 hover:text-foreground"
+              className="app-chat-session-footer-action flex h-9 w-full items-center gap-2.5 rounded-[10px] px-3 text-left text-[13px] font-normal leading-5 text-foreground/68 transition-[background-color,color] duration-150 hover:text-foreground"
               onClick={() => setWorkspaceMenuOpen((open) => !open)}
             >
               <SessionPaneToneIcon tone="workspace">
@@ -381,7 +381,7 @@ export function ChatSessionsPane() {
             type="button"
             aria-label={t('common:sidebar.settings')}
             title={t('common:sidebar.settings')}
-            className="app-chat-session-utility-button flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] text-foreground/62 transition-[background-color,color,border-color,box-shadow] duration-150 hover:text-foreground focus-visible:outline-none"
+            className="app-chat-session-utility-button flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-foreground/62 transition-[background-color,color,border-color,box-shadow] duration-150 hover:text-foreground focus-visible:outline-none"
             onClick={() => navigate('/settings')}
           >
             <SessionPaneToneIcon tone="settings">

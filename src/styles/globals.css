@@ -2417,6 +2417,16 @@
   background: var(--sidebar-icon-bg-hover);
 }
 
+.app-sidebar-utility-link {
+  background: transparent;
+}
+
+.app-sidebar-utility-link:hover .app-sidebar-utility-trailing,
+.app-sidebar-utility-link:focus-visible .app-sidebar-utility-trailing,
+.app-sidebar-utility-link[aria-current="page"] .app-sidebar-utility-trailing {
+  color: hsl(var(--foreground) / 0.62);
+}
+
 .dark .app-sidebar-toned-icon {
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
 }

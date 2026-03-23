@@ -16,6 +16,24 @@ const createBrandWordmark = (className: string) => `
   </span>
 `;
 
+const createHeroField = () => `
+  <div class="site-hero-fx" aria-hidden="true">
+    <span class="site-hero-nebula"></span>
+    <span class="site-hero-aurora"></span>
+    <span class="site-hero-beam"></span>
+    <span class="site-hero-orbit site-hero-orbit-outer"></span>
+    <span class="site-hero-orbit site-hero-orbit-inner"></span>
+    <span class="site-hero-ring"></span>
+    <span class="site-hero-scanline"></span>
+    <span class="site-hero-comet is-a"></span>
+    <span class="site-hero-comet is-b"></span>
+    <span class="site-hero-node is-a"></span>
+    <span class="site-hero-node is-b"></span>
+    <span class="site-hero-node is-c"></span>
+    <span class="site-hero-node is-d"></span>
+  </div>
+`;
+
 const getScreenshot = (id: string) => websiteContent.screenshots.find((item) => item.id === id) ?? websiteContent.screenshots[0];
 
 const downloadIcons = {
@@ -169,6 +187,38 @@ const bindReveal = (scope: ParentNode = root) => {
   });
 };
 
+const bindHeroField = () => {
+  const hero = root.querySelector<HTMLElement>('.site-hero');
+
+  if (!hero || reduceMotion) return;
+
+  const reset = () => {
+    hero.style.setProperty('--hero-shift-x', '0px');
+    hero.style.setProperty('--hero-shift-y', '0px');
+    hero.style.setProperty('--hero-tilt-x', '0deg');
+    hero.style.setProperty('--hero-tilt-y', '0deg');
+  };
+
+  const update = (event: PointerEvent) => {
+    const rect = hero.getBoundingClientRect();
+    const offsetX = event.clientX - rect.left - rect.width / 2;
+    const offsetY = event.clientY - rect.top - rect.height / 2;
+    const shiftX = offsetX * 0.08;
+    const shiftY = offsetY * 0.05;
+    const tiltX = (-offsetY / rect.height) * 8;
+    const tiltY = (offsetX / rect.width) * 10;
+
+    hero.style.setProperty('--hero-shift-x', `${shiftX}px`);
+    hero.style.setProperty('--hero-shift-y', `${shiftY}px`);
+    hero.style.setProperty('--hero-tilt-x', `${tiltX}deg`);
+    hero.style.setProperty('--hero-tilt-y', `${tiltY}deg`);
+  };
+
+  reset();
+  hero.addEventListener('pointermove', update);
+  hero.addEventListener('pointerleave', reset);
+};
+
 const mountPreview = (activeId: string) => {
   const previewRoot = root.querySelector<HTMLElement>('[data-preview-root]');
 
@@ -209,12 +259,14 @@ const render = (activeId: string) => {
           <div class="site-hero-decor" aria-hidden="true">
             <span class="site-hero-glow"></span>
             <span class="site-hero-grid"></span>
+            ${createHeroField()}
           </div>
           <div class="site-hero-kicker">
             <img class="site-hero-logo" src="${websiteContent.logoUrl}" alt="XClaw Logo" />
           </div>
           <span class="site-hero-badge">${websiteContent.hero.badge}</span>
           <h1 class="site-hero-name">${createBrandWordmark('site-hero-wordmark')}</h1>
+          <p class="site-hero-brandline">${websiteContent.hero.brandline}</p>
           <p class="site-hero-title">${websiteContent.hero.subtitle}</p>
           <p class="site-hero-description">${websiteContent.hero.description}</p>
           <div class="site-download-row" id="download">
@@ -288,22 +340,25 @@ const render = (activeId: string) => {
       </main>
 
       <footer class="site-footer" data-reveal>
-        <div class="site-footer-brand">
-          <img src="${websiteContent.logoUrl}" alt="XClaw Logo" />
-          <div>
+        <div class="site-footer-top">
+          <a class="site-footer-brand" href="#top">
+            <img src="${websiteContent.logoUrl}" alt="XClaw Logo" />
             ${createBrandWordmark('site-footer-wordmark')}
-            <span>${websiteContent.footer.description}</span>
-          </div>
+          </a>
+          <span class="site-footer-tagline">${websiteContent.footer.tagline}</span>
         </div>
+        <p class="site-footer-description">${websiteContent.footer.description}</p>
         <div class="site-footer-links">
           ${createFooterLinks()}
         </div>
+        <span class="site-footer-meta">${websiteContent.footer.copyright}</span>
       </footer>
     </div>
   `;
 
   mountPreview(activeId);
   bindReveal();
+  bindHeroField();
 };
 
 render(websiteContent.screenshots[0].id);

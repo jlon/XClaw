@@ -4,9 +4,8 @@ setlocal
 if /i "%1"=="update" (
     echo openclaw is managed by XClaw ^(bundled version^).
     echo.
-    echo To update openclaw, update XClaw:
-    echo   Open XClaw ^> Settings ^> Check for Updates
-    echo   Or download the latest version from https://claw-x.com
+    echo Built-in updates are disabled in this build.
+    echo Download a newer XClaw package from your distribution channel.
     exit /b 0
 )
 

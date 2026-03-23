@@ -2,6 +2,8 @@
  * Application Configuration
  * Centralized configuration constants and helpers
  */
+import { homedir } from 'os';
+import { join } from 'path';
 
 /**
  * Port configuration
@@ -34,13 +36,13 @@ export function getPort(key: keyof typeof PORTS): number {
  */
 export const APP_PATHS = {
   /** OpenClaw configuration directory */
-  OPENCLAW_CONFIG: '~/.openclaw',
+  OPENCLAW_CONFIG: join(homedir(), '.openclaw'),
   
   /** XClaw configuration directory */
-  XClaw_CONFIG: '~/.XClaw',
+  XClaw_CONFIG: join(homedir(), '.XClaw'),
   
   /** Log files directory */
-  LOGS: '~/.XClaw/logs',
+  LOGS: join(homedir(), '.XClaw', 'logs'),
 } as const;
 
 /**

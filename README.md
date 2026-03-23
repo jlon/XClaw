@@ -1,4 +1,3 @@
-
 <p align="center">
   <img src="src/assets/logo.svg" width="128" height="128" alt="XClaw Logo" />
 </p>
@@ -6,15 +5,13 @@
 <h1 align="center">XClaw</h1>
 
 <p align="center">
-  <strong>The Desktop Interface for OpenClaw AI Agents</strong>
+  <strong>A Desktop App for OpenClaw AI Agents</strong>
 </p>
 
 <p align="center">
   <a href="#features">Features</a> •
   <a href="#why-xclaw">Why XClaw</a> •
   <a href="#getting-started">Getting Started</a> •
-  <a href="#architecture">Architecture</a> •
-  <a href="#development">Development</a> •
   <a href="#contributing">Contributing</a>
 </p>
 
@@ -22,113 +19,99 @@
   <img src="https://img.shields.io/badge/platform-MacOS%20%7C%20Windows%20%7C%20Linux-blue" alt="Platform" />
   <img src="https://img.shields.io/badge/electron-40+-47848F?logo=electron" alt="Electron" />
   <img src="https://img.shields.io/badge/react-19-61DAFB?logo=react" alt="React" />
-  <a href="https://discord.com/invite/84Kex3GGAh" target="_blank">
-  <img src="https://img.shields.io/discord/1399603591471435907?logo=discord&labelColor=%20%235462eb&logoColor=%20%23f5f5f5&color=%20%235462eb" alt="chat on Discord" />
-  </a>
   <img src="https://img.shields.io/github/downloads/jlon/XClaw/total?color=%23027DEB" alt="Downloads" />
   <img src="https://img.shields.io/badge/license-MIT-green" alt="License" />
 </p>
 
 <p align="center">
-  English | <a href="README.zh-CN.md">简体中文</a> | <a href="README.ja-JP.md">日本語</a>
+  English | <a href="README.zh-CN.md">简体中文</a>
 </p>
 
 ---
 
 ## Overview
 
-**XClaw** bridges the gap between powerful AI agents and everyday users. Built on top of [OpenClaw](https://github.com/OpenClaw), it transforms command-line AI orchestration into an accessible, beautiful desktop experience—no terminal required.
+**XClaw** packages [OpenClaw](https://github.com/OpenClaw) into a desktop app for workflow automation, channel management, and scheduled agent tasks.
 
-Whether you're automating workflows, managing AI-powered channels, or scheduling intelligent tasks, XClaw provides the interface you need to harness AI agents effectively.
-
-XClaw comes pre-configured with best-practice model providers and natively supports Windows as well as multi-language settings. Of course, you can also fine-tune advanced configurations via **Settings → Advanced → Developer Mode**.
+It ships with recommended model-provider presets, supports Windows and multiple languages, and keeps deeper controls under **Settings → Advanced → Developer Mode**.
 
 ---
-## Screenshot
+
+## Screenshots
 
 <p align="center">
-  <img src="resources/screenshot/en/chat.png" style="width: 100%; height: auto;">
+  <img src="resources/screenshot/en/chat.png" width="48%" alt="Chat screen" />
+  <img src="resources/screenshot/en/agents.png" width="48%" alt="Agents screen" />
 </p>
 
 <p align="center">
-  <img src="resources/screenshot/en/cron.png" style="width: 100%; height: auto;">
+  <img src="resources/screenshot/en/channels.png" width="48%" alt="Channels screen" />
+  <img src="resources/screenshot/en/cron.png" width="48%" alt="Cron screen" />
 </p>
 
 <p align="center">
-  <img src="resources/screenshot/en/skills.png" style="width: 100%; height: auto;">
+  <img src="resources/screenshot/en/skills.png" width="48%" alt="Skills screen" />
+  <img src="resources/screenshot/en/models.png" width="48%" alt="Models screen" />
 </p>
 
 <p align="center">
-  <img src="resources/screenshot/en/channels.png" style="width: 100%; height: auto;">
-</p>
-
-<p align="center">
-  <img src="resources/screenshot/en/models.png" style="width: 100%; height: auto;">
-</p>
-
-<p align="center">
-  <img src="resources/screenshot/en/settings.png" style="width: 100%; height: auto;">
+  <img src="resources/screenshot/en/setting.png" width="48%" alt="Settings screen" />
 </p>
 
 ---
 
 ## Why XClaw
 
-Building AI agents shouldn't require mastering the command line. XClaw was designed with a simple philosophy: **powerful technology deserves an interface that respects your time.**
-
-| Challenge | XClaw Solution |
-|-----------|----------------|
-| Complex CLI setup | One-click installation with guided setup wizard |
-| Configuration files | Visual settings with real-time validation |
-| Process management | Automatic gateway lifecycle management |
-| Multiple AI providers | Adaptive provider cards with token intelligence workbench |
-| Skill/plugin installation | Built-in skill marketplace and management |
-
-### OpenClaw Inside
-
-XClaw is built directly upon the official **OpenClaw** core. Instead of requiring a separate installation, we embed the runtime within the application to provide a seamless "battery-included" experience.
-
-We are committed to maintaining strict alignment with the upstream OpenClaw project, ensuring that you always have access to the latest capabilities, stability improvements, and ecosystem compatibility provided by the official releases.
+| Common Friction | What XClaw Does |
+|-----------------|-----------------|
+| CLI-heavy onboarding | Guided setup with one-click install |
+| Manual config editing | Visual settings with live validation |
+| Process babysitting | Gateway lifecycle handled automatically |
+| Switching across providers | Adaptive provider cards with a token-intelligence workbench |
+| Skill/plugin setup | Built-in marketplace and skill management |
 
 ---
 
 ## Features
 
-### 🎯 Zero Configuration Barrier
-Complete the entire setup—from installation to your first AI interaction—through an intuitive graphical interface. No terminal commands, no YAML files, no environment variable hunting.
+### 🎯 Near-Zero Setup
+Go from install to first AI message entirely in the GUI. No terminal commands, no YAML editing, and no hunting through environment variables.
 
-### 💬 Intelligent Chat Interface
-Communicate with AI agents through a modern chat experience. Support for multiple conversation contexts, message history, rich content rendering with Markdown, and direct `@agent` routing in the main composer for multi-agent setups.
-The composer also lets you switch the current session model directly through OpenClaw's built-in per-session model override flow, without changing your persistent provider settings.
-The chat workbench now also includes a QClaw-style local slash-command router and inline slash menu. `/new` and `/reset` are intercepted locally but still reuse the shared Gateway send path, while `/model`, `/compact`, `/agents`, `/focus`, `/export`, and `/usage` stay on the local renderer side instead of being sent as ordinary chat turns. `/usage` now renders the active session's token summary inline, while `/focus` and `/export` stay as desktop-side actions.
-When you target another agent with `@agent`, XClaw switches into that agent's own conversation context directly instead of relaying through the default agent. Agent workspaces stay separate by default, and stronger isolation depends on OpenClaw sandbox settings.
+### 💬 Agent-Centric Chat
+The chat workspace supports multiple conversation contexts, history, Markdown rendering, and direct `@agent` routing from the main composer in multi-agent setups.
 
-### 📡 Multi-Channel Management
-Configure and monitor multiple AI channels simultaneously. Each channel operates independently, allowing you to run specialized agents for different tasks.
-Each channel now supports multiple accounts, per-account agent binding, and switching the channel default account directly from the Channels page.
-XClaw now also bundles the official WeChat channel plugin, so WeChat accounts can be added and re-bound through GUI QR login without running `npx` or `openclaw` commands manually. The Channels workbench keeps the real WeChat account ID read-only, exposes QR re-login directly, and adds a health guard that warns about session-expiry risk instead of sending any automatic keep-alive traffic.
+You can also switch the active model for the current session through OpenClaw's built-in per-session override flow, without changing your saved provider configuration.
 
-### ⏰ Cron-Based Automation
-Schedule AI tasks to run automatically. Define triggers, set intervals, and let your AI agents work around the clock without manual intervention.
+The composer includes a local QClaw-style slash-command router and inline slash menu. `/new` and `/reset` are intercepted locally while still reusing the shared Gateway send path. `/model`, `/compact`, `/agents`, `/focus`, `/export`, and `/usage` stay renderer-side instead of being sent as normal chat turns. `/usage` shows the active session token summary inline, while `/focus` and `/export` remain desktop-side actions.
 
-### 🧩 Extensible Skill System
-Extend your AI agents with pre-built skills. Browse, install, and manage skills through the integrated skill panel—no package managers required.
-XClaw also pre-bundles full document-processing skills (`pdf`, `xlsx`, `docx`, `pptx`), deploys them automatically to the managed skills directory (default `~/.openclaw/skills`) on startup, and enables them by default on first install. Additional bundled skills (`find-skills`, `self-improving-agent`, `tavily-search`, `brave-web-search`) are also enabled by default; if required API keys are missing, OpenClaw will surface configuration errors in runtime.  
-The Skills page can display skills discovered from multiple OpenClaw sources (managed dir, workspace, and extra skill dirs), and now shows each skill's actual location so you can open the real folder directly.
+When you mention another agent with `@agent`, XClaw moves into that agent's own conversation context instead of relaying through the default agent. Workspaces remain isolated by default, and stronger runtime isolation still depends on OpenClaw sandbox settings.
 
-Environment variables for bundled search skills:
+### 📡 Multi-Channel Operations
+Every channel can now hold multiple accounts, bind each account to a specific agent, and switch the default account directly from the Channels page.
+
+XClaw also bundles the official WeChat channel plugin. That means WeChat accounts can be added or re-bound through GUI QR login without manually running `npx` or `openclaw`. The Channels workbench keeps the real WeChat account ID read-only, exposes QR re-login, and warns about session-expiry risk instead of sending automatic keep-alive traffic.
+
+### ⏰ Scheduled Automation
+Create AI jobs that run on a timer. Define the trigger, choose the interval, and let agents keep working without manual follow-up.
+
+### 🧩 Expandable Skill Layer
+XClaw also ships complete document-processing skills (`pdf`, `xlsx`, `docx`, `pptx`), deploys them to the managed skills directory on startup (default `~/.openclaw/skills`), and enables them automatically on first install. Additional bundled skills (`find-skills`, `self-improving-agent`, `tavily-search`, `brave-web-search`) are enabled by default as well. If required API keys are missing, OpenClaw reports the configuration errors at runtime.
+
+The Skills page can list skills discovered from multiple OpenClaw locations, including the managed directory, the workspace, and extra skill directories. It also shows the real path for each skill so you can open the installed folder directly.
+
+Environment variables used by bundled search skills:
 - `BRAVE_SEARCH_API_KEY` for `brave-web-search`
-- `TAVILY_API_KEY` for `tavily-search` (OAuth may also be supported by upstream skill runtime)
+- `TAVILY_API_KEY` for `tavily-search` (upstream skill runtime may also support OAuth)
 - `find-skills` and `self-improving-agent` do not require API keys
 
-### 🔐 Secure Provider Integration
-Connect to multiple AI providers (OpenAI, Anthropic, and more) with credentials stored securely in your system's native keychain. OpenAI supports both API key and browser OAuth (Codex subscription) sign-in.
+### 🔐 Secure Provider Access
+Connect providers such as OpenAI and Anthropic while keeping credentials in the operating system's native keychain. OpenAI supports both API keys and browser OAuth (Codex subscription) sign-in.
 
-### 🌙 Adaptive Theming
-Light mode, dark mode, or system-synchronized themes. XClaw adapts to your preferences automatically.
+### 🌙 Theme That Adapts
+Choose light mode, dark mode, or system sync. XClaw follows the preference automatically.
 
-### 🚀 Startup Launch Control
-In **Settings → General**, you can enable **Launch at system startup** so XClaw starts automatically after login.
+### 🚀 Launch on Login
+In **Settings → General**, enable **Launch at system startup** if you want XClaw to open automatically after sign-in.
 
 ---
 
@@ -137,14 +120,14 @@ In **Settings → General**, you can enable **Launch at system startup** so XCla
 ### System Requirements
 
 - **Operating System**: macOS 11+, Windows 10+, or Linux (Ubuntu 20.04+)
-- **Memory**: 4GB RAM minimum (8GB recommended)
-- **Storage**: 1GB available disk space
+- **Memory**: 4 GB RAM minimum, 8 GB recommended
+- **Storage**: 1 GB of free disk space
 
 ### Installation
 
-#### Pre-built Releases (Recommended)
+#### Prebuilt Releases
 
-Download the latest release for your platform from the [Releases](https://github.com/jlon/XClaw/releases) page.
+Download the latest package for your platform from the [Releases](https://github.com/jlon/XClaw/releases) page.
 
 #### Build from Source
 
@@ -153,287 +136,60 @@ Download the latest release for your platform from the [Releases](https://github
 git clone https://github.com/jlon/XClaw.git
 cd XClaw
 
-# Initialize the project
+# Install dependencies and download uv
 pnpm run init
 
-# Start in development mode
+# Start the desktop app in development mode
 pnpm dev
 ```
+
 ### First Launch
 
-When you launch XClaw for the first time, the **Setup Wizard** will guide you through:
+On the first run, the **Setup Wizard** walks you through:
 
-1. **Language & Region** – Configure your preferred locale
-2. **AI Provider** – Add providers with API keys or OAuth (for providers that support browser/device login)
-3. **Skill Bundles** – Select pre-configured skills for common use cases
-4. **Verification** – Test your configuration before entering the main interface
+1. **Language & Region**: choose the preferred locale
+2. **AI Provider**: add providers with API keys or OAuth when supported
+3. **Skill Bundles**: pick preconfigured skills for common scenarios
+4. **Verification**: confirm the setup before entering the main app
 
-The wizard preselects your system language when it is supported, and falls back to English otherwise.
+If your system language is supported, the wizard picks it by default. Otherwise, it falls back to English.
 
-> Note for Moonshot (Kimi): XClaw keeps Kimi web search enabled by default.  
-> When Moonshot is configured, XClaw also syncs Kimi web search to the China endpoint (`https://api.moonshot.cn/v1`) in OpenClaw config.
-
-### Proxy Settings
-
-XClaw includes built-in proxy settings for environments where Electron, the OpenClaw Gateway, or channels such as Telegram need to reach the internet through a local proxy client.
-
-Open **Settings → Gateway → Proxy** and configure:
-
-- **Proxy Server**: the default proxy for all requests
-- **Bypass Rules**: hosts that should connect directly, separated by semicolons, commas, or new lines
-- In **Developer Mode**, you can optionally override:
-  - **HTTP Proxy**
-  - **HTTPS Proxy**
-  - **ALL_PROXY / SOCKS**
-
-Recommended local examples:
-
-```text
-Proxy Server: http://127.0.0.1:7890
-```
-Notes:
-
-- A bare `host:port` value is treated as HTTP.
-- If advanced proxy fields are left empty, XClaw falls back to `Proxy Server`.
-- Saving proxy settings reapplies Electron networking immediately and restarts the Gateway automatically.
-- XClaw also syncs the proxy to OpenClaw's Telegram channel config when Telegram is enabled.
-- In **Settings → Advanced → Developer**, you can run **OpenClaw Doctor** to execute `openclaw doctor --json` and inspect the diagnostic output without leaving the app.
-
----
-
-## Architecture
-
-XClaw employs a **dual-process architecture** with a unified host API layer. The renderer talks to a single client abstraction, while Electron Main owns protocol selection and process lifecycle:
-
-```┌─────────────────────────────────────────────────────────────────┐
-│                        XClaw Desktop App                         │
-│                                                                  │
-│  ┌────────────────────────────────────────────────────────────┐  │
-│  │              Electron Main Process                          │  │
-│  │  • Window & application lifecycle management               │  │
-│  │  • Gateway process supervision                              │  │
-│  │  • System integration (tray, notifications, keychain)       │  │
-│  │  • Auto-update orchestration                                │  │
-│  └────────────────────────────────────────────────────────────┘  │
-│                              │                                    │
-│                              │ IPC (authoritative control plane)  │
-│                              ▼                                    │
-│  ┌────────────────────────────────────────────────────────────┐  │
-│  │              React Renderer Process                         │  │
-│  │  • Modern component-based UI (React 19)                     │  │
-│  │  • State management with Zustand                            │  │
-│  │  • Unified host-api/api-client calls                        │  │
-│  │  • Rich Markdown rendering                                  │  │
-│  └────────────────────────────────────────────────────────────┘  │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │
-                               │ Main-owned transport strategy
-                               │ (WS first, HTTP then IPC fallback)
-                               ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                Host API & Main Process Proxies                  │
-│                                                                  │
-│  • hostapi:fetch (Main proxy, avoids CORS in dev/prod)          │
-│  • gateway:httpProxy (Renderer never calls Gateway HTTP direct)  │
-│  • Unified error mapping & retry/backoff                         │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │
-                               │ WS / HTTP / IPC fallback
-                               ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                     OpenClaw Gateway                             │
-│                                                                  │
-│  • AI agent runtime and orchestration                           │
-│  • Message channel management                                    │
-│  • Skill/plugin execution environment                           │
-│  • Provider abstraction layer                                    │
-└─────────────────────────────────────────────────────────────────┘
-```
-### Design Principles
-
-- **Process Isolation**: The AI runtime operates in a separate process, ensuring UI responsiveness even during heavy computation
-- **Single Entry for Frontend Calls**: Renderer requests go through host-api/api-client; protocol details are hidden behind a stable interface
-- **Main-Process Transport Ownership**: Electron Main controls WS/HTTP usage and fallback to IPC for reliability
-- **Graceful Recovery**: Built-in reconnect, timeout, and backoff logic handles transient failures automatically
-- **Secure Storage**: API keys and sensitive data leverage the operating system's native secure storage mechanisms
-- **CORS-Safe by Design**: Local HTTP access is proxied by Main, preventing renderer-side CORS issues
-
----
-
-## Use Cases
-
-### 🤖 Personal AI Assistant
-Configure a general-purpose AI agent that can answer questions, draft emails, summarize documents, and help with everyday tasks—all from a clean desktop interface.
-
-### 📊 Automated Monitoring
-Set up scheduled agents to monitor news feeds, track prices, or watch for specific events. Results are delivered to your preferred notification channel.
-
-### 💻 Developer Productivity
-Integrate AI into your development workflow. Use agents to review code, generate documentation, or automate repetitive coding tasks.
-
-### 🔄 Workflow Automation
-Chain multiple skills together to create sophisticated automation pipelines. Process data, transform content, and trigger actions—all orchestrated visually.
-
----
-
-## Development
-
-### Prerequisites
-
-- **Node.js**: 22+ (LTS recommended)
-- **Package Manager**: pnpm 9+ (recommended) or npm
-
-### Project Structure
-
-```XClaw/
-├── electron/                 # Electron Main Process
-│   ├── api/                 # Main-side API router and handlers
-│   │   └── routes/          # RPC/HTTP proxy route modules
-│   ├── services/            # Provider, secrets and runtime services
-│   │   ├── providers/       # Provider/account model sync logic
-│   │   └── secrets/         # OS keychain and secret storage
-│   ├── shared/              # Shared provider schemas/constants
-│   │   └── providers/
-│   ├── main/                # App entry, windows, IPC registration
-│   ├── gateway/             # OpenClaw Gateway process manager
-│   ├── preload/             # Secure IPC bridge
-│   └── utils/               # Utilities (storage, auth, paths)
-├── src/                      # React Renderer Process
-│   ├── lib/                 # Unified frontend API + error model
-│   ├── stores/              # Zustand stores (settings/chat/gateway)
-│   ├── components/          # Reusable UI components
-│   ├── pages/               # Setup/Dashboard/Chat/Channels/Skills/Cron/Settings
-│   ├── i18n/                # Localization resources
-│   └── types/               # TypeScript type definitions
-├── tests/
-│   └── unit/                # Vitest unit/integration-like tests
-│   └── e2e/                 # Playwright smoke tests
-├── resources/                # Static assets (icons/images)
-└── scripts/                  # Build and utility scripts
-```
-### Available Commands
-
-```bash
-# Development
-pnpm run init             # Install dependencies + download uv
-pnpm dev                  # Start with hot reload (auto-prepares bundled skills if missing)
-
-# Quality
-pnpm lint                 # Run ESLint
-pnpm typecheck            # TypeScript validation
-
-# Testing
-pnpm test                 # Run unit tests
-pnpm run test:e2e         # Run Playwright smoke tests
-pnpm run clean            # Remove local build/test artifacts from the repo root
-pnpm run clean:deep       # Also remove build/ packaging intermediates
-pnpm run comms:replay     # Compute communication replay metrics
-pnpm run comms:baseline   # Refresh communication baseline snapshot
-pnpm run comms:compare    # Compare replay metrics against baseline thresholds
-
-# Build & Package
-pnpm run icons            # Regenerate app and web icon assets
-pnpm run build:vite       # Build frontend only
-pnpm build                # Full production build (with packaging assets)
-pnpm package              # Package for current platform (includes bundled preinstalled skills)
-pnpm package:mac          # Package for macOS (DMG + ZIP)
-pnpm package:mac:local    # Local macOS packaging (auto-falls back to ZIP on macOS 12 hosts)
-pnpm package:win          # Package for Windows
-pnpm package:linux        # Package for Linux
-```
-
-### Communication Regression Checks
-
-When a PR changes communication paths (gateway events, chat runtime send/receive flow, channel delivery, or transport fallback), run:
-
-```bash
-pnpm run comms:replay
-pnpm run comms:compare
-```
-
-`comms-regression` in CI enforces required scenarios and threshold checks.
-### Tech Stack
-
-| Layer | Technology |
-|-------|------------|
-| Runtime | Electron 40+ |
-| UI Framework | React 19 + TypeScript |
-| Styling | Tailwind CSS + shadcn/ui |
-| State | Zustand |
-| Build | Vite + electron-builder |
-| Testing | Vitest + Playwright |
-| Animation | Framer Motion |
-| Icons | Lucide React |
+> Moonshot (Kimi) note: XClaw keeps Kimi web search enabled by default.
+> When Moonshot is configured, XClaw also syncs Kimi web search in OpenClaw config to the China endpoint (`https://api.moonshot.cn/v1`).
 
 ---
 
 ## Contributing
 
-We welcome contributions from the community! Whether it's bug fixes, new features, documentation improvements, or translations—every contribution helps make XClaw better.
-
-### How to Contribute
+### Contribution Flow
 
 1. **Fork** the repository
 2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
-3. **Commit** your changes with clear messages
-4. **Push** to your branch
+3. **Commit** your work with clear messages
+4. **Push** the branch
 5. **Open** a Pull Request
 
-### Guidelines
+### Contribution Guidelines
 
-- Follow the existing code style (ESLint + Prettier)
-- Write tests for new functionality
-- Update documentation as needed
-- Keep commits atomic and descriptive
-
----
-
-## Acknowledgments
-
-XClaw is built on the shoulders of excellent open-source projects:
-
-- [OpenClaw](https://github.com/OpenClaw) – The AI agent runtime
-- [Electron](https://www.electronjs.org/) – Cross-platform desktop framework
-- [React](https://react.dev/) – UI component library
-- [shadcn/ui](https://ui.shadcn.com/) – Beautifully designed components
-- [Zustand](https://github.com/pmndrs/zustand) – Lightweight state management
+- Follow the existing code style (`ESLint + Prettier`)
+- Add tests for new behavior
+- Update documentation when needed
+- Keep commits focused and descriptive
 
 ---
 
 ## Community
 
-Join our community to connect with other users, get support, and share your experiences.
-
-| Enterprise WeChat | Feishu Group | Discord |
-| :---: | :---: | :---: |
-| <img src="src/assets/community/wecom-qr.png" width="150" alt="WeChat QR Code" /> | <img src="src/assets/community/feishu-qr.png" width="150" alt="Feishu QR Code" /> | <img src="src/assets/community/20260212-185822.png" width="150" alt="Discord QR Code" /> |
-
-### XClaw Partner Program 🚀
-
-We're launching the XClaw Partner Program and looking for partners who can help introduce XClaw to more clients, especially those with custom AI agent or automation needs.
-
-Partners help connect us with potential users and projects, while the XClaw team provides full technical support, customization, and integration.
-
-If you work with clients interested in AI tools or automation, we'd love to collaborate.
-
-DM us or email [public@valuecell.ai](mailto:public@valuecell.ai) to learn more.
-
----
-
-## Star History
-
 <p align="center">
-  <img src="https://api.star-history.com/svg?repos=jlon/XClaw&type=Date" alt="Star History Chart" />
+  <img src="src/assets/community/wecom-qr.png" width="180" alt="WeChat QR Code" />
 </p>
+
+Partner inquiries: WeChat above or email [itjlon@gmail.com](mailto:itjlon@gmail.com).
 
 ---
 
 ## License
 
-XClaw is released under the [MIT License](LICENSE). You're free to use, modify, and distribute this software.
+XClaw is distributed under the [MIT License](LICENSE). You are free to use, modify, and share the software.
 
 ---
-
-<p align="center">
-  <sub>Built with ❤️ by the ValueCell Team</sub>
-</p>

@@ -3,7 +3,6 @@
  * Manages application update state
  */
 import { create } from 'zustand';
-import { useSettingsStore } from './settings';
 import { invokeIpc } from '@/lib/api-client';
 
 export interface UpdateInfo {
@@ -22,12 +21,7 @@ export interface ProgressInfo {
 
 export type UpdateStatus = 
   | 'idle'
-  | 'checking'
-  | 'available'
-  | 'not-available'
-  | 'downloading'
-  | 'downloaded'
-  | 'unsupported'
+  | 'disabled'
   | 'error';
 
 interface UpdateState {
@@ -114,106 +108,47 @@ export const useUpdateStore = create<UpdateState>((set, get) => ({
 
     set({ isInitialized: true });
 
-    // Apply persisted settings from the settings store
-    const { autoCheckUpdate, autoDownloadUpdate } = useSettingsStore.getState();
-
-    // Sync auto-download preference to the main process
-    if (autoDownloadUpdate) {
-      invokeIpc('update:setAutoDownload', true).catch(() => {});
-    }
-
-    // Auto-check for updates on startup (respects user toggle)
-    if (autoCheckUpdate) {
-      setTimeout(() => {
-        get().checkForUpdates().catch(() => {});
-      }, 10000);
-    }
   },
 
   checkForUpdates: async () => {
-    set({ status: 'checking', error: null });
-    
-    try {
-      const result = await Promise.race([
-        invokeIpc('update:check'),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Update check timed out')), 30000))
-      ]) as {
-        success: boolean;
-        error?: string;
-        status?: {
-          status: UpdateStatus;
-          info?: UpdateInfo;
-          progress?: ProgressInfo;
-          error?: string;
-        };
-      };
-      
-      if (result.status) {
-        set({
-          status: result.status.status,
-          updateInfo: result.status.info || null,
-          progress: result.status.progress || null,
-          error: result.status.error || null,
-        });
-      } else if (!result.success) {
-        set({ status: 'error', error: result.error || 'Failed to check for updates' });
-      }
-    } catch (error) {
-      set({ status: 'error', error: String(error) });
-    } finally {
-      // In dev mode autoUpdater skips without emitting events, so the
-      // status may still be 'checking' or even 'idle'. Catch both.
-      const currentStatus = get().status;
-      if (currentStatus === 'checking' || currentStatus === 'idle') {
-        set({ status: 'unsupported', error: 'Updates are available only in packaged builds.' });
-      }
-    }
+    set({
+      status: 'disabled',
+      error: 'Built-in auto updates are disabled in this build.',
+      updateInfo: null,
+      progress: null,
+      autoInstallCountdown: null,
+    });
   },
 
   downloadUpdate: async () => {
-    set({ status: 'downloading', error: null });
-    
-    try {
-      const result = await invokeIpc<{
-        success: boolean;
-        error?: string;
-      }>('update:download');
-      
-      if (!result.success) {
-        set({ status: 'error', error: result.error || 'Failed to download update' });
-      }
-    } catch (error) {
-      set({ status: 'error', error: String(error) });
-    }
+    set({
+      status: 'disabled',
+      error: 'Built-in auto updates are disabled in this build.',
+      updateInfo: null,
+      progress: null,
+      autoInstallCountdown: null,
+    });
   },
 
   installUpdate: () => {
-    void invokeIpc('update:install');
+    set({
+      status: 'disabled',
+      error: 'Built-in auto updates are disabled in this build.',
+      autoInstallCountdown: null,
+    });
   },
 
   cancelAutoInstall: async () => {
-    try {
-      await invokeIpc('update:cancelAutoInstall');
-    } catch (error) {
-      console.error('Failed to cancel auto-install:', error);
-    }
+    set({ autoInstallCountdown: null });
   },
 
   setChannel: async (channel) => {
-    try {
-      await invokeIpc('update:setChannel', channel);
-    } catch (error) {
-      console.error('Failed to set update channel:', error);
-    }
+    void channel;
   },
 
   setAutoDownload: async (enable) => {
-    try {
-      await invokeIpc('update:setAutoDownload', enable);
-    } catch (error) {
-      console.error('Failed to set auto-download:', error);
-    }
+    void enable;
   },
 
-  clearError: () => set({ error: null, status: 'idle' }),
+  clearError: () => set({ error: null, status: 'disabled' }),
 }));

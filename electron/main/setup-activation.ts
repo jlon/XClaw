@@ -22,6 +22,7 @@ type SetupActivationOptions = {
   runtimeController: GatewayRuntimeController;
   mainWindow: BrowserWindow | null;
   awaitCriticalTasks?: boolean;
+  prepareEnhancements?: boolean;
   setup?: {
     mode?: 'fresh' | 'takeover';
     gatewayPort?: unknown;
@@ -183,7 +184,12 @@ async function applyTakeoverSetupSelections(
 export async function runSetupActivationSideEffects(
   options: SetupActivationOptions,
 ): Promise<void> {
-  const { runtimeController, mainWindow, awaitCriticalTasks = false } = options;
+  const {
+    runtimeController,
+    mainWindow,
+    awaitCriticalTasks = false,
+    prepareEnhancements = false,
+  } = options;
   const freshRollbackSnapshot = await captureFreshSetupRollbackSnapshot(options);
 
   try {
@@ -216,40 +222,42 @@ export async function runSetupActivationSideEffects(
       logger.info('Gateway desired state is stopped; managed mode activated without auto-start');
     }
 
-    runBackgroundTask(
-      repairXClawOnlyBootstrapFiles,
-      'Failed to repair bootstrap files:',
-    );
+    if (prepareEnhancements) {
+      runBackgroundTask(
+        repairXClawOnlyBootstrapFiles,
+        'Failed to repair bootstrap files:',
+      );
 
-    runBackgroundTask(
-      ensureBuiltinSkillsInstalled,
-      'Failed to install built-in skills:',
-    );
+      runBackgroundTask(
+        ensureBuiltinSkillsInstalled,
+        'Failed to install built-in skills:',
+      );
 
-    runBackgroundTask(
-      ensurePreinstalledSkillsInstalled,
-      'Failed to install preinstalled skills:',
-    );
+      runBackgroundTask(
+        ensurePreinstalledSkillsInstalled,
+        'Failed to install preinstalled skills:',
+      );
 
-    runBackgroundTask(
-      ensureAllBundledPluginsInstalled,
-      'Failed to install/upgrade bundled plugins:',
-    );
+      runBackgroundTask(
+        ensureAllBundledPluginsInstalled,
+        'Failed to install/upgrade bundled plugins:',
+      );
 
-    runBackgroundTask(
-      ensureXClawContext,
-      'Failed to merge XClaw context into workspace:',
-    );
+      runBackgroundTask(
+        ensureXClawContext,
+        'Failed to merge XClaw context into workspace:',
+      );
 
-    runBackgroundTask(async () => {
-      await autoInstallCliIfNeeded((installedPath) => {
-        if (mainWindow && !mainWindow.isDestroyed()) {
-          mainWindow.webContents.send('openclaw:cli-installed', installedPath);
-        }
-      });
-      generateCompletionCache();
-      installCompletionToProfile();
-    }, 'CLI auto-install failed:');
+      runBackgroundTask(async () => {
+        await autoInstallCliIfNeeded((installedPath) => {
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('openclaw:cli-installed', installedPath);
+          }
+        });
+        generateCompletionCache();
+        installCompletionToProfile();
+      }, 'CLI auto-install failed:');
+    }
 
     if (options.setup?.mode === 'takeover') {
       runBackgroundTask(

@@ -1,4 +1,3 @@
-
 <p align="center">
   <img src="src/assets/logo.svg" width="128" height="128" alt="XClaw Logo" />
 </p>
@@ -6,15 +5,13 @@
 <h1 align="center">XClaw</h1>
 
 <p align="center">
-  <strong>OpenClaw AI 智能体的桌面客户端</strong>
+  <strong>面向 OpenClaw AI 智能体的桌面应用</strong>
 </p>
 
 <p align="center">
   <a href="#功能特性">功能特性</a> •
-  <a href="#为什么选择-xclaw">为什么选择 XClaw</a> •
-  <a href="#快速上手">快速上手</a> •
-  <a href="#系统架构">系统架构</a> •
-  <a href="#开发指南">开发指南</a> •
+  <a href="#为什么用-xclaw">为什么用 XClaw</a> •
+  <a href="#快速开始">快速开始</a> •
   <a href="#参与贡献">参与贡献</a>
 </p>
 
@@ -22,129 +19,114 @@
   <img src="https://img.shields.io/badge/platform-MacOS%20%7C%20Windows%20%7C%20Linux-blue" alt="Platform" />
   <img src="https://img.shields.io/badge/electron-40+-47848F?logo=electron" alt="Electron" />
   <img src="https://img.shields.io/badge/react-19-61DAFB?logo=react" alt="React" />
-  <a href="https://discord.com/invite/84Kex3GGAh" target="_blank">
-  <img src="https://img.shields.io/discord/1399603591471435907?logo=discord&labelColor=%20%235462eb&logoColor=%20%23f5f5f5&color=%20%235462eb" alt="chat on Discord" />
-  </a>
   <img src="https://img.shields.io/github/downloads/jlon/XClaw/total?color=%23027DEB" alt="Downloads" />
   <img src="https://img.shields.io/badge/license-MIT-green" alt="License" />
 </p>
 
 <p align="center">
-  <a href="README.md">English</a> | 简体中文 | <a href="README.ja-JP.md">日本語</a>
+  <a href="README.md">English</a> | 简体中文
 </p>
 
 ---
 
-## 概述
+## 简介
 
-**XClaw** 是连接强大 AI 智能体与普通用户之间的桥梁。基于 [OpenClaw](https://github.com/OpenClaw) 构建，它将命令行式的 AI 编排转变为易用、美观的桌面体验——无需使用终端。
+**XClaw** 把 [OpenClaw](https://github.com/OpenClaw) 打包成桌面应用，用来做工作流自动化、AI 频道管理和定时智能任务。
 
-无论是自动化工作流、连接通讯软件，还是调度智能定时任务，XClaw 都能提供高效易用的图形界面，帮助你充分发挥 AI 智能体的能力。
-
-XClaw 预置了最佳实践的模型供应商配置，原生支持 Windows 平台以及多语言设置。当然，你也可以通过 **设置 → 高级 → 开发者模式** 来进行精细的高级配置。
+它默认带有推荐的模型供应商配置，支持 Windows 和多语言，并把更细的高级入口保留在 **设置 → 高级 → 开发者模式**。
 
 ---
 
-## 截图预览
+## 截图展示
 
 <p align="center">
-  <img src="resources/screenshot/zh/chat.png" style="width: 100%; height: auto;">
+  <img src="resources/screenshot/zh/chat.png" width="48%" alt="聊天界面" />
+  <img src="resources/screenshot/zh/agents.png" width="48%" alt="智能体界面" />
 </p>
 
 <p align="center">
-  <img src="resources/screenshot/zh/cron.png" style="width: 100%; height: auto;">
+  <img src="resources/screenshot/zh/channels.png" width="48%" alt="频道界面" />
+  <img src="resources/screenshot/zh/cron.png" width="48%" alt="定时任务界面" />
 </p>
 
 <p align="center">
-  <img src="resources/screenshot/zh/skills.png" style="width: 100%; height: auto;">
+  <img src="resources/screenshot/zh/skills.png" width="48%" alt="技能界面" />
+  <img src="resources/screenshot/zh/models.png" width="48%" alt="模型界面" />
 </p>
 
 <p align="center">
-  <img src="resources/screenshot/zh/channels.png" style="width: 100%; height: auto;">
-</p>
-
-<p align="center">
-  <img src="resources/screenshot/zh/models.png" style="width: 100%; height: auto;">
-</p>
-
-<p align="center">
-  <img src="resources/screenshot/zh/settings.png" style="width: 100%; height: auto;">
+  <img src="resources/screenshot/zh/settings.png" width="48%" alt="设置界面" />
 </p>
 
 ---
 
-## 为什么选择 XClaw
+## 为什么用 XClaw
 
-构建 AI 智能体不应该需要精通命令行。XClaw 的设计理念很简单：**强大的技术值得拥有一个尊重用户时间的界面。**
-
-| 痛点 | XClaw 解决方案 |
-|------|----------------|
-| 复杂的命令行配置 | 一键安装，配合引导式设置向导 |
-| 手动编辑配置文件 | 可视化设置界面，实时校验 |
-| 进程管理繁琐 | 自动管理网关生命周期 |
-| 多 AI 供应商切换 | 自适应 Provider 卡片与 Token Intelligence 工作台 |
-| 技能/插件安装复杂 | 内置技能市场与管理界面 |
-
-### 内置 OpenClaw 核心
-
-XClaw 直接基于官方 **OpenClaw** 核心构建。无需单独安装，我们将运行时嵌入应用内部，提供开箱即用的无缝体验。
-
-我们致力于与上游 OpenClaw 项目保持严格同步，确保你始终可以使用官方发布的最新功能、稳定性改进和生态兼容性。
+| 常见门槛 | XClaw 的处理方式 |
+|----------|------------------|
+| CLI 上手复杂 | 提供一键安装和引导式设置 |
+| 需要手改配置文件 | 可视化设置并附带实时校验 |
+| 进程维护麻烦 | 自动接管 Gateway 生命周期 |
+| 多供应商切换繁琐 | 提供自适应 Provider 卡片和 Token Intelligence 工作台 |
+| 技能或插件安装麻烦 | 内置技能市场与管理能力 |
 
 ---
 
 ## 功能特性
 
-### 🎯 零配置门槛
-从安装到第一次 AI 对话，全程通过直观的图形界面完成。无需终端命令，无需 YAML 文件，无需到处寻找环境变量。
+### 🎯 接近零门槛的初始化
+从安装到发出第一条 AI 消息，都可以在图形界面里完成。你不需要手敲终端命令，也不需要编辑 YAML，环境变量也不用四处找。
 
-### 💬 智能聊天界面
-通过现代化的聊天体验与 AI 智能体交互。支持多会话上下文、消息历史记录、Markdown 富文本渲染，以及在多 Agent 场景下通过主输入框中的 `@agent` 直接路由到目标智能体。
-主输入框还支持基于 OpenClaw 原生的每会话模型覆盖能力，直接切换当前会话模型，而不会改写持久化的 provider 设置。
-聊天工作台现在还补齐了对齐 QClaw 的本地 slash command router 和输入中命令菜单。`/new` 与 `/reset` 会先被 renderer 截获，但仍复用统一 Gateway 发送链；`/model`、`/compact`、`/agents`、`/focus`、`/export`、`/usage` 这类命令则会直接在本地分流，不再混进普通聊天消息。其中 `/usage` 会直接在聊天区回显当前会话的 token 摘要，`/focus` 和 `/export` 仍然作为桌面动作执行。
-当你使用 `@agent` 选择其他智能体时，XClaw 会直接切换到该智能体自己的对话上下文，而不是经过默认智能体转发。各 Agent 工作区默认彼此分离，但更强的运行时隔离仍取决于 OpenClaw 的 sandbox 配置。
+### 💬 面向智能体的聊天工作台
+聊天区域支持多会话上下文、历史记录、Markdown 富文本展示，以及在多 Agent 场景下通过主输入框里的 `@agent` 直接把消息送到目标智能体。
 
-### 📡 多频道管理
-同时配置和监控多个 AI 频道。每个频道独立运行，允许你为不同任务运行专门的智能体。
-现在每个频道支持多个账号，并可在 Channels 页面直接完成账号绑定到 Agent 与默认账号切换。
-XClaw 现在还内置了官方微信频道插件，用户可以直接在 GUI 中通过扫码新增或重新绑定微信账号，无需手动执行 `npx` 或 `openclaw` 命令。Channels 工作台会保持微信真实账号 ID 只读展示，直接提供重新扫码入口，并通过健康守护提示会话失效风险，而不会自动发送任何保活消息。
+你还可以使用 OpenClaw 原生的每会话模型覆盖能力，直接切换当前会话模型，而不改动已保存的 provider 配置。
 
-### ⏰ 定时任务自动化
-调度 AI 任务自动执行。定义触发器、设置时间间隔，让 AI 智能体 7×24 小时不间断工作。
+输入框已经带有一套对齐 QClaw 风格的本地 slash command router 和内联命令菜单。`/new` 与 `/reset` 会在本地先被拦截，但仍复用统一的 Gateway 发送链路；`/model`、`/compact`、`/agents`、`/focus`、`/export`、`/usage` 会留在 renderer 侧处理，不再作为普通聊天消息发送。其中 `/usage` 会在会话内直接展示当前 token 摘要，`/focus` 和 `/export` 继续作为桌面动作执行。
 
-### 🧩 可扩展技能系统
-通过预构建的技能扩展 AI 智能体的能力。在集成的技能面板中浏览、安装和管理技能——无需包管理器。
-XClaw 还会内置预装完整的文档处理技能（`pdf`、`xlsx`、`docx`、`pptx`），在启动时自动部署到托管技能目录（默认 `~/.openclaw/skills`），并在首次安装时默认启用。额外预装技能（`find-skills`、`self-improving-agent`、`tavily-search`、`brave-web-search`）也会默认启用；若缺少必需的 API Key，OpenClaw 会在运行时给出配置错误提示。  
-Skills 页面可展示来自多个 OpenClaw 来源的技能（托管目录、workspace、额外技能目录），并显示每个技能的实际路径，便于直接打开真实安装位置。
+当你通过 `@agent` 指向其他智能体时，XClaw 会直接切进那个智能体自己的会话上下文，而不是经过默认智能体转发。各 Agent 工作区默认互相隔离，更强的运行时隔离仍然取决于 OpenClaw 的 sandbox 配置。
 
-重点搜索技能所需环境变量：
-- `BRAVE_SEARCH_API_KEY`：用于 `brave-web-search`
-- `TAVILY_API_KEY`：用于 `tavily-search`（上游运行时也可能支持 OAuth）
+### 📡 多频道协同管理
+现在每个频道都支持多个账号，也支持在 Channels 页面里直接把账号绑定到指定 Agent，并切换频道默认账号。
 
-### 🔐 安全的供应商集成
-连接多个 AI 供应商（OpenAI、Anthropic 等），凭证安全存储在系统原生密钥链中。OpenAI 同时支持 API Key 与浏览器 OAuth（Codex 订阅）登录。
+XClaw 也已经内置官方微信频道插件，所以新增或重新绑定微信账号时，可以直接走 GUI 扫码登录，不再需要手动执行 `npx` 或 `openclaw`。Channels 工作台会把真实微信账号 ID 保持为只读展示，提供重新扫码入口，并用健康守护提示会话失效风险，而不会主动发送保活消息。
 
-### 🌙 自适应主题
-支持浅色模式、深色模式或跟随系统主题。XClaw 自动适应你的偏好设置。
+### ⏰ 定时任务自动跑
+可以把 AI 任务按计划自动执行。你只需要定义触发条件和执行间隔，剩下的交给智能体持续处理。
 
-### 🚀 开机启动控制
-在 **设置 → 通用** 中，你可以开启 **开机自动启动**，让 XClaw 在系统登录后自动启动。
+### 🧩 可扩展的技能层
+XClaw 还会内置完整的文档处理技能（`pdf`、`xlsx`、`docx`、`pptx`），并在启动时自动部署到托管技能目录，默认路径是 `~/.openclaw/skills`，首次安装时会默认启用。额外预装技能（`find-skills`、`self-improving-agent`、`tavily-search`、`brave-web-search`）同样默认开启；如果缺少必需的 API Key，OpenClaw 会在运行时直接给出配置错误提示。
+
+Skills 页面能够同时展示多个 OpenClaw 来源中的技能，包括托管目录、workspace 和额外技能目录。每个技能也会显示真实路径，方便你直接打开实际安装位置。
+
+重点搜索技能相关环境变量：
+- `BRAVE_SEARCH_API_KEY`：对应 `brave-web-search`
+- `TAVILY_API_KEY`：对应 `tavily-search`（上游运行时也可能支持 OAuth）
+
+### 🔐 安全的供应商接入
+OpenAI、Anthropic 等多家 AI 供应商都可以接入，凭证会保存在系统原生密钥链里。OpenAI 既支持 API Key，也支持浏览器 OAuth（Codex 订阅）登录。
+
+### 🌙 自动适配的主题
+浅色、深色或跟随系统都可以，XClaw 会按你的主题偏好自动切换。
+
+### 🚀 开机自动启动
+如果你希望登录系统后自动打开 XClaw，可以在 **设置 → 通用** 中启用 **开机自动启动**。
 
 ---
 
-## 快速上手
+## 快速开始
 
 ### 系统要求
 
 - **操作系统**：macOS 11+、Windows 10+ 或 Linux（Ubuntu 20.04+）
-- **内存**：最低 4GB RAM（推荐 8GB）
-- **存储空间**：1GB 可用磁盘空间
+- **内存**：至少 4 GB RAM，推荐 8 GB
+- **存储空间**：至少 1 GB 可用磁盘空间
 
 ### 安装方式
 
-#### 预构建版本（推荐）
+#### 预编译版本
 
-从 [Releases](https://github.com/jlon/XClaw/releases) 页面下载适用于你平台的最新版本。
+直接前往 [Releases](https://github.com/jlon/XClaw/releases) 页面，下载与你系统对应的最新安装包。
 
 #### 从源码构建
 
@@ -153,287 +135,60 @@ Skills 页面可展示来自多个 OpenClaw 来源的技能（托管目录、wor
 git clone https://github.com/jlon/XClaw.git
 cd XClaw
 
-# 初始化项目
+# 安装依赖并下载 uv
 pnpm run init
 
-# 以开发模式启动
+# 以开发模式启动桌面应用
 pnpm dev
 ```
+
 ### 首次启动
 
-首次启动 XClaw 时，**设置向导** 将引导你完成以下步骤：
+第一次打开 XClaw 时，**设置向导** 会依次带你完成：
 
-1. **语言与区域** – 配置你的首选语言和地区
-2. **AI 供应商** – 通过 API 密钥或 OAuth（支持浏览器/设备登录的供应商）添加账号
-3. **技能包** – 选择适用于常见场景的预配置技能
-4. **验证** – 在进入主界面前测试你的配置
+1. **语言与区域**：选择偏好的地区和语言
+2. **AI 供应商**：通过 API Key 或支持时的 OAuth 完成接入
+3. **技能包**：挑选常见场景下的预配置技能
+4. **验证**：进入主界面前先检查配置是否可用
 
-如果系统语言在支持列表中，向导会默认选中该语言；否则回退到英文。
+如果系统语言在支持范围内，向导会优先选中它；如果不支持，则自动回退到英文。
 
-> Moonshot（Kimi）说明：XClaw 默认保持开启 Kimi 的 web search。  
-> 当配置 Moonshot 后，XClaw 也会将 OpenClaw 配置中的 Kimi web search 同步到中国区端点（`https://api.moonshot.cn/v1`）。
-
-### 代理设置
-
-XClaw 内置了代理设置，适用于需要通过本地代理客户端访问外网的场景，包括 Electron 本身、OpenClaw Gateway，以及 Telegram 这类频道的联网请求。
-
-打开 **设置 → 网关 → 代理**，配置以下内容：
-
-- **代理服务器**：所有请求默认使用的代理
-- **绕过规则**：需要直连的主机，使用分号、逗号或换行分隔
-- 在 **开发者模式** 下，还可以单独覆盖：
-  - **HTTP 代理**
-  - **HTTPS 代理**
-  - **ALL_PROXY / SOCKS**
-
-本地代理的常见填写示例：
-
-```text
-代理服务器: http://127.0.0.1:7890
-```
-说明：
-
-- 只填写 `host:port` 时，会按 HTTP 代理处理。
-- 高级代理项留空时，会自动回退到“代理服务器”。
-- 保存代理设置后，Electron 网络层会立即重新应用代理，并自动重启 Gateway。
-- 如果启用了 Telegram，XClaw 还会把代理同步到 OpenClaw 的 Telegram 频道配置中。
-- 在 **设置 → 高级 → 开发者** 中，可以直接运行 **OpenClaw Doctor**，执行 `openclaw doctor --json` 并在应用内查看诊断输出。
-
----
-
-## 系统架构
-
-XClaw 采用 **双进程 + Host API 统一接入架构**。渲染进程只调用统一客户端抽象，协议选择与进程生命周期由 Electron 主进程统一管理：
-
-```┌─────────────────────────────────────────────────────────────────┐
-│                        XClaw 桌面应用                             │
-│                                                                  │
-│  ┌────────────────────────────────────────────────────────────┐  │
-│  │              Electron 主进程                                 │  │
-│  │  • 窗口与应用生命周期管理                                      │  │
-│  │  • 网关进程监控                                               │  │
-│  │  • 系统集成（托盘、通知、密钥链）                                │  │
-│  │  • 自动更新编排                                               │  │
-│  └────────────────────────────────────────────────────────────┘  │
-│                              │                                    │
-│                              │ IPC（权威控制面）                    │
-│                              ▼                                    │
-│  ┌────────────────────────────────────────────────────────────┐  │
-│  │              React 渲染进程                                   │  │
-│  │  • 现代组件化 UI（React 19）                                   │  │
-│  │  • Zustand 状态管理                                           │  │
-│  │  • 统一 host-api/api-client 调用                               │  │
-│  │  • Markdown 富文本渲染                                        │  │
-│  └────────────────────────────────────────────────────────────┘  │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │
-                               │ 主进程统一传输策略
-                               │（WS 优先，HTTP 次之，IPC 回退）
-                               ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                  Host API 与主进程代理层                          │
-│                                                                  │
-│  • hostapi:fetch（主进程代理，规避开发/生产 CORS）                │
-│  • gateway:httpProxy（渲染进程不直连 Gateway HTTP）               │
-│  • 统一错误映射与重试/退避策略                                     │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │
-                               │ WS / HTTP / IPC 回退
-                               ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                     OpenClaw 网关                                 │
-│                                                                  │
-│  • AI 智能体运行时与编排                                          │
-│  • 消息频道管理                                                   │
-│  • 技能/插件执行环境                                              │
-│  • 供应商抽象层                                                   │
-└─────────────────────────────────────────────────────────────────┘
-```
-### 设计原则
-
-- **进程隔离**：AI 运行时在独立进程中运行，确保即使在高负载计算期间 UI 也能保持响应
-- **前端调用单一入口**：渲染层统一走 host-api/api-client，不感知底层协议细节
-- **主进程掌控传输策略**：WS/HTTP 选择与 IPC 回退在主进程集中处理，提升稳定性
-- **优雅恢复**：内置重连、超时、退避逻辑，自动处理瞬时故障
-- **安全存储**：API 密钥和敏感数据利用操作系统原生的安全存储机制
-- **CORS 安全**：本地 HTTP 请求由主进程代理，避免渲染进程跨域问题
-
----
-
-## 使用场景
-
-### 🤖 个人 AI 助手
-配置一个通用 AI 智能体，可以回答问题、撰写邮件、总结文档并协助处理日常任务——全部通过简洁的桌面界面完成。
-
-### 📊 自动化监控
-设置定时智能体来监控新闻动态、追踪价格变动或监听特定事件。结果将推送到你偏好的通知渠道。
-
-### 💻 开发者效率工具
-将 AI 融入你的开发工作流。使用智能体进行代码审查、生成文档或自动化重复性编码任务。
-
-### 🔄 工作流自动化
-将多个技能串联起来，创建复杂的自动化流水线。处理数据、转换内容、触发操作——全部通过可视化方式编排。
-
----
-
-## 开发指南
-
-### 前置要求
-
-- **Node.js**：22+（推荐 LTS 版本）
-- **包管理器**：pnpm 9+（推荐）或 npm
-
-### 项目结构
-
-```XClaw/
-├── electron/                 # Electron 主进程
-│   ├── api/                 # 主进程 API 路由与处理器
-│   │   └── routes/          # RPC/HTTP 代理路由模块
-│   ├── services/            # Provider、Secrets 与运行时服务
-│   │   ├── providers/       # Provider/account 模型同步逻辑
-│   │   └── secrets/         # 系统钥匙串与密钥存储
-│   ├── shared/              # 共享 Provider schema/常量
-│   │   └── providers/
-│   ├── main/                # 应用入口、窗口、IPC 注册
-│   ├── gateway/             # OpenClaw 网关进程管理
-│   ├── preload/             # 安全 IPC 桥接
-│   └── utils/               # 工具模块（存储、认证、路径）
-├── src/                      # React 渲染进程
-│   ├── lib/                 # 前端统一 API 与错误模型
-│   ├── stores/              # Zustand 状态仓库（settings/chat/gateway）
-│   ├── components/          # 可复用 UI 组件
-│   ├── pages/               # Setup/Dashboard/Chat/Channels/Skills/Cron/Settings
-│   ├── i18n/                # 国际化资源
-│   └── types/               # TypeScript 类型定义
-├── tests/
-│   └── unit/                # Vitest 单元/集成型测试
-│   └── e2e/                 # Playwright 冒烟测试
-├── resources/                # 静态资源（图标、图片）
-└── scripts/                  # 构建与工具脚本
-```
-### 常用命令
-
-```bash
-# 开发
-pnpm run init             # 安装依赖并下载 uv
-pnpm dev                  # 以热重载模式启动（若缺失会自动准备预装技能包）
-
-# 代码质量
-pnpm lint                 # 运行 ESLint 检查
-pnpm typecheck            # TypeScript 类型检查
-
-# 测试
-pnpm test                 # 运行单元测试
-pnpm run test:e2e         # 运行 Playwright 冒烟测试
-pnpm run clean            # 清理仓库根目录的本地构建与测试产物
-pnpm run clean:deep       # 额外清理 build/ 打包中间产物
-pnpm run comms:replay     # 计算通信回放指标
-pnpm run comms:baseline   # 刷新通信基线快照
-pnpm run comms:compare    # 将回放指标与基线阈值对比
-
-# 构建与打包
-pnpm run icons            # 重新生成应用与 Web 图标资源
-pnpm run build:vite       # 仅构建前端
-pnpm build                # 完整生产构建（含打包资源）
-pnpm package              # 为当前平台打包（包含预装技能资源）
-pnpm package:mac          # 为 macOS 打包（DMG + ZIP）
-pnpm package:mac:local    # 本地 macOS 打包（在 macOS 12 主机上自动回退为 ZIP）
-pnpm package:win          # 为 Windows 打包
-pnpm package:linux        # 为 Linux 打包
-```
-
-### 通信回归检查
-
-当 PR 涉及通信链路（Gateway 事件、Chat 收发流程、Channel 投递、传输回退）时，建议执行：
-
-```bash
-pnpm run comms:replay
-pnpm run comms:compare
-```
-
-CI 中的 `comms-regression` 会校验必选场景与阈值。
-### 技术栈
-
-| 层级 | 技术 |
-|------|------|
-| 运行时 | Electron 40+ |
-| UI 框架 | React 19 + TypeScript |
-| 样式 | Tailwind CSS + shadcn/ui |
-| 状态管理 | Zustand |
-| 构建工具 | Vite + electron-builder |
-| 测试 | Vitest + Playwright |
-| 动画 | Framer Motion |
-| 图标 | Lucide React |
+> Moonshot（Kimi）说明：XClaw 默认会保持 Kimi web search 为开启状态。
+> 当你配置了 Moonshot 后，XClaw 也会把 OpenClaw 配置里的 Kimi web search 同步到中国区端点（`https://api.moonshot.cn/v1`）。
 
 ---
 
 ## 参与贡献
 
-我们欢迎社区的各种贡献！无论是修复 Bug、开发新功能、改进文档还是翻译——每一份贡献都让 XClaw 变得更好。
-
-### 如何贡献
+### 贡献流程
 
 1. **Fork** 本仓库
 2. **创建** 功能分支（`git checkout -b feature/amazing-feature`）
-3. **提交** 清晰描述的变更
-4. **推送** 到你的分支
-5. **创建** Pull Request
+3. **提交** 清晰描述的改动
+4. **推送** 你的分支
+5. **发起** Pull Request
 
-### 贡献规范
+### 贡献建议
 
-- 遵循现有代码风格（ESLint + Prettier）
-- 为新功能编写测试
-- 按需更新文档
-- 保持提交原子化且描述清晰
-
----
-
-## 致谢
-
-XClaw 构建于以下优秀的开源项目之上：
-
-- [OpenClaw](https://github.com/OpenClaw) – AI 智能体运行时
-- [Electron](https://www.electronjs.org/) – 跨平台桌面框架
-- [React](https://react.dev/) – UI 组件库
-- [shadcn/ui](https://ui.shadcn.com/) – 精美设计的组件库
-- [Zustand](https://github.com/pmndrs/zustand) – 轻量级状态管理
+- 遵循现有代码风格（`ESLint + Prettier`）
+- 新增行为尽量补上测试
+- 需要时同步更新文档
+- 提交尽量聚焦、描述尽量明确
 
 ---
 
 ## 社区
 
-加入我们的社区，与其他用户交流、获取帮助、分享你的使用体验。
-
-| 企业微信 | 飞书群组 | Discord |
-| :---: | :---: | :---: |
-| <img src="src/assets/community/wecom-qr.png" width="150" alt="企业微信二维码" /> | <img src="src/assets/community/feishu-qr.png" width="150" alt="飞书二维码" /> | <img src="src/assets/community/20260212-185822.png" width="150" alt="Discord 二维码" /> |
-
-### XClaw 合作伙伴计划 🚀
-
-我们正在启动 XClaw 合作伙伴计划，寻找能够帮助我们将 XClaw 介绍给更多客户的合作伙伴，尤其是那些有定制化 AI 智能体或自动化需求的客户。
-
-合作伙伴负责帮助我们连接潜在用户和项目，XClaw 团队则提供完整的技术支持、定制开发与集成服务。
-
-如果你服务的客户对 AI 工具或自动化方案感兴趣，欢迎与我们合作。
-
-欢迎私信我们，或发送邮件至 [public@valuecell.ai](mailto:public@valuecell.ai) 了解更多。
-
----
-
-## Stars 历史
-
 <p align="center">
-  <img src="https://api.star-history.com/svg?repos=jlon/XClaw&type=Date" alt="Stars 历史图表" />
+  <img src="src/assets/community/wecom-qr.png" width="180" alt="企业微信二维码" />
 </p>
+
+合作咨询：上方微信或邮箱 [itjlon@gmail.com](mailto:itjlon@gmail.com)。
 
 ---
 
 ## 许可证
 
-XClaw 基于 [MIT 许可证](LICENSE) 发布。你可以自由地使用、修改和分发本软件。
+XClaw 基于 [MIT 许可证](LICENSE) 发布，你可以自由使用、修改并分发这套软件。
 
 ---
-
-<p align="center">
-  <sub>由 ValueCell 团队用 ❤️ 打造</sub>
-</p>

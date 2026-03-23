@@ -27,8 +27,9 @@ export const websiteContent = {
   ],
   hero: {
     badge: '桌面 AI 工作台',
+    brandline: '给你无限可能',
     subtitle: '让 AI 在桌面里持续工作',
-    description: '把对话、渠道、技能、定时任务和模型管理，收进一个真正能下载的桌面应用。',
+    description: '把对话、渠道、技能、定时任务和模型管理，收进一个可下载的桌面工作台。',
     primaryCta: '立即下载',
     secondaryCta: 'GitHub',
     stageLabel: '真实界面',
@@ -194,6 +195,8 @@ export const websiteContent = {
   footer: {
     title: 'XClaw',
     description: '桌面 AI 工作台，把复杂操作收进一个真正能下载的产品里。',
+    tagline: '给你无限可能',
+    copyright: '© 2026 XClaw. All rights reserved.',
     links: [
       { label: 'GitHub', href: 'https://github.com/jlon/XClaw' },
       { label: 'Releases', href: 'https://github.com/jlon/XClaw/releases' },
