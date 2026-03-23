@@ -1,13 +1,13 @@
 {
     "title": "定时任务",
-    "subtitle": "通过定时任务自动化 AI 工作流",
+    "subtitle": "安排消息与任务按时执行",
     "newTask": "新建任务",
     "refresh": "刷新",
     "gatewayWarning": "网关未运行。没有活跃的网关，无法管理定时任务。",
     "stats": {
-        "total": "任务总数",
-        "active": "运行中",
-        "paused": "已暂停",
+        "total": "全部",
+        "active": "运行",
+        "paused": "暂停",
         "failed": "失败"
     },
     "empty": {
@@ -16,6 +16,7 @@
         "create": "创建第一个任务"
     },
     "card": {
+        "agent": "智能体",
         "runNow": "立即运行",
         "deleteConfirm": "确定要删除此任务吗？",
         "last": "上次运行",
@@ -27,6 +28,8 @@
         "description": "安排自动化的 AI 任务",
         "taskName": "任务名称",
         "taskNamePlaceholder": "例如：早间简报",
+        "agent": "执行智能体",
+        "agentPlaceholder": "选择智能体",
         "message": "消息/提示词",
         "messagePlaceholder": "AI 应该做什么？例如：给我一份今天的新闻和天气摘要",
         "schedule": "调度计划",
@@ -63,6 +66,7 @@
         "failedUpdate": "更新任务失败",
         "failedDelete": "删除任务失败",
         "nameRequired": "请输入任务名称",
+        "agentRequired": "请选择执行智能体",
         "messageRequired": "请输入消息",
         "channelRequired": "请选择频道",
         "discordIdRequired": "请输入 Discord 频道 ID",

@@ -1,12 +1,12 @@
 {
     "title": "Scheduled Tasks",
-    "subtitle": "Automate AI workflows with scheduled tasks",
+    "subtitle": "Schedule messages and tasks to run on time",
     "newTask": "New Task",
     "refresh": "Refresh",
     "gatewayWarning": "Gateway is not running. Scheduled tasks cannot be managed without an active Gateway.",
     "stats": {
-        "total": "Total Tasks",
-        "active": "Active",
+        "total": "All",
+        "active": "Live",
         "paused": "Paused",
         "failed": "Failed"
     },
@@ -16,6 +16,7 @@
         "create": "Create Your First Task"
     },
     "card": {
+        "agent": "Agent",
         "runNow": "Run Now",
         "deleteConfirm": "Are you sure you want to delete this task?",
         "last": "Last",
@@ -27,6 +28,8 @@
         "description": "Schedule an automated AI task",
         "taskName": "Task Name",
         "taskNamePlaceholder": "e.g., Morning briefing",
+        "agent": "Agent",
+        "agentPlaceholder": "Choose agent",
         "message": "Message / Prompt",
         "messagePlaceholder": "What should the AI do? e.g., Give me a summary of today's news and weather",
         "schedule": "Schedule",
@@ -63,6 +66,7 @@
         "failedUpdate": "Failed to update task",
         "failedDelete": "Failed to delete task",
         "nameRequired": "Please enter a task name",
+        "agentRequired": "Please choose an agent",
         "messageRequired": "Please enter a message",
         "channelRequired": "Please select a channel",
         "discordIdRequired": "Please enter a Discord Channel ID",

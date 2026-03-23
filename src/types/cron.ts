@@ -38,6 +38,7 @@ export type CronSchedule =
  */
 export interface CronJob {
   id: string;
+  agentId?: string;
   name: string;
   message: string;
   schedule: string | CronSchedule;
@@ -51,10 +52,10 @@ export interface CronJob {
 
 /**
  * Input for creating a cron job from the UI.
- * No target/delivery — UI-created tasks push results to the XClaw chat page.
- * Tasks created via external channels are handled directly by the Gateway.
+ * UI-created tasks are isolated agent turns and must declare which agent runs them.
  */
 export interface CronJobCreateInput {
+  agentId: string;
   name: string;
   message: string;
   schedule: string;
@@ -65,6 +66,7 @@ export interface CronJobCreateInput {
  * Input for updating a cron job
  */
 export interface CronJobUpdateInput {
+  agentId?: string;
   name?: string;
   message?: string;
   schedule?: string;

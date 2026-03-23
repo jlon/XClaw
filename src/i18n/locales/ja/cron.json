@@ -1,13 +1,13 @@
 {
     "title": "定期タスク",
-    "subtitle": "定期タスクでAIワークフローを自動化",
+    "subtitle": "メッセージとタスクを時刻どおりに実行",
     "newTask": "新規タスク",
     "refresh": "更新",
     "gatewayWarning": "ゲートウェイが稼働していません。アクティブなゲートウェイがないと定期タスクを管理できません。",
     "stats": {
-        "total": "タスク合計",
-        "active": "有効",
-        "paused": "停止中",
+        "total": "全部",
+        "active": "稼働",
+        "paused": "停止",
         "failed": "失敗"
     },
     "empty": {
@@ -16,6 +16,7 @@
         "create": "最初のタスクを作成"
     },
     "card": {
+        "agent": "Agent",
         "runNow": "今すぐ実行",
         "deleteConfirm": "このタスクを削除してもよろしいですか？",
         "last": "前回",
@@ -27,6 +28,8 @@
         "description": "自動化AIタスクをスケジュール",
         "taskName": "タスク名",
         "taskNamePlaceholder": "例：朝のブリーフィング",
+        "agent": "実行 Agent",
+        "agentPlaceholder": "Agent を選択",
         "message": "メッセージ / プロンプト",
         "messagePlaceholder": "AIに何をさせますか？ 例：今日のニュースと天気のまとめを作成",
         "schedule": "スケジュール",
@@ -63,6 +66,7 @@
         "failedUpdate": "タスクの更新に失敗しました",
         "failedDelete": "タスクの削除に失敗しました",
         "nameRequired": "タスク名を入力してください",
+        "agentRequired": "実行 Agent を選択してください",
         "messageRequired": "メッセージを入力してください",
         "channelRequired": "チャンネルを選択してください",
         "discordIdRequired": "DiscordチャンネルIDを入力してください",

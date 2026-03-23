@@ -632,7 +632,7 @@ function registerUnifiedRequestHandlers(
             break;
           }
           if (request.action === 'create') {
-            type CronCreateInput = { name: string; message: string; schedule: string; enabled?: boolean };
+            type CronCreateInput = { name: string; message: string; schedule: string; enabled?: boolean; agentId?: string };
             const payload = request.payload as
               | { input?: CronCreateInput }
               | [CronCreateInput]
@@ -647,7 +647,10 @@ function registerUnifiedRequestHandlers(
               input = payload as CronCreateInput | undefined;
             }
             if (!input) throw new Error('Invalid cron.create payload');
+            const agentId = typeof input.agentId === 'string' ? input.agentId.trim() : '';
+            if (!agentId) throw new Error('agentId is required');
             const gatewayInput = {
+              agentId,
               name: input.name,
               schedule: { kind: 'cron', expr: input.schedule },
               payload: { kind: 'agentTurn', message: input.message },
@@ -669,6 +672,12 @@ function registerUnifiedRequestHandlers(
             const input = Array.isArray(payload) ? payload[1] : payload?.input;
             if (!id || !input) throw new Error('Invalid cron.update payload');
             const patch = { ...input };
+            if ('agentId' in patch) {
+              if (typeof patch.agentId !== 'string' || !patch.agentId.trim()) {
+                throw new Error('agentId is required');
+              }
+              patch.agentId = patch.agentId.trim();
+            }
             if (typeof patch.schedule === 'string') patch.schedule = { kind: 'cron', expr: patch.schedule };
             if (typeof patch.message === 'string') {
               patch.payload = { kind: 'agentTurn', message: patch.message };
@@ -852,6 +861,7 @@ function registerSkillConfigHandlers(): void {
  */
 interface GatewayCronJob {
   id: string;
+  agentId?: string;
   name: string;
   description?: string;
   enabled: boolean;
@@ -900,6 +910,7 @@ function transformCronJob(job: GatewayCronJob) {
 
   return {
     id: job.id,
+    agentId: job.agentId,
     name: job.name,
     message,
     schedule: job.schedule, // Pass the object through; frontend parseCronSchedule handles it
@@ -971,13 +982,17 @@ function registerCronHandlers(gatewayManager: GatewayManager): void {
   // Tasks created via external channels (Feishu, Discord, etc.) are handled
   // directly by the OpenClaw Gateway and do not pass through this IPC handler.
   ipcMain.handle('cron:create', async (_, input: {
+    agentId?: string;
     name: string;
     message: string;
     schedule: string;
     enabled?: boolean;
   }) => {
     try {
+      const agentId = typeof input.agentId === 'string' ? input.agentId.trim() : '';
+      if (!agentId) throw new Error('agentId is required');
       const gatewayInput = {
+        agentId,
         name: input.name,
         schedule: { kind: 'cron', expr: input.schedule },
         payload: { kind: 'agentTurn', message: input.message },
@@ -1005,12 +1020,16 @@ function registerCronHandlers(gatewayManager: GatewayManager): void {
   // Update an existing cron job
   ipcMain.handle('cron:update', async (_, id: string, input: Record<string, unknown>) => {
     try {
-      // Transform schedule string to CronSchedule object if present
       const patch = { ...input };
+      if ('agentId' in patch) {
+        if (typeof patch.agentId !== 'string' || !patch.agentId.trim()) {
+          throw new Error('agentId is required');
+        }
+        patch.agentId = patch.agentId.trim();
+      }
       if (typeof patch.schedule === 'string') {
         patch.schedule = { kind: 'cron', expr: patch.schedule };
       }
-      // Transform message to payload format if present
       if (typeof patch.message === 'string') {
         patch.payload = { kind: 'agentTurn', message: patch.message };
         delete patch.message;

@@ -7,6 +7,7 @@ import { getOpenClawConfigDir } from '../../utils/paths';
 
 interface GatewayCronJob {
   id: string;
+  agentId?: string;
   name: string;
   description?: string;
   enabled: boolean;
@@ -281,6 +282,7 @@ function transformCronJob(job: GatewayCronJob) {
 
   return {
     id: job.id,
+    agentId: job.agentId,
     name: job.name,
     message,
     schedule: job.schedule,
@@ -378,8 +380,13 @@ export async function handleCronRoutes(
 
   if (url.pathname === '/api/cron/jobs' && req.method === 'POST') {
     try {
-      const input = await parseJsonBody<{ name: string; message: string; schedule: string; enabled?: boolean }>(req);
+      const input = await parseJsonBody<{ name: string; message: string; schedule: string; enabled?: boolean; agentId?: string }>(req);
+      const agentId = typeof input.agentId === 'string' ? input.agentId.trim() : '';
+      if (!agentId) {
+        throw new Error('agentId is required');
+      }
       const result = await ctx.gatewayManager.rpc('cron.add', {
+        agentId,
         name: input.name,
         schedule: { kind: 'cron', expr: input.schedule },
         payload: { kind: 'agentTurn', message: input.message },
@@ -400,6 +407,12 @@ export async function handleCronRoutes(
       const id = decodeURIComponent(url.pathname.slice('/api/cron/jobs/'.length));
       const input = await parseJsonBody<Record<string, unknown>>(req);
       const patch = { ...input };
+      if ('agentId' in patch) {
+        if (typeof patch.agentId !== 'string' || !patch.agentId.trim()) {
+          throw new Error('agentId is required');
+        }
+        patch.agentId = patch.agentId.trim();
+      }
       if (typeof patch.schedule === 'string') {
         patch.schedule = { kind: 'cron', expr: patch.schedule };
       }
