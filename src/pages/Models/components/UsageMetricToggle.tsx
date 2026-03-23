@@ -9,8 +9,8 @@ interface UsageMetricToggleProps {
   costLabel: string;
 }
 
-const trackClass = 'app-field-surface inline-flex rounded-[9px] p-0.5';
-const activeClass = 'rounded-[7px] bg-[hsl(var(--accent)/0.14)] text-foreground shadow-none';
+const trackClass = 'app-field-surface inline-flex rounded-[9px] border border-[hsl(var(--border-subtle)/0.82)] p-0.5';
+const activeClass = 'rounded-[8px] border border-[hsl(var(--primary)/0.16)] bg-[hsl(var(--surface-elevated)/0.98)] text-primary shadow-none';
 const idleClass = 'rounded-[8px] text-muted-foreground hover:bg-[hsl(var(--surface-hover)/0.82)] hover:text-foreground';
 
 export function UsageMetricToggle({

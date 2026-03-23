@@ -15,8 +15,7 @@ const formatTokenCount = (value: number): string => Intl.NumberFormat().format(v
 const formatUsageCost = (value: number): string =>
   Number.isFinite(value) ? `$${value.toFixed(2)}` : '$0.00';
 
-const stripClass = 'flex flex-wrap items-center gap-1.5';
-const itemClass = 'app-field-surface inline-flex min-w-[112px] items-center gap-2 rounded-[9px] px-2.5 py-1.5';
+const stripClass = 'flex flex-wrap items-center gap-x-4 gap-y-1.5';
 
 export const UsageKpiStrip = ({
   items,
@@ -36,20 +35,24 @@ export const UsageKpiStrip = ({
 
   return (
     <div className={stripClass} data-testid="models-token-summary-strip" data-metric={activeMetric}>
-      {cards.map((item) => (
+      {cards.map((item, index) => (
         <div
           key={item.key}
-          className={cn(itemClass, (item.key === 'tokens' || item.key === 'cost') && item.key === activeMetric && 'border-primary/32 bg-[hsl(var(--accent)/0.12)]')}
+          className={cn(
+            'inline-flex items-baseline gap-1.5',
+            index > 0 && 'before:mr-1 before:text-border before:content-["·"]',
+          )}
           data-testid={`models-summary-${item.key}`}
         >
-          <div className="min-w-0">
-            <p className="truncate text-[9px] font-medium uppercase tracking-[0.08em] text-muted-foreground/74">
-              {item.label}
-            </p>
-            <p className="text-[13px] font-semibold tracking-tight text-foreground">
-              {item.value}
-            </p>
-          </div>
+          <span className="truncate text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground/74">
+            {item.label}
+          </span>
+          <span className={cn(
+            'text-[13px] font-semibold tracking-tight text-foreground/88',
+            (item.key === 'tokens' || item.key === 'cost') && item.key === activeMetric && 'text-primary',
+          )}>
+            {item.value}
+          </span>
         </div>
       ))}
     </div>

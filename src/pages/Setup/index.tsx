@@ -1449,11 +1449,11 @@ function ProviderContent({
 
           {/* Auth mode toggle for providers supporting both */}
           {isOAuth && supportsApiKey && (
-            <div className="flex overflow-hidden rounded-[10px] border border-border/60 text-sm">
+            <div className="grid grid-cols-2 overflow-hidden rounded-[10px] border border-border/60 text-sm">
               <button
                 onClick={() => setAuthMode('oauth')}
                 className={cn(
-                  'flex-1 px-3 py-2 transition-colors',
+                  'min-w-0 whitespace-nowrap px-2.5 py-2 text-center leading-none transition-colors sm:min-w-[112px]',
                   authMode === 'oauth' ? 'bg-[hsl(var(--foreground)/0.07)] text-foreground' : 'text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground'
                 )}
               >
@@ -1462,7 +1462,7 @@ function ProviderContent({
               <button
                 onClick={() => setAuthMode('apikey')}
                 className={cn(
-                  'flex-1 px-3 py-2 transition-colors',
+                  'min-w-0 whitespace-nowrap px-2.5 py-2 text-center leading-none transition-colors sm:min-w-[112px]',
                   authMode === 'apikey' ? 'bg-[hsl(var(--foreground)/0.07)] text-foreground' : 'text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground'
                 )}
               >

@@ -16,16 +16,16 @@ export const ModelsWorkbenchHeader = ({
 }: ModelsWorkbenchHeaderProps) => (
   <header
     className={cn(
-      'mb-4 shrink-0 flex flex-col gap-3 md:flex-row md:items-end md:justify-between',
+      'mb-3 shrink-0 flex flex-col gap-2 md:flex-row md:items-center md:justify-between',
       className,
     )}
     data-testid="models-workbench-header"
   >
-    <div className="max-w-[700px]">
-      <h1 className="text-[24px] font-semibold leading-none tracking-tight text-foreground md:text-[28px]">
+    <div className="max-w-[640px]">
+      <h1 className="text-[22px] font-semibold leading-none tracking-tight text-foreground md:text-[24px]">
         {title}
       </h1>
-      <p className="mt-1.5 max-w-[52ch] text-[13px] text-foreground/62">
+      <p className="mt-1 max-w-[50ch] text-[12px] text-foreground/62">
         {subtitle}
       </p>
     </div>

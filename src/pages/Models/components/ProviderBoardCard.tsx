@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import type { ProviderAccount } from '@/lib/providers';
 import { cn } from '@/lib/utils';
-import { getProviderDocsUrl, getProviderTypeInfo } from '@/lib/providers';
+import { getProviderDocsUrl, getProviderIconUrl, getProviderTypeInfo, shouldInvertInDark, usesNativeColorProviderIcon } from '@/lib/providers';
 import type { ProviderUsageSummary } from '../workbench-view-model';
 
 interface ProviderBoardCardProps {
@@ -21,8 +21,8 @@ interface ProviderBoardCardProps {
   onSelect: (accountId: string) => void;
 }
 
-const cardClass = 'rounded-[18px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.98)] px-4 py-3 text-left transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)]';
-const selectedCardClass = 'border-primary/45 bg-[hsl(var(--accent)/0.12)]';
+const cardClass = 'rounded-[18px] border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.985)] px-4 py-3 text-left transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:border-[hsl(var(--border-strong)/0.28)] hover:bg-[hsl(var(--surface-elevated)/1)] hover:shadow-[0_8px_18px_rgba(15,23,42,0.035)]';
+const selectedCardClass = 'border-[hsl(var(--border-strong)/0.42)] bg-[hsl(var(--surface-elevated)/1)] shadow-[0_10px_20px_rgba(15,23,42,0.045)]';
 
 export const ProviderBoardCard = ({
   summary,
@@ -42,10 +42,19 @@ export const ProviderBoardCard = ({
 }: ProviderBoardCardProps) => {
   const primaryAccountId = account?.id ?? summary.accountIds[0] ?? null;
   const providerTypeInfo = account ? getProviderTypeInfo(account.vendorId) : undefined;
+  const providerIconUrl = account ? getProviderIconUrl(account.vendorId) : undefined;
+  const useNativeColorIcon = account ? usesNativeColorProviderIcon(account.vendorId) : false;
   const docsUrl = providerTypeInfo
     ? getProviderDocsUrl(providerTypeInfo, language) ?? providerTypeInfo.apiKeyUrl
     : undefined;
   const isDefaultScope = defaultAccountId ? summary.accountIds.includes(defaultAccountId) : false;
+  const formattedTokens = Intl.NumberFormat().format(summary.totalTokens);
+  const formattedRequests = Intl.NumberFormat().format(summary.requestCount);
+  const showRuntimeProviderKey = summary.label.trim().toLowerCase() !== summary.runtimeProviderKey.trim().toLowerCase();
+  const metaItems = [
+    showRuntimeProviderKey ? summary.runtimeProviderKey : null,
+    summary.accountCount > 0 ? configuredLabel : null,
+  ].filter(Boolean);
   const handleSelect = () => {
     if (primaryAccountId) {
       onSelect(primaryAccountId);
@@ -56,7 +65,7 @@ export const ProviderBoardCard = ({
     <article
       className={cn(
         cardClass,
-        'flex min-h-[176px] cursor-pointer flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25',
+        'flex min-h-[124px] cursor-pointer flex-col gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20',
         selected && selectedCardClass,
       )}
       role="button"
@@ -75,52 +84,59 @@ export const ProviderBoardCard = ({
         }
       }}
     >
-      <div
-        className="flex flex-1 flex-col"
-        data-testid={`models-provider-card-select-${summary.runtimeProviderKey}`}
-      >
+      <div data-testid={`models-provider-card-select-${summary.runtimeProviderKey}`} className="space-y-2.5">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] border border-border/70 bg-[hsl(var(--surface-panel)/0.88)] text-[20px]">
-              {providerTypeInfo?.icon ?? '⚙️'}
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[13px] border border-[hsl(var(--border-subtle)/0.76)] bg-[hsl(var(--surface-base)/0.92)]">
+              {providerIconUrl ? (
+                <img
+                  src={providerIconUrl}
+                  alt={providerTypeInfo?.name || summary.label}
+                  className={cn(
+                    'h-[18px] w-[18px] object-contain',
+                    useNativeColorIcon ? 'opacity-100' : 'opacity-90',
+                    !useNativeColorIcon && shouldInvertInDark(account?.vendorId || '') && 'dark:invert',
+                  )}
+                />
+              ) : (
+                <span className="text-[18px] text-foreground/76">{providerTypeInfo?.icon ?? '⚙️'}</span>
+              )}
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="truncate text-[16px] font-semibold text-foreground">{summary.label}</p>
-                  {isDefaultScope ? (
-                    <span className="rounded-full bg-[hsl(var(--accent)/0.14)] px-2 py-0.5 text-[11px] font-medium text-foreground/78">
-                      {defaultLabel}
-                    </span>
-                  ) : null}
-                  {summary.accountCount > 0 ? (
-                    <span className="rounded-full bg-[hsl(var(--surface-hover)/0.8)] px-2 py-0.5 text-[11px] font-medium text-foreground/82">
-                      {configuredLabel}
-                    </span>
-                  ) : null}
-                </div>
-                <p className="mt-1 truncate text-[12px] text-muted-foreground">
-                  {summary.runtimeProviderKey}
-                </p>
+            <div className="min-w-0 space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="truncate text-[15px] font-semibold tracking-tight text-foreground">{summary.label}</p>
+                {isDefaultScope ? (
+                  <span className="text-[11px] font-medium text-primary/82">
+                    {defaultLabel}
+                  </span>
+                ) : null}
+              </div>
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-muted-foreground">
+                {metaItems.map((item, index) => (
+                  <span key={`${summary.runtimeProviderKey}-${item}-${index}`} className="truncate">
+                    {item}
+                  </span>
+                ))}
               </div>
             </div>
           </div>
-          <span className="rounded-full bg-[hsl(var(--surface-hover)/0.8)] px-2 py-0.5 text-[11px] font-medium text-foreground/82">
+          <span className="app-field-surface shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium text-foreground/76">
             {summary.accountCount} {accountsLabel}
           </span>
         </div>
-        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-muted-foreground">
           <span>
-            {tokensLabel}: {Intl.NumberFormat().format(summary.totalTokens)}
+            {tokensLabel}: {formattedTokens}
           </span>
+          <span className="text-border/90">·</span>
           <span>
-            {requestsLabel}: {Intl.NumberFormat().format(summary.requestCount)}
+            {requestsLabel}: {formattedRequests}
           </span>
         </div>
       </div>
-      <div className="mt-4 flex items-center justify-between gap-3 border-t border-border/60 pt-3">
+      <div className="mt-auto flex items-center justify-between gap-3 border-t border-[hsl(var(--border-subtle)/0.7)] pt-2.5">
         {docsUrl ? (
-          <Button asChild variant="ghost" size="sm" className="h-7 rounded-full px-2.5 text-[12px] text-muted-foreground hover:text-foreground">
+          <Button asChild variant="ghost" size="sm" className="h-7 rounded-full px-2 text-[12px] text-primary/86 hover:text-primary">
             <a
               href={docsUrl}
               target="_blank"
@@ -132,7 +148,7 @@ export const ProviderBoardCard = ({
             </a>
           </Button>
         ) : <span />}
-        <span className="text-[12px] font-medium text-muted-foreground/86">
+        <span className={cn('text-[12px] font-medium', selected ? 'text-primary/88' : 'text-muted-foreground/86')}>
           {selected ? viewingLabel : openLabel}
         </span>
       </div>

@@ -179,14 +179,24 @@ export const PROVIDER_TYPE_INFO: ProviderTypeInfo[] = [
   },
 ];
 
+const nativeColorProviderIconIds = new Set<ProviderType | string>([
+  'google',
+  'openrouter',
+  'qwen-portal',
+]);
+
 /** Get the SVG logo URL for a provider type, falls back to undefined */
 export function getProviderIconUrl(type: ProviderType | string): string | undefined {
   return providerIcons[type];
 }
 
-/** Whether a provider's logo needs CSS invert in dark mode (all logos are monochrome) */
-export function shouldInvertInDark(_type: ProviderType | string): boolean {
-  return true;
+export function usesNativeColorProviderIcon(type: ProviderType | string): boolean {
+  return nativeColorProviderIconIds.has(type);
+}
+
+/** Whether a provider's logo needs CSS invert in dark mode */
+export function shouldInvertInDark(type: ProviderType | string): boolean {
+  return !usesNativeColorProviderIcon(type);
 }
 
 /** Provider list shown in the Setup wizard */

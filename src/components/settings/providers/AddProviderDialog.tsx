@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Copy,
   ExternalLink,
@@ -14,7 +14,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { invokeIpc } from '@/lib/api-client';
 import { hostApiFetch } from '@/lib/host-api';
 import { subscribeHostEvent } from '@/lib/host-events';
@@ -36,14 +35,15 @@ import type { AddProviderDialogOptions } from './provider-account-create';
 const inputClasses = 'h-9 rounded-[10px] border border-border/70 bg-[hsl(var(--surface-panel)/0.96)] text-[13px] text-foreground placeholder:text-muted-foreground/55 shadow-none transition-colors focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20';
 const tokenInputClasses = `${inputClasses} font-mono tracking-[0.01em]`;
 const labelClasses = 'text-[13px] font-semibold text-foreground/80';
-const modalSurfaceClasses = 'app-modal-surface w-full rounded-[14px] border border-border/65 bg-[hsl(var(--surface-elevated)/0.99)]';
-const primaryButtonClass = 'rounded-[10px] h-8 px-4 bg-primary text-primary-foreground shadow-none hover:bg-primary/90';
+const modalSurfaceClasses = 'app-modal-surface w-full rounded-[20px] border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.99)] shadow-[0_18px_48px_rgba(15,23,42,0.12)]';
+const primaryButtonClass = 'rounded-[10px] h-8 px-4 bg-primary text-primary-foreground shadow-none hover:bg-primary/92';
 const segmentedTrackClass = 'flex rounded-[10px] border border-border/60 bg-[hsl(var(--surface-base)/0.96)] p-0.5 gap-0.5';
-const segmentedActiveClass = 'bg-[hsl(var(--surface-elevated)/0.98)] text-foreground shadow-none ring-1 ring-border/50';
+const segmentedActiveClass = 'border border-[hsl(var(--primary)/0.16)] bg-[hsl(var(--surface-elevated)/0.98)] text-primary shadow-none';
 const segmentedIdleClass = 'text-muted-foreground/82 hover:bg-[hsl(var(--foreground)/0.035)]';
-const listRowClass = 'flex w-full items-center gap-3 rounded-[11px] border border-transparent px-3 py-2 text-left transition-colors hover:border-border/50 hover:bg-[hsl(var(--foreground)/0.035)]';
-const listRowMetaClass = 'mt-0.5 truncate text-[11px] text-muted-foreground/72';
-const panelSurfaceClass = 'app-pane-surface rounded-[12px] border border-border/60 bg-[hsl(var(--surface-panel)/0.95)]';
+const listRowClass = 'flex flex-col items-start gap-2 rounded-[14px] border border-[hsl(var(--border-subtle)/0.62)] px-3 py-2.5 text-left transition-colors hover:border-[hsl(var(--border-strong)/0.24)] hover:bg-[hsl(var(--surface-hover)/0.68)]';
+const panelSurfaceClass = 'app-insight-surface rounded-[12px] border border-[hsl(var(--border-subtle)/0.78)] bg-[hsl(var(--surface-elevated)/0.96)]';
+const setupGridClass = 'grid gap-3 md:grid-cols-2';
+const pickerCardActiveClass = 'border-[hsl(var(--border-strong)/0.34)] bg-[hsl(var(--surface-elevated)/1)] shadow-[0_8px_18px_rgba(15,23,42,0.04)]';
 
 export interface AddProviderDialogProps {
   existingVendorIds: Set<string>;
@@ -111,6 +111,11 @@ export function AddProviderDialog({
         ? 'oauth_browser'
         : null;
   const useOAuthFlow = isOAuth && (!supportsApiKey || authMode === 'oauth');
+  const compactCredentialLayout = Boolean(selectedType && !typeInfo?.showBaseUrl && !showModelIdField && selectedType !== 'custom');
+  const setupSectionTitle = compactCredentialLayout && !useOAuthFlow
+    ? t('aiProviders.sections.setupCompact', '基础与凭证')
+    : t('aiProviders.sections.setup', '基础与接入');
+  const setupPaneGridClass = compactCredentialLayout && !useOAuthFlow ? 'grid gap-3 lg:grid-cols-2' : setupGridClass;
   const latestRef = useRef({ selectedType, typeInfo, onAdd, onClose, t });
   const pendingOAuthRef = useRef<{ accountId: string; label: string } | null>(null);
 
@@ -193,6 +198,36 @@ export function AddProviderDialog({
     }
     return vendor.supportsMultipleAccounts || !existingVendorIds.has(type.id);
   });
+  const availableTypeIds = availableTypes.map((type) => type.id).join('|');
+
+  const selectType = useCallback((type: ProviderTypeInfo) => {
+    setSelectedType(type.id);
+    setName(type.id === 'custom' ? t('aiProviders.custom') : type.name);
+    setBaseUrl(type.defaultBaseUrl || '');
+    setModelId(type.defaultModelId || '');
+    setApiProtocol('openai-completions');
+    setValidationError(null);
+    setOauthFlowing(false);
+    setOauthData(null);
+    setOauthError(null);
+    setManualCodeInput('');
+  }, [t]);
+
+  useEffect(() => {
+    if (!availableTypes.length) {
+      if (selectedType) {
+        setSelectedType(null);
+      }
+      return;
+    }
+    if (!selectedType) {
+      selectType(availableTypes[0]);
+      return;
+    }
+    if (!availableTypes.some((type) => type.id === selectedType)) {
+      selectType(availableTypes[0]);
+    }
+  }, [availableTypeIds, availableTypes, selectedType, selectType]);
 
   const handleStartOAuth = async () => {
     if (!selectedType) {
@@ -321,10 +356,55 @@ export function AddProviderDialog({
     }
   };
 
+  const apiKeyFieldBlock = (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-3">
+        <Label htmlFor="apiKey" className={labelClasses}>{t('aiProviders.dialog.apiKey')}</Label>
+        {typeInfo?.apiKeyUrl ? (
+          <a
+            href={typeInfo.apiKeyUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-[13px] font-medium text-primary hover:text-primary/80"
+            tabIndex={-1}
+          >
+            {t('aiProviders.oauth.getApiKey')}
+            <ExternalLink className="h-3 w-3" />
+          </a>
+        ) : null}
+      </div>
+      <div className="relative">
+        <Input
+          id="apiKey"
+          type={showKey ? 'text' : 'password'}
+          placeholder={typeInfo?.id === 'ollama' ? t('aiProviders.notRequired') : typeInfo?.placeholder}
+          value={apiKey}
+          onChange={(event) => {
+            setApiKey(event.target.value);
+            setValidationError(null);
+          }}
+          className={tokenInputClasses}
+        />
+        <button
+          type="button"
+          onClick={() => setShowKey((current) => !current)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+        >
+          {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </button>
+      </div>
+      {validationError ? (
+        <p className="text-[13px] font-medium text-red-500">{validationError}</p>
+      ) : (
+        <p className="text-[12px] text-muted-foreground">{t('aiProviders.dialog.apiKeyStored')}</p>
+      )}
+    </div>
+  );
+
   return (
     <div className="app-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4" data-testid="provider-add-dialog">
-      <Card className={cn(modalSurfaceClasses, 'max-h-[90vh] max-w-[36rem] flex flex-col overflow-hidden')}>
-        <CardHeader className="relative shrink-0 pb-3">
+      <Card className={cn(modalSurfaceClasses, 'max-h-[90vh] max-w-[64rem] flex flex-col overflow-hidden')}>
+        <CardHeader className="relative shrink-0 border-b border-[hsl(var(--border-subtle)/0.72)] pb-3">
           <CardTitle className="text-[15px] font-semibold tracking-tight text-foreground">{t('aiProviders.dialog.title')}</CardTitle>
           <CardDescription className="mt-1 text-[11.5px] text-foreground/66">
             {t('aiProviders.dialog.desc')}
@@ -338,342 +418,323 @@ export function AddProviderDialog({
             <X className="h-4 w-4" />
           </Button>
         </CardHeader>
-        <CardContent className="flex-1 overflow-y-auto p-4">
-          {!selectedType ? (
-            <div className="space-y-1.5">
-              {availableTypes.map((type) => (
-                <button
-                  key={type.id}
-                  onClick={() => {
-                    setSelectedType(type.id);
-                    setName(type.id === 'custom' ? t('aiProviders.custom') : type.name);
-                    setBaseUrl(type.defaultBaseUrl || '');
-                    setModelId(type.defaultModelId || '');
-                  }}
-                  className={listRowClass}
-                >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] border border-border/60 bg-[hsl(var(--surface-base)/0.96)]">
-                    {getProviderIconUrl(type.id) ? (
-                      <img src={getProviderIconUrl(type.id)} alt={type.name} className={cn('h-[18px] w-[18px]', shouldInvertInDark(type.id) && 'dark:invert')} />
-                    ) : (
-                      <span className="text-lg">{type.icon}</span>
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="truncate font-medium text-[13px] text-foreground">{type.id === 'custom' ? t('aiProviders.custom') : type.name}</p>
-                    <p className={listRowMetaClass}>{type.id}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-5">
-              <div className={panelSurfaceClass + ' flex items-center gap-2.5 p-3'}>
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] border border-border/55 bg-[hsl(var(--surface-base)/0.96)]">
-                  {getProviderIconUrl(selectedType) ? (
-                    <img src={getProviderIconUrl(selectedType)} alt={typeInfo?.name} className={cn('h-[18px] w-[18px]', shouldInvertInDark(selectedType) && 'dark:invert')} />
-                  ) : (
-                    <span className="text-lg">{typeInfo?.icon}</span>
-                  )}
+        <CardContent className="flex-1 overflow-y-auto p-5 app-subtle-scrollbar">
+          <div className="flex flex-col gap-4">
+            <section className={cn(panelSurfaceClass, 'shrink-0 p-3')}>
+              {availableTypes.length ? (
+                <div className="grid [grid-template-columns:repeat(auto-fill,minmax(11rem,1fr))] gap-2.5">
+                  {availableTypes.map((type) => {
+                    const selected = type.id === selectedType;
+                    const meta = type.model
+                      ? `${type.model} · ${type.id}`
+                      : `${type.supportsApiKey ? 'API Key' : 'OAuth'} · ${type.id}`;
+                    return (
+                      <button
+                        key={type.id}
+                        type="button"
+                        disabled={saving || oauthFlowing}
+                        onClick={() => {
+                          if (!selected) {
+                            selectType(type);
+                          }
+                        }}
+                        className={cn(
+                          listRowClass,
+                          selected && pickerCardActiveClass,
+                          'min-h-[88px] justify-center rounded-[14px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-60',
+                        )}
+                      >
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border border-[hsl(var(--border-subtle)/0.76)] bg-[hsl(var(--surface-base)/0.92)]">
+                          {getProviderIconUrl(type.id) ? (
+                            <img src={getProviderIconUrl(type.id)} alt={type.name} className={cn('h-4 w-4', shouldInvertInDark(type.id) && 'dark:invert')} />
+                          ) : (
+                            <span className="text-[15px]">{type.icon}</span>
+                          )}
+                        </div>
+                        <div className="min-w-0 space-y-0.5">
+                          <p className="truncate text-[13px] font-semibold text-foreground">{type.id === 'custom' ? t('aiProviders.custom') : type.name}</p>
+                          <p className="line-clamp-1 text-[11px] leading-5 text-muted-foreground/72">
+                            {meta}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
-                <div className="min-w-0">
-                  <p className="truncate font-semibold text-[14px]">{typeInfo?.id === 'custom' ? t('aiProviders.custom') : typeInfo?.name}</p>
-                  <div className="mt-1 flex flex-wrap items-center gap-2 text-[12px] font-medium">
-                    <button
-                      onClick={() => {
-                        setSelectedType(null);
-                        setValidationError(null);
-                        setBaseUrl('');
-                        setModelId('');
-                      }}
-                      className="text-primary hover:text-primary/80"
-                    >
-                      {t('aiProviders.dialog.change')}
-                    </button>
+              ) : (
+                <div className="flex flex-1 items-center justify-center rounded-[14px] border border-dashed border-[hsl(var(--border-subtle)/0.72)] bg-[hsl(var(--surface-base)/0.42)] px-4 text-center text-[12.5px] text-muted-foreground">
+                  {t('aiProviders.dialog.desc')}
+                </div>
+              )}
+            </section>
+
+            <section className={cn(panelSurfaceClass, 'flex flex-col')}>
+              {selectedType && typeInfo ? (
+                <>
+                  <div className="flex shrink-0 items-start justify-between gap-4 border-b border-[hsl(var(--border-subtle)/0.72)] px-4 py-4">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] border border-[hsl(var(--border-subtle)/0.76)] bg-[hsl(var(--surface-base)/0.92)]">
+                        {getProviderIconUrl(selectedType) ? (
+                          <img src={getProviderIconUrl(selectedType)} alt={typeInfo.name} className={cn('h-5 w-5', shouldInvertInDark(selectedType) && 'dark:invert')} />
+                        ) : (
+                          <span className="text-lg">{typeInfo.icon}</span>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-[14px] font-semibold text-foreground">{typeInfo.id === 'custom' ? t('aiProviders.custom') : typeInfo.name}</p>
+                        <p className="mt-1 text-[11.5px] text-muted-foreground">{typeInfo.id}</p>
+                      </div>
+                    </div>
                     {providerDocsUrl ? (
                       <a
                         href={providerDocsUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-primary hover:text-primary/80"
+                        className="inline-flex shrink-0 items-center gap-1 text-[12px] font-medium text-primary hover:text-primary/80"
                       >
                         {t('aiProviders.dialog.customDoc')}
-                        <ExternalLink className="h-3 w-3" />
+                        <ExternalLink className="h-3.5 w-3.5" />
                       </a>
                     ) : null}
                   </div>
-                </div>
-              </div>
 
-              <div className="space-y-4 bg-transparent p-0">
-                <div className="space-y-2.5">
-                  <Label htmlFor="name" className={labelClasses}>{t('aiProviders.dialog.displayName')}</Label>
-                  <Input
-                    id="name"
-                    placeholder={typeInfo?.id === 'custom' ? t('aiProviders.custom') : typeInfo?.name}
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
-                    className={inputClasses}
-                  />
-                </div>
-
-                {isOAuth && supportsApiKey ? (
-                  <div className={cn(segmentedTrackClass, 'overflow-hidden text-[12px] font-medium')}>
-                    <button
-                      onClick={() => setAuthMode('oauth')}
-                      className={cn('flex-1 rounded-[8px] px-3 py-2 transition-colors', authMode === 'oauth' ? segmentedActiveClass : segmentedIdleClass)}
-                    >
-                      {t('aiProviders.oauth.loginMode')}
-                    </button>
-                    <button
-                      onClick={() => setAuthMode('apikey')}
-                      className={cn('flex-1 rounded-[8px] px-3 py-2 transition-colors', authMode === 'apikey' ? segmentedActiveClass : segmentedIdleClass)}
-                    >
-                      {t('aiProviders.oauth.apikeyMode')}
-                    </button>
-                  </div>
-                ) : null}
-
-                {!isOAuth || (supportsApiKey && authMode === 'apikey') ? (
-                  <div className={panelSurfaceClass + ' space-y-2.5 p-3'}>
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="apiKey" className={labelClasses}>{t('aiProviders.dialog.apiKey')}</Label>
-                      {typeInfo?.apiKeyUrl ? (
-                        <a
-                          href={typeInfo.apiKeyUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-[13px] font-medium text-primary hover:text-primary/80"
-                          tabIndex={-1}
-                        >
-                          {t('aiProviders.oauth.getApiKey')}
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
-                      ) : null}
-                    </div>
-                    <div className="relative">
-                      <Input
-                        id="apiKey"
-                        type={showKey ? 'text' : 'password'}
-                        placeholder={typeInfo?.id === 'ollama' ? t('aiProviders.notRequired') : typeInfo?.placeholder}
-                        value={apiKey}
-                        onChange={(event) => {
-                          setApiKey(event.target.value);
-                          setValidationError(null);
-                        }}
-                        className={tokenInputClasses}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowKey((current) => !current)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      >
-                        {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                    {validationError ? (
-                      <p className="text-[13px] text-red-500 font-medium">{validationError}</p>
-                    ) : null}
-                    <p className="text-[12px] text-muted-foreground">{t('aiProviders.dialog.apiKeyStored')}</p>
-                  </div>
-                ) : null}
-
-                {typeInfo?.showBaseUrl ? (
-                  <div className={panelSurfaceClass + ' space-y-2.5 p-3'}>
-                    <Label htmlFor="baseUrl" className={labelClasses}>{t('aiProviders.dialog.baseUrl')}</Label>
-                    <Input
-                      id="baseUrl"
-                      placeholder={getProtocolBaseUrlPlaceholder(apiProtocol)}
-                      value={baseUrl}
-                      onChange={(event) => setBaseUrl(event.target.value)}
-                      className={inputClasses}
-                    />
-                  </div>
-                ) : null}
-
-                {showModelIdField ? (
-                  <div className={panelSurfaceClass + ' space-y-2.5 p-3'}>
-                    <Label htmlFor="modelId" className={labelClasses}>{t('aiProviders.dialog.modelId')}</Label>
-                    <Input
-                      id="modelId"
-                      placeholder={typeInfo?.modelIdPlaceholder || 'provider/model-id'}
-                      value={modelId}
-                      onChange={(event) => {
-                        setModelId(event.target.value);
-                        setValidationError(null);
-                      }}
-                      className={inputClasses}
-                    />
-                  </div>
-                ) : null}
-
-                {selectedType === 'custom' ? (
-                  <div className={panelSurfaceClass + ' space-y-2.5 p-3'}>
-                    <Label className={labelClasses}>{t('aiProviders.dialog.protocol', 'Protocol')}</Label>
-                    <div className={cn(segmentedTrackClass, 'gap-1 text-[12px]')}>
-                      <button
-                        type="button"
-                        onClick={() => setApiProtocol('openai-completions')}
-                        className={cn('flex-1 rounded-[8px] px-3 py-1.5 transition-colors', apiProtocol === 'openai-completions' ? segmentedActiveClass : segmentedIdleClass)}
-                      >
-                        {t('aiProviders.protocols.openaiCompletions', 'OpenAI Completions')}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setApiProtocol('openai-responses')}
-                        className={cn('flex-1 rounded-[8px] px-3 py-1.5 transition-colors', apiProtocol === 'openai-responses' ? segmentedActiveClass : segmentedIdleClass)}
-                      >
-                        {t('aiProviders.protocols.openaiResponses', 'OpenAI Responses')}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setApiProtocol('anthropic-messages')}
-                        className={cn('flex-1 rounded-[8px] px-3 py-1.5 transition-colors', apiProtocol === 'anthropic-messages' ? segmentedActiveClass : segmentedIdleClass)}
-                      >
-                        {t('aiProviders.protocols.anthropic', 'Anthropic')}
-                      </button>
-                    </div>
-                  </div>
-                ) : null}
-
-                {useOAuthFlow ? (
-                  <div className="space-y-4 pt-1.5">
-                    <div className={panelSurfaceClass + ' p-4 text-left'}>
-                      <p className="mb-3 block text-[12px] font-medium text-foreground/70">
-                        {t('aiProviders.oauth.loginPrompt')}
-                      </p>
-                      <Button
-                        onClick={handleStartOAuth}
-                        disabled={oauthFlowing}
-                        className="h-9 w-full rounded-[10px] font-semibold"
-                      >
-                        {oauthFlowing ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            {t('aiProviders.oauth.waiting')}
-                          </>
-                        ) : t('aiProviders.oauth.loginButton')}
-                      </Button>
-                    </div>
-
-                    {oauthFlowing ? (
-                      <div className={panelSurfaceClass + ' relative mt-3.5 overflow-hidden p-4'}>
-                        <div className="relative z-10 flex flex-col items-center justify-center space-y-5 text-center">
-                          {oauthError ? (
-                            <div className="space-y-3 text-red-500">
-                              <XCircle className="h-10 w-10 mx-auto" />
-                              <p className="font-semibold text-[14px]">{t('aiProviders.oauth.authFailed')}</p>
-                              <p className="text-[12.5px] opacity-80">{oauthError}</p>
-                              <Button variant="outline" size="sm" onClick={handleCancelOAuth} className="mt-2 h-8 rounded-[10px] px-5">
-                                Try Again
-                              </Button>
-                            </div>
-                          ) : !oauthData ? (
-                            <div className="space-y-4 py-6">
-                              <Loader2 className="mx-auto h-10 w-10 animate-spin text-primary" />
-                              <p className="text-[12.5px] font-medium text-muted-foreground animate-pulse">{t('aiProviders.oauth.requestingCode')}</p>
-                            </div>
-                          ) : oauthData.mode === 'manual' ? (
-                            <div className="w-full space-y-4">
-                              <div className="space-y-2">
-                                <h3 className="font-semibold text-[14px] text-foreground">Complete OpenAI Login</h3>
-                                <p className="rounded-[11px] bg-[hsl(var(--foreground)/0.03)] p-3 text-left text-[12px] text-muted-foreground/84">
-                                  {oauthData.message || 'Open the authorization page, complete login, then paste the callback URL or code below.'}
-                                </p>
-                              </div>
-                              <Button
-                                variant="secondary"
-                                className="h-9 w-full rounded-[10px] font-semibold"
-                                onClick={() => invokeIpc('shell:openExternal', oauthData.authorizationUrl)}
+                  <div className="px-4 py-4">
+                    <div className="space-y-3">
+                      <section className={panelSurfaceClass + ' space-y-3 p-3'}>
+                        <div className="flex flex-col gap-2.5">
+                          <p className="text-[12px] font-semibold text-foreground/82">{setupSectionTitle}</p>
+                          {isOAuth && supportsApiKey ? (
+                            <div className={cn(segmentedTrackClass, 'grid w-full grid-cols-2 overflow-hidden text-[12px] font-medium sm:w-auto')}>
+                              <button
+                                type="button"
+                                onClick={() => setAuthMode('oauth')}
+                                className={cn('min-w-0 whitespace-nowrap rounded-[8px] px-2.5 py-2 text-center leading-none transition-colors sm:min-w-[112px]', authMode === 'oauth' ? segmentedActiveClass : segmentedIdleClass)}
                               >
-                                <ExternalLink className="h-4 w-4 mr-2" />
-                                Open Authorization Page
-                              </Button>
+                                {t('aiProviders.oauth.loginMode')}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setAuthMode('apikey')}
+                                className={cn('min-w-0 whitespace-nowrap rounded-[8px] px-2.5 py-2 text-center leading-none transition-colors sm:min-w-[112px]', authMode === 'apikey' ? segmentedActiveClass : segmentedIdleClass)}
+                              >
+                                {t('aiProviders.oauth.apikeyMode')}
+                              </button>
+                            </div>
+                          ) : null}
+                        </div>
+
+                        <div className={setupPaneGridClass}>
+                          <div className="space-y-2">
+                            <Label htmlFor="name" className={labelClasses}>{t('aiProviders.dialog.displayName')}</Label>
+                            <Input
+                              id="name"
+                              placeholder={typeInfo.id === 'custom' ? t('aiProviders.custom') : typeInfo.name}
+                              value={name}
+                              onChange={(event) => setName(event.target.value)}
+                              className={inputClasses}
+                            />
+                          </div>
+
+                          {typeInfo.showBaseUrl ? (
+                            <div className="space-y-2">
+                              <Label htmlFor="baseUrl" className={labelClasses}>{t('aiProviders.dialog.baseUrl')}</Label>
                               <Input
-                                placeholder="Paste callback URL or code"
-                                value={manualCodeInput}
-                                onChange={(event) => setManualCodeInput(event.target.value)}
-                                className={tokenInputClasses}
+                                id="baseUrl"
+                                placeholder={getProtocolBaseUrlPlaceholder(apiProtocol)}
+                                value={baseUrl}
+                                onChange={(event) => setBaseUrl(event.target.value)}
+                                className={inputClasses}
                               />
-                              <Button
-                                className="h-9 w-full rounded-[10px] font-semibold"
-                                onClick={handleSubmitManualOAuthCode}
-                                disabled={!manualCodeInput.trim()}
-                              >
-                                Submit Code
-                              </Button>
-                              <Button variant="ghost" className="h-9 w-full rounded-[10px] font-semibold text-muted-foreground" onClick={handleCancelOAuth}>
-                                Cancel
-                              </Button>
                             </div>
-                          ) : (
-                            <div className="w-full space-y-4.5">
-                              <div className="space-y-2">
-                                <h3 className="font-semibold text-[14px] text-foreground">{t('aiProviders.oauth.approveLogin')}</h3>
-                                <div className="mt-2 space-y-1.5 rounded-[11px] bg-[hsl(var(--foreground)/0.03)] p-3 text-left text-[12px] text-muted-foreground/84">
-                                  <p>1. {t('aiProviders.oauth.step1')}</p>
-                                  <p>2. {t('aiProviders.oauth.step2')}</p>
-                                  <p>3. {t('aiProviders.oauth.step3')}</p>
-                                </div>
-                              </div>
+                          ) : null}
 
-                              <div className={panelSurfaceClass + ' flex items-center justify-center gap-3 px-3.5 py-3'}>
-                                <code className="text-[26px] font-mono tracking-[0.16em] font-bold text-foreground">
-                                  {oauthData.userCode}
-                                </code>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 rounded-[10px] hover:bg-[hsl(var(--foreground)/0.04)]"
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(oauthData.userCode);
-                                    toast.success(t('aiProviders.oauth.codeCopied'));
-                                  }}
+                          {showModelIdField ? (
+                            <div className="space-y-2">
+                              <Label htmlFor="modelId" className={labelClasses}>{t('aiProviders.dialog.modelId')}</Label>
+                              <Input
+                                id="modelId"
+                                placeholder={typeInfo.modelIdPlaceholder || 'provider/model-id'}
+                                value={modelId}
+                                onChange={(event) => {
+                                  setModelId(event.target.value);
+                                  setValidationError(null);
+                                }}
+                                className={inputClasses}
+                              />
+                            </div>
+                          ) : null}
+
+                          {selectedType === 'custom' ? (
+                            <div className="space-y-2 md:col-span-2">
+                              <Label className={labelClasses}>{t('aiProviders.dialog.protocol', 'Protocol')}</Label>
+                              <div className={cn(segmentedTrackClass, 'gap-1 text-[12px]')}>
+                                <button
+                                  type="button"
+                                  onClick={() => setApiProtocol('openai-completions')}
+                                  className={cn('flex-1 rounded-[8px] px-3 py-1.5 transition-colors', apiProtocol === 'openai-completions' ? segmentedActiveClass : segmentedIdleClass)}
                                 >
-                                  <Copy className="h-4 w-4" />
-                                </Button>
+                                  {t('aiProviders.protocols.openaiCompletions', 'OpenAI Completions')}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setApiProtocol('openai-responses')}
+                                  className={cn('flex-1 rounded-[8px] px-3 py-1.5 transition-colors', apiProtocol === 'openai-responses' ? segmentedActiveClass : segmentedIdleClass)}
+                                >
+                                  {t('aiProviders.protocols.openaiResponses', 'OpenAI Responses')}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setApiProtocol('anthropic-messages')}
+                                  className={cn('flex-1 rounded-[8px] px-3 py-1.5 transition-colors', apiProtocol === 'anthropic-messages' ? segmentedActiveClass : segmentedIdleClass)}
+                                >
+                                  {t('aiProviders.protocols.anthropic', 'Anthropic')}
+                                </button>
                               </div>
+                            </div>
+                          ) : null}
+                          {compactCredentialLayout && !useOAuthFlow ? apiKeyFieldBlock : null}
+                        </div>
+                      </section>
 
+                      {!useOAuthFlow && !compactCredentialLayout ? (
+                        <section className={panelSurfaceClass + ' space-y-3 p-3'}>
+                          {apiKeyFieldBlock}
+                        </section>
+                      ) : useOAuthFlow ? (
+                        <section className={panelSurfaceClass + ' space-y-3 p-3'}>
+                          {!oauthFlowing ? (
+                            <>
+                              <p className="text-[12px] font-medium text-foreground/70">
+                                {t('aiProviders.oauth.loginPrompt')}
+                              </p>
                               <Button
-                                variant="secondary"
+                                onClick={handleStartOAuth}
+                                disabled={oauthFlowing}
                                 className="h-9 w-full rounded-[10px] font-semibold"
-                                onClick={() => invokeIpc('shell:openExternal', oauthData.verificationUri)}
                               >
-                                <ExternalLink className="h-4 w-4 mr-2" />
-                                {t('aiProviders.oauth.openLoginPage')}
+                                {t('aiProviders.oauth.loginButton')}
                               </Button>
+                            </>
+                          ) : (
+                            <div className="relative overflow-hidden">
+                              <div className="relative z-10 flex flex-col items-center justify-center space-y-4 text-center">
+                                {oauthError ? (
+                                  <div className="space-y-3 text-red-500">
+                                    <XCircle className="mx-auto h-10 w-10" />
+                                    <p className="text-[14px] font-semibold">{t('aiProviders.oauth.authFailed')}</p>
+                                    <p className="text-[12.5px] opacity-80">{oauthError}</p>
+                                    <Button variant="outline" size="sm" onClick={handleCancelOAuth} className="mt-2 h-8 rounded-[10px] px-5">
+                                      Try Again
+                                    </Button>
+                                  </div>
+                                ) : !oauthData ? (
+                                  <div className="space-y-4 py-5">
+                                    <Loader2 className="mx-auto h-10 w-10 animate-spin text-primary" />
+                                    <p className="text-[12.5px] font-medium text-muted-foreground animate-pulse">{t('aiProviders.oauth.requestingCode')}</p>
+                                  </div>
+                                ) : oauthData.mode === 'manual' ? (
+                                  <div className="w-full space-y-3.5 text-left">
+                                    <p className="rounded-[11px] bg-[hsl(var(--foreground)/0.03)] p-3 text-[12px] text-muted-foreground/84">
+                                      {oauthData.message || 'Open the authorization page, complete login, then paste the callback URL or code below.'}
+                                    </p>
+                                    <Button
+                                      variant="secondary"
+                                      className="h-9 w-full rounded-[10px] font-semibold"
+                                      onClick={() => invokeIpc('shell:openExternal', oauthData.authorizationUrl)}
+                                    >
+                                      <ExternalLink className="mr-2 h-4 w-4" />
+                                      Open Authorization Page
+                                    </Button>
+                                    <Input
+                                      placeholder="Paste callback URL or code"
+                                      value={manualCodeInput}
+                                      onChange={(event) => setManualCodeInput(event.target.value)}
+                                      className={tokenInputClasses}
+                                    />
+                                    <Button
+                                      className="h-9 w-full rounded-[10px] font-semibold"
+                                      onClick={handleSubmitManualOAuthCode}
+                                      disabled={!manualCodeInput.trim()}
+                                    >
+                                      Submit Code
+                                    </Button>
+                                    <Button variant="ghost" className="h-9 w-full rounded-[10px] font-semibold text-muted-foreground" onClick={handleCancelOAuth}>
+                                      Cancel
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <div className="w-full space-y-4">
+                                    <div className="space-y-2 text-left">
+                                      <h3 className="text-[14px] font-semibold text-foreground">{t('aiProviders.oauth.approveLogin')}</h3>
+                                      <div className="space-y-1.5 rounded-[11px] bg-[hsl(var(--foreground)/0.03)] p-3 text-[12px] text-muted-foreground/84">
+                                        <p>1. {t('aiProviders.oauth.step1')}</p>
+                                        <p>2. {t('aiProviders.oauth.step2')}</p>
+                                        <p>3. {t('aiProviders.oauth.step3')}</p>
+                                      </div>
+                                    </div>
 
-                              <div className="flex items-center justify-center gap-2 pt-2 text-[12.5px] font-medium text-muted-foreground">
-                                <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                                <span>{t('aiProviders.oauth.waitingApproval')}</span>
+                                    <div className={panelSurfaceClass + ' flex items-center justify-center gap-3 px-3.5 py-3'}>
+                                      <code className="text-[24px] font-mono font-bold tracking-[0.16em] text-foreground">
+                                        {oauthData.userCode}
+                                      </code>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 rounded-[10px] hover:bg-[hsl(var(--foreground)/0.04)]"
+                                        onClick={() => {
+                                          navigator.clipboard.writeText(oauthData.userCode);
+                                          toast.success(t('aiProviders.oauth.codeCopied'));
+                                        }}
+                                      >
+                                        <Copy className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+
+                                    <Button
+                                      variant="secondary"
+                                      className="h-9 w-full rounded-[10px] font-semibold"
+                                      onClick={() => invokeIpc('shell:openExternal', oauthData.verificationUri)}
+                                    >
+                                      <ExternalLink className="mr-2 h-4 w-4" />
+                                      {t('aiProviders.oauth.openLoginPage')}
+                                    </Button>
+
+                                    <div className="flex items-center justify-center gap-2 pt-1 text-[12.5px] font-medium text-muted-foreground">
+                                      <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                                      <span>{t('aiProviders.oauth.waitingApproval')}</span>
+                                    </div>
+
+                                    <Button variant="ghost" className="h-9 w-full rounded-[10px] font-semibold text-muted-foreground" onClick={handleCancelOAuth}>
+                                      Cancel
+                                    </Button>
+                                  </div>
+                                )}
                               </div>
-
-                              <Button variant="ghost" className="h-9 w-full rounded-[10px] font-semibold text-muted-foreground" onClick={handleCancelOAuth}>
-                                Cancel
-                              </Button>
                             </div>
                           )}
-                        </div>
-                      </div>
-                    ) : null}
+                        </section>
+                      ) : null}
+                    </div>
                   </div>
-                ) : null}
-              </div>
 
-              <Separator className="bg-border/60" />
-
-              <div className="flex justify-end gap-3">
-                <Button
-                  onClick={handleAdd}
-                  className={cn(primaryButtonClass, 'h-9 px-6 text-[12.5px] font-semibold', useOAuthFlow && 'hidden')}
-                  disabled={!selectedType || saving || (showModelIdField && modelId.trim().length === 0)}
-                >
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  {t('aiProviders.dialog.add')}
-                </Button>
-              </div>
-            </div>
-          )}
+                  <div className="flex shrink-0 justify-end gap-3 border-t border-[hsl(var(--border-subtle)/0.72)] px-4 py-3">
+                    <Button
+                      onClick={handleAdd}
+                      className={cn(primaryButtonClass, 'h-9 px-6 text-[12.5px] font-semibold', useOAuthFlow && 'hidden')}
+                      disabled={!selectedType || saving || (showModelIdField && modelId.trim().length === 0)}
+                    >
+                      {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                      {t('aiProviders.dialog.add')}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="flex h-full items-center justify-center px-6 text-center text-[12.5px] text-muted-foreground">
+                  {t('aiProviders.dialog.desc')}
+                </div>
+              )}
+            </section>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -40,9 +40,9 @@ const gridClassMap = {
   4: 'md:grid-cols-2 xl:grid-cols-4',
 } as const;
 
-const railListClass = 'space-y-2.5';
-const railRowClass = 'w-full rounded-[14px] border border-border/65 bg-[hsl(var(--surface-elevated)/0.96)] px-3 py-2.5 text-left transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)]';
-const railRowActiveClass = 'border-primary/40 bg-[hsl(var(--accent)/0.1)]';
+const railListClass = 'space-y-2';
+const railRowClass = 'w-full rounded-[14px] border border-[hsl(var(--border-subtle)/0.78)] bg-[hsl(var(--surface-elevated)/0.98)] px-3 py-2.5 text-left transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)]';
+const railRowActiveClass = 'border-[hsl(var(--border-strong)/0.34)] bg-[hsl(var(--surface-elevated)/1)]';
 
 const resolvePrimaryAccountId = (
   summary: ProviderUsageSummary,
@@ -110,7 +110,7 @@ export const ProviderBoard = ({
         data-overflow-mode="clamp"
       >
         <div
-          className="rounded-[18px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.98)] px-4 py-3"
+          className="rounded-[16px] border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.985)] px-4 py-3"
           data-testid="models-provider-focus-header"
         >
           <div className="flex items-start justify-between gap-3">
@@ -127,7 +127,7 @@ export const ProviderBoard = ({
             </div>
             <button
               type="button"
-              className="shrink-0 rounded-full border border-border/65 bg-[hsl(var(--surface-panel)/0.9)] px-3 py-1 text-[12px] font-medium text-foreground/76 transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)] hover:text-foreground"
+              className="shrink-0 rounded-full border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-base)/0.9)] px-3 py-1 text-[12px] font-medium text-foreground/76 transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)] hover:text-foreground"
               onClick={onClearSelection}
             >
               {clearLabel}
@@ -159,7 +159,7 @@ export const ProviderBoard = ({
           </p>
           <button
             type="button"
-            className="rounded-full border border-border/65 bg-[hsl(var(--surface-panel)/0.9)] px-3 py-1 text-[12px] font-medium text-foreground/76 transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)] hover:text-foreground"
+            className="rounded-full border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-base)/0.9)] px-3 py-1 text-[12px] font-medium text-foreground/76 transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)] hover:text-foreground"
             onClick={onClearSelection}
           >
             {clearLabel}
@@ -210,13 +210,13 @@ export const ProviderBoard = ({
       data-overflow-mode="clamp"
     >
       {loading && summaries.length === 0 ? (
-        <div className="rounded-[18px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.72)] px-4 py-8">
+        <div className="rounded-[16px] border border-[hsl(var(--border-subtle)/0.72)] bg-[hsl(var(--surface-elevated)/0.72)] px-4 py-6">
           <p className="text-[14px] font-semibold text-foreground">{boardTitle}</p>
           <p className="mt-1 text-[12px] text-muted-foreground">{boardHint}</p>
         </div>
       ) : null}
       {!loading && summaries.length === 0 ? (
-        <div className="rounded-[18px] border border-dashed border-border/70 bg-[hsl(var(--surface-elevated)/0.72)] px-4 py-5">
+        <div className="rounded-[16px] border border-dashed border-[hsl(var(--border-subtle)/0.76)] bg-[hsl(var(--surface-elevated)/0.72)] px-4 py-5">
           <p className="text-[14px] font-semibold text-foreground">{emptyTitle}</p>
           <p className="mt-1 text-[12px] text-muted-foreground">{emptyHint}</p>
         </div>

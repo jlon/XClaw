@@ -173,6 +173,18 @@
 
 如果没有这层契约，最终实现会自然滑回“网页式纵向分段页”。
 
+### 1.2 工作台铁律映射
+
+`/models` 这条线后续实现统一按 `workbench-style-unification` 的 `WU-01 ~ WU-07` 执行，不再用“看起来更好看”替代结构判断：
+
+- `WU-01`：默认态主任务是“浏览并选择 provider”；聚焦态主任务是“配置当前 provider，并观察该 provider 的分析上下文”
+- `WU-02`：首屏主层只允许 `轻页头 / Provider Browse Pane / Detail Workbench`
+- `WU-03`：Token Intelligence 的摘要带、主指标切换、时间窗口必须共用一条工具带语法
+- `WU-04`：provider 卡片和 inspector 都先删重复事实，再决定是否补 icon / badge
+- `WU-05`：清晰度来自边界、字重、节奏；provider icon 不再靠彩色壳体制造存在感
+- `WU-06`：页级主 CTA 永远只有 `添加提供商`
+- `WU-07`：路径、来源、危险动作不进入首层；首层只展示身份、接入、回退、凭证这些真实工作事实
+
 ### 2. 顶层骨架
 
 `/models` 页面采用三段式结构：

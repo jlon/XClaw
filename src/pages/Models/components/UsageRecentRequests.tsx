@@ -27,7 +27,7 @@ interface UsageRecentRequestsProps {
 }
 
 const sectionClass = 'app-insight-surface rounded-[14px] border border-[hsl(var(--border-subtle)/0.78)] px-3.5 py-3';
-const rowClass = 'rounded-[10px] px-2.5 py-2 transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)]';
+const rowClass = 'border-t border-[hsl(var(--border-subtle)/0.62)] py-2.5 first:border-t-0 first:pt-0 last:pb-0 transition-colors';
 const formatTokenCount = (value: number): string => Intl.NumberFormat().format(value);
 
 function formatUsageTimestamp(timestamp: string): string {
@@ -96,7 +96,7 @@ export function UsageRecentRequests({
         </div>
       </div>
 
-      <div className="space-y-1">
+      <div>
         {entries.map((entry, index) => (
           <div
             key={[entry.sessionId, entry.timestamp, entry.model, entry.provider, index].filter(Boolean).join('-')}
@@ -112,7 +112,7 @@ export function UsageRecentRequests({
                     onSelectProvider ? (
                       <button
                         type="button"
-                        className="app-field-surface truncate rounded-full px-2 py-0.5 text-[11px] font-medium text-foreground/80 transition-colors hover:bg-[hsl(var(--accent)/0.12)] hover:text-foreground"
+                        className="truncate rounded-full border border-[hsl(var(--border-subtle)/0.76)] px-2 py-0.5 text-[11px] font-medium text-foreground/80 transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)] hover:text-foreground"
                         onClick={() => onSelectProvider(entry.provider!)}
                       >
                         {entry.provider}

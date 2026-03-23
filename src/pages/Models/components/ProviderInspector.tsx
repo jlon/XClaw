@@ -29,7 +29,7 @@ interface ProviderInspectorProps {
 }
 
 const paneSurfaceClass = 'app-pane-surface rounded-[20px] border border-[hsl(var(--border-subtle)/0.82)] shadow-none';
-const modalSurfaceClass = 'app-modal-surface rounded-[22px] border border-[hsl(var(--border-subtle)/0.86)] shadow-none';
+const modalSurfaceClass = 'app-modal-surface rounded-[22px] border border-[hsl(var(--border-subtle)/0.86)] shadow-[0_18px_48px_rgba(15,23,42,0.12)]';
 
 export function ProviderInspector({
   shell,
@@ -88,7 +88,7 @@ export function ProviderInspector({
         <div className={cn('space-y-2.5', shell === 'pane' ? 'mb-3' : 'shrink-0 border-b border-[hsl(var(--border-subtle)/0.72)] px-6 py-4')}>
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 space-y-1">
-              <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">{inspectorTitle}</p>
+              <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground/74">{inspectorTitle}</p>
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="truncate text-[20px] font-semibold tracking-tight text-foreground">{item.account.label}</h2>
                 {isDefault ? (
@@ -142,7 +142,7 @@ export function ProviderInspector({
                       className={cn(
                         'rounded-full border px-2.5 py-1 text-[11.5px] font-medium transition-colors',
                         active
-                          ? 'border-primary/40 bg-[hsl(var(--accent)/0.14)] text-foreground'
+                          ? 'border-[hsl(var(--border-strong)/0.34)] bg-[hsl(var(--surface-elevated)/0.98)] text-primary'
                           : 'border-border/65 bg-[hsl(var(--surface-base)/0.78)] text-foreground/76 hover:bg-[hsl(var(--surface-hover)/0.82)] hover:text-foreground',
                       )}
                       data-testid={`models-provider-account-switch-${candidate.account.id}`}

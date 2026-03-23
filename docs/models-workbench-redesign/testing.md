@@ -159,6 +159,8 @@
 - Windows 真实系统缩放和字体渲染仍需手工 smoke
 - 当前共享表单 section 已验证编辑 contract 和旧设置页复用，但仍缺一条 `/models` inspector 编辑态保存的更完整交互断言
 - Provider 多账号共享同一 runtime key 时，仍需补一条“聚焦哪个账号”的更明确交互验证
+- Add Provider Dialog 仍需一条按 `WU-02 / WU-03` 的手工审视，确认没有重新长回网页 settings 模态
+- Add Provider Dialog 仍需实机确认在较小高度窗口下是否会再次出现内部滚动条，但默认桌面窗口下已改成“左网格 + 右 pane”的宽模态，不再走列表向导
 
 ## 本轮已完成验证
 
@@ -166,7 +168,11 @@
 - `pnpm exec vitest run tests/unit/models-page.test.tsx -t "browser fallback mode without electron platform bindings"`
 - `pnpm exec vitest run tests/unit/models-page.test.tsx -t "lets the inspector switch between accounts that share one runtime provider scope|keeps provider focus stable when historical usage points to an unconfigured provider"`
 - `pnpm exec vitest run tests/unit/models-page.test.tsx tests/unit/models-workbench-render.test.tsx`
+- `pnpm exec eslint src/components/settings/providers/AddProviderDialog.tsx --max-warnings=0`
+- `pnpm exec vitest run tests/unit/models-page.test.tsx tests/unit/models-workbench-render.test.tsx`
 - `pnpm exec vitest run tests/unit/models-workbench-render.test.tsx tests/unit/models-page.test.tsx`
+- `pnpm exec eslint src/pages/Models/components/ProviderBoardCard.tsx --max-warnings=0`
+- `pnpm exec vitest run tests/unit/models-page.test.tsx tests/unit/models-workbench-render.test.tsx`
 - `pnpm exec eslint src/pages/Models/index.tsx src/pages/Models/components/ProviderInspector.tsx src/pages/Models/components/ProviderInspectorView.tsx src/pages/Models/components/ProviderInspectorEditor.tsx tests/unit/models-page.test.tsx --max-warnings=0`
 - `pnpm exec eslint src/pages/Models/index.tsx src/pages/Models/components/ProviderBoard.tsx tests/unit/models-page.test.tsx tests/unit/models-workbench-render.test.tsx --max-warnings=0`
 - `pnpm exec eslint src/pages/Models/components/ProviderBoardCard.tsx src/pages/Models/components/ProviderInspector.tsx src/pages/Models/components/ProviderInspectorEditor.tsx src/components/settings/providers/ProviderAccountFormSections.tsx src/pages/Models/workbench-view-model.ts tests/unit/models-workbench-render.test.tsx tests/unit/models-page.test.tsx --max-warnings=0`
@@ -175,6 +181,8 @@
 - `pnpm exec vitest run tests/unit/models-charts.test.tsx tests/unit/models-page.test.tsx tests/unit/models-workbench-render.test.tsx`
 - `pnpm exec eslint src/pages/Models/components/ProviderInspector.tsx src/pages/Models/components/ProviderInspectorView.tsx src/pages/Models/components/ProviderInspectorEditor.tsx src/components/settings/providers/ProviderAccountFormSections.tsx tests/unit/provider-account-form-sections.test.tsx tests/unit/models-page.test.tsx tests/unit/models-workbench-render.test.tsx --max-warnings=0`
 - `pnpm exec eslint src/pages/Models/index.tsx src/pages/Models/components/UsageKpiStrip.tsx src/pages/Models/components/UsageMetricToggle.tsx src/pages/Models/components/UsageBreakdownChart.tsx src/pages/Models/components/UsageRecentRequests.tsx tests/unit/models-charts.test.tsx tests/unit/models-page.test.tsx tests/unit/models-workbench-render.test.tsx --max-warnings=0`
+- `pnpm exec eslint src/pages/Models/components/ModelsWorkbenchHeader.tsx src/pages/Models/components/ProviderBoard.tsx src/pages/Models/components/ProviderBoardCard.tsx src/pages/Models/components/ProviderInspector.tsx src/pages/Models/components/ProviderInspectorView.tsx src/pages/Models/components/UsageKpiStrip.tsx src/pages/Models/components/UsageMetricToggle.tsx src/pages/Models/components/UsageTrendChart.tsx src/pages/Models/components/UsageBreakdownChart.tsx src/pages/Models/components/UsageRecentRequests.tsx src/pages/Models/index.tsx --max-warnings=0`
+- `pnpm exec vitest run tests/unit/models-page.test.tsx tests/unit/models-workbench-render.test.tsx tests/unit/models-charts.test.tsx`
 - `pnpm run build:vite`
 - `pnpm run typecheck`
 - 浏览器 fallback 手工验收：`/models` 在无 Electron preload 环境下不再崩溃，空 provider 态能正常显示

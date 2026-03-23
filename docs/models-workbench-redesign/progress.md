@@ -81,9 +81,18 @@
 - breakdown 已退出“每条一个网页卡片”的报表语法，改为更轻的资源行 + 细条进度表达
 - 最近请求已从多张列表卡改成单 pane 内部资源行，分页按钮改为桌面工具按钮
 - compact 编辑态已把“基础信息 + 接入配置”合并为单一 setup pane，顶部多余边线与独立文档行已删除
+- Provider Board 卡片已改成更高密度的资源板：去掉 `label === runtime key` 的重复副标题，收掉由固定最小高度撑出的空白区，并把 usage facts 与 utility 行压回同一张卡片
+- Provider Board 卡片图标已切回真实 provider logo，并统一回到中性桌面壳；不再通过粉橙/品牌色壳体制造存在感
+- `Qwen / OpenRouter / Google` 已切到官方公开彩色图标资源；`OpenAI / Anthropic / Custom` 等仍保持中性单色品牌语法，不再用 tinted shell 伪造彩色识别
+- 已按 `workbench-style-unification` 启动 `/models` 专项收口，不再把图标或单张卡片当成主矛盾
+- 这一轮确认 `/models` 的主偏差集中在三块：`Provider Board` 仍有浏览卡片墙语法、`Inspector` 仍有多卡叠层、`Token Intelligence` 仍残留报表页语法
+- Provider Board 现已继续收成桌面资源板：图标壳缩小、身份与状态压回同一层、usage facts 与 utility 行进一步减重
+- Provider Inspector 查看态已从“四张信息卡”压成单一事实 pane + utility footer，编辑态与查看态的首层结构更接近桌面 inspector
+- Token Intelligence 现已继续退出双层摘要壳：摘要带、主指标切换、时间窗口共用一层 header；breakdown 与最近请求都已改成分隔资源行，而不是卡片列表
+- Add Provider Dialog 已退出“先选 provider 再进入下一步”的列表向导，改成宽桌面模态：左侧固定 provider 网格卡片，右侧固定紧凑配置 pane，默认桌面窗口下不再把主要流程压进窄滚动抽屉
 
 ## 下一步
 
 - 继续评估 Token Intelligence 的色板在深色主题下是否还需要进一步收敛
 - 视需要补一条 `/models` 空 provider 态与 Electron 实机态的手工 smoke 记录
-- 评估是否需要把 provider 卡片的“最近使用量”从 tokens/cost 文案进一步压缩成更接近桌面资源板的摘要样式
+- 继续检查 Add Provider Dialog 是否仍残留网页 settings 语法，必要时按 `WU-02 / WU-03` 再收一轮

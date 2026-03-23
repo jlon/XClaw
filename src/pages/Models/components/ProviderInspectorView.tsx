@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { getProviderDocsUrl, getProviderTypeInfo } from '@/lib/providers';
@@ -7,7 +8,6 @@ import {
   normalizeFallbackModels,
   normalizeFallbackProviderIds,
 } from '@/components/settings/providers/ProviderAccountFormSections';
-import { useTranslation } from 'react-i18next';
 
 interface ProviderInspectorViewProps {
   item: ProviderListItem;
@@ -18,24 +18,20 @@ interface ProviderInspectorViewProps {
   onSetDefault: () => void;
 }
 
-const sectionTitleClass = 'text-[13px] font-semibold text-foreground';
-const sectionValueClass = 'text-[13px] leading-5 text-foreground/78';
-const sectionSurfaceClass = 'app-insight-surface rounded-[13px] border border-[hsl(var(--border-subtle)/0.78)] px-3 py-2.5';
-
-function Section({
-  title,
-  children,
-  span = 'normal',
-}: {
-  title: string;
-  children: React.ReactNode;
+interface FactRowProps {
+  label: string;
+  value: React.ReactNode;
   span?: 'normal' | 'full';
-}) {
+}
+
+const surfaceClass = 'app-insight-surface rounded-[14px] border border-[hsl(var(--border-subtle)/0.78)] px-4 py-3';
+
+function FactRow({ label, value, span = 'normal' }: FactRowProps) {
   return (
-    <section className={cn('space-y-1.5', sectionSurfaceClass, span === 'full' && 'md:col-span-2')}>
-      <h3 className={sectionTitleClass}>{title}</h3>
-      <div className={sectionValueClass}>{children}</div>
-    </section>
+    <div className={cn('space-y-1', span === 'full' && 'md:col-span-2')}>
+      <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground/74">{label}</p>
+      <div className="text-[13px] leading-5 text-foreground/82">{value}</div>
+    </div>
   );
 }
 
@@ -58,38 +54,46 @@ export function ProviderInspectorView({
       .filter(Boolean),
   ];
   const docsUrl = typeInfo ? getProviderDocsUrl(typeInfo, i18n.language) ?? typeInfo.apiKeyUrl : undefined;
+  const configured = hasConfiguredCredentials(account, status);
 
   return (
     <div className="space-y-3">
-      <div className="grid gap-2.5 md:grid-cols-2">
-        <Section title={t('settings:aiProviders.sections.basic', '基础信息')}>
-          <p>{[typeInfo?.name || account.vendorId, getAuthModeLabel(account.authMode, (key) => t(`settings:${key}`)), account.label].filter(Boolean).join(' · ')}</p>
-        </Section>
-
-        <Section title={t('settings:aiProviders.sections.connection', '接入配置')}>
-          <p>{[account.baseUrl || t('dashboard:models.globalScopeHint', '全局范围'), account.model || t('settings:aiProviders.overview.noModelSelected', '未选择模型'), account.apiProtocol || 'openai-completions'].filter(Boolean).join(' · ')}</p>
-        </Section>
-
-        <Section title={t('settings:aiProviders.sections.fallbackStrategy', '回退策略')}>
-          <p>{fallbackNames.length > 0 ? fallbackNames.join(' · ') : t('settings:aiProviders.card.none', '无')}</p>
-        </Section>
-
-        <Section title={t('settings:aiProviders.sections.credentials', '凭证与验证')}>
-          <div className="flex flex-wrap items-center gap-3">
-            <span>{hasConfiguredCredentials(account, status) ? t('settings:aiProviders.card.configured', '已配置') : t('settings:aiProviders.dialog.apiKeyMissing', '未配置 API Key')}</span>
-            {docsUrl ? (
-              <a
-                href={docsUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="font-medium text-primary hover:text-primary/82"
-              >
-                {t('dashboard:models.docs', 'docs')}
-              </a>
-            ) : null}
-          </div>
-        </Section>
-      </div>
+      <section className={surfaceClass}>
+        <div className="grid gap-x-6 gap-y-3 md:grid-cols-2">
+          <FactRow
+            label={t('settings:aiProviders.sections.basic', '基础信息')}
+            value={[typeInfo?.name || account.vendorId, getAuthModeLabel(account.authMode, (key) => t(`settings:${key}`)), account.label].filter(Boolean).join(' · ')}
+          />
+          <FactRow
+            label={t('settings:aiProviders.sections.connection', '接入配置')}
+            value={[account.baseUrl || t('dashboard:models.globalScopeHint', '全局范围'), account.model || t('settings:aiProviders.overview.noModelSelected', '未选择模型'), account.apiProtocol || 'openai-completions'].filter(Boolean).join(' · ')}
+          />
+          <FactRow
+            label={t('settings:aiProviders.sections.fallbackStrategy', '回退策略')}
+            value={fallbackNames.length > 0 ? fallbackNames.join(' · ') : t('settings:aiProviders.card.none', '无')}
+            span="full"
+          />
+          <FactRow
+            label={t('settings:aiProviders.sections.credentials', '凭证与验证')}
+            value={(
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span>{configured ? t('settings:aiProviders.card.configured', '已配置') : t('settings:aiProviders.dialog.apiKeyMissing', '未配置 API Key')}</span>
+                {docsUrl ? (
+                  <a
+                    href={docsUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-medium text-primary/88 hover:text-primary"
+                  >
+                    {t('dashboard:models.docs', 'docs')}
+                  </a>
+                ) : null}
+              </div>
+            )}
+            span="full"
+          />
+        </div>
+      </section>
 
       <footer className="flex flex-wrap items-center justify-end gap-2 pt-0.5" data-testid="models-provider-inspector-footer">
         <Button type="button" variant="outline" size="sm" className="rounded-full px-4" onClick={onEdit}>
@@ -97,15 +101,21 @@ export function ProviderInspectorView({
         </Button>
         <Button
           type="button"
-          variant="outline"
+          variant="ghost"
           size="sm"
-          className="rounded-full px-4"
+          className="rounded-full px-3 text-foreground/78 hover:text-foreground"
           onClick={onSetDefault}
           disabled={isDefault}
         >
           {t('dashboard:models.setDefaultProvider', { label: account.label, defaultValue: `设为默认 · ${account.label}` })}
         </Button>
-        <Button type="button" variant="destructive" size="sm" className="rounded-full px-4" onClick={onDelete}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="rounded-full px-3 text-destructive/82 hover:text-destructive"
+          onClick={onDelete}
+        >
           {t('dashboard:models.deleteProvider', { label: account.label, defaultValue: `删除 ${account.label}` })}
         </Button>
       </footer>

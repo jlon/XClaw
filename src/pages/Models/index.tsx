@@ -53,12 +53,12 @@ import {
 const DEFAULT_USAGE_FETCH_MAX_ATTEMPTS = 6;
 const WINDOWS_USAGE_FETCH_MAX_ATTEMPTS = 10;
 const USAGE_FETCH_RETRY_DELAY_MS = 1500;
-const toggleGroupClass = 'app-field-surface flex rounded-[9px] p-0.5';
-const toggleActiveClass = 'rounded-[8px] bg-[hsl(var(--accent)/0.14)] text-foreground';
+const toggleGroupClass = 'app-field-surface flex rounded-[9px] border border-[hsl(var(--border-subtle)/0.82)] p-0.5';
+const toggleActiveClass = 'rounded-[8px] border border-[hsl(var(--primary)/0.16)] bg-[hsl(var(--surface-elevated)/0.98)] text-primary';
 const toggleIdleClass = 'rounded-[8px] text-muted-foreground hover:bg-[hsl(var(--surface-hover)/0.84)] hover:text-foreground';
 const emptyStateClass = 'app-empty-surface flex items-center justify-center rounded-[20px] py-12 text-muted-foreground';
-const usageSurfaceClass = 'app-pane-surface rounded-[18px] border border-[hsl(var(--border-subtle)/0.82)] px-4 py-3.5';
-const usageChipClass = 'rounded-md bg-[hsl(var(--surface-hover)/0.76)] px-1.5 py-0.5 text-foreground/76';
+const usageSurfaceClass = 'app-pane-surface rounded-[18px] border border-[hsl(var(--border-subtle)/0.82)] px-4 py-3';
+const usageChipClass = 'rounded-full border border-[hsl(var(--border-subtle)/0.76)] px-2 py-0.5 text-foreground/76';
 
 function normalizeUsageProviderKey(provider: string | null | undefined): string {
   return provider?.trim().toLowerCase() || 'unknown';
@@ -437,20 +437,20 @@ export function Models() {
       data-layout={tokenIntelligenceLayout}
       data-primary-chart-visible="true"
     >
-      <div className="space-y-3.5">
+      <div className="space-y-3">
         <div
-          className="app-insight-surface space-y-2 rounded-[13px] border border-[hsl(var(--border-subtle)/0.78)] px-3 py-2.5"
+          className="space-y-2.5 border-b border-[hsl(var(--border-subtle)/0.72)] pb-3"
           data-testid="models-token-intelligence-header"
         >
-          <UsageKpiStrip
-            items={usageKpis}
-            activeMetric={usageMetric}
-            tokensLabel={t('dashboard:models.kpis.tokens', '窗口总 Tokens')}
-            costLabel={t('dashboard:models.kpis.cost', '窗口总 Cost')}
-            requestsLabel={t('dashboard:models.windowRequests', '窗口总 Requests')}
-            modelsLabel={t('dashboard:models.kpis.models', '活跃模型')}
-          />
-          <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2.5">
+            <UsageKpiStrip
+              items={usageKpis}
+              activeMetric={usageMetric}
+              tokensLabel={t('dashboard:models.kpis.tokens', '窗口总 Tokens')}
+              costLabel={t('dashboard:models.kpis.cost', '窗口总 Cost')}
+              requestsLabel={t('dashboard:models.windowRequests', '窗口总 Requests')}
+              modelsLabel={t('dashboard:models.kpis.models', '活跃模型')}
+            />
             <div className="flex flex-wrap items-center gap-2">
               <UsageMetricToggle
                 value={usageMetric}
@@ -494,10 +494,10 @@ export function Models() {
                 </Button>
               </div>
             </div>
-            <p className="text-[11px] text-muted-foreground">
-              {t('dashboard:recentTokenHistory.showingLast', { count: filteredUsageHistory.length })}
-            </p>
           </div>
+          <p className="text-[11px] text-muted-foreground">
+            {t('dashboard:recentTokenHistory.showingLast', { count: filteredUsageHistory.length })}
+          </p>
         </div>
 
         <div>
