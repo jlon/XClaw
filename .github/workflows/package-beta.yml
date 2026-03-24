@@ -172,6 +172,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           repository: ${{ steps.branding.outputs.github_repository }}
+          tag_name: v${{ needs.prepare.outputs.version }}
           files: |
             release-artifacts/**/*.dmg
             release-artifacts/**/*.zip
@@ -183,6 +184,8 @@ jobs:
           draft: false
           prerelease: true
           make_latest: false
+          overwrite_files: true
+          fail_on_unmatched_files: true
           generate_release_notes: true
           body: |
             ## 🧪 ${{ steps.branding.outputs.product_name }} v${{ needs.prepare.outputs.version }}
