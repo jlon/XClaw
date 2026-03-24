@@ -1,9 +1,6 @@
 name: Package Test Builds
 
 on:
-  push:
-    paths:
-      - '.github/workflows/package-test.yml'
   workflow_dispatch:
     inputs:
       ref:
@@ -29,15 +26,8 @@ permissions:
   contents: read
 
 jobs:
-  validate-workflow:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Confirm manual test packaging workflow is healthy
-        run: echo "package-test.yml is manual-only; push validation completed successfully."
-
   package-test:
-    if: github.event_name == 'workflow_dispatch' && ((github.event.inputs.platform || 'all') == 'all' || github.event.inputs.platform == matrix.platform)
+    if: (github.event.inputs.platform || 'all') == 'all' || github.event.inputs.platform == matrix.platform
     strategy:
       matrix:
         include:
