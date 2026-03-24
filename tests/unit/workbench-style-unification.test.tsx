@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { Cron } from '@/pages/Cron';
 import type { CronJob } from '@/types/cron';
 
-const { cronState, gatewayState, agentsState } = vi.hoisted(() => ({
+const { cronState, gatewayState, agentsState, hostApiFetchMock } = vi.hoisted(() => ({
   cronState: {
     jobs: [] as CronJob[],
     loading: false,
@@ -23,6 +23,7 @@ const { cronState, gatewayState, agentsState } = vi.hoisted(() => ({
     defaultAgentId: 'main',
     fetchAgents: vi.fn(),
   },
+  hostApiFetchMock: vi.fn(),
 }));
 
 vi.mock('@/stores/cron', () => ({
@@ -45,6 +46,10 @@ vi.mock('@/stores/agents', () => ({
 
 vi.mock('@/components/ui/confirm-dialog', () => ({
   ConfirmDialog: () => null,
+}));
+
+vi.mock('@/lib/host-api', () => ({
+  hostApiFetch: (...args: unknown[]) => hostApiFetchMock(...args),
 }));
 
 vi.mock('sonner', () => ({
@@ -113,20 +118,20 @@ describe('workbench style unification', () => {
     agentsState.agents = [{ id: 'main', name: '主智能体' }];
     agentsState.defaultAgentId = 'main';
     agentsState.fetchAgents = vi.fn();
+    hostApiFetchMock.mockResolvedValue({ success: true, channels: [] });
   });
 
   it('renders cron with a concise desktop header and icon-led summary strip', () => {
-    render(<Cron />);
+    const { container } = render(<Cron />);
 
-    expect(screen.getByTestId('workbench-header')).toBeInTheDocument();
-    expect(screen.getByTestId('workbench-header-icon')).toBeInTheDocument();
+    expect(container.querySelector('.app-cron-workbench-top')).toBeInTheDocument();
     expect(screen.getByText('定时任务')).toBeInTheDocument();
     expect(screen.getByText('安排消息与任务按时执行')).toBeInTheDocument();
-    expect(screen.getByTestId('workbench-summary-strip')).toBeInTheDocument();
-    expect(screen.getByTestId('workbench-summary-item-total')).toHaveTextContent('全部');
-    expect(screen.getByTestId('workbench-summary-item-active')).toHaveTextContent('运行');
-    expect(screen.getByTestId('workbench-summary-item-paused')).toHaveTextContent('暂停');
-    expect(screen.getByTestId('workbench-summary-item-failed')).toHaveTextContent('失败');
+    expect(container.querySelector('.app-cron-summary-line')).toBeInTheDocument();
+    expect(screen.getByText('全部')).toBeInTheDocument();
+    expect(screen.getByText('运行')).toBeInTheDocument();
+    expect(screen.getByText('暂停')).toBeInTheDocument();
+    expect(screen.getByText('失败')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '刷新' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '新建任务' })).toBeInTheDocument();
   });

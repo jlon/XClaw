@@ -1,0 +1,104 @@
+name: Package Test Builds
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: '要打包的 Git ref（分支 / tag / SHA），留空使用当前默认 ref'
+        required: false
+        default: ''
+      version:
+        description: '测试包版本号，留空自动生成 dev 日期版本'
+        required: false
+        default: ''
+      platform:
+        description: '测试包平台'
+        required: false
+        default: all
+        type: choice
+        options:
+          - all
+          - mac
+          - win
+          - linux
+
+permissions:
+  contents: read
+
+jobs:
+  package-test:
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            platform: mac
+          - os: windows-latest
+            platform: win
+          - os: ubuntu-latest
+            platform: linux
+    if: inputs.platform == 'all' || inputs.platform == matrix.platform
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Resolve test package version
+        shell: bash
+        env:
+          TZ: Asia/Shanghai
+        run: node scripts/resolve-release-version.mjs --input-version "${{ inputs.version }}" --channel dev --write-package
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Download uv binaries for macOS
+        if: matrix.platform == 'mac'
+        run: pnpm run uv:download:mac
+
+      - name: Download uv binaries for Windows
+        if: matrix.platform == 'win'
+        run: pnpm run uv:download:win
+
+      - name: Download uv binaries for Linux
+        if: matrix.platform == 'linux'
+        run: pnpm run uv:download:linux
+
+      - name: Build macOS test package
+        if: matrix.platform == 'mac'
+        run: pnpm run package:mac:adhoc
+
+      - name: Build Windows test package
+        if: matrix.platform == 'win'
+        run: pnpm run package:win
+
+      - name: Build Linux test package
+        if: matrix.platform == 'linux'
+        run: pnpm run package:linux
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-${{ matrix.platform }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            release/*.dmg
+            release/*.zip
+            release/*.blockmap
+            release/*.exe
+            release/*.AppImage
+            release/*.deb
+            release/*.rpm
+            release/*.yml
+            !release/builder-debug.yml
+          retention-days: 7

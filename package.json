@@ -48,6 +48,7 @@
         "icons": "zx scripts/generate-icons.mjs",
         "package": "vite build && zx scripts/bundle-openclaw.mjs && zx scripts/bundle-openclaw-plugins.mjs && zx scripts/bundle-preinstalled-skills.mjs",
         "package:mac": "pnpm run package && electron-builder -c electron-builder.config.cjs --mac --publish never",
+        "package:mac:adhoc": "node scripts/package-mac-adhoc.mjs",
         "package:mac:local": "node scripts/package-mac-local.mjs",
         "package:win": "pnpm run package && electron-builder -c electron-builder.config.cjs --win --publish never",
         "package:linux": "pnpm run package && electron-builder -c electron-builder.config.cjs --linux --publish never",

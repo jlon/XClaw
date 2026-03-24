@@ -29,7 +29,7 @@ export const websiteContent = {
     badge: '桌面 AI 工作台',
     brandline: '给你无限可能',
     subtitle: '让 AI 在桌面里持续工作',
-    description: '把对话、渠道、技能、定时任务和模型管理，收进一个可下载的桌面工作台。',
+    description: '把对话、渠道、技能和任务，收进一个真正可下载的桌面工作台。',
     primaryCta: '立即下载',
     secondaryCta: 'GitHub',
     stageLabel: '真实界面',
@@ -42,9 +42,9 @@ export const websiteContent = {
     { label: 'Windows', icon: 'windows', width: 'narrow', href: 'https://github.com/jlon/XClaw/releases' },
   ],
   stats: [
-    { value: '~50 MB', label: '轻量安装包' },
+    { value: '安装即用', label: '下载后即可进入桌面工作台' },
     { value: '低占用', label: '常驻桌面也保持轻巧' },
-    { value: '本地集中', label: '消息、任务和模型同屏可见' },
+    { value: '本地集中', label: '消息与能力同屏可见' },
   ],
   screenshots: [
     {

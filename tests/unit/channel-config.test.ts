@@ -332,10 +332,10 @@ describe('channel recipient hint values', () => {
     );
 
     await expect(getChannelRecipientHintValues('feishu', 'bot2')).resolves.toEqual(
-      expect.objectContaining({
-        pairingAllowFrom: ['ou_123'],
-        pairingRecipientId: 'ou_123',
-      }),
+      {
+        reason: 'derived',
+        recipientId: 'ou_123',
+      },
     );
   });
 
@@ -357,10 +357,10 @@ describe('channel recipient hint values', () => {
     );
 
     await expect(getChannelRecipientHintValues('telegram', 'default')).resolves.toEqual(
-      expect.objectContaining({
-        pairingAllowFrom: ['5937398060'],
-        pairingRecipientId: '5937398060',
-      }),
+      {
+        reason: 'derived',
+        recipientId: '5937398060',
+      },
     );
   });
 });

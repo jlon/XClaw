@@ -1,0 +1,204 @@
+name: Package Beta
+
+on:
+  push:
+    tags:
+      - 'v*-beta*'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: '要打包的 Git ref（分支 / tag / SHA），留空使用当前默认 ref'
+        required: false
+        default: ''
+      version:
+        description: 'Beta 版本号，例如 1.0.0-beta.1'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is_beta: ${{ steps.channel.outputs.is_beta }}
+      should_publish: ${{ steps.publish.outputs.should_publish }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Resolve beta version
+        id: version
+        shell: bash
+        env:
+          TZ: Asia/Shanghai
+        run: |
+          VERSION=$(node scripts/resolve-release-version.mjs --github-ref "${GITHUB_REF}" --input-version "${{ github.event.inputs.version || '' }}" --channel beta)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Resolved beta version: $VERSION"
+
+      - name: Validate beta channel
+        id: channel
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if [[ "$VERSION" =~ beta ]]; then
+            echo "is_beta=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_beta=false" >> $GITHUB_OUTPUT
+            echo "Expected beta version, got: $VERSION"
+          fi
+
+      - name: Decide whether to publish GitHub prerelease
+        id: publish
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            echo "should_publish=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_publish=false" >> $GITHUB_OUTPUT
+          fi
+
+  package:
+    needs: prepare
+    if: needs.prepare.outputs.is_beta == 'true'
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            platform: mac
+          - os: windows-latest
+            platform: win
+          - os: ubuntu-latest
+            platform: linux
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Write beta version into package.json
+        shell: bash
+        run: node scripts/resolve-release-version.mjs --input-version "${{ needs.prepare.outputs.version }}" --channel beta --write-package
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Download uv binaries for macOS
+        if: matrix.platform == 'mac'
+        run: pnpm run uv:download:mac
+
+      - name: Download uv binaries for Windows
+        if: matrix.platform == 'win'
+        run: pnpm run uv:download:win
+
+      - name: Download uv binaries for Linux
+        if: matrix.platform == 'linux'
+        run: pnpm run uv:download:linux
+
+      - name: Build macOS beta package
+        if: matrix.platform == 'mac'
+        run: pnpm run package:mac:adhoc
+
+      - name: Build Windows beta package
+        if: matrix.platform == 'win'
+        run: pnpm run package:win
+
+      - name: Build Linux beta package
+        if: matrix.platform == 'linux'
+        run: pnpm run package:linux
+
+      - name: Upload beta artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: beta-${{ matrix.platform }}
+          path: |
+            release/*.dmg
+            release/*.zip
+            release/*.blockmap
+            release/*.exe
+            release/*.AppImage
+            release/*.deb
+            release/*.rpm
+            release/*.yml
+            !release/builder-debug.yml
+          retention-days: 7
+
+  publish:
+    needs: [prepare, package]
+    if: needs.prepare.outputs.is_beta == 'true' && needs.prepare.outputs.should_publish == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Load release branding config
+        id: branding
+        run: node scripts/read-release-branding.mjs >> $GITHUB_OUTPUT
+
+      - name: Download beta artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+          pattern: beta-*
+
+      - name: Remove duplicate builder-debug files
+        run: find release-artifacts/ -name "builder-debug.yml" -delete -print || true
+
+      - name: Create GitHub beta prerelease
+        uses: softprops/action-gh-release@v2
+        with:
+          repository: ${{ steps.branding.outputs.github_repository }}
+          files: |
+            release-artifacts/**/*.dmg
+            release-artifacts/**/*.zip
+            release-artifacts/**/*.exe
+            release-artifacts/**/*.AppImage
+            release-artifacts/**/*.deb
+            release-artifacts/**/*.rpm
+            release-artifacts/**/*.yml
+          draft: false
+          prerelease: true
+          make_latest: false
+          generate_release_notes: true
+          body: |
+            ## 🧪 ${{ steps.branding.outputs.product_name }} v${{ needs.prepare.outputs.version }}
+
+            这是对外 Beta 版本，目前仍为未签名测试包。
+
+            ### 安装说明
+
+            - macOS：首次打开可能需要右键“打开”或去“隐私与安全性”里放行
+            - Windows：SmartScreen 可能会拦截，需要点击“更多信息”后继续
+            - Linux：按各自包格式手动安装
+
+            ### 下载内容
+
+            - macOS：`.dmg` / `.zip`
+            - Windows：`.exe`
+            - Linux：`.AppImage` / `.deb` / `.rpm`
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

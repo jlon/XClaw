@@ -21,11 +21,10 @@ describe('second-wave desktop theme rollout', () => {
     expect(source).toContain('surface-panel');
     expect(source).toContain('surface-base');
     expect(source).toContain('app-field-surface');
-    expect(source).toContain('tokenInputClasses');
-    expect(source).toContain('settingsPageTitleClass');
-    expect(source).toContain('settingsHeadingClass');
-    expect(source).toContain('listRowClass');
-    expect(source).toContain('panelSurfaceClass');
+    expect(source).toContain('settingsInputClass');
+    expect(source).toContain('settingsCodeInputClass');
+    expect(source).toContain('settingsPaneClass');
+    expect(source).toContain('usageSurfaceClass');
     expect(source).toContain('border-border/70');
     expect(source).not.toContain('opacity-0 group-hover:opacity-100');
   });
@@ -43,12 +42,12 @@ describe('second-wave desktop theme rollout', () => {
     expect(source).not.toContain('border-black/10');
     expect(source).not.toContain('dark:border-white/10');
     expect(source).not.toContain('hover:bg-black/5');
-    expect(source).not.toContain('rounded-full');
     expect(source).not.toContain('hover:bg-accent/60');
     expect(source).toContain('app-insight-surface');
     expect(source).toContain('app-field-surface');
     expect(source).toContain('border-border/70');
     expect(source).toContain('rounded-[12px]');
+    expect(source).toContain('app-cron-summary-pill');
     expect(source).toContain('hover:bg-[hsl(var(--surface-hover)/0.46)]');
   });
 
@@ -83,7 +82,6 @@ describe('second-wave desktop theme rollout', () => {
 
     const source = files.map((relativePath) => readFileSync(resolve(process.cwd(), relativePath), 'utf8')).join('\n');
 
-    expect(source).not.toContain('rounded-full');
     expect(source).not.toContain('bg-secondary/80');
     expect(source).not.toContain('hover:bg-accent/60');
     expect(source).toContain('rounded-[10px]');

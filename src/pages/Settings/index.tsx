@@ -826,47 +826,45 @@ export function Settings() {
 
                   <div className={settingsPaneDividerClass}>
                     <div className="space-y-3">
-                      <div className={settingsCompactToggleRowClass}>
-                        <div className={settingsCompactRowTextClass}>
-                          <Label className={settingsCompactRowLabelClass}>{t('gateway.proxyTitle')}</Label>
-                        </div>
-                        <div className={settingsControlDockClass}>
-                          <div className="flex w-full md:max-w-[320px] md:justify-start">
-                            <Switch checked={proxyEnabledDraft} onCheckedChange={setProxyEnabledDraft} />
+                      <div className="space-y-3 rounded-[16px] border border-border/60 bg-[hsl(var(--surface-panel)/0.72)] px-4 py-3">
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="min-w-0">
+                            <Label className={settingsCompactRowLabelClass}>{t('gateway.proxyTitle')}</Label>
                           </div>
+                          <Switch checked={proxyEnabledDraft} onCheckedChange={setProxyEnabledDraft} />
                         </div>
-                      </div>
-                      <div className="h-px bg-border/50" />
-                      <div className={settingsCompactControlRowClass}>
-                        <div className={settingsCompactRowTextClass}>
-                          <Label htmlFor="proxy-server" className={settingsCompactRowLabelClass}>{t('gateway.proxyServer')}</Label>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-center">
-                            <Input
-                              id="proxy-server"
-                              value={proxyServerDraft}
-                              onChange={(event) => setProxyServerDraft(event.target.value)}
-                              placeholder="http://127.0.0.1:7890"
-                              className={settingsInputClass}
-                            />
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={() => setShowAdvancedProxyFields((current) => !current)}
-                              className={cn('h-9 px-4', settingsGhostButtonClass)}
-                            >
-                              {showAdvancedProxyFields ? t('gateway.hideAdvancedProxy') : t('gateway.showAdvancedProxy')}
-                            </Button>
-                            <Button
-                              variant="outline"
-                              onClick={handleSaveProxySettings}
-                              disabled={savingProxy}
-                              className={cn('h-9 px-4', settingsGhostButtonClass)}
-                            >
-                              <RefreshCw className={`mr-2 h-4 w-4${savingProxy ? ' animate-spin' : ''}`} />
-                              {savingProxy ? t('common:status.saving') : t('common:actions.save')}
-                            </Button>
+                        <div className="h-px bg-border/50" />
+                        <div className="grid gap-3 md:grid-cols-[minmax(0,160px)_minmax(0,1fr)] md:items-center">
+                          <div className={settingsCompactRowTextClass}>
+                            <Label htmlFor="proxy-server" className={settingsCompactRowLabelClass}>{t('gateway.proxyServer')}</Label>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-center">
+                              <Input
+                                id="proxy-server"
+                                value={proxyServerDraft}
+                                onChange={(event) => setProxyServerDraft(event.target.value)}
+                                placeholder="http://127.0.0.1:7890"
+                                className={settingsInputClass}
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setShowAdvancedProxyFields((current) => !current)}
+                                className={cn('h-9 px-4', settingsGhostButtonClass)}
+                              >
+                                {showAdvancedProxyFields ? t('gateway.hideAdvancedProxy') : t('gateway.showAdvancedProxy')}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                onClick={handleSaveProxySettings}
+                                disabled={savingProxy}
+                                className={cn('h-9 px-4', settingsGhostButtonClass)}
+                              >
+                                <RefreshCw className={`mr-2 h-4 w-4${savingProxy ? ' animate-spin' : ''}`} />
+                                {savingProxy ? t('common:status.saving') : t('common:actions.save')}
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>

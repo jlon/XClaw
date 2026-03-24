@@ -40,6 +40,7 @@ const {
   },
   gatewayState: {
     status: { state: 'running', port: 18789 },
+    execApprovalQueue: [] as Array<Record<string, unknown>>,
   },
   agentsState: {
     agents: [{ id: 'main', name: 'Main Agent' }] as Array<Record<string, unknown>>,
@@ -117,6 +118,7 @@ describe('chat slash actions', () => {
     chatState.pendingSlashAction = null;
     settingsState.chatFocusMode = false;
     settingsState.setChatFocusMode = vi.fn();
+    gatewayState.execApprovalQueue = [];
     hostApiFetchMock.mockReset();
     hostApiFetchMock.mockResolvedValue({ success: true, savedPath: '/tmp/Main thread.md' });
   });

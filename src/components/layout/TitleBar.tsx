@@ -6,7 +6,7 @@
 import { useState, useEffect } from 'react';
 import { Minus, Square, X, Copy } from 'lucide-react';
 import { invokeIpc } from '@/lib/api-client';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useInRouterContext } from 'react-router-dom';
 import { ChatToolbar } from '@/pages/Chat/ChatToolbar';
 import { ChatSessionHeaderControls } from './ChatSessionHeaderControls';
 import { useSettingsStore } from '@/stores/settings';
@@ -20,11 +20,27 @@ function resolvePlatform() {
   return window.electron?.platform;
 }
 
-export function TitleBar() {
-  const location = useLocation();
+type TitleBarProps = {
+  pathname?: string;
+};
+
+function resolveFallbackPathname() {
+  if (typeof window === 'undefined') {
+    return '/';
+  }
+
+  const hashPath = window.location.hash.replace(/^#/, '').trim();
+  if (hashPath.startsWith('/')) {
+    return hashPath;
+  }
+
+  return window.location.pathname || '/';
+}
+
+function TitleBarChrome({ pathname }: { pathname: string }) {
   const platform = resolvePlatform();
-  const isChatRoute = location.pathname === '/' || location.pathname.startsWith('/new');
-  const isSetupRoute = location.pathname.startsWith('/setup');
+  const isChatRoute = pathname === '/' || pathname.startsWith('/new');
+  const isSetupRoute = pathname.startsWith('/setup');
   const chatFocusMode = useSettingsStore((state) => ('chatFocusMode' in state ? state.chatFocusMode : false));
   const sidebarCollapsed = useSettingsStore((state) => state.sidebarCollapsed);
   const setSidebarCollapsed = useSettingsStore((state) => state.setSidebarCollapsed);
@@ -72,6 +88,25 @@ export function TitleBar() {
       onToggleSidebar={handleWorkspaceSidebarToggle}
     />
   );
+}
+
+function RoutedTitleBar() {
+  const location = useLocation();
+  return <TitleBarChrome pathname={location.pathname} />;
+}
+
+export function TitleBar({ pathname }: TitleBarProps = {}) {
+  const inRouterContext = useInRouterContext();
+
+  if (typeof pathname === 'string' && pathname.trim()) {
+    return <TitleBarChrome pathname={pathname} />;
+  }
+
+  if (inRouterContext) {
+    return <RoutedTitleBar />;
+  }
+
+  return <TitleBarChrome pathname={resolveFallbackPathname()} />;
 }
 
 function MacChatTitleBar({ chatSidebarVisible }: { chatSidebarVisible: boolean }) {

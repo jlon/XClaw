@@ -633,7 +633,7 @@ export function Setup() {
       onExitRequest={handleExitRequest}
     >
       <div className="flex h-screen flex-col overflow-hidden bg-background text-foreground">
-        <TitleBar />
+        <TitleBar pathname="/setup" />
         <SetupShell
           rail={<SetupStepRail stages={railItems} />}
           footer={(

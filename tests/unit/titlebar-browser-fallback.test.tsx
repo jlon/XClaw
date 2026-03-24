@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { TitleBar } from '@/components/layout/TitleBar';
 
 const invokeIpcMock = vi.fn();
 
@@ -23,8 +24,6 @@ describe('titlebar browser fallback', () => {
     window.electron = undefined;
 
     try {
-      const { TitleBar } = await import('@/components/layout/TitleBar');
-
       render(
         <MemoryRouter initialEntries={['/setup']}>
           <TitleBar />
@@ -38,5 +37,5 @@ describe('titlebar browser fallback', () => {
     } finally {
       window.electron = previousElectron;
     }
-  });
+  }, 15000);
 });

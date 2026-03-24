@@ -203,10 +203,10 @@ const bindHeroField = () => {
     const rect = hero.getBoundingClientRect();
     const offsetX = event.clientX - rect.left - rect.width / 2;
     const offsetY = event.clientY - rect.top - rect.height / 2;
-    const shiftX = offsetX * 0.08;
-    const shiftY = offsetY * 0.05;
-    const tiltX = (-offsetY / rect.height) * 8;
-    const tiltY = (offsetX / rect.width) * 10;
+    const shiftX = offsetX * 0.045;
+    const shiftY = offsetY * 0.028;
+    const tiltX = (-offsetY / rect.height) * 3.4;
+    const tiltY = (offsetX / rect.width) * 4.8;
 
     hero.style.setProperty('--hero-shift-x', `${shiftX}px`);
     hero.style.setProperty('--hero-shift-y', `${shiftY}px`);

@@ -157,9 +157,9 @@ describe('cron agent targeting', () => {
       if (path.startsWith('/api/channels/recipient-hints/feishu')) {
         return {
           success: true,
-          values: {
-            pairingAllowFrom: ['ou_123'],
-            pairingRecipientId: 'ou_123',
+          hint: {
+            reason: 'derived',
+            recipientId: 'ou_123',
           },
         };
       }

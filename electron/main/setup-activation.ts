@@ -190,6 +190,9 @@ export async function runSetupActivationSideEffects(
     awaitCriticalTasks = false,
     prepareEnhancements = false,
   } = options;
+  if (options.setup?.mode === 'fresh' && normalizeRequestedGatewayPort(options.setup.gatewayPort) === null) {
+    throw new Error('网关端口必须是 1-65535 的整数');
+  }
   const freshRollbackSnapshot = await captureFreshSetupRollbackSnapshot(options);
 
   try {

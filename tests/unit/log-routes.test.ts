@@ -19,8 +19,10 @@ vi.mock('electron', () => ({
 }));
 
 vi.mock('node:fs/promises', () => ({
-  __esModule: true,
-  default: {},
+  default: {
+    readFile: (...args: unknown[]) => readFileMock(...args),
+    writeFile: (...args: unknown[]) => writeFileMock(...args),
+  },
   readFile: (...args: unknown[]) => readFileMock(...args),
   writeFile: (...args: unknown[]) => writeFileMock(...args),
 }));

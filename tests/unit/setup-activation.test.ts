@@ -8,20 +8,34 @@ const repairXClawOnlyBootstrapFilesMock = vi.fn().mockResolvedValue(undefined);
 const autoInstallCliIfNeededMock = vi.fn().mockResolvedValue(undefined);
 const generateCompletionCacheMock = vi.fn();
 const installCompletionToProfileMock = vi.fn();
+const getAllSettingsMock = vi.fn();
 const getSettingMock = vi.fn();
+const replaceAllSettingsMock = vi.fn().mockResolvedValue(undefined);
 const setSettingMock = vi.fn().mockResolvedValue(undefined);
 const syncAllProviderAuthToRuntimeMock = vi.fn().mockResolvedValue(undefined);
 const runTakeoverReconcilerMock = vi.fn().mockResolvedValue(undefined);
 const readOpenClawConfigMock = vi.fn();
 const writeOpenClawConfigMock = vi.fn().mockResolvedValue(undefined);
 const validateWorkspacePathInputMock = vi.fn();
+const accessMock = vi.fn();
 const mkdirMock = vi.fn().mockResolvedValue(undefined);
+const readFileMock = vi.fn();
+const rmMock = vi.fn().mockResolvedValue(undefined);
+const writeFileMock = vi.fn().mockResolvedValue(undefined);
 const withConfigLockMock = vi.fn(async (callback: () => Promise<unknown>) => callback());
 
 vi.mock('fs/promises', () => ({
+  access: (...args: unknown[]) => accessMock(...args),
   mkdir: (...args: unknown[]) => mkdirMock(...args),
+  readFile: (...args: unknown[]) => readFileMock(...args),
+  rm: (...args: unknown[]) => rmMock(...args),
+  writeFile: (...args: unknown[]) => writeFileMock(...args),
   default: {
+    access: (...args: unknown[]) => accessMock(...args),
     mkdir: (...args: unknown[]) => mkdirMock(...args),
+    readFile: (...args: unknown[]) => readFileMock(...args),
+    rm: (...args: unknown[]) => rmMock(...args),
+    writeFile: (...args: unknown[]) => writeFileMock(...args),
   },
 }));
 
@@ -46,7 +60,9 @@ vi.mock('@electron/utils/openclaw-cli', () => ({
 }));
 
 vi.mock('@electron/utils/store', () => ({
+  getAllSettings: (...args: unknown[]) => getAllSettingsMock(...args),
   getSetting: (...args: unknown[]) => getSettingMock(...args),
+  replaceAllSettings: (...args: unknown[]) => replaceAllSettingsMock(...args),
   setSetting: (...args: unknown[]) => setSettingMock(...args),
 }));
 
@@ -84,11 +100,17 @@ describe('runSetupActivationSideEffects', () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
+    accessMock.mockRejectedValue(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }));
+    getAllSettingsMock.mockResolvedValue({ gatewayPort: 18789 });
     getSettingMock.mockResolvedValue(false);
     readOpenClawConfigMock.mockResolvedValue({});
+    readFileMock.mockResolvedValue('{}');
+    replaceAllSettingsMock.mockResolvedValue(undefined);
+    rmMock.mockResolvedValue(undefined);
     validateWorkspacePathInputMock.mockImplementation((value: string) => ({
       normalizedPath: value,
     }));
+    writeFileMock.mockResolvedValue(undefined);
   });
 
   it('persists fresh setup gateway port and workspace only at activation time', async () => {
@@ -127,10 +149,10 @@ describe('runSetupActivationSideEffects', () => {
         port: 19001,
       },
     });
-    expect(ensureBuiltinSkillsInstalledMock).toHaveBeenCalledTimes(1);
-    expect(ensurePreinstalledSkillsInstalledMock).toHaveBeenCalledTimes(1);
-    expect(ensureAllBundledPluginsInstalledMock).toHaveBeenCalledTimes(1);
-    expect(ensureXClawContextMock).toHaveBeenCalledTimes(1);
+    expect(ensureBuiltinSkillsInstalledMock).not.toHaveBeenCalled();
+    expect(ensurePreinstalledSkillsInstalledMock).not.toHaveBeenCalled();
+    expect(ensureAllBundledPluginsInstalledMock).not.toHaveBeenCalled();
+    expect(ensureXClawContextMock).not.toHaveBeenCalled();
     expect(syncAllProviderAuthToRuntimeMock).not.toHaveBeenCalled();
     expect(gatewayManager.start).not.toHaveBeenCalled();
     expect(runtimeController.activateManagedMode).toHaveBeenCalledWith('stopped');
@@ -158,6 +180,7 @@ describe('runSetupActivationSideEffects', () => {
       },
     } as never)).rejects.toThrow('网关端口必须是 1-65535 的整数');
 
+    expect(getAllSettingsMock).not.toHaveBeenCalled();
     expect(setSettingMock).not.toHaveBeenCalled();
     expect(mkdirMock).not.toHaveBeenCalled();
     expect(writeOpenClawConfigMock).not.toHaveBeenCalled();

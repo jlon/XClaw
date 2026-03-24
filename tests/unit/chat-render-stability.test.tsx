@@ -247,14 +247,15 @@ describe('chat render stability', () => {
     expect(scrollShell).toHaveClass('subtle-scrollbar');
   });
 
-  it('keeps a stable welcome status slot regardless of runtime state so the hero height does not jump', () => {
+  it('keeps the welcome hero stable regardless of runtime state so the hero layout does not jump', () => {
     chatState.messages = [];
     gatewayState.status = { state: 'running', port: 18789 };
 
     const { rerender } = renderChat();
 
-    expect(screen.getByTestId('chat-welcome-status-slot')).toBeInTheDocument();
-    expect(screen.getByTestId('chat-welcome-status-slot')).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.getByTestId('chat-welcome-hero')).toBeInTheDocument();
+    expect(screen.getByTestId('chat-welcome-wordmark')).toBeInTheDocument();
+    expect(screen.queryByTestId('chat-welcome-status-slot')).not.toBeInTheDocument();
 
     gatewayState.status = { state: 'starting', port: 18789 };
 
@@ -264,8 +265,9 @@ describe('chat render stability', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByTestId('chat-welcome-status-slot')).toHaveTextContent('header.runtimeIssue:starting');
-    expect(screen.getByTestId('chat-welcome-status-slot')).toHaveAttribute('aria-hidden', 'false');
+    expect(screen.getByTestId('chat-welcome-hero')).toBeInTheDocument();
+    expect(screen.getByTestId('chat-welcome-wordmark')).toBeInTheDocument();
+    expect(screen.queryByTestId('chat-welcome-status-slot')).not.toBeInTheDocument();
   });
 
   it('does not fall back to the welcome shell while an existing session history is loading', () => {

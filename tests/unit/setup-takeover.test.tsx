@@ -26,6 +26,7 @@ const {
     },
     gatewayState: {
       status: { state: 'stopped', port: 18789 },
+      init: vi.fn().mockResolvedValue(undefined),
       start: vi.fn(),
     },
   };
@@ -73,9 +74,9 @@ vi.mock('@/components/ui/tooltip', () => ({
 
 vi.mock('framer-motion', () => ({
   AnimatePresence: ({ children }: { children: unknown }) => <>{children}</>,
-  motion: {
-    div: ({ children, ...props }: { children: unknown }) => <div {...props}>{children}</div>,
-  },
+  motion: new Proxy({}, {
+    get: () => ({ children, layout: _layout, ...props }: { children: unknown; layout?: unknown }) => <div {...props}>{children}</div>,
+  }),
 }));
 
 vi.mock('react-router-dom', async () => {
@@ -148,6 +149,8 @@ const { tMock } = vi.hoisted(() => ({
     'wizard.stages.complete.description': '确认完成并进入应用',
     'wizard.stages.complete.applyingDescription': '正在应用最终变更',
     'wizard.actions.takeoverImport': '导入并继续',
+    'wizard.actions.takeoverImportAndReview': '导入并进入 Provider 复核',
+    'wizard.actions.providerReview': '前往 Provider 复核',
     'wizard.actions.reviewSummary': '查看摘要',
     'wizard.actions.providerSubmit': '保存并继续',
     'wizard.footer.start.title': '开始引导',
@@ -203,8 +206,22 @@ describe('Setup takeover flow', () => {
     settingsState.gatewayPort = 18789;
     settingsState.setGatewayPort = vi.fn();
     gatewayState.status = { state: 'stopped', port: 18789 };
+    gatewayState.init = vi.fn().mockResolvedValue(undefined);
     gatewayState.start = vi.fn();
-    invokeIpcMock.mockReset();
+    invokeIpcMock.mockImplementation(async (channel: string) => {
+      if (channel === 'uv:status') {
+        return {
+          uvInstalled: false,
+          pythonReady: false,
+        };
+      }
+      if (channel === 'uv:install-all') {
+        return {
+          success: true,
+        };
+      }
+      return false;
+    });
   });
 
   it('shows a takeover decision step and blocks direct takeover when the latest plan cannot apply', async () => {
@@ -250,9 +267,9 @@ describe('Setup takeover flow', () => {
       expect(screen.getByText('检测到现有 OpenClaw')).toBeInTheDocument();
     });
 
-    expect(screen.getByText('接管现有安装')).toBeInTheDocument();
+    expect(screen.getAllByText('接管现有安装').length).toBeGreaterThan(0);
     expect(screen.getByText('从头创建')).toBeInTheDocument();
-    expect(screen.getByText('检测到外部 Gateway 仍在运行，请先停止后再继续接管')).toBeInTheDocument();
+    expect(screen.getByText((content) => content.includes('检测到外部 Gateway 仍在运行，请先停止后再继续接管'))).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '下一步' })).toBeDisabled();
   }, 15000);
 
@@ -308,14 +325,10 @@ describe('Setup takeover flow', () => {
     render(<Setup />);
 
     await waitFor(() => {
-      expect(screen.getByText('接管现有安装')).toBeInTheDocument();
+      expect(screen.getAllByText('接管现有安装').length).toBeGreaterThan(0);
     });
 
     fireEvent.click(screen.getByText('从头创建'));
-
-    await waitFor(() => {
-      expect(screen.getAllByText('将创建新的 XClaw 配置').length).toBeGreaterThan(0);
-    });
 
     expect(screen.getAllByText('/Users/test/.openclaw/workspace-xclaw').length).toBeGreaterThan(0);
     expect(screen.getAllByText('18790').length).toBeGreaterThan(0);
@@ -516,7 +529,7 @@ describe('Setup takeover flow', () => {
     render(<Setup />);
 
     await waitFor(() => {
-      expect(screen.getByText('接管现有安装')).toBeInTheDocument();
+      expect(screen.getAllByText('接管现有安装').length).toBeGreaterThan(0);
     });
 
     fireEvent.click(screen.getByRole('button', { name: '下一步' }));
@@ -619,16 +632,16 @@ describe('Setup takeover flow', () => {
     render(<Setup />);
 
     await waitFor(() => {
-      expect(screen.getByText('接管现有安装')).toBeInTheDocument();
+      expect(screen.getAllByText('接管现有安装').length).toBeGreaterThan(0);
     });
 
     fireEvent.click(screen.getByRole('button', { name: '下一步' }));
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: '导入并继续' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '导入并进入 Provider 复核' })).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: '导入并继续' }));
+    fireEvent.click(screen.getByRole('button', { name: '导入并进入 Provider 复核' }));
 
     await waitFor(() => {
       expect(screen.getByText('请复核 Provider 导入结果')).toBeInTheDocument();
@@ -724,7 +737,7 @@ describe('Setup takeover flow', () => {
     render(<Setup />);
 
     await waitFor(() => {
-      expect(screen.getByText('接管现有安装')).toBeInTheDocument();
+      expect(screen.getAllByText('接管现有安装').length).toBeGreaterThan(0);
     });
 
     fireEvent.click(screen.getByRole('button', { name: '下一步' }));

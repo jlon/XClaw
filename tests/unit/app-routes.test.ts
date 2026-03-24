@@ -7,7 +7,10 @@ const inspectLocalOpenClawSetupMock = vi.fn();
 const buildSetupPlanMock = vi.fn();
 const runTakeoverImportMock = vi.fn();
 const getTakeoverImportStatusMock = vi.fn();
+const resetTakeoverImportStatusMock = vi.fn();
 const runSetupActivationSideEffectsMock = vi.fn();
+const getAllSettingsMock = vi.fn();
+const replaceAllSettingsMock = vi.fn();
 const getSettingMock = vi.fn();
 const setSettingMock = vi.fn();
 const sendJsonMock = vi.fn();
@@ -26,6 +29,7 @@ vi.mock('@electron/main/setup-inspection', () => ({
 vi.mock('@electron/main/takeover-import', () => ({
   runTakeoverImport: (...args: unknown[]) => runTakeoverImportMock(...args),
   getTakeoverImportStatus: (...args: unknown[]) => getTakeoverImportStatusMock(...args),
+  resetTakeoverImportStatus: (...args: unknown[]) => resetTakeoverImportStatusMock(...args),
 }));
 
 vi.mock('@electron/main/setup-activation', () => ({
@@ -33,7 +37,9 @@ vi.mock('@electron/main/setup-activation', () => ({
 }));
 
 vi.mock('@electron/utils/store', () => ({
+  getAllSettings: (...args: unknown[]) => getAllSettingsMock(...args),
   getSetting: (...args: unknown[]) => getSettingMock(...args),
+  replaceAllSettings: (...args: unknown[]) => replaceAllSettingsMock(...args),
   setSetting: (...args: unknown[]) => setSettingMock(...args),
 }));
 
@@ -47,7 +53,14 @@ vi.mock('@electron/api/route-utils', () => ({
 describe('handleAppRoutes', () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    buildSetupPlanMock.mockImplementation((_inspection: unknown, input: { mode?: 'fresh' | 'takeover' } = {}) => ({
+      mode: input.mode === 'takeover' ? 'takeover' : 'fresh',
+      canApply: true,
+      blockingIssues: [],
+    }));
+    getAllSettingsMock.mockResolvedValue({});
     getSettingMock.mockResolvedValue(undefined);
+    replaceAllSettingsMock.mockResolvedValue(undefined);
     setSettingMock.mockResolvedValue(undefined);
   });
 
@@ -202,6 +215,8 @@ describe('handleAppRoutes', () => {
         workspacePath: '/Users/test/custom-workspace',
       },
     });
+    expect(replaceAllSettingsMock).toHaveBeenCalledWith({});
+    expect(resetTakeoverImportStatusMock).toHaveBeenCalledTimes(1);
     expect(setSettingMock).toHaveBeenCalledWith('setupComplete', true);
     expect(sendJsonMock).toHaveBeenCalledWith(expect.anything(), 200, { success: true });
   });

@@ -247,8 +247,8 @@ describe('handleChannelRoutes', () => {
 
   it('returns recipient hints for cron target inference', async () => {
     getChannelRecipientHintValuesMock.mockResolvedValue({
-      pairingAllowFrom: ['ou_123'],
-      pairingRecipientId: 'ou_123',
+      reason: 'derived',
+      recipientId: 'ou_123',
     });
 
     const { handleChannelRoutes } = await import('@electron/api/routes/channels');
@@ -273,10 +273,10 @@ describe('handleChannelRoutes', () => {
       200,
       expect.objectContaining({
         success: true,
-        values: expect.objectContaining({
-          pairingAllowFrom: ['ou_123'],
-          pairingRecipientId: 'ou_123',
-        }),
+        hint: {
+          reason: 'derived',
+          recipientId: 'ou_123',
+        },
       }),
     );
   });

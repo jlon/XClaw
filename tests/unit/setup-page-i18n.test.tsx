@@ -25,6 +25,7 @@ const {
     },
     gatewayState: {
       status: { state: 'stopped', port: 18789 },
+      init: vi.fn().mockResolvedValue(undefined),
       start: vi.fn(),
     },
     tMock: (key: string, options?: Record<string, unknown>) => ({
@@ -124,9 +125,9 @@ vi.mock('@/components/ui/tooltip', () => ({
 
 vi.mock('framer-motion', () => ({
   AnimatePresence: ({ children }: { children: unknown }) => <>{children}</>,
-  motion: {
-    div: ({ children, ...props }: { children: unknown }) => <div {...props}>{children}</div>,
-  },
+  motion: new Proxy({}, {
+    get: () => ({ children, layout: _layout, ...props }: { children: unknown; layout?: unknown }) => <div {...props}>{children}</div>,
+  }),
 }));
 
 vi.mock('react-router-dom', async () => {
@@ -161,6 +162,7 @@ describe('Setup page i18n', () => {
     vi.clearAllMocks();
     settingsState.language = 'en-US';
     gatewayState.status = { state: 'stopped', port: 18789 };
+    gatewayState.init = vi.fn().mockResolvedValue(undefined);
     gatewayState.start = vi.fn();
     invokeIpcMock.mockResolvedValue(false);
     hostApiFetchMock.mockImplementation(async (path: string, init?: RequestInit) => {

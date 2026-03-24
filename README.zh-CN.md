@@ -41,16 +41,22 @@
 
 <p align="center">
   <img src="resources/screenshot/zh/chat.png" width="48%" alt="聊天界面" />
+  <p align="center">
+  </p>
   <img src="resources/screenshot/zh/agents.png" width="48%" alt="智能体界面" />
 </p>
 
 <p align="center">
   <img src="resources/screenshot/zh/channels.png" width="48%" alt="频道界面" />
+    <p align="center">
+  </p>
   <img src="resources/screenshot/zh/cron.png" width="48%" alt="定时任务界面" />
 </p>
 
 <p align="center">
   <img src="resources/screenshot/zh/skills.png" width="48%" alt="技能界面" />
+    <p align="center">
+  </p>
   <img src="resources/screenshot/zh/models.png" width="48%" alt="模型界面" />
 </p>
 
