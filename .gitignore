@@ -61,6 +61,8 @@ resources/bin
 *.key
 
 build/
+!config/build/
+!config/build/electron-builder.config.cjs
 artifacts/
 docs/pr-session-notes-*.md
 
