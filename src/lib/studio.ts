@@ -3,7 +3,6 @@ import type { StudioRuntimeEventPayload, StudioRuntimeSnapshot } from '@/types/s
 
 const LAST_CHAT_ROUTE_KEY = 'XClaw:lastChatRoute';
 const STUDIO_RUNTIME_CHANGED_EVENT = 'studioRuntimeChanged';
-const STUDIO_SURFACE_SUSPEND_EVENT = 'studioSurfaceSuspend';
 
 let studioRuntimeEventSource: EventSource | null = null;
 let memoryLastChatRoute: string | null = null;
@@ -64,29 +63,6 @@ export function resolveLastChatRoute(): string {
   return memoryLastChatRoute && isChatRoutePath(memoryLastChatRoute)
     ? normalizeRoutePath(memoryLastChatRoute)
     : '/';
-}
-
-export function suspendStudioSurface(): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  window.dispatchEvent(new CustomEvent(STUDIO_SURFACE_SUSPEND_EVENT));
-}
-
-export function subscribeStudioSurfaceSuspend(handler: () => void): () => void {
-  if (typeof window === 'undefined') {
-    return () => {};
-  }
-
-  const listener = () => {
-    handler();
-  };
-
-  window.addEventListener(STUDIO_SURFACE_SUSPEND_EVENT, listener);
-  return () => {
-    window.removeEventListener(STUDIO_SURFACE_SUSPEND_EVENT, listener);
-  };
 }
 
 function normalizeRuntimeSnapshot(value: unknown): StudioRuntimeSnapshot | null {

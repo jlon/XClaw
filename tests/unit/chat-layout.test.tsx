@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -10,6 +11,10 @@ const {
   gatewayState,
   agentsState,
   invokeIpcMock,
+  chatMountSpy,
+  chatUnmountSpy,
+  studioMountSpy,
+  studioUnmountSpy,
 } = vi.hoisted(() => ({
   settingsState: {
     sidebarCollapsed: false,
@@ -38,6 +43,10 @@ const {
     fetchAgents: vi.fn(),
   },
   invokeIpcMock: vi.fn(),
+  chatMountSpy: vi.fn(),
+  chatUnmountSpy: vi.fn(),
+  studioMountSpy: vi.fn(),
+  studioUnmountSpy: vi.fn(),
 }));
 
 vi.mock('@/stores/settings', () => ({
@@ -77,6 +86,19 @@ vi.mock('@/lib/host-api', () => ({
 
 vi.mock('@/lib/api-client', () => ({
   invokeIpc: (...args: unknown[]) => invokeIpcMock(...args),
+}));
+
+vi.mock('@/pages/Studio', () => ({
+  Studio: () => {
+    useEffect(() => {
+      studioMountSpy();
+      return () => {
+        studioUnmountSpy();
+      };
+    }, []);
+
+    return <div data-testid="studio-surface-probe">Studio body</div>;
+  },
 }));
 
 function translate(key: string, vars?: Record<string, unknown>): string {
@@ -142,6 +164,10 @@ function translate(key: string, vars?: Record<string, unknown>): string {
     case 'toolbar.showSessionPane':
     case 'chat:toolbar.showSessionPane':
       return 'Show sessions';
+    case 'toolbar.office':
+      return 'Studio';
+    case 'toolbar.backToChat':
+      return 'Chat';
     case 'common:sidebar.newChat':
       return 'New Chat';
     default:
@@ -205,6 +231,10 @@ describe('chat layout', () => {
     ];
     agentsState.fetchAgents = vi.fn();
     invokeIpcMock.mockReset();
+    chatMountSpy.mockReset();
+    chatUnmountSpy.mockReset();
+    studioMountSpy.mockReset();
+    studioUnmountSpy.mockReset();
     invokeIpcMock.mockImplementation(async (channel: unknown) => {
       if (channel === 'window:isMaximized') {
         return false;
@@ -259,6 +289,72 @@ describe('chat layout', () => {
     expect(screen.queryByText(/\d{1,2}:\d{2}/)).not.toBeInTheDocument();
   });
 
+  it('keeps the studio surface mounted while toggling between chat and studio', () => {
+    render(
+      <MemoryRouter initialEntries={['/studio']}>
+        <Routes>
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<div>Chat body</div>} />
+            <Route path="/studio/*" element={<div>Studio route outlet</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(studioMountSpy).toHaveBeenCalledTimes(1);
+    expect(studioUnmountSpy).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByLabelText('Chat'));
+
+    expect(screen.getByText('Chat body')).toBeInTheDocument();
+    expect(studioUnmountSpy).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByLabelText('Studio'));
+
+    expect(screen.getByTestId('studio-surface-probe')).toBeInTheDocument();
+    expect(studioMountSpy).toHaveBeenCalledTimes(1);
+    expect(studioUnmountSpy).not.toHaveBeenCalled();
+  });
+
+  it('keeps the chat surface mounted and avoids reloading chat chrome while toggling with studio', () => {
+    function ChatProbe() {
+      useEffect(() => {
+        chatMountSpy();
+        return () => {
+          chatUnmountSpy();
+        };
+      }, []);
+
+      return <div data-testid="chat-surface-probe">Chat body</div>;
+    }
+
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <Routes>
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<ChatProbe />} />
+            <Route path="/studio/*" element={<div>Studio route outlet</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(chatMountSpy).toHaveBeenCalledTimes(1);
+    expect(chatUnmountSpy).not.toHaveBeenCalled();
+    expect(chatState.loadSessions).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByLabelText('Studio'));
+
+    expect(chatUnmountSpy).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByLabelText('Chat'));
+
+    expect(screen.getByTestId('chat-surface-probe')).toBeInTheDocument();
+    expect(chatMountSpy).toHaveBeenCalledTimes(1);
+    expect(chatUnmountSpy).not.toHaveBeenCalled();
+    expect(chatState.loadSessions).toHaveBeenCalledTimes(1);
+  });
+
   it('applies low-saturation theme tones to chat session pane icons without tinting the labels', () => {
     render(
       <MemoryRouter initialEntries={['/']}>
@@ -299,8 +395,8 @@ describe('chat layout', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.queryByText('Design review')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('chat-sessions-scroll-area')).not.toBeInTheDocument();
+    expect(screen.getByText('Design review')).not.toBeVisible();
+    expect(screen.getByTestId('chat-sessions-scroll-area')).not.toBeVisible();
     expect(screen.getByTestId('chat-titlebar-session-slot')).not.toHaveClass('w-[250px]');
     expect(screen.getByTestId('chat-titlebar-session-slot')).toHaveClass('h-full');
     expect(screen.getByTestId('chat-titlebar-session-slot')).toHaveClass('justify-start');
@@ -410,7 +506,7 @@ describe('chat layout', () => {
     );
 
     expect(screen.queryByRole('link', { name: 'Chat' })).not.toBeInTheDocument();
-    expect(screen.queryByTestId('sidebar-brand-wordmark')).not.toBeInTheDocument();
+    expect(screen.getByTestId('sidebar-brand-wordmark')).not.toBeVisible();
     expect(screen.getByRole('button', { name: 'chat:sessionPane.workspaceLauncher' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
   });

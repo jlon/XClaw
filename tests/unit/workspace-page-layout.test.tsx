@@ -13,6 +13,13 @@ describe('workspace page layout', () => {
     expect(source).toContain('desktop-app-shell-sidebar');
   });
 
+  it('keeps preserved chat chrome wrappers stretched to the full shell height', () => {
+    const source = readFileSync(resolve(process.cwd(), 'src/components/layout/MainLayout.tsx'), 'utf8');
+
+    expect(source).toContain('relative flex min-h-0 shrink-0 self-stretch');
+    expect(source).toContain('desktop-app-chat-nav-shell flex h-full min-h-0');
+  });
+
   it('uses semantic shell classes in Sidebar and avoids hardcoded panel colors', () => {
     const source = readFileSync(resolve(process.cwd(), 'src/components/layout/Sidebar.tsx'), 'utf8');
 

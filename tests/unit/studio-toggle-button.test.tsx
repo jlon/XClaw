@@ -59,17 +59,9 @@ describe('StudioToggleButton', () => {
     expect(screen.getByTestId('location-probe')).toHaveTextContent('/studio');
   });
 
-  it('returns to the last chat route from studio and suspends the surface first', () => {
-    const studioSuspendSpy = vi.fn();
-    const requestAnimationFrameSpy = vi
-      .spyOn(window, 'requestAnimationFrame')
-      .mockImplementation((callback: FrameRequestCallback) => {
-        callback(16);
-        return 1;
-      });
-
+  it('returns to the last chat route from studio without inserting an intermediate suspend frame', () => {
+    const requestAnimationFrameSpy = vi.spyOn(window, 'requestAnimationFrame');
     window.localStorage.setItem('XClaw:lastChatRoute', '/new/session-1');
-    window.addEventListener('studioSurfaceSuspend', studioSuspendSpy);
 
     render(
       <MemoryRouter initialEntries={['/studio']}>
@@ -90,10 +82,7 @@ describe('StudioToggleButton', () => {
 
     fireEvent.click(screen.getByLabelText('Chat'));
 
-    expect(studioSuspendSpy).toHaveBeenCalledTimes(1);
-    expect(requestAnimationFrameSpy).toHaveBeenCalledTimes(1);
+    expect(requestAnimationFrameSpy).not.toHaveBeenCalled();
     expect(screen.getByTestId('location-probe')).toHaveTextContent('/new/session-1');
-
-    window.removeEventListener('studioSurfaceSuspend', studioSuspendSpy);
   });
 });

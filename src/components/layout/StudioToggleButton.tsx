@@ -1,10 +1,9 @@
-import { startTransition } from 'react';
 import { Building2, MessageSquareText } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { isStudioRoutePath, resolveLastChatRoute, suspendStudioSurface } from '@/lib/studio';
+import { isStudioRoutePath, resolveLastChatRoute } from '@/lib/studio';
 import { useTranslation } from 'react-i18next';
 
 export function StudioToggleButton({ compact = false }: { compact?: boolean }) {
@@ -20,21 +19,7 @@ export function StudioToggleButton({ compact = false }: { compact?: boolean }) {
       return;
     }
 
-    suspendStudioSurface();
-    const navigateToChat = () => {
-      startTransition(() => {
-        navigate(resolveLastChatRoute());
-      });
-    };
-
-    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
-      window.requestAnimationFrame(() => {
-        navigateToChat();
-      });
-      return;
-    }
-
-    navigateToChat();
+    navigate(resolveLastChatRoute());
   };
 
   return (
