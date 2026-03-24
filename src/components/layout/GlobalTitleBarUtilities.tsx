@@ -6,6 +6,7 @@ import { useSettingsStore } from '@/stores/settings';
 import { resolveGatewayUi } from '@/pages/Chat/gateway-ui';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import { StudioToggleButton } from './StudioToggleButton';
 
 function resolveAppliedTheme(theme: 'light' | 'dark' | 'system') {
   if (theme !== 'system') {
@@ -29,6 +30,8 @@ export function GlobalTitleBarUtilities({ compact = false }: { compact?: boolean
 
   return (
     <div className="flex items-center gap-1.5">
+      <StudioToggleButton compact={compact} />
+
       <Tooltip>
         <TooltipTrigger asChild>
           <Button

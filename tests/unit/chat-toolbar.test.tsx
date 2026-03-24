@@ -1,7 +1,7 @@
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import { ChatToolbar } from '@/pages/Chat/ChatToolbar';
 import { useChatStore } from '@/stores/chat';
 import { useGatewayStore } from '@/stores/gateway';
@@ -159,11 +159,6 @@ describe('ChatToolbar', () => {
     });
   });
 
-  function LocationProbe() {
-    const location = useLocation();
-    return <div data-testid="location-probe">{location.pathname}</div>;
-  }
-
   it('toggles the thinking button pressed state and active class on click', () => {
     render(
       <MemoryRouter>
@@ -193,42 +188,7 @@ describe('ChatToolbar', () => {
 
     expect(screen.queryByTestId('chat-session-pane-toggle-toolbar')).not.toBeInTheDocument();
     expect(screen.queryByTestId('chat-new-chat-toolbar')).not.toBeInTheDocument();
-  });
-
-  it('suspends studio surface before navigating back to chat', () => {
-    const studioSuspendSpy = vi.fn();
-    const requestAnimationFrameSpy = vi
-      .spyOn(window, 'requestAnimationFrame')
-      .mockImplementation((callback: FrameRequestCallback) => {
-        callback(16);
-        return 1;
-      });
-
-    window.addEventListener('studioSurfaceSuspend', studioSuspendSpy);
-
-    render(
-      <MemoryRouter initialEntries={['/studio']}>
-        <Routes>
-          <Route
-            path="/studio"
-            element={(
-              <>
-                <ChatToolbar compact />
-                <LocationProbe />
-              </>
-            )}
-          />
-          <Route path="/" element={<LocationProbe />} />
-        </Routes>
-      </MemoryRouter>,
-    );
-
-    fireEvent.click(screen.getByLabelText('toolbar.backToChat'));
-
-    expect(studioSuspendSpy).toHaveBeenCalledTimes(1);
-    expect(requestAnimationFrameSpy).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId('location-probe')).toHaveTextContent('/');
-
-    window.removeEventListener('studioSurfaceSuspend', studioSuspendSpy);
+    expect(screen.queryByLabelText('toolbar.office')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('toolbar.backToChat')).not.toBeInTheDocument();
   });
 });
