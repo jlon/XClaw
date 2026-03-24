@@ -899,7 +899,7 @@ export function ChatInput({
               placeholder={resolvedPlaceholder}
               disabled={disabled}
               className={cn(
-                'w-full max-h-[180px] resize-none border-0 bg-transparent px-0 py-0 text-[15px] leading-[1.6] text-foreground outline-none placeholder:text-[#c8c8c8] dark:placeholder:text-[hsl(var(--foreground)/0.32)]',
+                'w-full max-h-[180px] resize-none border-0 bg-transparent px-0 py-0 text-[15px] leading-[1.6] text-foreground outline-none caret-foreground placeholder:text-[#c8c8c8] dark:text-black dark:caret-black dark:placeholder:text-[hsl(var(--foreground)/0.32)]',
                 isEmpty ? 'min-h-[74px]' : 'min-h-[60px]',
               )}
               style={!input ? { height: `${composerTextareaMinHeight}px` } : undefined}

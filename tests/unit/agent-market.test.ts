@@ -40,6 +40,18 @@ describe('agent market install', () => {
     expect(result.createdAgentId).toBe('planner');
   });
 
+  it('enriches catalog items with semantic avatar profiles', async () => {
+    const { listAgentMarketCatalog } = await import('@electron/utils/agent-market');
+    const catalog = await listAgentMarketCatalog();
+    const item = catalog.items.find((entry) => entry.id === 'daily-standup');
+
+    expect(item?.avatarProfile).toMatchObject({
+      archetype: 'strategist',
+      source: 'semantic',
+      tone: 'slate',
+    });
+  });
+
   it('rolls back the created agent when writing SOUL.md fails', async () => {
     writeAgentWorkspaceFileContentMock.mockRejectedValueOnce(new Error('disk full'));
 

@@ -18,6 +18,7 @@ describe('setup wizard flow model', () => {
 
   it('only allows activation from the completion summary sub-state', () => {
     expect(canActivateSetup({ stage: 'start' })).toBe(false);
+    expect(canActivateSetup({ stage: 'complete', phase: 'enhancements' })).toBe(false);
     expect(canActivateSetup({ stage: 'complete', phase: 'applying' })).toBe(false);
     expect(canActivateSetup({ stage: 'complete', phase: 'summary' })).toBe(true);
   });

@@ -6,9 +6,20 @@ const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').match
 
 let revealObserver: IntersectionObserver | null = null;
 
+type DownloadManifest = {
+  tag?: string;
+  downloads?: Record<string, { name?: string; url?: string }>;
+};
+
 if (!root) {
   throw new Error('Website mount container "#app" was not found.');
 }
+
+const normalizeLegacyHashRoute = () => {
+  if (!window.location.hash.startsWith('#/')) return;
+  const target = `${window.location.pathname}${window.location.search}`;
+  window.history.replaceState(null, '', target);
+};
 
 const createBrandWordmark = (className: string) => `
   <span class="${className}" aria-label="XClaw">
@@ -52,8 +63,14 @@ const downloadIcons = {
 const createDownloadButtons = (compact = false) =>
   websiteContent.downloads
     .map(
-      ({ label, icon, width, href }) => `
-        <a class="site-download-button${compact ? ' is-compact' : ''} is-${width}" href="${href}" target="_blank" rel="noreferrer">
+      ({ label, icon, width, href, downloadKey }) => `
+        <a
+          class="site-download-button${compact ? ' is-compact' : ''} is-${width}"
+          href="${href}"
+          target="_blank"
+          rel="noreferrer"
+          data-download-key="${downloadKey}"
+        >
           <span class="site-download-button-inner">
             <span class="site-download-icon">${downloadIcons[icon]}</span>
             <span class="site-download-label">${label}</span>
@@ -160,6 +177,30 @@ const createFooterLinks = () =>
     .map(({ label, href }) => `<a href="${href}" target="_blank" rel="noreferrer">${label}</a>`)
     .join('');
 
+const createContact = () => `
+  <div class="site-contact" data-contact data-open="false">
+    <button
+      class="site-contact-trigger"
+      type="button"
+      aria-expanded="false"
+      aria-controls="site-contact-card"
+      data-contact-trigger
+    >
+      <span class="site-contact-trigger-dot"></span>
+      <span>${websiteContent.contact.trigger}</span>
+    </button>
+    <div class="site-contact-card" id="site-contact-card" data-contact-card>
+      <span class="site-contact-card-tag">${websiteContent.contact.tag}</span>
+      <strong>${websiteContent.contact.title}</strong>
+      <p>${websiteContent.contact.description}</p>
+      <div class="site-contact-qr">
+        <img src="${websiteContent.contact.image}" alt="${websiteContent.contact.alt}" loading="lazy" />
+      </div>
+      <span class="site-contact-note">${websiteContent.contact.note}</span>
+    </div>
+  </div>
+`;
+
 const bindReveal = (scope: ParentNode = root) => {
   const nodes = Array.from(scope.querySelectorAll<HTMLElement>('[data-reveal]'));
 
@@ -219,6 +260,78 @@ const bindHeroField = () => {
   hero.addEventListener('pointerleave', reset);
 };
 
+const bindContact = () => {
+  const contact = root.querySelector<HTMLElement>('[data-contact]');
+  const trigger = root.querySelector<HTMLButtonElement>('[data-contact-trigger]');
+
+  if (!contact || !trigger) return;
+
+  const sync = () => {
+    const isOpen = contact.dataset.open === 'true';
+    trigger.setAttribute('aria-expanded', String(isOpen));
+  };
+
+  const close = () => {
+    contact.dataset.open = 'false';
+    sync();
+  };
+
+  const toggle = () => {
+    contact.dataset.open = contact.dataset.open === 'true' ? 'false' : 'true';
+    sync();
+  };
+
+  sync();
+
+  trigger.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    toggle();
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!(event.target instanceof Node) || contact.contains(event.target)) return;
+    close();
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    close();
+  });
+};
+
+const bindDownloadLinks = async () => {
+  let manifest: DownloadManifest | null = null;
+
+  try {
+    const response = await fetch('/downloads/latest.json', { cache: 'no-store' });
+
+    if (!response.ok) return;
+
+    manifest = (await response.json()) as DownloadManifest;
+  } catch {
+    return;
+  }
+
+  if (!manifest?.downloads) return;
+
+  root.querySelectorAll<HTMLAnchorElement>('[data-download-key]').forEach((anchor) => {
+    const key = anchor.dataset.downloadKey;
+
+    if (!key) return;
+
+    const download = manifest?.downloads?.[key];
+
+    if (!download?.url) return;
+
+    anchor.href = download.url;
+
+    if (download.name) {
+      anchor.setAttribute('download', download.name);
+    }
+  });
+};
+
 const mountPreview = (activeId: string) => {
   const previewRoot = root.querySelector<HTMLElement>('[data-preview-root]');
 
@@ -249,6 +362,7 @@ const render = (activeId: string) => {
           ${websiteContent.nav.map(({ label, href }) => `<a href="${href}">${label}</a>`).join('')}
         </nav>
         <div class="site-header-actions">
+          ${createContact()}
           <a class="site-secondary-cta" href="${websiteContent.repoUrl}" target="_blank" rel="noreferrer">${websiteContent.hero.secondaryCta}</a>
           <a class="site-header-cta" href="#download">${websiteContent.hero.primaryCta}</a>
         </div>
@@ -359,6 +473,9 @@ const render = (activeId: string) => {
   mountPreview(activeId);
   bindReveal();
   bindHeroField();
+  bindContact();
+  void bindDownloadLinks();
 };
 
+normalizeLegacyHashRoute();
 render(websiteContent.screenshots[0].id);

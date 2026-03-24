@@ -12,17 +12,24 @@ import {
   isGatewayHandoffPending,
   readGatewayHandoffMarker,
 } from './handoff-marker';
+import { getSetting } from '../utils/store';
 
 export function warmupManagedPythonReadiness(): void {
-  void isPythonReady().then((pythonReady) => {
-    if (!pythonReady) {
-      logger.info('Python environment missing or incomplete, attempting background repair...');
-      void setupManagedPython().catch((err) => {
-        logger.error('Background Python repair failed:', err);
-      });
+  void getSetting('setupComplete').then((setupComplete) => {
+    if (setupComplete !== true) {
+      logger.info('Skipping background Python repair while setup is incomplete');
+      return;
     }
+    return isPythonReady().then((pythonReady) => {
+      if (!pythonReady) {
+        logger.info('Python environment missing or incomplete, attempting background repair...');
+        void setupManagedPython().catch((err) => {
+          logger.error('Background Python repair failed:', err);
+        });
+      }
+    });
   }).catch((err) => {
-    logger.error('Failed to check Python environment:', err);
+    logger.error('Failed to evaluate background Python repair policy:', err);
   });
 }
 

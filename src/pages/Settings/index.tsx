@@ -53,7 +53,7 @@ const settingsPaneClass =
   'space-y-3 rounded-[18px] border border-border/65 bg-[hsl(var(--surface-elevated)/0.98)] p-4';
 const settingsLabelClass = 'text-[13px] font-medium text-foreground/84';
 const settingsChoiceButtonBaseClass =
-  'h-9 flex-1 items-center justify-center gap-1.5 rounded-[13px] border px-3.5 text-[13px] font-semibold shadow-none transition-colors md:flex-none';
+  'workbench-motion-button workbench-motion-button--lift h-9 flex-1 items-center justify-center gap-1.5 rounded-[13px] border px-3.5 text-[13px] font-semibold shadow-none md:flex-none';
 const settingsChoiceButtonActiveClass =
   'border-[hsl(var(--primary)/0.18)] bg-[hsl(var(--primary)/0.12)] text-primary shadow-none hover:bg-[hsl(var(--primary)/0.16)] hover:text-primary';
 const settingsChoiceButtonIdleClass =
@@ -71,7 +71,7 @@ const settingsCompactRowLabelClass = 'text-[13px] font-medium text-foreground/86
 const settingsCompactToggleRowClass =
   'grid gap-3 py-1.5 md:grid-cols-[minmax(0,160px)_minmax(0,1fr)] md:items-center';
 const settingsGhostButtonClass =
-  'rounded-[13px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.98)] text-[13px] font-semibold text-foreground/78 shadow-none hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
+  'workbench-motion-button workbench-motion-button--lift rounded-[13px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.98)] text-[13px] font-semibold text-foreground/78 shadow-none hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
 const settingsFactsStripClass =
   'border-[hsl(var(--border-subtle)/0.74)] bg-[hsl(var(--surface-panel)/0.82)]';
 const settingsTabsSurfaceClass =
@@ -79,7 +79,7 @@ const settingsTabsSurfaceClass =
 const settingsTabsListClass =
   'h-auto w-full flex-wrap justify-start gap-2 bg-transparent p-0 md:w-auto';
 const settingsTabsTriggerClass =
-  'h-9 rounded-[13px] border border-border/65 bg-[hsl(var(--surface-elevated)/0.94)] px-4 text-[13px] font-semibold text-foreground/72 shadow-none transition-colors hover:bg-[hsl(var(--surface-hover)/0.42)] hover:text-foreground data-[state=active]:border-[hsl(var(--primary)/0.18)] data-[state=active]:bg-[hsl(var(--primary)/0.12)] data-[state=active]:text-primary data-[state=active]:shadow-none';
+  'workbench-motion-button workbench-motion-button--lift h-9 rounded-[13px] border border-border/65 bg-[hsl(var(--surface-elevated)/0.94)] px-4 text-[13px] font-semibold text-foreground/72 shadow-none hover:bg-[hsl(var(--surface-hover)/0.42)] hover:text-foreground data-[state=active]:border-[hsl(var(--primary)/0.18)] data-[state=active]:bg-[hsl(var(--primary)/0.12)] data-[state=active]:text-primary data-[state=active]:shadow-none';
 const settingsPaneDividerClass = 'border-t border-border/55 pt-4';
 const settingsControlDockClass = 'flex w-full items-center justify-start md:justify-end';
 const settingsControlTrackClass = 'w-full md:max-w-[320px]';
@@ -1165,7 +1165,7 @@ export function Settings() {
                                   {telemetryByEvent.map((item) => (
                                     <div
                                       key={item.event}
-                                      className="grid grid-cols-[minmax(0,1.6fr)_0.7fr_0.9fr_0.8fr_1fr] gap-2 rounded-lg border border-border/60 bg-background/70 px-3 py-2"
+                                      className="grid grid-cols-[minmax(0,1.6fr)_0.7fr_0.9fr_0.8fr_1fr] gap-2 rounded-lg border border-border/60 bg-[hsl(var(--surface-panel)/0.88)] px-3 py-2 dark:bg-[hsl(var(--surface-elevated)/0.8)]"
                                     >
                                       <span className="truncate font-medium" title={item.event}>{item.event}</span>
                                       <span className="text-muted-foreground">n={item.count}</span>

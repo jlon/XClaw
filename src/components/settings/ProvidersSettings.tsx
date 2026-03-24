@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { useProviderStore } from '@/stores/providers';
-import { PROVIDER_TYPE_INFO, getProviderIconUrl, shouldInvertInDark, type ProviderType } from '@/lib/providers';
+import { PROVIDER_TYPE_INFO, getProviderIconClass, getProviderIconUrl, type ProviderType } from '@/lib/providers';
 import { buildProviderListItems, hasConfiguredCredentials, type ProviderListItem } from '@/lib/provider-accounts';
 import { cn } from '@/lib/utils';
 import { useSettingsStore } from '@/stores/settings';
@@ -24,7 +24,7 @@ import {
   type AddProviderDialogOptions,
 } from '@/components/settings/providers/provider-account-create';
 
-const primaryButtonClass = 'rounded-[10px] h-8 px-4 bg-primary text-primary-foreground shadow-none hover:bg-primary/90';
+const primaryButtonClass = 'workbench-motion-button workbench-motion-button--lift rounded-[10px] h-8 px-4 bg-primary text-primary-foreground shadow-none hover:bg-primary/90';
 
 export function ProvidersSettings() {
   const { t } = useTranslation('settings');
@@ -215,7 +215,7 @@ function ProviderCard({
         <div className="flex min-w-0 items-start gap-3.5">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] border border-border/60 bg-[hsl(var(--surface-panel)/0.92)] text-foreground">
             {getProviderIconUrl(account.vendorId) ? (
-              <img src={getProviderIconUrl(account.vendorId)} alt={typeInfo?.name || account.vendorId} className={cn('h-[17px] w-[17px]', shouldInvertInDark(account.vendorId) && 'dark:invert')} />
+              <img src={getProviderIconUrl(account.vendorId)} alt={typeInfo?.name || account.vendorId} className={getProviderIconClass(account.vendorId, 'h-[17px] w-[17px]')} />
             ) : (
               <span className="text-[15px]">{vendor?.icon || typeInfo?.icon || '⚙️'}</span>
             )}

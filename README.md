@@ -86,6 +86,9 @@ The composer includes a local QClaw-style slash-command router and inline slash 
 
 When you mention another agent with `@agent`, XClaw moves into that agent's own conversation context instead of relaying through the default agent. Workspaces remain isolated by default, and stronger runtime isolation still depends on OpenClaw sandbox settings.
 
+### 🏢 Global Studio View
+XClaw includes a read-only Studio view that is opened from the top-right office button. It runs a managed local Star Office runtime, shows the main agent plus local agents in one shared office, bridges local runtime events into live studio status updates, and keeps the chat workspace isolated from the embedded office scene.
+
 ### 📡 Multi-Channel Operations
 Every channel can now hold multiple accounts, bind each account to a specific agent, and switch the default account directly from the Channels page.
 

@@ -49,7 +49,11 @@ export function AgentMarketCardsPane({
                 >
                   <div className="relative flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-start gap-3">
-                      <AgentAvatar agentId={`${item.id}:${item.category}`} size={48} />
+                      <AgentAvatar
+                        agentId={item.avatarSeed || `${item.id}:${item.category}`}
+                        profile={item.avatarProfile}
+                        size={48}
+                      />
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-foreground/46">
                           <span className="inline-flex h-5 items-center rounded-full border border-border/55 bg-[hsl(var(--surface-panel)/0.9)] px-2 font-medium text-foreground/52 shadow-[inset_0_1px_0_rgba(255,255,255,0.62)]">

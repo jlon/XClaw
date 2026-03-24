@@ -4,6 +4,9 @@ import { createServer } from 'node:net';
 import { existsSync, mkdirSync, rmSync } from 'node:fs';
 
 const execMock = vi.fn();
+const getSettingMock = vi.fn();
+const isPythonReadyMock = vi.fn();
+const setupManagedPythonMock = vi.fn();
 const userDataDir = `/tmp/xclaw-vitest-gateway-supervisor-${process.pid}`;
 
 vi.mock('electron', () => ({
@@ -27,6 +30,15 @@ vi.mock('child_process', async () => {
     exec: (...args: unknown[]) => execMock(...args),
   };
 });
+
+vi.mock('@electron/utils/store', () => ({
+  getSetting: (...args: unknown[]) => getSettingMock(...args),
+}));
+
+vi.mock('@electron/utils/uv-setup', () => ({
+  isPythonReady: (...args: unknown[]) => isPythonReadyMock(...args),
+  setupManagedPython: (...args: unknown[]) => setupManagedPythonMock(...args),
+}));
 
 describe('findExistingGatewayProcess', () => {
   let wss: WebSocketServer | null = null;
@@ -217,4 +229,42 @@ describe('findExistingGatewayProcess', () => {
     expect(existing).toEqual({ port });
     expect(existsSync(`${userDataDir}/gateway-handoff.json`)).toBe(false);
   }, 15000);
+});
+
+describe('warmupManagedPythonReadiness', () => {
+  beforeEach(() => {
+    vi.resetModules();
+    getSettingMock.mockReset();
+    isPythonReadyMock.mockReset();
+    setupManagedPythonMock.mockReset();
+    getSettingMock.mockResolvedValue(true);
+    isPythonReadyMock.mockResolvedValue(true);
+    setupManagedPythonMock.mockResolvedValue(undefined);
+  });
+
+  it('skips background Python repair while setup is incomplete', async () => {
+    getSettingMock.mockResolvedValue(false);
+
+    const { warmupManagedPythonReadiness } = await import('@electron/gateway/supervisor');
+    warmupManagedPythonReadiness();
+
+    await vi.waitFor(() => {
+      expect(getSettingMock).toHaveBeenCalledWith('setupComplete');
+    });
+
+    expect(isPythonReadyMock).not.toHaveBeenCalled();
+    expect(setupManagedPythonMock).not.toHaveBeenCalled();
+  });
+
+  it('repairs Python in the background after setup is complete', async () => {
+    getSettingMock.mockResolvedValue(true);
+    isPythonReadyMock.mockResolvedValue(false);
+
+    const { warmupManagedPythonReadiness } = await import('@electron/gateway/supervisor');
+    warmupManagedPythonReadiness();
+
+    await vi.waitFor(() => {
+      expect(setupManagedPythonMock).toHaveBeenCalledTimes(1);
+    });
+  });
 });

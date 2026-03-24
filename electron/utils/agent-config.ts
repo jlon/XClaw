@@ -1,6 +1,7 @@
 import { access, copyFile, lstat, mkdir, readFile, readdir, realpath, rename as renameFile, rm, writeFile } from 'fs/promises';
 import { constants } from 'fs';
 import { join, normalize, relative } from 'path';
+import { buildAgentAvatarProfile, type AgentAvatarProfile } from '../../shared/agent-avatar-persona';
 import { deleteAgentChannelAccounts, listConfiguredChannels, readOpenClawConfig, writeOpenClawConfig } from './channel-config';
 import { withConfigLock } from './config-mutex';
 import { expandPath, getOpenClawConfigDir } from './paths';
@@ -10,6 +11,8 @@ const MAIN_AGENT_ID = 'main';
 const MAIN_AGENT_NAME = 'Main Agent';
 const DEFAULT_ACCOUNT_ID = 'default';
 const DEFAULT_WORKSPACE_PATH = '~/.openclaw/workspace';
+const AGENT_AVATAR_SOURCE_FILES = ['SOUL.md', 'IDENTITY.md', 'AGENTS.md'];
+const AGENT_AVATAR_SOURCE_TEXT_LIMIT = 4000;
 const AGENT_BOOTSTRAP_FILES = [
   'AGENTS.md',
   'SOUL.md',
@@ -87,6 +90,7 @@ export interface AgentSummary {
   agentDir: string;
   mainSessionKey: string;
   channelTypes: string[];
+  avatarProfile: AgentAvatarProfile;
 }
 
 export interface AgentsSnapshot {
@@ -714,26 +718,29 @@ async function buildSnapshotFromConfig(config: AgentConfigDocument): Promise<Age
 
   const defaultModelRef = getModelPrimaryRef((config.agents as AgentsConfig | undefined)?.defaults?.model);
   const defaultModelLabel = formatModelLabel((config.agents as AgentsConfig | undefined)?.defaults?.model);
-  const agents: AgentSummary[] = entries.map((entry) => {
+  const agents = await Promise.all(entries.map(async (entry) => {
     const entryModelRef = getModelPrimaryRef(entry.model);
     const modelLabel = formatModelLabel(entry.model) || defaultModelLabel || 'Not configured';
     const inheritedModel = !entryModelRef && Boolean(defaultModelRef);
     const entryIdNorm = normalizeAgentIdForBinding(entry.id);
     const ownedChannels = agentChannelSets.get(entryIdNorm) ?? new Set<string>();
+    const name = entry.name || (entry.id === MAIN_AGENT_ID ? MAIN_AGENT_NAME : entry.id);
+    const workspace = expandPath(entry.workspace || (entry.id === MAIN_AGENT_ID ? getDefaultWorkspacePath(config) : `~/.openclaw/workspace-${entry.id}`));
     return {
       id: entry.id,
-      name: entry.name || (entry.id === MAIN_AGENT_ID ? MAIN_AGENT_NAME : entry.id),
+      name,
       isDefault: entry.id === defaultAgentId,
       modelDisplay: modelLabel,
       modelRef: entryModelRef || defaultModelRef || null,
       defaultModelRef,
       inheritedModel,
-      workspace: expandPath(entry.workspace || (entry.id === MAIN_AGENT_ID ? getDefaultWorkspacePath(config) : `~/.openclaw/workspace-${entry.id}`)),
+      workspace,
       agentDir: expandPath(entry.agentDir || getDefaultAgentDirPath(entry.id)),
       mainSessionKey: buildAgentMainSessionKey(config, entry.id),
       channelTypes: configuredChannels.filter((ct) => ownedChannels.has(ct)),
+      avatarProfile: await buildLocalAgentAvatarProfile(entry, name, workspace),
     };
-  });
+  }));
 
   return {
     agents,
@@ -742,6 +749,54 @@ async function buildSnapshotFromConfig(config: AgentConfigDocument): Promise<Age
     channelOwners,
     channelAccountOwners,
   };
+}
+
+async function buildLocalAgentAvatarProfile(
+  entry: AgentListEntry,
+  name: string,
+  workspace: string,
+): Promise<AgentAvatarProfile> {
+  return buildAgentAvatarProfile({
+    id: entry.id,
+    name,
+    sourceText: await readLocalAgentAvatarSourceText(workspace),
+    seedHint: entry.id,
+    source: 'local',
+  });
+}
+
+async function readLocalAgentAvatarSourceText(workspace: string): Promise<string> {
+  const root = await resolveSafeWorkspacePath(workspace);
+  if (!root) return '';
+
+  for (const fileName of AGENT_AVATAR_SOURCE_FILES) {
+    const absolutePath = join(root, fileName);
+    if (!(await fileExists(absolutePath))) continue;
+    try {
+      await assertWorkspaceFileIsNotSymlink(absolutePath);
+      const content = await readFile(absolutePath, 'utf8');
+      if (content.trim()) {
+        return content.slice(0, AGENT_AVATAR_SOURCE_TEXT_LIMIT);
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return '';
+}
+
+async function resolveSafeWorkspacePath(workspace: string): Promise<string | null> {
+  try {
+    const stats = await lstat(workspace);
+    if (stats.isSymbolicLink()) return null;
+    return await realpath(workspace);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return null;
+    }
+    return null;
+  }
 }
 
 export async function listAgentsSnapshot(): Promise<AgentsSnapshot> {

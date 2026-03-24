@@ -70,11 +70,11 @@ interface AgentMarketCatalogResponse {
 }
 
 const fieldInputClasses =
-  'h-[44px] rounded-xl text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30';
+  'appearance-none h-[44px] rounded-xl text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus:outline-none focus-visible:outline-none focus-visible:border-primary focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
 const modalSurfaceClasses =
   'app-modal-surface w-full rounded-[20px]';
 const badgeClasses =
-  'h-5 rounded-[10px] border border-border/70 bg-background/70 px-2 text-[10px] font-medium text-foreground/70 shadow-none';
+  'h-5 rounded-[10px] border border-border/70 bg-[hsl(var(--surface-panel)/0.9)] px-2 text-[10px] font-medium text-foreground/70 shadow-none dark:bg-[hsl(var(--surface-elevated)/0.82)]';
 const modalTitleClasses =
   'text-[20px] md:text-[22px] font-semibold tracking-tight text-foreground';
 const modalDescriptionClasses =

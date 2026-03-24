@@ -90,10 +90,10 @@ type WeixinLoginPollResponse = {
 
 const WEIXIN_POLL_MS = 1500;
 
-const inputClasses = 'h-11 rounded-[10px] border border-border/60 app-field-surface font-mono text-[13px] text-foreground shadow-none transition-colors placeholder:text-muted-foreground/55 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/18 focus-visible:ring-offset-0';
+const inputClasses = 'appearance-none h-11 rounded-[10px] border border-border/60 app-field-surface font-mono text-[13px] text-foreground shadow-none transition-colors placeholder:text-muted-foreground/55 focus:outline-none focus-visible:outline-none focus-visible:border-ring focus-visible:ring-0 focus-visible:ring-offset-0';
 const labelClasses = 'text-[12.5px] font-semibold tracking-[0.01em] text-foreground/78';
-const outlineButtonClasses = 'h-9 rounded-[10px] border border-border/60 bg-[hsl(var(--surface-elevated)/0.96)] px-3 text-[12px] font-medium text-foreground/78 shadow-none hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground';
-const primaryButtonClasses = 'h-9 rounded-[10px] bg-foreground px-4 text-[12px] font-medium text-background shadow-none hover:bg-foreground/90';
+const outlineButtonClasses = 'workbench-motion-button workbench-motion-button--lift h-9 rounded-[10px] border border-border/60 bg-[hsl(var(--surface-elevated)/0.96)] px-3 text-[12px] font-medium text-foreground/78 shadow-none hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground';
+const primaryButtonClasses = 'workbench-motion-button workbench-motion-button--lift h-9 rounded-[10px] bg-foreground px-4 text-[12px] font-medium text-background shadow-none hover:bg-foreground/90';
 const modalCardClasses = 'app-modal-surface flex max-h-[88vh] w-full max-w-[900px] flex-col overflow-hidden rounded-[16px] border-border/55 shadow-[0_10px_28px_rgba(15,23,42,0.06)]';
 const modalSurfaceClasses = 'app-pane-surface rounded-[12px] border border-border/55';
 const modalSubtleSurfaceClasses = 'app-pane-surface rounded-[12px] border border-border/50';

@@ -6,6 +6,8 @@ import { getUvMirrorEnv } from './uv-env';
 import { logger } from './logger';
 import { quoteForCmd, needsWinShell } from './paths';
 
+let setupManagedPythonFlight: Promise<void> | null = null;
+
 /**
  * Get the path to the bundled uv binary
  */
@@ -174,55 +176,65 @@ async function runPythonInstall(
  * if the first attempt fails, to rule out mirror-specific issues.
  */
 export async function setupManagedPython(): Promise<void> {
-  const { bin: uvBin, source } = resolveUvBin();
-  const uvEnv = await getUvMirrorEnv();
-  const hasMirror = Object.keys(uvEnv).length > 0;
-
-  logger.info(
-    `Setting up managed Python 3.12 ` +
-    `(uv=${uvBin}, source=${source}, arch=${process.arch}, mirror=${hasMirror})`
-  );
-
-  const baseEnv: Record<string, string | undefined> = { ...process.env };
-
-  // Attempt 1: with mirror (if applicable)
-  try {
-    await runPythonInstall(uvBin, { ...baseEnv, ...uvEnv }, hasMirror ? 'mirror' : 'default');
-  } catch (firstError) {
-    logger.warn('Python install attempt 1 failed:', firstError);
-
-    if (hasMirror) {
-      // Attempt 2: retry without mirror to rule out mirror issues
-      logger.info('Retrying Python install without mirror...');
-      try {
-        await runPythonInstall(uvBin, baseEnv, 'no-mirror');
-      } catch (secondError) {
-        logger.error('Python install attempt 2 (no mirror) also failed:', secondError);
-        throw secondError;
-      }
-    } else {
-      throw firstError;
-    }
+  if (setupManagedPythonFlight) {
+    logger.info('Reusing in-flight managed Python setup');
+    return await setupManagedPythonFlight;
   }
 
-  // After installation, verify and log the Python path
-  const verifyShell = needsWinShell(uvBin);
-  try {
-    const findPath = await new Promise<string>((resolve) => {
-      const child = spawn(verifyShell ? quoteForCmd(uvBin) : uvBin, ['python', 'find', '3.12'], {
-        shell: verifyShell,
-        env: { ...process.env, ...uvEnv },
-        windowsHide: true,
-      });
-      let output = '';
-      child.stdout?.on('data', (data) => { output += data; });
-      child.on('close', () => resolve(output.trim()));
-    });
+  setupManagedPythonFlight = (async () => {
+    const { bin: uvBin, source } = resolveUvBin();
+    const uvEnv = await getUvMirrorEnv();
+    const hasMirror = Object.keys(uvEnv).length > 0;
 
-    if (findPath) {
-      logger.info(`Managed Python 3.12 installed at: ${findPath}`);
+    logger.info(
+      `Setting up managed Python 3.12 ` +
+      `(uv=${uvBin}, source=${source}, arch=${process.arch}, mirror=${hasMirror})`
+    );
+
+    const baseEnv: Record<string, string | undefined> = { ...process.env };
+
+    try {
+      await runPythonInstall(uvBin, { ...baseEnv, ...uvEnv }, hasMirror ? 'mirror' : 'default');
+    } catch (firstError) {
+      logger.warn('Python install attempt 1 failed:', firstError);
+
+      if (hasMirror) {
+        logger.info('Retrying Python install without mirror...');
+        try {
+          await runPythonInstall(uvBin, baseEnv, 'no-mirror');
+        } catch (secondError) {
+          logger.error('Python install attempt 2 (no mirror) also failed:', secondError);
+          throw secondError;
+        }
+      } else {
+        throw firstError;
+      }
     }
-  } catch (err) {
-    logger.warn('Could not determine Python path after install:', err);
+
+    const verifyShell = needsWinShell(uvBin);
+    try {
+      const findPath = await new Promise<string>((resolve) => {
+        const child = spawn(verifyShell ? quoteForCmd(uvBin) : uvBin, ['python', 'find', '3.12'], {
+          shell: verifyShell,
+          env: { ...process.env, ...uvEnv },
+          windowsHide: true,
+        });
+        let output = '';
+        child.stdout?.on('data', (data) => { output += data; });
+        child.on('close', () => resolve(output.trim()));
+      });
+
+      if (findPath) {
+        logger.info(`Managed Python 3.12 installed at: ${findPath}`);
+      }
+    } catch (err) {
+      logger.warn('Could not determine Python path after install:', err);
+    }
+  })();
+
+  try {
+    await setupManagedPythonFlight;
+  } finally {
+    setupManagedPythonFlight = null;
   }
 }

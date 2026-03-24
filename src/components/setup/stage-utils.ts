@@ -34,7 +34,7 @@ export const canActivateSetup = ({ stage, phase }: SetupActivationState): boolea
 export interface SetupPrimaryActionInput {
   stage: SetupStage;
   mode: SetupMode;
-  phase?: 'applying' | 'summary';
+  phase?: 'enhancements' | 'applying' | 'summary';
   providerConfigured?: boolean;
   providerCanSubmit?: boolean;
   takeoverImportComplete?: boolean;

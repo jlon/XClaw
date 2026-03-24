@@ -332,6 +332,15 @@ describe('ChatInput agent targeting', () => {
     randomSpy.mockRestore();
   });
 
+  it('keeps the composer text and caret dark on the light composer surface in dark theme', () => {
+    render(<ChatInput onSend={vi.fn()} />);
+
+    const textbox = screen.getByRole('textbox');
+
+    expect(textbox).toHaveClass('dark:text-black');
+    expect(textbox).toHaveClass('dark:caret-black');
+  });
+
   it('opens a slash command menu and filters commands as the user types', async () => {
     render(<ChatInput onSend={vi.fn()} />);
 

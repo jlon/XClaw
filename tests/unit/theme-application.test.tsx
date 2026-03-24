@@ -70,11 +70,10 @@ describe('theme application', () => {
       'src/components/settings/ProvidersSettings.tsx',
     ].map((relativePath) => readFileSync(resolve(process.cwd(), relativePath), 'utf8')).join('\n');
 
-    expect(themeSource).toContain('--font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;');
-    expect(themeSource).toContain('--font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;');
+    expect(themeSource).toContain('--font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;');
+    expect(themeSource).toContain('--font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;');
+    expect(themeSource).toContain('--font-sidebar: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;');
     expect(themeSource).toContain('font-family: var(--font-ui);');
-    expect(themeSource).not.toContain('SF Pro Text');
-    expect(themeSource).not.toContain('SF Pro Display');
     expect(pageSources).not.toContain('font-serif');
     expect(pageSources).not.toContain('fontFamily:');
   });

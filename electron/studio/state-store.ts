@@ -22,12 +22,15 @@ const isStudioAgentStatus = (value: unknown): value is StudioAgentSnapshot['stat
 const isStudioDetailSource = (value: unknown): value is StudioAgentSnapshot['detailSource'] =>
   typeof value === 'string' && STUDIO_DETAIL_SOURCES.includes(value as StudioAgentSnapshot['detailSource']);
 
-const validateAgent = (value: unknown): value is StudioAgentSnapshot =>
+type PersistedStudioAgent = Omit<StudioAgentSnapshot, 'sceneName'> & { sceneName?: string };
+
+const validateAgent = (value: unknown): value is PersistedStudioAgent =>
   isObject(value)
   && typeof value.agentId === 'string'
   && value.agentId.length > 0
   && typeof value.displayName === 'string'
   && value.displayName.length > 0
+  && (typeof value.sceneName === 'undefined' || (typeof value.sceneName === 'string' && value.sceneName.length > 0))
   && isStudioAgentStatus(value.status)
   && typeof value.detail === 'string'
   && isStudioDetailSource(value.detailSource)
@@ -81,6 +84,11 @@ const writeJsonAtomically = async (filePath: string, payload: unknown): Promise<
   await rename(tempPath, filePath);
 };
 
+const normalizePersistedAgent = (agent: PersistedStudioAgent): StudioAgentSnapshot => ({
+  ...agent,
+  sceneName: agent.sceneName || agent.displayName,
+});
+
 const readSnapshotSet = async (paths: StudioSnapshotPaths): Promise<StudioCommittedSnapshot | null> => {
   const [main, agents, manifest] = await Promise.all([
     readJson<StudioMainStateFile>(paths.stateFilePath),
@@ -96,7 +104,17 @@ const readSnapshotSet = async (paths: StudioSnapshotPaths): Promise<StudioCommit
     return null;
   }
 
-  return { main, agents, manifest };
+  return {
+    main: {
+      ...main,
+      agent: normalizePersistedAgent(main.agent),
+    },
+    agents: {
+      ...agents,
+      agents: agents.agents.map(normalizePersistedAgent),
+    },
+    manifest,
+  };
 };
 
 const cloneSnapshot = (snapshot: StudioCommittedSnapshot): StudioCommittedSnapshot =>

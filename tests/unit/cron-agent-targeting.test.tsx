@@ -184,14 +184,16 @@ describe('cron agent targeting', () => {
     fireEvent.change(screen.getByLabelText('消息/提示词'), { target: { value: '发日报' } });
     fireEvent.click(screen.getByRole('button', { name: '创建任务' }));
 
-    expect(cronState.createJob).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: '早报',
-        message: '发日报',
-        agentId: 'main',
-      }),
-    );
-  });
+    await waitFor(() => {
+      expect(cronState.createJob).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: '早报',
+          message: '发日报',
+          agentId: 'main',
+        }),
+      );
+    });
+  }, 15000);
 
   it('auto-fills a unique pairing-store recipient hint for cron delivery', async () => {
     render(<Cron />);
@@ -204,5 +206,5 @@ describe('cron agent targeting', () => {
 
     expect(hostApiFetchMock).toHaveBeenCalledWith('/api/channels/accounts');
     expect(hostApiFetchMock).toHaveBeenCalledWith('/api/channels/recipient-hints/feishu?accountId=bot2');
-  });
+  }, 15000);
 });

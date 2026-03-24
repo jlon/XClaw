@@ -237,7 +237,7 @@ export function AgentListPane({
                             : 'border-transparent hover:border-border/55 hover:bg-[hsl(var(--surface-hover)/0.48)]',
                         )}
                       >
-                        <AgentAvatar agentId={agent.id} size={36} className="shrink-0" />
+                        <AgentAvatar agentId={agent.id} profile={agent.avatarProfile} size={36} className="shrink-0" />
 
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
@@ -247,7 +247,7 @@ export function AgentListPane({
                             {agent.isDefault ? (
                               <Badge
                                 variant="outline"
-                                className="h-5 rounded-full border-border/70 bg-background/80 px-2 text-[10px] font-medium text-foreground/64 shadow-none"
+                                className="h-5 rounded-full border-border/70 bg-[hsl(var(--surface-panel)/0.9)] px-2 text-[10px] font-medium text-foreground/64 shadow-none dark:bg-[hsl(var(--surface-elevated)/0.82)]"
                               >
                                 {defaultBadgeLabel}
                               </Badge>

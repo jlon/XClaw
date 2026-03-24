@@ -250,18 +250,22 @@
         "progress": "进度",
         "gatewayPendingHint": "Gateway 尚未进入运行态时，进入应用后仍会继续接管启动。",
         "enhancements": {
-            "title": "可选增强能力",
-            "optionalBody": "这一步不会阻塞进入 XClaw。若本机已有 uv 或 Python 运行时，会优先直接复用；否则你可以稍后再准备。",
+            "stageTitle": "准备核心环境",
+            "stageSubtitle": "先确认 Python 运行时与 uv 已就绪，再进入最终摘要。",
+            "title": "Python 运行环境",
+            "requiredBody": "Python 是 XClaw 的核心要求。若本机已有 uv 或 Python 运行时，会优先直接复用；否则必须先完成准备。",
             "readyTitle": "增强能力已就绪",
-            "readyBody": "已检测到可复用的本机环境。你可以直接开始使用，需要时再补充更多能力。",
-            "prepareNow": "准备增强能力",
+            "readyBody": "已检测到可复用的本机环境。你可以直接进入最终摘要。",
+            "prepareNow": "准备核心环境",
             "preparing": "准备中...",
             "prepareFailed": "增强能力准备失败",
+            "prepareIncomplete": "核心环境尚未完成，请稍后重试。",
             "uvLabel": "uv 环境",
             "pythonLabel": "Python 运行时",
             "checking": "检查中",
             "reused": "已复用",
-            "notReady": "稍后再准备"
+            "notReady": "尚未就绪",
+            "required": "必须完成"
         }
     },
     "nav": {
@@ -326,6 +330,10 @@
                 "body": "确认变更并进入应用。",
                 "primary": "进入 XClaw",
                 "secondary": "返回"
+            },
+            "enhancements": {
+                "title": "准备核心环境",
+                "body": "先完成 Python 运行时准备，成功后会自动进入最终摘要。"
             },
             "applying": {
                 "title": "正在应用变更",

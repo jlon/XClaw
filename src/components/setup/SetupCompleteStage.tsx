@@ -19,7 +19,7 @@ export interface SetupCompleteMetric {
 }
 
 export interface SetupCompleteStageProps {
-  phase: 'applying' | 'summary';
+  phase: 'enhancements' | 'applying' | 'summary';
   title: ReactNode;
   subtitle?: ReactNode;
   progress?: number;

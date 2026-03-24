@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Check,
+  CheckCircle2,
   Loader2,
   Eye,
   EyeOff,
@@ -14,6 +15,7 @@ import {
   XCircle,
   ExternalLink,
   Copy,
+  CircleDashed,
 } from 'lucide-react';
 import { TitleBar } from '@/components/layout/TitleBar';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -56,10 +58,10 @@ import {
   type ProviderType,
   type ProviderTypeInfo,
   getProviderDocsUrl,
+  getProviderIconClass,
   getProviderIconUrl,
   resolveProviderApiKeyForSave,
   resolveProviderModelForSave,
-  shouldInvertInDark,
   shouldShowProviderModelId,
 } from '@/lib/providers';
 import {
@@ -115,6 +117,7 @@ export function Setup() {
   const [providerPrimaryCanSubmit, setProviderPrimaryCanSubmit] = useState(false);
   const [providerPrimarySubmitting, setProviderPrimarySubmitting] = useState(false);
   const [apiKey, setApiKey] = useState('');
+  const [enhancementStepRequired, setEnhancementStepRequired] = useState(false);
   const providerPrimarySubmitRef = useRef<(() => Promise<boolean>) | null>(null);
   // Runtime check status
   const [runtimeChecksPassed, setRuntimeChecksPassed] = useState(false);
@@ -168,6 +171,21 @@ export function Setup() {
     navigate('/');
   }, [freshWorkspacePath, markSetupComplete, navigate, parsedFreshGatewayPort, setupMode, t]);
 
+  const resolveCompletionPhase = useCallback(async (): Promise<SetupCompletePhase> => {
+    try {
+      const status = await invokeIpc('uv:status') as {
+        uvInstalled: boolean;
+        pythonReady: boolean;
+      };
+      const shouldShowEnhancements = !(status.uvInstalled && status.pythonReady);
+      setEnhancementStepRequired(shouldShowEnhancements);
+      return shouldShowEnhancements ? 'enhancements' : 'summary';
+    } catch {
+      setEnhancementStepRequired(true);
+      return 'enhancements';
+    }
+  }, []);
+
   const goToStage = useCallback((stage: SetupStage, phase: SetupCompletePhase = 'summary') => {
     setCurrentStage(stage);
     setCompletePhase(stage === 'complete' ? phase : 'summary');
@@ -214,7 +232,7 @@ export function Setup() {
         goToStage('provider');
       }
       if (takeoverStatusSnapshot?.state === 'complete' && !nextTakeoverRequiresProviderReview) {
-        goToStage('complete', 'summary');
+        goToStage('complete', await resolveCompletionPhase());
       }
       if (snapshotRunning) {
         void loadTakeoverImportStatus().then((latestStatus) => {
@@ -223,7 +241,9 @@ export function Setup() {
             goToStage('provider');
           }
           if (latestStatus.state === 'complete' && !nextTakeoverRequiresProviderReview) {
-            goToStage('complete', 'summary');
+            void resolveCompletionPhase().then((phase) => {
+              goToStage('complete', phase);
+            });
           }
           if (latestStatus.state !== 'running' && latestStatus.state !== 'idle') {
             setTakeoverSubmitting(false);
@@ -236,7 +256,7 @@ export function Setup() {
     } finally {
       setSetupStateLoading(false);
     }
-  }, [goToStage, settingsGatewayPort]);
+  }, [goToStage, resolveCompletionPhase, settingsGatewayPort]);
 
   useEffect(() => {
     let cancelled = false;
@@ -274,7 +294,9 @@ export function Setup() {
             goToStage('provider');
           }
           if (status.state === 'complete' && !takeoverRequiresProviderReview) {
-            goToStage('complete', 'summary');
+            void resolveCompletionPhase().then((phase) => {
+              goToStage('complete', phase);
+            });
           }
           if (status.state !== 'running' && status.state !== 'idle') {
             setTakeoverSubmitting(false);
@@ -302,7 +324,7 @@ export function Setup() {
         window.clearTimeout(timer);
       }
     };
-  }, [goToStage, takeoverRequiresProviderReview, takeoverSubmitting]);
+  }, [goToStage, resolveCompletionPhase, takeoverRequiresProviderReview, takeoverSubmitting]);
 
   useEffect(() => {
     if (setupStateLoading || setupMode !== 'fresh') {
@@ -368,7 +390,7 @@ export function Setup() {
           ? true
           : ((providerConfigured || providerPrimaryCanSubmit) && !providerPrimarySubmitting);
       case 'complete':
-        return completePhase === 'summary';
+        return completePhase !== 'applying';
       default:
         return true;
     }
@@ -408,7 +430,7 @@ export function Setup() {
         if (takeoverRequiresProviderReview) {
           goToStage('provider');
         } else {
-          goToStage('complete', 'summary');
+          goToStage('complete', await resolveCompletionPhase());
         }
         return;
       }
@@ -425,7 +447,7 @@ export function Setup() {
           if (takeoverRequiresProviderReview) {
             goToStage('provider');
           } else {
-            goToStage('complete', 'summary');
+            goToStage('complete', await resolveCompletionPhase());
           }
           return;
         }
@@ -447,7 +469,7 @@ export function Setup() {
 
     if (currentStage === 'provider') {
       if (setupMode === 'takeover') {
-        goToStage('complete', 'summary');
+        goToStage('complete', await resolveCompletionPhase());
       } else {
         if (!providerConfigured) {
           const submit = providerPrimarySubmitRef.current;
@@ -461,8 +483,13 @@ export function Setup() {
           }
         }
 
-        goToStage('complete', 'summary');
+        goToStage('complete', await resolveCompletionPhase());
       }
+      return;
+    }
+
+    if (currentStage === 'complete' && completePhase === 'enhancements') {
+      goToStage('complete', 'summary');
       return;
     }
 
@@ -492,11 +519,15 @@ export function Setup() {
       return;
     }
 
-    if (currentStage === 'complete' && completePhase === 'summary') {
-      if (setupMode === 'takeover' && !takeoverRequiresProviderReview) {
-        goToStage('preparation');
+    if (currentStage === 'complete') {
+      if (completePhase === 'summary' && enhancementStepRequired) {
+        goToStage('complete', 'enhancements');
       } else {
-        goToStage('provider');
+        if (setupMode === 'takeover' && !takeoverRequiresProviderReview) {
+          goToStage('preparation');
+        } else {
+          goToStage('provider');
+        }
       }
     }
   };
@@ -623,6 +654,10 @@ export function Setup() {
       <CompleteContent
         completePhase={completePhase}
         selectedProvider={selectedProvider}
+        onEnhancementPrepared={() => {
+          setEnhancementStepRequired(false);
+          goToStage('complete', 'summary');
+        }}
       />
     );
   };
@@ -641,14 +676,14 @@ export function Setup() {
               stage={currentStage}
               completePhase={completePhase}
               canProceed={canProceed}
-              primaryLabel={footerPrimaryAction.label}
+              primaryLabel={currentStage === 'complete' && completePhase === 'enhancements' ? undefined : footerPrimaryAction.label}
               onBack={
                 currentStage === 'start'
                 || (currentStage === 'preparation' && setupMode === 'takeover' && takeoverTaskRunning)
                   ? undefined
                   : handleBack
               }
-              onPrimary={() => { void handleNext(); }}
+              onPrimary={currentStage === 'complete' && completePhase === 'enhancements' ? undefined : () => { void handleNext(); }}
               onExit={currentStage === 'start' ? handleExitRequest : undefined}
             />
           )}
@@ -1244,7 +1279,7 @@ function ProviderContent({
                   type="button"
                   onClick={() => handleSelectProvider(provider.id)}
                   className={cn(
-                    'flex min-h-[74px] items-start gap-3 rounded-[14px] border px-3 py-3 text-left transition-[border-color,background-color,box-shadow,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/15',
+                    'flex min-h-[74px] items-start gap-3 rounded-[14px] border px-3 py-3 text-left transition-[border-color,background-color,box-shadow,transform] duration-200 focus:outline-none focus-visible:outline-none focus-visible:border-[hsl(var(--border-strong)/0.42)] focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0',
                     isSelected
                       ? 'border-[hsl(var(--border-strong)/0.42)] bg-[hsl(var(--surface-elevated)/1)] shadow-[0_10px_20px_rgba(15,23,42,0.045)]'
                       : 'border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.985)] hover:-translate-y-px hover:border-[hsl(var(--border-strong)/0.28)] hover:bg-[hsl(var(--surface-elevated)/1)] hover:shadow-[0_8px_18px_rgba(15,23,42,0.035)]',
@@ -1255,7 +1290,7 @@ function ProviderContent({
                       <img
                         src={iconUrl}
                         alt={provider.name}
-                        className={cn('h-4 w-4', shouldInvertInDark(provider.id) && 'dark:invert')}
+                        className={getProviderIconClass(provider.id, 'h-4 w-4')}
                       />
                     ) : (
                       <span className="text-[15px] leading-none">{provider.icon}</span>
@@ -1289,7 +1324,7 @@ function ProviderContent({
                       <img
                         src={selectedProviderIconUrl}
                         alt={selectedProviderData.name}
-                        className={cn('h-5 w-5', shouldInvertInDark(selectedProviderData.id) && 'dark:invert')}
+                        className={getProviderIconClass(selectedProviderData.id, 'h-5 w-5')}
                       />
                     ) : (
                       <span className="text-base leading-none">{selectedProviderData.icon}</span>
@@ -1306,7 +1341,7 @@ function ProviderContent({
                     href={providerDocsUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 rounded-full border border-border/65 bg-background/80 px-3 py-1.5 text-[13px] font-medium text-foreground/70 transition-colors hover:text-foreground"
+                    className="inline-flex items-center gap-1 rounded-full border border-border/65 bg-[hsl(var(--surface-panel)/0.9)] px-3 py-1.5 text-[13px] font-medium text-foreground/70 transition-colors hover:text-foreground dark:bg-[hsl(var(--surface-elevated)/0.82)]"
                   >
                     {t('provider.docsLink')}
                     <ExternalLink className="h-3 w-3" />
@@ -1590,19 +1625,21 @@ function ProviderContent({
 interface CompleteContentProps {
   completePhase: SetupCompletePhase;
   selectedProvider: string | null;
+  onEnhancementPrepared: () => void;
 }
 
-function CompleteContent({ completePhase, selectedProvider }: CompleteContentProps) {
+function CompleteContent({ completePhase, selectedProvider, onEnhancementPrepared }: CompleteContentProps) {
   const { t } = useTranslation(['setup', 'settings']);
   const gatewayStatus = useGatewayStore((state) => state.status);
   const providerData = providers.find((p) => p.id === selectedProvider);
+  const isEnhancementPhase = completePhase === 'enhancements';
 
   return (
     <SetupCompleteStage
       phase={completePhase}
-      title={t('complete.title')}
-      subtitle={t('complete.subtitle')}
-      summaryCards={[
+      title={isEnhancementPhase ? t('complete.enhancements.stageTitle') : t('complete.title')}
+      subtitle={isEnhancementPhase ? t('complete.enhancements.stageSubtitle') : t('complete.subtitle')}
+      summaryCards={!isEnhancementPhase ? [
         {
           label: t('complete.provider'),
           value: providerData ? (
@@ -1611,7 +1648,7 @@ function CompleteContent({ completePhase, selectedProvider }: CompleteContentPro
                 <img
                   src={getProviderIconUrl(providerData.id)}
                   alt={providerData.name}
-                  className={cn('inline-block h-4 w-4', shouldInvertInDark(providerData.id) && 'dark:invert')}
+                  className={getProviderIconClass(providerData.id, 'inline-block h-4 w-4')}
                 />
               ) : providerData.icon}
               {providerData.id === 'custom' ? t('settings:aiProviders.custom') : providerData.name}
@@ -1623,16 +1660,20 @@ function CompleteContent({ completePhase, selectedProvider }: CompleteContentPro
           value: gatewayStatus.state === 'running' ? `✓ ${t('complete.running')}` : gatewayStatus.state,
           hint: gatewayStatus.state === 'running' ? undefined : t('complete.gatewayPendingHint'),
         },
-      ]}
-      footerNote={t('complete.footer')}
+      ] : undefined}
+      footerNote={isEnhancementPhase ? undefined : t('complete.footer')}
     >
-      {completePhase === 'summary' ? <OptionalEnhancementPanel /> : null}
+      {completePhase === 'enhancements' ? <OptionalEnhancementPanel onPrepared={onEnhancementPrepared} /> : null}
     </SetupCompleteStage>
   );
 }
 
-function OptionalEnhancementPanel() {
+function OptionalEnhancementPanel({ onPrepared }: { onPrepared: () => void }) {
   const { t } = useTranslation('setup');
+  type EnhancementRuntimeStatus = {
+    uvInstalled: boolean;
+    pythonReady: boolean;
+  };
   const [status, setStatus] = useState<{
     loading: boolean;
     uvInstalled: boolean;
@@ -1647,29 +1688,28 @@ function OptionalEnhancementPanel() {
     error: null,
   });
 
-  const refreshStatus = useCallback(async () => {
+  const refreshStatus = useCallback(async (): Promise<EnhancementRuntimeStatus | null> => {
     setStatus((current) => ({
       ...current,
       loading: true,
       error: null,
     }));
     try {
-      const next = await invokeIpc('uv:status') as {
-        uvInstalled: boolean;
-        pythonReady: boolean;
-      };
+      const next = await invokeIpc('uv:status') as EnhancementRuntimeStatus;
       setStatus((current) => ({
         ...current,
         loading: false,
         uvInstalled: next.uvInstalled,
         pythonReady: next.pythonReady,
       }));
+      return next;
     } catch (error) {
       setStatus((current) => ({
         ...current,
         loading: false,
         error: String(error),
       }));
+      return null;
     }
   }, []);
 
@@ -1691,8 +1731,12 @@ function OptionalEnhancementPanel() {
       if (!result.success) {
         throw new Error(result.error || t('complete.enhancements.prepareFailed'));
       }
-      await refreshStatus();
+      const nextStatus = await refreshStatus();
+      if (!nextStatus?.uvInstalled || !nextStatus.pythonReady) {
+        throw new Error(t('complete.enhancements.prepareIncomplete'));
+      }
       toast.success(t('complete.enhancements.readyTitle'));
+      onPrepared();
     } catch (error) {
       setStatus((current) => ({
         ...current,
@@ -1705,9 +1749,21 @@ function OptionalEnhancementPanel() {
         preparing: false,
       }));
     }
-  }, [refreshStatus, t]);
+  }, [onPrepared, refreshStatus, t]);
 
   const environmentReady = status.uvInstalled && status.pythonReady;
+  const enhancementItems = [
+    {
+      id: 'uv',
+      label: t('complete.enhancements.uvLabel'),
+      ready: status.uvInstalled,
+    },
+    {
+      id: 'python',
+      label: t('complete.enhancements.pythonLabel'),
+      ready: status.pythonReady,
+    },
+  ];
 
   return (
     <div className="rounded-[1.5rem] border border-border/70 app-insight-surface p-5">
@@ -1717,12 +1773,12 @@ function OptionalEnhancementPanel() {
           <div className="text-sm leading-6 text-muted-foreground">
             {environmentReady
               ? t('complete.enhancements.readyBody')
-              : t('complete.enhancements.optionalBody')}
+              : t('complete.enhancements.requiredBody')}
           </div>
         </div>
         {!environmentReady ? (
           <Button
-            variant="outline"
+            variant="default"
             onClick={() => { void handlePrepare(); }}
             disabled={status.loading || status.preparing}
           >
@@ -1738,27 +1794,37 @@ function OptionalEnhancementPanel() {
         ) : null}
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-2xl border border-border/70 app-field-surface p-4">
-          <div className="text-sm text-muted-foreground">{t('complete.enhancements.uvLabel')}</div>
-          <div className="mt-2 text-sm font-medium text-foreground">
-            {status.loading
-              ? t('complete.enhancements.checking')
-              : status.uvInstalled
-                ? t('complete.enhancements.reused')
-                : t('complete.enhancements.notReady')}
+      <div className="mt-4 space-y-3">
+        {enhancementItems.map((item) => (
+          <div key={item.id} className="flex items-center justify-between rounded-2xl border border-border/70 app-field-surface p-4">
+            <div className="flex items-center gap-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-[hsl(var(--surface-elevated)/0.86)]">
+                {status.loading ? (
+                  <Loader2 className="h-4.5 w-4.5 animate-spin text-muted-foreground" />
+                ) : item.ready ? (
+                  <CheckCircle2 className="h-4.5 w-4.5 text-emerald-500" />
+                ) : (
+                  <CircleDashed className="h-4.5 w-4.5 text-muted-foreground" />
+                )}
+              </span>
+              <div>
+                <div className="text-sm font-medium text-foreground">{item.label}</div>
+                <div className="mt-1 text-sm text-muted-foreground">
+                  {status.loading
+                    ? t('complete.enhancements.checking')
+                    : item.ready
+                      ? t('complete.enhancements.reused')
+                      : t('complete.enhancements.notReady')}
+                </div>
+              </div>
+            </div>
+            {!status.loading && !item.ready ? (
+              <span className="rounded-full border border-border/70 bg-[hsl(var(--surface-elevated)/0.88)] px-3 py-1 text-xs font-medium text-muted-foreground">
+                {t('complete.enhancements.required')}
+              </span>
+            ) : null}
           </div>
-        </div>
-        <div className="rounded-2xl border border-border/70 app-field-surface p-4">
-          <div className="text-sm text-muted-foreground">{t('complete.enhancements.pythonLabel')}</div>
-          <div className="mt-2 text-sm font-medium text-foreground">
-            {status.loading
-              ? t('complete.enhancements.checking')
-              : status.pythonReady
-                ? t('complete.enhancements.reused')
-                : t('complete.enhancements.notReady')}
-          </div>
-        </div>
+        ))}
       </div>
 
       {status.error ? (

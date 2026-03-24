@@ -7,7 +7,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Loader2, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { AgentAvatar } from '@/components/chat/AgentAvatar';
+import { AgentAvatar } from '@/components/agents/AgentAvatar';
 import { useChatStore, type RawMessage } from '@/stores/chat';
 import { useGatewayStore } from '@/stores/gateway';
 import { useAgentsStore } from '@/stores/agents';
@@ -18,7 +18,6 @@ import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { extractImages, extractText, extractThinking, extractToolUse, isSystemRuntimeMessage } from './message-utils';
 import { useTranslation } from 'react-i18next';
-import { getSessionAvatar } from '@/lib/chat-avatar';
 import { cn } from '@/lib/utils';
 import { useStickToBottomInstant } from '@/hooks/use-stick-to-bottom-instant';
 import { XClawWelcomeWordmark } from '@/components/common/XClawWelcomeWordmark';
@@ -26,6 +25,7 @@ import { hostApiFetch } from '@/lib/host-api';
 import { buildChatExportFileName, buildChatMarkdown } from './export-markdown';
 import { ExecApprovalOverlay } from './ExecApprovalOverlay';
 import { submitExecApprovalDecision } from '@/stores/chat/exec-approval-submit';
+import type { AgentSummary } from '@/types/agent';
 import type { SkillChatDraft } from '@/types/skill';
 
 const messageVisualRole = (message: RawMessage, showThinking: boolean): 'assistant' | 'user' | null => {
@@ -153,13 +153,17 @@ export function Chat() {
   const shouldRenderStreaming = sending && (hasStreamText || hasStreamThinking || hasStreamTools || hasStreamImages || hasStreamToolStatus);
   const hasAnyStreamContent = hasStreamText || hasStreamThinking || hasStreamTools || hasStreamImages || hasStreamToolStatus;
   const activeSession = sessions.find((session) => session.key === currentSessionKey);
-  const currentAgentName = agents.find((agent) => agent.id === currentAgentId)?.name || currentAgentId;
+  const currentAgent = useMemo(
+    () => agents.find((agent) => agent.id === currentAgentId) ?? null,
+    [agents, currentAgentId],
+  );
+  const currentAgentName = currentAgent?.name || currentAgentId;
   const currentSessionLabel = sessionLabels[currentSessionKey] ?? activeSession?.label ?? activeSession?.displayName ?? currentAgentName;
-  const assistantAvatar = useMemo(() => getSessionAvatar({
-    sessionKey: currentSessionKey || currentSessionLabel,
-    agentId: currentAgentId,
-    agentName: currentAgentName,
-  }), [currentAgentId, currentAgentName, currentSessionKey, currentSessionLabel]);
+  const assistantAvatar = useMemo<Pick<AgentSummary, 'id' | 'name' | 'avatarProfile'>>(() => ({
+    id: currentAgentId || 'main',
+    name: currentAgentName || 'Assistant',
+    avatarProfile: currentAgent?.avatarProfile,
+  }), [currentAgent, currentAgentId, currentAgentName]);
   const handleSendSkillDraft = useCallback(async (draft: SkillChatDraft, text: string) => {
     if (draft.execution.kind !== 'host-install') {
       setSkillFlowState({ draft, phase: 'sent' });
@@ -375,7 +379,7 @@ export function Chat() {
       const title = currentSessionLabel || currentAgentName || 'Chat';
       const markdown = buildChatMarkdown({
         title,
-        assistantName: assistantAvatar.label,
+        assistantName: assistantAvatar.name,
         messages,
       });
       void hostApiFetch('/api/files/save-text', {
@@ -389,7 +393,7 @@ export function Chat() {
       });
     }
   }, [
-    assistantAvatar.label,
+    assistantAvatar.name,
     chatFocusMode,
     currentAgentName,
     currentSessionLabel,
@@ -819,16 +823,13 @@ function TypingIndicator({
   avatar,
   showAvatar,
 }: {
-  avatar: {
-    label: string;
-    style: string;
-  };
+  avatar: Pick<AgentSummary, 'id' | 'name' | 'avatarProfile'>;
   showAvatar: boolean;
 }) {
   return (
     <div className="app-chat-typing-row chat-im-font">
       {showAvatar ? (
-        <AgentAvatar label={avatar.label} style={avatar.style} className="mt-1 h-9 w-9" textClassName="text-sm" />
+        <AgentAvatar agentId={avatar.id} profile={avatar.avatarProfile} size={36} className="mt-1" />
       ) : (
         <div aria-hidden="true" className="mt-1 h-9 w-9 shrink-0" />
       )}
@@ -851,10 +852,7 @@ function ActivityIndicator({
   showAvatar,
 }: {
   phase: 'tool_processing';
-  avatar: {
-    label: string;
-    style: string;
-  };
+  avatar: Pick<AgentSummary, 'id' | 'name' | 'avatarProfile'>;
   showAvatar: boolean;
 }) {
   const { t } = useTranslation('chat');
@@ -862,7 +860,7 @@ function ActivityIndicator({
   return (
     <div className="app-chat-typing-row chat-im-font">
       {showAvatar ? (
-        <AgentAvatar label={avatar.label} style={avatar.style} className="mt-1 h-9 w-9" textClassName="text-sm" />
+        <AgentAvatar agentId={avatar.id} profile={avatar.avatarProfile} size={36} className="mt-1" />
       ) : (
         <div aria-hidden="true" className="mt-1 h-9 w-9 shrink-0" />
       )}

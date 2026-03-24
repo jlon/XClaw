@@ -6,9 +6,10 @@
 
 - `Star-Office-UI` 最小化 vendoring
 - 工作室 sidecar 启动与健康管理
-- `/studio` 路由与顶部双 tab
+- `/studio` 路由与标题栏右上角入口
 - 只读工作室嵌入
 - 主进程状态同步
+- 多 agent 实时状态协议接收侧与本地桥接闭环
 - `AGENTS.md` 幂等注入
 - setup 新建 / takeover / 新增 agent 三条链路的自动注入
 
@@ -35,6 +36,15 @@
 - 多个状态事件同时出现时，按既定优先级收敛为单一状态
 - 活动态在超过窗口后会稳定回落到 `idle`
 - `detail` 能按 `STAR_OFFICE_DETAIL.txt -> 该 agent 最近一次有效状态事件摘要 -> 默认文案` 的顺序回退
+- `studio.agent_status` 的 `schemaVersion`、`agentId`、`sessionKey`、`sessionStartedAt`、`sequence` 与 `status` 校验正确
+- 同一 agent 的旧 session 事件不会覆盖新 session
+- 同一 session 的旧 `sequence` 不会覆盖已接受事件
+- `final=true` 且 `status=idle` 时，会立即让对应 agent 回落到 `idle`
+- `main` 一旦观察到有效 `studio.agent_status`，粗粒度 gateway `chat/tool/agent` 事件不再覆盖其状态
+- gateway 现有 `agent` notification 能桥接成内部实时状态事件
+- `phase=started` 但无消息体时，会先进入 `syncing`
+- synthetic start 之后，同 session 的真实 `seq=1` 事件仍能覆盖，不会被错误判成旧包
+- `phase=completed|done|finished|end` 能让对应 agent 立即回落到 `idle`
 
 ### runtime 管理
 
@@ -73,8 +83,9 @@
 - 运行时重试期间，工作室页会显示环境初始化遮罩，并阻止重复触发
 - `/studio` 在 ready 态下会渲染只读 `webview`
 - 工作室 ready 时能成功加载内嵌页面
+- 标题栏右上角 `工作室` 按钮能进入 `/studio`，`对话` 按钮能返回聊天页
 - 工作室出错时，聊天、设置、智能体工作台仍可正常使用
-- 从 `/studio` 点击 `对话` 时，会回到最后激活的聊天会话或聊天首页
+- 从 `/studio` 点击右上角 `对话` 时，会回到最后激活的聊天会话或聊天首页
 - sidecar 重启后，`/studio` 能基于新的 `runtimeInstanceId` 自动恢复加载
 - sidecar 端口重分配后，renderer 不需要自己拼新地址也能恢复工作室展示
 - setup fresh 完成后，主工作区 `AGENTS.md` 被幂等注入
@@ -146,10 +157,12 @@
 
 ## 回归检查
 
-- 现有聊天页标题栏布局不能被新 tab 破坏
+- 现有聊天页标题栏布局不能被右上角工作室入口破坏
 - 现有 setup 流程不能因工作室注入而提前报错
 - 智能体工作台原有人格文件编辑能力不能被削弱
 - 打包后应用体积增长需符合“最小化 vendoring”预期
+- `studio.agent_status` 接收侧落地后，旧 sender 缺失时仍必须保持 mixed-mode 降级可用
+- 本地桥接闭环落地后，XClaw 本地 agent 不得退化为 `/join-agent` / `/agent-push` 双写模型
 - README 与多语言文档若对外行为变化，需同步更新
 
 ## 需要执行的命令
@@ -174,12 +187,15 @@ pnpm run comms:compare
   - `node --check scripts/vendor-star-office-runtime.mjs`
   - `pnpm exec tsc --noEmit --pretty false`
   - `git diff --check`
+  - `pnpm test tests/unit/studio-state-manager.test.ts`
+  - `pnpm run test:e2e`
   - `python3 -m py_compile resources/star-office-runtime/backend/app.py resources/star-office-runtime/backend/store_utils.py resources/star-office-runtime/backend/memo_utils.py resources/star-office-runtime/backend/security_utils.py`
   - 本机 `uv` 与 managed Python 3.12 探针通过
   - 使用临时 venv 安装 vendored runtime 依赖后，Flask sidecar `/health` smoke 通过
   - 同一只读会话下，对 `/set_state` 的 POST 返回 `403 READONLY`
   - 当前 dev 实例下，`POST /api/studio/runtime/retry` 携带 `repairEnvironment=true` 后返回 `ready`
-  - 全量 Playwright e2e 通过：`10 passed`
+  - `tests/e2e/studio.spec.ts` 通过，覆盖工作室入口切换与 `/studio` ready 态嵌入
+  - 全量 Playwright e2e 通过：`11 passed`
 - 尚未执行：
   - `pnpm test`
-  - 通信回归与完整联调，因为主线实现还在收口
+  - 通信回归；当前闭环依赖 gateway 既有 `agent` 事件桥接，尚未补跑 comms replay / compare

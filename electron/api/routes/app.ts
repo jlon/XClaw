@@ -116,6 +116,9 @@ export async function handleAppRoutes(
       resetTakeoverImportStatus();
     }
     await setSetting('setupComplete', true);
+    void ctx.studioService.start().catch((error) => {
+      console.warn('[studio] Failed to start after setup activation:', error);
+    });
     sendJson(res, 200, { success: true });
     return true;
   }

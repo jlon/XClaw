@@ -24,7 +24,7 @@
 
 ### 代码消费点
 
-- `electron-builder` 不再使用静态 `electron-builder.yml`，改成 `electron-builder.config.cjs` 读取 JSON
+- `electron-builder` 不再使用静态 `electron-builder.yml`，改成 `config/build/electron-builder.config.cjs` 读取 JSON
 - GitHub Release workflow 通过 `scripts/read-release-branding.mjs` 读取配置并输出到 `GITHUB_OUTPUT`
 - 运行时帮助菜单使用同一份配置中的文档入口
 

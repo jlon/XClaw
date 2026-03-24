@@ -4,7 +4,7 @@
 
 **目标：** 在 XClaw 内落地全局只读工作室，包含最小化 vendored runtime、主进程托管 sidecar、主进程状态快照同步，以及 `AGENTS.md` 幂等注入。
 
-**架构：** 实现分三层推进。第一层把 `Star-Office-UI` 裁成可提交到仓库的最小 runtime，并固定运行时与数据目录解析；第二层在主进程新增 `studio` 管理层，负责 Python readiness、sidecar 生命周期、状态快照与提示词注入；第三层在 renderer 新增 `/studio` 页面和 `对话 / 工作室` 顶部 tab。`studioPort` 直接放进 `electron-store`，不再额外引入第二份运行配置文件。
+**架构：** 实现分三层推进。第一层把 `Star-Office-UI` 裁成可提交到仓库的最小 runtime，并固定运行时与数据目录解析；第二层在主进程新增 `studio` 管理层，负责 Python readiness、sidecar 生命周期、状态快照与提示词注入；第三层在 renderer 新增 `/studio` 页面和标题栏右上角工作室入口。`studioPort` 直接放进 `electron-store`，不再额外引入第二份运行配置文件。
 
 **技术栈：** Electron Main/Preload、React 19、Vite、TypeScript、Python/Flask、electron-store、Vitest
 
@@ -20,8 +20,6 @@
 - `electron/studio/`
   - 主进程工作室能力边界
   - 只放路径解析、runtime 管理、状态快照、提示词注入与 service 聚合
-- `src/components/studio/`
-  - `对话 / 工作室` 顶部 tab 与工作室宿主组件
 - `src/pages/Studio/`
   - `/studio` 页面
 
@@ -39,7 +37,6 @@
 - `/Users/jianglong/workspace/XClaw/electron/studio/service.ts`
 - `/Users/jianglong/workspace/XClaw/electron/api/routes/studio.ts`
 - `/Users/jianglong/workspace/XClaw/src/lib/studio.ts`
-- `/Users/jianglong/workspace/XClaw/src/components/studio/StudioRouteTabs.tsx`
 - `/Users/jianglong/workspace/XClaw/src/pages/Studio/index.tsx`
 - `/Users/jianglong/workspace/XClaw/src/types/studio.ts`
 - `/Users/jianglong/workspace/XClaw/src/i18n/locales/en/studio.json`
@@ -78,7 +75,7 @@
 
 ## 实施约束
 
-- tab 放在页面内容层，不改 `TitleBar` 结构，避免再次撕裂桌面窗口 chrome。
+- 工作室入口放在标题栏右上角现有工具区，不改原生窗口 chrome。
 - `studioPort` 持久化进 `electron-store`，不再新增 `runtime-config.json`。
 - renderer 不直接拼 `localhost` 地址，不直接新增裸 `window.electron.ipcRenderer.invoke(...)`。
 - 本地 agent 不直接写 `state.json` 或 `agents-state.json`。
@@ -206,12 +203,11 @@
 - [ ] 第 10 步：更新 `progress.md` 并提交。
   - 提交：`git commit -m "feat: add studio service and routes"`
 
-### 任务 6：实现 `/studio` 页面、只读 `webview` 和顶部双 tab
+### 任务 6：实现 `/studio` 页面、只读 `webview` 和标题栏入口
 
 **文件：**
 - 新建：`/Users/jianglong/workspace/XClaw/src/types/studio.ts`
 - 新建：`/Users/jianglong/workspace/XClaw/src/lib/studio.ts`
-- 新建：`/Users/jianglong/workspace/XClaw/src/components/studio/StudioRouteTabs.tsx`
 - 新建：`/Users/jianglong/workspace/XClaw/src/pages/Studio/index.tsx`
 - 新建：`/Users/jianglong/workspace/XClaw/src/i18n/locales/en/studio.json`
 - 新建：`/Users/jianglong/workspace/XClaw/src/i18n/locales/zh/studio.json`
@@ -224,18 +220,18 @@
 - 测试：`/Users/jianglong/workspace/XClaw/tests/unit/studio-page.test.tsx`
 - 文档：`/Users/jianglong/workspace/XClaw/docs/star-office-integration/progress.md`
 
-- [ ] 第 1 步：先写失败测试，覆盖聊天页顶部 tab、`/studio` 路由、ready 与错误态渲染、`runtimeInstanceId` 变化时重建 `webview`。
+- [ ] 第 1 步：先写失败测试，覆盖标题栏入口、`/studio` 路由、ready 与错误态渲染、`runtimeInstanceId` 变化时重建 `webview`。
 - [ ] 第 2 步：运行测试，确认先失败。
   - 运行：`pnpm test tests/unit/chat-layout.test.tsx tests/unit/studio-page.test.tsx`
 - [ ] 第 3 步：实现 `src/lib/studio.ts`，只通过 `hostApiFetch` 暴露 runtime 快照读取与 retry 行为。
-- [ ] 第 4 步：实现 `StudioRouteTabs.tsx`，在页面内容层承载 `对话 / 工作室` 切换，进入工作室时把当前聊天路由写入返回状态。
-- [ ] 第 5 步：在 `Chat/index.tsx` 顶部接入 tab，在 `App.tsx` 增加 `/studio` 路由，在 `Studio/index.tsx` 中完成 ready、starting、python-missing、runtime-error 四态 UI。
+- [ ] 第 4 步：在标题栏右上角工具区接入 `工作室 / 对话` 入口，进入工作室时把当前聊天路由写入返回状态。
+- [ ] 第 5 步：在 `App.tsx` 增加 `/studio` 路由，在 `Studio/index.tsx` 中完成 ready、starting、python-missing、runtime-error 四态 UI。
 - [ ] 第 6 步：在 `Studio/index.tsx` 中接入只读 `webview`，并处理 `runtimeInstanceId` 变化、加载失败、重试按钮和 Python 准备入口。
 - [ ] 第 7 步：在 `electron/main/index.ts` 中追加 `will-attach-webview` 安全收口，只允许工作室 `resolvedUrl` 同源加载，拒绝外部导航、`new-window` 和下载。
 - [ ] 第 8 步：再次运行测试，确认通过。
   - 运行：`pnpm test tests/unit/chat-layout.test.tsx tests/unit/studio-page.test.tsx`
 - [ ] 第 9 步：更新 `progress.md` 并提交。
-  - 提交：`git commit -m "feat: add studio page and route tabs"`
+  - 提交：`git commit -m "feat: add studio page and entry button"`
 
 ### 任务 7：补齐只读补丁、文档同步与整体验证
 

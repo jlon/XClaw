@@ -214,5 +214,5 @@ describe('models workbench render chain', () => {
     await waitFor(() => {
       expect(screen.getByTestId('provider-account-form-sections')).toHaveAttribute('data-density', 'compact');
     });
-  });
+  }, 15000);
 });

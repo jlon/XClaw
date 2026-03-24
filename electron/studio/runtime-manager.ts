@@ -2,6 +2,7 @@ import { EventEmitter } from 'events';
 import { randomUUID } from 'crypto';
 import { spawn, type ChildProcessWithoutNullStreams } from 'child_process';
 import { createServer } from 'net';
+import { listAgentsSnapshot } from '../utils/agent-config';
 import { getSetting, setSetting } from '../utils/store';
 import { logger } from '../utils/logger';
 import { ensureStudioPythonEnv, inspectStudioPythonEnv } from './python-env';
@@ -65,6 +66,15 @@ const waitForHealth = async (port: number): Promise<void> => {
     await new Promise((resolve) => setTimeout(resolve, HEALTHCHECK_INTERVAL_MS));
   }
   throw new Error(`Studio health check timed out on port ${port}`);
+};
+
+const resolveMainWorkspacePath = async (): Promise<string | null> => {
+  try {
+    return (await listAgentsSnapshot()).agents.find((agent) => agent.id === 'main')?.workspace ?? null;
+  } catch (error) {
+    logger.warn('Failed to resolve Studio workspace path', error);
+    return null;
+  }
 };
 
 export class StudioRuntimeManager extends EventEmitter {
@@ -209,6 +219,7 @@ export class StudioRuntimeManager extends EventEmitter {
       await setSetting('studioPort', port);
     }
 
+    const openclawWorkspace = await resolveMainWorkspacePath();
     const child = spawn(prepared.venvPythonPath, [getStudioBackendEntryPath()], {
       cwd: getStudioBackendDir(),
       env: {
@@ -219,6 +230,7 @@ export class StudioRuntimeManager extends EventEmitter {
         STAR_OFFICE_RUNTIME_DIR: getStudioRuntimeDir(),
         STAR_OFFICE_READONLY: '1',
         STAR_OFFICE_EMBEDDED: '1',
+        ...(openclawWorkspace ? { OPENCLAW_WORKSPACE: openclawWorkspace } : {}),
       },
       windowsHide: true,
     });

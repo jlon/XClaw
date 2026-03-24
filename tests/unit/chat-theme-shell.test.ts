@@ -34,10 +34,11 @@ describe('chat desktop shell theme', () => {
 
   it('keeps the header minimal and limits desktop-grade surfaces to tools and composer', () => {
     const pageSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/index.tsx'), 'utf8');
+    const themeSource = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
     const toolbarSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/ChatToolbar.tsx'), 'utf8');
     const inputSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/ChatInput.tsx'), 'utf8');
 
-    expect(pageSource).toContain('app-chat-header-meta');
+    expect(themeSource).toContain('.app-chat-header-meta');
     expect(pageSource).not.toContain('app-chat-welcome-agent');
     expect(pageSource).not.toContain('app-chat-meta-pill');
     expect(toolbarSource).toContain('app-chat-toolbar-group');

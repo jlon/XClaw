@@ -52,11 +52,11 @@ const schedulePresets: { key: string; value: string; type: ScheduleType }[] = [
 ];
 
 const inputClasses =
-  'h-[44px] rounded-xl text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30';
+  'appearance-none h-[44px] rounded-xl text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus:outline-none focus-visible:outline-none focus-visible:border-primary focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
 const tokenInputClasses =
-  'h-[44px] rounded-xl font-mono text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30';
+  'appearance-none h-[44px] rounded-xl font-mono text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus:outline-none focus-visible:outline-none focus-visible:border-primary focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
 const textareaClasses =
-  'rounded-xl text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30 resize-none';
+  'appearance-none rounded-xl text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus:outline-none focus-visible:outline-none focus-visible:border-primary focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0 resize-none';
 const modalSurfaceClasses =
   'app-modal-surface w-full rounded-[20px]';
 const cardSurfaceClasses =
@@ -638,7 +638,7 @@ function TaskDialog({ job, agents, channelGroups, defaultAgentId, onClose, onSav
             <Button variant="outline" onClick={onClose} className="h-[38px] rounded-[12px] border-border/70 bg-transparent px-4.5 text-[12.75px] font-semibold text-foreground/80 shadow-none hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground">
               {t('common:actions.cancel', 'Cancel')}
             </Button>
-            <Button onClick={handleSubmit} disabled={saving || boundTargetOptions.length === 0} className="h-[38px] rounded-[12px] border border-transparent px-4.5 text-[12.75px] font-semibold shadow-none transition-all">
+            <Button onClick={handleSubmit} disabled={saving || boundTargetOptions.length === 0} className="workbench-motion-button workbench-motion-button--lift h-[38px] rounded-[12px] border border-transparent px-4.5 text-[12.75px] font-semibold shadow-none">
               {saving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

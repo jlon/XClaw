@@ -248,18 +248,22 @@
         "progress": "Progress",
         "gatewayPendingHint": "If the gateway is not running yet, XClaw will keep taking over the startup process after you enter the app.",
         "enhancements": {
-            "title": "Optional enhancements",
-            "optionalBody": "This does not block entering XClaw. If uv or a Python runtime already exists on this machine, XClaw reuses it; otherwise you can prepare it later when you actually need it.",
-            "readyTitle": "Enhancements are ready",
-            "readyBody": "A reusable local environment was found. You can enter XClaw now and prepare more capabilities later only when they matter.",
-            "prepareNow": "Prepare enhancements",
+            "stageTitle": "Prepare the core environment",
+            "stageSubtitle": "Confirm uv and the Python runtime before entering the final summary.",
+            "title": "Python runtime",
+            "requiredBody": "Python is a core XClaw requirement. If uv or a Python runtime already exists on this machine, XClaw reuses it; otherwise you must prepare it before entering the app.",
+            "readyTitle": "Core environment is ready",
+            "readyBody": "A reusable local environment was found. XClaw can continue directly to the final summary.",
+            "prepareNow": "Prepare the core environment",
             "preparing": "Preparing...",
-            "prepareFailed": "Failed to prepare enhancements",
+            "prepareFailed": "Failed to prepare the core environment",
+            "prepareIncomplete": "The core environment is still not ready. Please try again in a moment.",
             "uvLabel": "uv environment",
             "pythonLabel": "Python runtime",
             "checking": "Checking",
             "reused": "Reused",
-            "notReady": "Prepare later"
+            "notReady": "Not ready",
+            "required": "Required"
         }
     },
     "nav": {
@@ -322,6 +326,10 @@
                 "body": "Confirm the changes and enter the app.",
                 "primary": "Enter XClaw",
                 "secondary": "Back"
+            },
+            "enhancements": {
+                "title": "Prepare the core environment",
+                "body": "Finish the Python runtime setup first. XClaw will move into the final summary automatically when it succeeds."
             },
             "applying": {
                 "title": "Applying changes",

@@ -20,10 +20,10 @@ import { subscribeHostEvent } from '@/lib/host-events';
 import {
   PROVIDER_TYPE_INFO,
   getProviderDocsUrl,
+  getProviderIconClass,
   getProviderIconUrl,
   getProviderTypeInfo,
   resolveProviderModelForSave,
-  shouldInvertInDark,
   shouldShowProviderModelId,
   type ProviderType,
   type ProviderTypeInfo,
@@ -33,11 +33,11 @@ import { cn } from '@/lib/utils';
 import { getProtocolBaseUrlPlaceholder } from './ProviderAccountFormSections';
 import type { AddProviderDialogOptions } from './provider-account-create';
 
-const inputClasses = 'h-9 rounded-[10px] border border-border/70 bg-[hsl(var(--surface-panel)/0.96)] text-[13px] text-foreground placeholder:text-muted-foreground/55 shadow-none transition-colors focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20';
+const inputClasses = 'appearance-none h-9 rounded-[10px] border border-border/70 bg-[hsl(var(--surface-panel)/0.96)] text-[13px] text-foreground placeholder:text-muted-foreground/55 shadow-none transition-colors focus:outline-none focus-visible:outline-none focus-visible:border-primary focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
 const tokenInputClasses = `${inputClasses} font-mono tracking-[0.01em]`;
 const labelClasses = 'text-[13px] font-semibold text-foreground/80';
 const modalSurfaceClasses = 'app-modal-surface w-full rounded-[20px] border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.99)] shadow-[0_18px_48px_rgba(15,23,42,0.12)]';
-const primaryButtonClass = 'rounded-[10px] h-8 px-4 bg-primary text-primary-foreground shadow-none hover:bg-primary/92';
+const primaryButtonClass = 'workbench-motion-button workbench-motion-button--lift rounded-[10px] h-8 px-4 bg-primary text-primary-foreground shadow-none hover:bg-primary/92';
 const segmentedTrackClass = 'flex rounded-[10px] border border-border/60 bg-[hsl(var(--surface-base)/0.96)] p-0.5 gap-0.5';
 const segmentedActiveClass = 'border border-[hsl(var(--primary)/0.16)] bg-[hsl(var(--surface-elevated)/0.98)] text-primary shadow-none';
 const segmentedIdleClass = 'text-muted-foreground/82 hover:bg-[hsl(var(--foreground)/0.035)]';
@@ -440,12 +440,12 @@ export function AddProviderDialog({
                         className={cn(
                           listRowClass,
                           selected && pickerCardActiveClass,
-                          'min-h-[74px] rounded-[14px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-60',
+                          'min-h-[74px] rounded-[14px] focus:outline-none focus-visible:outline-none focus-visible:border-[hsl(var(--border-strong)/0.42)] focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-60',
                         )}
                       >
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border border-[hsl(var(--border-subtle)/0.76)] bg-[hsl(var(--surface-base)/0.92)]">
                           {getProviderIconUrl(type.id) ? (
-                            <img src={getProviderIconUrl(type.id)} alt={type.name} className={cn('h-4 w-4', shouldInvertInDark(type.id) && 'dark:invert')} />
+                            <img src={getProviderIconUrl(type.id)} alt={type.name} className={getProviderIconClass(type.id, 'h-4 w-4')} />
                           ) : (
                             <span className="text-[15px]">{type.icon}</span>
                           )}
@@ -472,7 +472,7 @@ export function AddProviderDialog({
                     <div className="flex min-w-0 items-center gap-3">
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] border border-[hsl(var(--border-subtle)/0.76)] bg-[hsl(var(--surface-base)/0.92)]">
                         {getProviderIconUrl(selectedType) ? (
-                          <img src={getProviderIconUrl(selectedType)} alt={typeInfo.name} className={cn('h-[18px] w-[18px]', shouldInvertInDark(selectedType) && 'dark:invert')} />
+                          <img src={getProviderIconUrl(selectedType)} alt={typeInfo.name} className={getProviderIconClass(selectedType, 'h-[18px] w-[18px]')} />
                         ) : (
                           <span className="text-lg">{typeInfo.icon}</span>
                         )}

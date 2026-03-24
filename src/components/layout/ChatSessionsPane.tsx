@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Bot, Clock, Cpu, LayoutGrid, Network, Puzzle, Search, Settings, Terminal, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { AgentAvatar } from '@/components/agents/AgentAvatar';
 import { getAgentIdFromSessionKey } from '@/lib/chat-avatar';
 import { deriveSessionListTitle, shouldHideSessionFromList } from '@/lib/chat-session-list';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -136,8 +137,8 @@ export function ChatSessionsPane() {
     };
   }, [isGatewayRunning, loadHistory, loadSessions]);
 
-  const agentNameById = useMemo(
-    () => Object.fromEntries((agents ?? []).map((agent) => [agent.id, agent.name])),
+  const agentById = useMemo(
+    () => Object.fromEntries((agents ?? []).map((agent) => [agent.id, agent])),
     [agents],
   );
   const workspaceItems = useMemo(() => ([
@@ -167,7 +168,7 @@ export function ChatSessionsPane() {
     (sessionLastActivity[b.key] ?? 0) - (sessionLastActivity[a.key] ?? 0)
   )) {
     const agentId = getAgentIdFromSessionKey(session.key);
-    const agentName = agentNameById[agentId] || agentId;
+    const agentName = agentById[agentId]?.name || agentId;
     const sessionLabel = sessionLabels[session.key];
     if (shouldHideSessionFromList(session, sessionLabel, sessionLastActivity[session.key])) {
       continue;
@@ -258,7 +259,8 @@ export function ChatSessionsPane() {
                 <div className="space-y-1">
                   {bucket.sessions.map((session) => {
                     const agentId = getAgentIdFromSessionKey(session.key);
-                    const agentName = agentNameById[agentId] || agentId;
+                    const agent = agentById[agentId];
+                    const agentName = agent?.name || agentId;
                     const { title, usedFallbackTitle } = deriveSessionListTitle(
                       session,
                       sessionLabels[session.key],
@@ -279,12 +281,18 @@ export function ChatSessionsPane() {
                             navigate('/');
                           }}
                           className={cn(
-                            'app-chat-session-row flex h-10 w-full items-center rounded-full px-3 pr-8 text-left transition-[background-color,color,border-color,box-shadow] duration-150 focus-visible:outline-none',
+                            'app-chat-session-row flex h-10 w-full items-center gap-2.5 rounded-full px-3 pr-8 text-left transition-[background-color,color,border-color,box-shadow] duration-150 focus-visible:outline-none',
                             isCurrent
                               ? 'app-chat-session-row--active text-foreground'
                               : 'text-foreground/84',
                           )}
                         >
+                          <AgentAvatar
+                            agentId={agentId}
+                            profile={agent?.avatarProfile}
+                            size={24}
+                            className="shrink-0 rounded-full"
+                          />
                           <div className="min-w-0 flex-1 truncate text-[14px] font-normal leading-5 tracking-normal text-foreground/86">
                             <span className="truncate text-foreground/86">{title}</span>
                           </div>

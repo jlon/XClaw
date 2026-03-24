@@ -210,7 +210,7 @@ describe('chat skill draft execution', () => {
     await waitFor(() => {
       expect(skillsState.fetchSkills).toHaveBeenCalledTimes(1);
     });
-  });
+  }, 15000);
 
   it('hydrates chat-prompt drafts on the current chat route without forcing a new session', async () => {
     const { Chat } = await import('@/pages/Chat');

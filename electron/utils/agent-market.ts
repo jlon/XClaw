@@ -1,3 +1,4 @@
+import { buildAgentAvatarProfile, type AgentAvatarProfile } from '../../shared/agent-avatar-persona';
 import agentMarketSeed from '../shared/agent-market-seed.json';
 import agentMarketTemplates from '../shared/agent-market-templates.json';
 import {
@@ -10,10 +11,14 @@ import {
 
 type AgentMarketItem = (typeof agentMarketSeed.items)[number];
 
+export interface EnrichedAgentMarketItem extends AgentMarketItem {
+  avatarProfile: AgentAvatarProfile;
+}
+
 export interface AgentMarketCatalog {
   version: number;
   source: typeof agentMarketSeed.source;
-  items: AgentMarketItem[];
+  items: EnrichedAgentMarketItem[];
 }
 
 export interface AgentMarketInstallResult {
@@ -22,6 +27,7 @@ export interface AgentMarketInstallResult {
 }
 
 const AGENT_MARKET_SOURCE_PREFIX = 'https://raw.githubusercontent.com/mergisi/awesome-openclaw-agents/main/';
+const AGENT_MARKET_AVATAR_SOURCE_TEXT_LIMIT = 4000;
 
 function getCatalogItem(catalogItemId: string): AgentMarketItem {
   const item = agentMarketSeed.items.find((entry) => entry.id === catalogItemId);
@@ -50,10 +56,25 @@ function getBundledSoulTemplate(item: AgentMarketItem): string {
 }
 
 export async function listAgentMarketCatalog(): Promise<AgentMarketCatalog> {
+  const items = agentMarketSeed.items.map((item) => ({
+    ...item,
+    avatarProfile: buildAgentAvatarProfile({
+      id: item.id,
+      name: item.name,
+      category: item.category,
+      headline: item.headline,
+      summary: item.summary,
+      role: item.role,
+      tags: item.tags,
+      sourceText: buildMarketAvatarSourceText(item),
+      seedHint: item.avatarSeed || `${item.category}:${item.id}`,
+      source: 'market',
+    }),
+  }));
   return {
     version: agentMarketSeed.version,
     source: agentMarketSeed.source,
-    items: agentMarketSeed.items,
+    items,
   };
 }
 
@@ -75,4 +96,17 @@ export async function installAgentFromCatalog(catalogItemId: string, name?: stri
     }
     throw error;
   }
+}
+
+function buildMarketAvatarSourceText(item: AgentMarketItem): string {
+  return [
+    item.role,
+    item.headline,
+    item.summary,
+    item.highlights.join(' '),
+    item.detailSections.map((section) => [section.title, section.body, section.items.join(' ')].join(' ')).join(' '),
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .slice(0, AGENT_MARKET_AVATAR_SOURCE_TEXT_LIMIT);
 }

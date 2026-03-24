@@ -15,5 +15,5 @@
 ## 预期结果
 
 - `config/release-branding.json` 成为单点配置源
-- `electron-builder.config.cjs` 与 workflow 均从该配置派生
+- `config/build/electron-builder.config.cjs` 与 workflow 均从该配置派生
 - 菜单帮助入口不再硬编码文档地址

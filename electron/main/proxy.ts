@@ -31,6 +31,11 @@ export async function applyProxySettings(
     session.defaultSession.setProxy(config),
     'Applying Electron proxy',
   );
+  void session.defaultSession.resolveProxy('http://127.0.0.1:5173').then((result) => {
+    logger.debug(`Electron proxy resolution for http://127.0.0.1:5173 => ${result}`);
+  }).catch((error) => {
+    logger.debug('Failed to resolve Electron proxy for localhost:', error);
+  });
   if (!proxyApplied) {
     return;
   }

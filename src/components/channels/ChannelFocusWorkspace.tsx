@@ -39,7 +39,7 @@ export function ChannelFocusWorkspace({
           aria-label={backLabel}
           title={backLabel}
           onClick={onBack}
-          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-foreground/58 transition-colors hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/18 focus-visible:ring-offset-0"
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-foreground/58 transition-colors hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground focus:outline-none focus-visible:outline-none focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:text-foreground focus-visible:ring-0"
         >
           <ArrowLeft className="h-4 w-4" />
         </button>

@@ -7,6 +7,7 @@ import {
   subscribeStudioSurfaceSuspend,
   subscribeStudioRuntimeChanged,
 } from '@/lib/studio';
+import { useChatStore } from '@/stores/chat';
 import type { StudioRuntimeSnapshot } from '@/types/studio';
 
 const statusCopyMap: Record<string, string> = {
@@ -32,6 +33,7 @@ type StudioWebViewElement = HTMLElement & {
 
 export function Studio() {
   const { t } = useTranslation('studio');
+  const currentAgentId = useChatStore((s) => s.currentAgentId);
   const [runtime, setRuntime] = useState<StudioRuntimeSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [retrying, setRetrying] = useState(false);
@@ -39,6 +41,8 @@ export function Studio() {
   const [suspending, setSuspending] = useState(false);
   const runtimeShellRef = useRef<HTMLDivElement | null>(null);
   const webviewRef = useRef<StudioWebViewElement | null>(null);
+  const webviewDomReadyRef = useRef(false);
+  const focusedAgentIdRef = useRef('');
 
   const loadRuntime = useCallback(async () => {
     setLoading(true);
@@ -68,6 +72,8 @@ export function Studio() {
   }), []);
 
   const resolvedUrl = typeof runtime?.resolvedUrl === 'string' ? runtime.resolvedUrl.trim() : '';
+  const focusedAgentId = typeof currentAgentId === 'string' ? currentAgentId.trim() : '';
+  focusedAgentIdRef.current = focusedAgentId;
   const runtimeStatus = typeof runtime?.status === 'string'
     ? runtime.status.trim().toLowerCase()
     : '';
@@ -136,8 +142,19 @@ export function Studio() {
     });
   }, []);
 
+  const syncFocusedAgentMarker = useCallback(() => {
+    const webview = webviewRef.current;
+    if (!webview || !webviewDomReadyRef.current || typeof webview.executeJavaScript !== 'function') {
+      return;
+    }
+
+    const script = `window.__setFocusedAgentId && window.__setFocusedAgentId(${JSON.stringify(focusedAgentIdRef.current)});`;
+    void webview.executeJavaScript(script, false).catch(() => {});
+  }, []);
+
   useEffect(() => {
     if (!canRenderWebview) {
+      webviewDomReadyRef.current = false;
       return;
     }
     const shell = runtimeShellRef.current;
@@ -145,15 +162,19 @@ export function Studio() {
     if (!shell || !webview) {
       return;
     }
+    webviewDomReadyRef.current = false;
 
     const syncWithDelay = () => {
       syncEmbeddedBounds();
+      syncFocusedAgentMarker();
       window.setTimeout(() => {
         syncEmbeddedBounds();
+        syncFocusedAgentMarker();
       }, 250);
     };
 
     const handleDomReady = () => {
+      webviewDomReadyRef.current = true;
       syncWithDelay();
     };
 
@@ -166,14 +187,22 @@ export function Studio() {
       });
     observer?.observe(shell);
 
-    syncWithDelay();
+    syncEmbeddedBounds();
 
     return () => {
+      webviewDomReadyRef.current = false;
       webview.removeEventListener('dom-ready', handleDomReady);
       webview.removeEventListener('did-stop-loading', handleDomReady);
       observer?.disconnect();
     };
-  }, [canRenderWebview, runtimeInstanceKey, syncEmbeddedBounds]);
+  }, [canRenderWebview, runtimeInstanceKey, syncEmbeddedBounds, syncFocusedAgentMarker]);
+
+  useEffect(() => {
+    if (!canRenderWebview) {
+      return;
+    }
+    syncFocusedAgentMarker();
+  }, [canRenderWebview, runtimeInstanceKey, focusedAgentId, syncFocusedAgentMarker]);
 
   return (
     <div className="app-chat-shell relative flex h-full min-h-0 flex-1 flex-col bg-[radial-gradient(circle_at_top_left,rgba(15,23,42,0.04),transparent_42%),linear-gradient(180deg,hsl(var(--background))_0%,hsl(var(--background))_100%)] transition-colors duration-500">

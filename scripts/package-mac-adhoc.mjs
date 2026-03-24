@@ -20,7 +20,7 @@ const main = () => {
       'exec',
       'electron-builder',
       '-c',
-      'electron-builder.config.cjs',
+      'config/build/electron-builder.config.cjs',
       '--mac',
       'dmg',
       '--x64',

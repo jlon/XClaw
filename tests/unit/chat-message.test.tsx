@@ -221,7 +221,7 @@ describe('ChatMessage', () => {
       timestamp: 1710000300,
     };
 
-    render(<ChatMessage message={message} showThinking assistantAvatar={{ label: 'A', style: 'from-primary to-primary' }} />);
+    render(<ChatMessage message={message} showThinking assistantAvatar={{ id: 'main', name: 'Main Agent' }} />);
 
     const thinkingToggle = screen.getByRole('button', { name: /Thinking/i });
     const answer = screen.getByText('Final answer');
@@ -241,11 +241,31 @@ describe('ChatMessage', () => {
       <ChatMessage
         message={assistantMessage}
         showThinking={false}
-        assistantAvatar={{ label: 'A', style: 'from-primary to-primary' }}
+        assistantAvatar={{ id: 'main', name: 'Main Agent' }}
         showAvatar={false}
       />,
     );
 
     expect(screen.getByTestId('chat-assistant-avatar-placeholder')).toBeInTheDocument();
+  });
+
+  it('renders the current agent avatar instead of the legacy letter badge when assistant agent metadata exists', () => {
+    const assistantMessage: RawMessage = {
+      role: 'assistant',
+      content: 'Agent-specific avatar',
+      timestamp: 1710000500,
+    };
+
+    const { container } = render(
+      <ChatMessage
+        message={assistantMessage}
+        showThinking={false}
+        assistantAvatar={{ id: 'main', name: 'Main Agent' }}
+      />,
+    );
+
+    const image = container.querySelector('img');
+    expect(image).toBeInTheDocument();
+    expect(image?.getAttribute('src')).toContain('data:image/svg+xml');
   });
 });

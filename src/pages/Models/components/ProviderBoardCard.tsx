@@ -1,6 +1,6 @@
 import type { ProviderAccount } from '@/lib/providers';
 import { cn } from '@/lib/utils';
-import { getProviderIconUrl, getProviderTypeInfo, shouldInvertInDark, usesNativeColorProviderIcon } from '@/lib/providers';
+import { getProviderIconClass, getProviderIconUrl, getProviderTypeInfo } from '@/lib/providers';
 import type { ProviderUsageSummary } from '../workbench-view-model';
 
 interface ProviderBoardCardProps {
@@ -34,7 +34,6 @@ export const ProviderBoardCard = ({
   const primaryAccountId = account?.id ?? summary.accountIds[0] ?? null;
   const providerTypeInfo = account ? getProviderTypeInfo(account.vendorId) : undefined;
   const providerIconUrl = account ? getProviderIconUrl(account.vendorId) : undefined;
-  const useNativeColorIcon = account ? usesNativeColorProviderIcon(account.vendorId) : false;
   const isDefaultScope = defaultAccountId ? summary.accountIds.includes(defaultAccountId) : false;
   const formattedTokens = Intl.NumberFormat().format(summary.totalTokens);
   const formattedRequests = Intl.NumberFormat().format(summary.requestCount);
@@ -53,7 +52,7 @@ export const ProviderBoardCard = ({
     <article
       className={cn(
         cardClass,
-        'flex min-h-[108px] cursor-pointer flex-col gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20',
+        'flex min-h-[108px] cursor-pointer flex-col gap-2 focus:outline-none focus-visible:outline-none focus-visible:border-[hsl(var(--border-strong)/0.42)] focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0',
         selected && selectedCardClass,
       )}
       role="button"
@@ -80,11 +79,7 @@ export const ProviderBoardCard = ({
                 <img
                   src={providerIconUrl}
                   alt={providerTypeInfo?.name || summary.label}
-                  className={cn(
-                    'h-[18px] w-[18px] object-contain',
-                    useNativeColorIcon ? 'opacity-100' : 'opacity-90',
-                    !useNativeColorIcon && shouldInvertInDark(account?.vendorId || '') && 'dark:invert',
-                  )}
+                  className={getProviderIconClass(account?.vendorId || '', 'h-[18px] w-[18px]')}
                 />
               ) : (
                 <span className="text-[18px] text-foreground/76">{providerTypeInfo?.icon ?? '⚙️'}</span>

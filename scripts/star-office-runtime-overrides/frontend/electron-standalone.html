@@ -1673,7 +1673,7 @@
     <div id="status-fab">加载中...</div>
     <!-- 加载遮罩 -->
     <div id="loading-overlay">
-        <div id="loading-text">Loading Star’s pixel office...</div>
+        <div id="loading-text">Loading XClaw Studio...</div>
         <div id="loading-progress-container">
             <div id="loading-progress-bar"></div>
         </div>
@@ -1684,7 +1684,7 @@
             <div id="status-text">加载中...</div>
             <div id="office-plaque-dom">
                 <span class="office-plaque-star">⭐</span>
-                <span id="office-plaque-text">海辛小龙虾的办公室</span>
+                <span id="office-plaque-text">XClaw 工作室</span>
                 <span class="office-plaque-star">⭐</span>
             </div>
         </div>
@@ -1728,7 +1728,7 @@
     <div id="room-loading-overlay" aria-live="polite" aria-busy="true">
         <div class="room-loading-inner">
             <div id="room-loading-emoji">🦞</div>
-            <div id="room-loading-text">正在打包虾头……</div>
+            <div id="room-loading-text">正在准备工作室……</div>
         </div>
     </div>
 
@@ -1841,7 +1841,7 @@
         let officePlaqueCustomTitle = (localStorage.getItem(OFFICE_PLAQUE_STORAGE_KEY) || '').trim();
         const I18N = {
             zh: {
-                controlTitle: 'Star 状态',
+                controlTitle: '工作室状态',
                 btnIdle: '待命', btnWork: '工作', btnSync: '同步', btnError: '报警', btnDecor: '装修房间',
                 drawerTitle: '装修房间 · 资产侧边栏', drawerClose: '关闭',
                 authTitle: '请输入装修验证码', authPlaceholder: '输入验证码', authVerify: '验证', authDefaultPassHint: '默认密码：1234（可随时让我帮你改，建议改成强密码）',
@@ -1851,7 +1851,7 @@
                 resetToDefault: '重置为默认资产', restorePrevAsset: '用上一版',
                 btnMove: '📦 搬新家', btnHome: '🐚 回老家', btnHomeLast: '↩️ 回上一个家', btnHomeFavorite: '⭐ 收藏这个家', btnBroker: '🤝 找中介', btnDIY: '🪚 自己装', btnBrokerGo: '听中介的',
                 homeFavTitle: '🏠 收藏的家', homeFavEmpty: '还没有收藏，先点“⭐ 收藏这个家”', homeFavApply: '替换到当前地图', homeFavSaved: '✅ 已收藏当前地图', homeFavApplied: '✅ 已替换为收藏地图',
-                brokerHint: '你会给龙虾推荐什么样的房子',
+                brokerHint: '你想要什么样的工作室布局',
                 brokerPromptPh: '例如：故宫主题、莫奈风格、地牢主题、兵马俑主题……',
                 brokerNeedPrompt: '请先输入中介方案描述',
                 brokerGenerating: '🏘️ 正在按中介方案生成底图，请稍候（约20-90秒）...',
@@ -1865,8 +1865,8 @@
                 assetHintNotInScene: '当前场景未检测到此对象，仍可替换文件（刷新后生效）',
                 assetHintDefault: '通用素材：建议保持原图尺寸、透明通道与视觉重心一致，避免错位或失真',
                 showCoords: '显示坐标', hideCoords: '隐藏坐标', moveView: '移动视野', lockView: '锁定视野',
-                memoTitle: '昨 日 小 记', guestTitle: '访 客 列 表', officeTitle: '海辛小龙虾的办公室',
-                loadingOffice: '正在加载 Star 的像素办公室...',
+                memoTitle: '昨 日 小 记', guestTitle: '访 客 列 表', officeTitle: 'XClaw 工作室',
+                loadingOffice: '正在加载 XClaw 工作室...',
                 panelExpand: '展开', panelCollapse: '收起',
                 hiddenTag: '已隐藏', assetListLoaded: '已加载资产', sceneCaptured: '场景抓取', assetListLoadFailed: '资产加载失败，请点“刷新”重试',
                 authNeedInput: '请输入验证码', authPassOk: '验证通过', authPassWrong: '验证码错误',
@@ -1875,7 +1875,7 @@
                 statusBrokerDecorating: '正在处理中介装修方案', statusMovingHome: '正在搬新家', statusRestoreHome: '正在回老家', statusRestoreLastBg: '正在回退到上一次背景', statusApplyFavorite: '正在替换收藏地图'
             },
             en: {
-                controlTitle: 'Star Status',
+                controlTitle: 'Studio Status',
                 btnIdle: 'Idle', btnWork: 'Work', btnSync: 'Sync', btnError: 'Alert', btnDecor: 'Decorate Room',
                 drawerTitle: 'Decorate Room · Asset Sidebar', drawerClose: 'Close',
                 authTitle: 'Enter Decor Passcode', authPlaceholder: 'Enter passcode', authVerify: 'Verify', authDefaultPassHint: 'Default passcode: 1234 (ask me anytime to change it; stronger passcode recommended)',
@@ -1885,7 +1885,7 @@
                 resetToDefault: 'Reset to Default', restorePrevAsset: 'Use Previous',
                 btnMove: '📦 New Home', btnHome: '🐚 Go Home', btnHomeLast: '↩️ Last One', btnHomeFavorite: '⭐ Save This Home', btnBroker: '🤝 Broker', btnDIY: '🪚 DIY', btnBrokerGo: 'Follow Broker',
                 homeFavTitle: '🏠 Saved Homes', homeFavEmpty: 'No saved homes yet. Tap “⭐ Save This Home” first.', homeFavApply: 'Apply to Current Map', homeFavSaved: '✅ Current map saved', homeFavApplied: '✅ Applied saved home',
-                brokerHint: 'What kind of house would you recommend for Lobster?',
+                brokerHint: 'What kind of studio layout do you want?',
                 brokerPromptPh: 'e.g. Forbidden City theme, Monet style, dungeon theme, Terracotta Warriors theme...',
                 brokerNeedPrompt: 'Please enter broker style prompt first',
                 brokerGenerating: '🏘️ Generating room background from broker plan, please wait (20-90s)...',
@@ -1899,8 +1899,8 @@
                 assetHintNotInScene: 'This object is not detected in current scene; you can still replace file (effective after refresh)',
                 assetHintDefault: 'Generic asset: keep source size, alpha channel, and visual anchor to avoid drift/distortion',
                 showCoords: 'Show Coords', hideCoords: 'Hide Coords', moveView: 'Pan View', lockView: 'Lock View',
-                memoTitle: 'YESTERDAY NOTES', guestTitle: 'VISITOR LIST', officeTitle: 'Haixin Lobster Office',
-                loadingOffice: 'Loading Star’s pixel office...',
+                memoTitle: 'YESTERDAY NOTES', guestTitle: 'VISITOR LIST', officeTitle: 'XClaw Studio',
+                loadingOffice: 'Loading XClaw Studio...',
                 panelExpand: 'Expand', panelCollapse: 'Collapse',
                 hiddenTag: 'Hidden', assetListLoaded: 'Assets loaded', sceneCaptured: 'Scene captured', assetListLoadFailed: 'Failed to load assets. Click Refresh and retry',
                 authNeedInput: 'Please enter passcode', authPassOk: 'Passcode verified', authPassWrong: 'Wrong passcode',
@@ -1909,7 +1909,7 @@
                 statusBrokerDecorating: 'Applying broker decoration plan', statusMovingHome: 'Moving to a new home', statusRestoreHome: 'Restoring home background', statusRestoreLastBg: 'Restoring previous generated background', statusApplyFavorite: 'Applying favorite map'
             },
             ja: {
-                controlTitle: 'Star ステータス',
+                controlTitle: 'スタジオ状態',
                 btnIdle: '待機', btnWork: '作業', btnSync: '同期', btnError: '警報', btnDecor: '部屋を編集',
                 drawerTitle: '部屋編集・アセットサイドバー', drawerClose: '閉じる',
                 authTitle: '編集パスコードを入力', authPlaceholder: 'パスコード入力', authVerify: '認証', authDefaultPassHint: '初期パスコード：1234（いつでも変更を相談可。強固なパス推奨）',
@@ -1919,7 +1919,7 @@
                 resetToDefault: 'デフォルトへ戻す', restorePrevAsset: '前の版へ戻す',
                 btnMove: '📦 引っ越し', btnHome: '🐚 実家に戻る', btnHomeLast: '↩️ ひとつ前へ', btnHomeFavorite: '⭐ この家を保存', btnBroker: '🤝 仲介', btnDIY: '🪚 自分で装飾', btnBrokerGo: '仲介に任せる',
                 homeFavTitle: '🏠 保存した家', homeFavEmpty: 'まだ保存がありません。先に「⭐ この家を保存」を押してください。', homeFavApply: '現在のマップに適用', homeFavSaved: '✅ 現在のマップを保存しました', homeFavApplied: '✅ 保存した家を適用しました',
-                brokerHint: 'ロブスターにはどんな家をおすすめしますか',
+                brokerHint: 'どんなスタジオレイアウトにしたいですか',
                 brokerPromptPh: '例：故宮テーマ、モネ風、ダンジョン風、兵馬俑テーマ…',
                 brokerNeedPrompt: '先に仲介プランの説明を入力してください',
                 brokerGenerating: '🏘️ 仲介プランで背景を生成中（20〜90秒）...',
@@ -1933,8 +1933,8 @@
                 assetHintNotInScene: '現在のシーンでこのオブジェクトは未検出です。ファイル差し替えは可能（更新後に反映）',
                 assetHintDefault: '汎用素材：元サイズ・透過・視覚アンカーを維持し、ズレや崩れを防いでください',
                 showCoords: '座標表示', hideCoords: '座標非表示', moveView: '視点移動', lockView: '視点固定',
-                memoTitle: '昨日のメモ', guestTitle: '訪問者リスト', officeTitle: 'ハイシン・ロブスターのオフィス',
-                loadingOffice: 'Star のピクセルオフィスを読み込み中...',
+                memoTitle: '昨日のメモ', guestTitle: '訪問者リスト', officeTitle: 'XClaw スタジオ',
+                loadingOffice: 'XClaw スタジオを読み込み中...',
                 panelExpand: '展開', panelCollapse: '折りたたむ',
                 hiddenTag: '非表示', assetListLoaded: 'アセット読み込み', sceneCaptured: 'シーン取得', assetListLoadFailed: 'アセット読み込み失敗。更新して再試行してください',
                 authNeedInput: 'パスコードを入力してください', authPassOk: '認証に成功しました', authPassWrong: 'パスコードが正しくありません',
@@ -2632,9 +2632,26 @@
         let readonlyCameraCenterX = STAGE_CENTER_X;
         const sceneX = x => READONLY_MODE ? STAGE_CENTER_X + ((x - STAGE_CENTER_X) * readonlySceneScaleX) : x;
         let game, star, sofa, serverroom, officeBgSprite, areas = {}, currentState = 'idle', pendingDesiredState = null, statusText, lastFetch = 0, lastBlink = 0, lastBubble = 0, targetX = 660, targetY = 170, bubble = null, typewriterText = '', typewriterTarget = '', typewriterIndex = 0, lastTypewriter = 0, syncAnimSprite = null, syncAnimPlayable = false, catBubble = null, selectionBoxGraphics = null;
-        const IDLE_SOFA_ANCHOR = { x: RAW_POSITIONS.sofa.x, y: 272 };
+        const IDLE_SOFA_ANCHOR = { x: RAW_POSITIONS.sofa.x, y: RAW_POSITIONS.sofa.y };
         const IDLE_STAR_SCALE = 1.0; // star idle 改为256帧原生显示，不再放大
+        const STAR_IDLE_ANIM_TIME_SCALE = 0.82;
+        const STAR_IDLE_PRESENCE_BOB_OFFSET = 3;
+        const STAR_IDLE_PRESENCE_SCALE = 1.014;
+        const STAR_IDLE_PRESENCE_DURATION_MS = 3200;
+        const CAT_IDLE_POSE_FRAMES = [0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 15];
+        const CAT_ALERT_POSE_FRAMES = [7, 14];
+        const CAT_IDLE_POSE_BASE_MS = 16000;
+        const CAT_IDLE_POSE_SPREAD_MS = 12000;
+        const CAT_WAKE_POSE_HOLD_MS = 2600;
+        const CAT_PRESENCE_BOB_OFFSET = 2;
+        const CAT_PRESENCE_SCALE = 1.012;
+        const CAT_PRESENCE_DURATION_MS = 3600;
         let readonlySceneNodes = {};
+        const starIdlePresenceState = { y: 0, scale: 1 };
+        let starIdlePresenceTween = null;
+        const catPresenceState = { y: 0, scale: 1 };
+        let catPresenceTween = null;
+        let catMotionState = { currentFrame: null, nextPoseAt: 0, wakeUntil: 0 };
         // flowers 精灵表规格：固定单帧 128x128，4x4
         let FLOWERS_FRAME_W = 65;
         let FLOWERS_FRAME_H = 65;
@@ -2689,10 +2706,142 @@
         let guestSprites = {}; // agentId -> {sprite, nameText}
         let guestBubbles = {}; // agentId -> bubble container
         const GUEST_AVATARS = ['guest_role_1','guest_role_2','guest_role_3','guest_role_4','guest_role_5','guest_role_6'];
-        let guestTweens = {};  // agentId -> {move, name}
+        let guestTweens = {};
+        let guestMotionStates = {};
+        let focusedAgentId = (PAGE_PARAMS.get('focusAgentId') || '').trim();
+        let focusedAgentMarker = null;
         let hiddenDemoNames = new Set();
         const DEMO_MODE = new URLSearchParams(window.location.search).get('demo') === '1';
+        const GUEST_MOTION_DEBUG_PARAM = PAGE_PARAMS.get('guestMotionDebug') === '1';
         const FETCH_INTERVAL = 2000;
+        const GUEST_MOTION_PLAN_INTERVAL = 800;
+        const IDLE_GUEST_MOVE_BASE_MS = 6000;
+        const IDLE_GUEST_MOVE_SPREAD_MS = 8000;
+        const ACTIVE_GUEST_MOVE_BASE_MS = 3200;
+        const ACTIVE_GUEST_MOVE_SPREAD_MS = 3600;
+        const GUEST_MOVE_SPEED = {
+            idle: 0.78,
+            writing: 1.02,
+            researching: 1.02,
+            executing: 1.08,
+            syncing: 0.96,
+            error: 0.92,
+        };
+        const guestMotionDebugState = {
+            enabled: GUEST_MOTION_DEBUG_PARAM,
+            sequence: 0,
+            logs: [],
+            lastByKey: {},
+        };
+        const pushGuestMotionDebugLog = entry => {
+            guestMotionDebugState.logs.push(entry);
+            if (guestMotionDebugState.logs.length > 240) guestMotionDebugState.logs.shift();
+        };
+        const debugGuestMotion = (event, agentId, payload, throttleMs = 0) => {
+            if (!guestMotionDebugState.enabled) return;
+            const now = Date.now();
+            const key = `${event}:${agentId}`;
+            const lastAt = Number(guestMotionDebugState.lastByKey[key] || 0);
+            if (throttleMs > 0 && now - lastAt < throttleMs) return;
+            guestMotionDebugState.lastByKey[key] = now;
+            const entry = {
+                seq: ++guestMotionDebugState.sequence,
+                at: new Date(now).toISOString(),
+                event,
+                agentId,
+                payload,
+            };
+            pushGuestMotionDebugLog(entry);
+            console.debug('[guest-motion]', entry);
+        };
+        window.__setGuestMotionDebug = enabled => {
+            guestMotionDebugState.enabled = !!enabled;
+            return guestMotionDebugState.enabled;
+        };
+        window.__getGuestMotionDebugState = () => Object.fromEntries(
+            Object.keys(guestMotionStates).sort().map(agentId => {
+                const motionState = guestMotionStates[agentId] || {};
+                const guest = guestSprites[agentId];
+                const sprite = guest?.sprite
+                    ? {
+                        x: Number(guest.sprite.x || 0),
+                        y: Number(guest.sprite.y || 0),
+                        flipX: !!guest.sprite.flipX,
+                    }
+                    : null;
+                return [agentId, {
+                    area: motionState.area || null,
+                    status: motionState.status || null,
+                    currentNodeKey: motionState.currentNodeKey || null,
+                    targetNodeKey: motionState.targetNodeKey || null,
+                    pathNodeKeys: Array.isArray(motionState.pathNodeKeys) ? [...motionState.pathNodeKeys] : [],
+                    facing: motionState.facing || null,
+                    pendingFacing: motionState.pendingFacing || null,
+                    turnReadyAt: Number(motionState.turnReadyAt || 0),
+                    moveReadyAt: Number(motionState.moveReadyAt || 0),
+                    nextMoveAt: Number(motionState.nextMoveAt || 0),
+                    nextIdleTurnAt: Number(motionState.nextIdleTurnAt || 0),
+                    idleTurnCount: Number(motionState.idleTurnCount || 0),
+                    sprite,
+                }];
+            })
+        );
+        window.__getGuestMotionDebugLogs = () => guestMotionDebugState.logs.slice();
+        const GUEST_WALK_GRAPH = {
+            lounge_left_top: { x: 368, y: 548, neighbors: ['hearth_left', 'table_left'] },
+            hearth_left: { x: 474, y: 686, neighbors: ['lounge_left_top', 'hearth_mid', 'table_left', 'table_front_left'] },
+            hearth_mid: { x: 682, y: 504, neighbors: ['hearth_left', 'hearth_right', 'table_front_mid'] },
+            hearth_right: { x: 762, y: 684, neighbors: ['hearth_mid', 'table_front_right', 'right_mid'] },
+            table_left: { x: 530, y: 562, neighbors: ['lounge_left_top', 'hearth_left', 'writing_entry', 'table_front_left', 'lower_left'] },
+            table_front_left: { x: 614, y: 608, neighbors: ['hearth_left', 'table_left', 'table_front_mid', 'lower_left'] },
+            table_front_mid: { x: 700, y: 628, neighbors: ['hearth_mid', 'table_front_left', 'table_front_right', 'lower_mid'] },
+            table_front_right: { x: 790, y: 610, neighbors: ['hearth_right', 'table_front_mid', 'right_mid', 'lower_right_mid'] },
+            right_mid: { x: 1000, y: 520, neighbors: ['hearth_right', 'table_front_right', 'bed_entry', 'server_entry_low'] },
+            lower_left: { x: 574, y: 716, neighbors: ['table_left', 'table_front_left', 'writing_entry', 'lower_mid'] },
+            lower_mid: { x: 816, y: 716, neighbors: ['table_front_mid', 'lower_left', 'lower_right_mid'] },
+            lower_right_mid: { x: 1008, y: 700, neighbors: ['table_front_right', 'lower_mid', 'bed_entry'] },
+            bed_entry: { x: 904, y: 648, neighbors: ['right_mid', 'lower_right_mid', 'bed_front', 'server_entry_low'] },
+            bed_front: { x: 1010, y: 646, neighbors: ['bed_entry'] },
+            writing_entry: { x: 444, y: 624, neighbors: ['table_left', 'lower_left', 'writing_right_top', 'writing_right_bottom'] },
+            writing_right_top: { x: 372, y: 610, neighbors: ['writing_entry', 'writing_left_top', 'writing_right_bottom'] },
+            writing_right_bottom: { x: 374, y: 694, neighbors: ['writing_entry', 'writing_right_top', 'writing_bottom_center'] },
+            writing_bottom_center: { x: 292, y: 718, neighbors: ['writing_right_bottom', 'writing_bottom_left'] },
+            writing_bottom_left: { x: 214, y: 694, neighbors: ['writing_bottom_center', 'writing_left_top'] },
+            writing_left_top: { x: 214, y: 610, neighbors: ['writing_right_top', 'writing_bottom_left'] },
+            server_entry_low: { x: 920, y: 560, neighbors: ['right_mid', 'bed_entry', 'server_entry_high'] },
+            server_entry_high: { x: 930, y: 456, neighbors: ['server_entry_low', 'server_front_left'] },
+            server_front_left: { x: 968, y: 376, neighbors: ['server_entry_high', 'server_front_mid', 'server_back_left'] },
+            server_front_mid: { x: 1022, y: 366, neighbors: ['server_front_left', 'server_front_right', 'server_back_left', 'server_back_right'] },
+            server_front_right: { x: 1078, y: 364, neighbors: ['server_front_mid', 'server_back_right'] },
+            server_back_left: { x: 982, y: 328, neighbors: ['server_front_left', 'server_front_mid', 'server_back_right'] },
+            server_back_right: { x: 1048, y: 326, neighbors: ['server_front_mid', 'server_front_right', 'server_back_left'] },
+        };
+        const GUEST_AREA_NODE_KEYS = {
+            breakroom: [
+                'lounge_left_top',
+                'hearth_left',
+                'hearth_mid',
+                'hearth_right',
+                'right_mid',
+                'lower_left',
+                'lower_mid',
+                'lower_right_mid',
+            ],
+            writing: [
+                'writing_left_top',
+                'writing_bottom_left',
+                'writing_bottom_center',
+                'writing_right_bottom',
+                'writing_right_top',
+            ],
+            error: [
+                'server_front_left',
+                'server_front_mid',
+                'server_front_right',
+                'server_back_left',
+                'server_back_right',
+            ],
+        };
         const getReadonlyVisibleWorldWidth = camera => {
             if (!READONLY_MODE || !camera) return MAP_W;
             return Math.min(MAP_W, camera.width / Math.max(0.01, camera.zoom));
@@ -2747,6 +2896,434 @@
                 star.setPosition(IDLE_SOFA_ANCHOR.x, IDLE_SOFA_ANCHOR.y);
             }
         }
+        const normalizeFocusedAgentId = value => {
+            const normalized = String(value ?? '').trim();
+            return normalized || '';
+        };
+        const normalizeGuestDisplayName = value => typeof value === 'string' ? value.replace(/\s+/g, ' ').trim() : '';
+        const compactGuestSceneName = value => {
+            const normalized = normalizeGuestDisplayName(value);
+            if (!normalized) return '';
+            const withoutParenthetical = normalized.replace(/\s*[（(][^）)]*[）)]\s*$/u, '').trim();
+            const compact = withoutParenthetical || normalized;
+            if (/^[\x00-\x7F]+$/.test(compact)) {
+                const words = compact.split(/\s+/).filter(Boolean);
+                if (words.length > 1 && compact.length > 10) return words[0];
+                if (compact.length > 12) return `${compact.slice(0, 11).trim()}…`;
+            }
+            if (compact.length > 8) return `${compact.slice(0, 7)}…`;
+            return compact;
+        };
+        const humanizeGuestAgentId = agentId => {
+            const normalized = normalizeGuestDisplayName(agentId);
+            if (!normalized) return '';
+            if (!/[-_]/.test(normalized)) return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+            return normalized
+                .split(/[-_]+/)
+                .filter(Boolean)
+                .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+                .join(' ');
+        };
+        const getGuestDisplayName = agent => normalizeGuestDisplayName(agent.displayName) || normalizeGuestDisplayName(agent.name) || humanizeGuestAgentId(agent.agentId) || '访客';
+        const getGuestSceneName = agent => compactGuestSceneName(agent.sceneName) || compactGuestSceneName(agent.displayName) || compactGuestSceneName(agent.name) || humanizeGuestAgentId(agent.agentId) || '访客';
+        const hashGuestKey = value => {
+            const text = String(value || '');
+            let hash = 0;
+            for (let i = 0; i < text.length; i++) hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
+            return hash >>> 0;
+        };
+        const resolveGuestArea = agent => agent.area || (agent.state === 'error' ? 'error' : (agent.state === 'idle' ? 'breakroom' : 'writing'));
+        const getGuestAreaNodeKeys = area => GUEST_AREA_NODE_KEYS[area] || GUEST_AREA_NODE_KEYS.breakroom;
+        const isGuestNodeInArea = (area, nodeKey) => getGuestAreaNodeKeys(area).includes(nodeKey);
+        const getGuestNodePoint = nodeKey => {
+            const node = GUEST_WALK_GRAPH[nodeKey];
+            return node ? { x: sceneX(node.x), y: node.y } : null;
+        };
+        const getGuestNeighborNodeKeys = nodeKey => {
+            const node = GUEST_WALK_GRAPH[nodeKey];
+            return Array.isArray(node?.neighbors) ? node.neighbors.filter(key => !!GUEST_WALK_GRAPH[key]) : [];
+        };
+        const getDisplayObjectBounds = node => {
+            if (!node || typeof node.getBounds !== 'function') return null;
+            try {
+                return node.getBounds();
+            } catch (e) {
+                return null;
+            }
+        };
+        const findNearestGuestNodeKey = (nodeKeys, x, y) => {
+            let bestNodeKey = nodeKeys[0] || null;
+            let bestDistance = Number.POSITIVE_INFINITY;
+            nodeKeys.forEach(nodeKey => {
+                const point = getGuestNodePoint(nodeKey);
+                if (!point) return;
+                const distance = Math.hypot((point.x || 0) - (x || 0), (point.y || 0) - (y || 0));
+                if (distance < bestDistance) {
+                    bestDistance = distance;
+                    bestNodeKey = nodeKey;
+                }
+            });
+            return bestNodeKey;
+        };
+        const findGuestPath = (startNodeKey, targetNodeKey) => {
+            if (!startNodeKey || !targetNodeKey) return [];
+            if (startNodeKey === targetNodeKey) return [startNodeKey];
+            const queue = [startNodeKey];
+            const visited = new Set([startNodeKey]);
+            const previous = new Map();
+            while (queue.length > 0) {
+                const current = queue.shift();
+                if (current === targetNodeKey) break;
+                getGuestNeighborNodeKeys(current).forEach(nextNodeKey => {
+                    if (visited.has(nextNodeKey)) return;
+                    visited.add(nextNodeKey);
+                    previous.set(nextNodeKey, current);
+                    queue.push(nextNodeKey);
+                });
+            }
+            if (!visited.has(targetNodeKey)) return [startNodeKey, targetNodeKey];
+            const path = [targetNodeKey];
+            let cursor = targetNodeKey;
+            while (cursor !== startNodeKey) {
+                cursor = previous.get(cursor);
+                if (!cursor) break;
+                path.unshift(cursor);
+            }
+            return path.length > 0 ? path : [startNodeKey, targetNodeKey];
+        };
+        const getGuestPathDistance = (startNodeKey, targetNodeKey) => Math.max(0, findGuestPath(startNodeKey, targetNodeKey).length - 1);
+        const GUEST_MOTION_PROFILE = {
+            idle: {
+                dwellBase: 14000,
+                dwellSpread: 9000,
+                initialMoveBase: 7000,
+                initialMoveSpread: 6000,
+                turnBase: 1600,
+                turnSpread: 900,
+                turnSettleBase: 620,
+                turnSettleSpread: 280,
+                idleTurnBase: 90000,
+                idleTurnSpread: 120001,
+                roamWindowMs: 9000,
+                roamChance: 58,
+                stepFactor: 9.2,
+                facingThresholdPx: 24,
+                allowIdleTurns: false
+            },
+            writing: {
+                dwellBase: 12500,
+                dwellSpread: 9000,
+                initialMoveBase: 3400,
+                initialMoveSpread: 3200,
+                turnBase: 1750,
+                turnSpread: 1450,
+                turnSettleBase: 700,
+                turnSettleSpread: 340,
+                stepFactor: 8.1,
+                facingThresholdPx: 15,
+                allowIdleTurns: false
+            },
+            researching: {
+                dwellBase: 13200,
+                dwellSpread: 9200,
+                initialMoveBase: 3500,
+                initialMoveSpread: 3400,
+                turnBase: 1820,
+                turnSpread: 1500,
+                turnSettleBase: 730,
+                turnSettleSpread: 340,
+                stepFactor: 8.4,
+                facingThresholdPx: 15,
+                allowIdleTurns: false
+            },
+            executing: {
+                dwellBase: 11800,
+                dwellSpread: 8200,
+                initialMoveBase: 3000,
+                initialMoveSpread: 2600,
+                turnBase: 1620,
+                turnSpread: 1360,
+                turnSettleBase: 640,
+                turnSettleSpread: 300,
+                stepFactor: 7.7,
+                facingThresholdPx: 14,
+                allowIdleTurns: false
+            },
+            syncing: {
+                dwellBase: 12400,
+                dwellSpread: 8600,
+                initialMoveBase: 3200,
+                initialMoveSpread: 2800,
+                turnBase: 1700,
+                turnSpread: 1380,
+                turnSettleBase: 670,
+                turnSettleSpread: 300,
+                stepFactor: 8.0,
+                facingThresholdPx: 14,
+                allowIdleTurns: false
+            },
+            error: {
+                dwellBase: 13600,
+                dwellSpread: 9600,
+                initialMoveBase: 3400,
+                initialMoveSpread: 3000,
+                turnBase: 1880,
+                turnSpread: 1540,
+                turnSettleBase: 740,
+                turnSettleSpread: 340,
+                stepFactor: 8.6,
+                facingThresholdPx: 15,
+                allowIdleTurns: false
+            }
+        };
+        const getGuestMotionProfile = state => GUEST_MOTION_PROFILE[normalizeState(state || 'idle')] || GUEST_MOTION_PROFILE.writing;
+        const getGuestDwellDuration = agent => {
+            const state = normalizeState(agent.state || 'idle');
+            const profile = getGuestMotionProfile(state);
+            return profile.dwellBase + (hashGuestKey(`guest-dwell:${state}:${agent.agentId}`) % profile.dwellSpread);
+        };
+        const resolveGuestInitialMoveAt = (agent, now) => {
+            const state = normalizeState(agent.state || 'idle');
+            const profile = getGuestMotionProfile(state);
+            return now + profile.initialMoveBase + (hashGuestKey(`guest-initial:${state}:${agent.agentId}`) % profile.initialMoveSpread);
+        };
+        const resolveGuestTurnDelay = agent => {
+            const state = normalizeState(agent.state || 'idle');
+            const profile = getGuestMotionProfile(state);
+            return profile.turnBase + (hashGuestKey(`guest-turn:${state}:${agent.agentId}`) % profile.turnSpread);
+        };
+        const resolveGuestTurnSettleDelay = agent => {
+            const state = normalizeState(agent.state || 'idle');
+            const profile = getGuestMotionProfile(state);
+            return profile.turnSettleBase + (hashGuestKey(`guest-turn-settle:${state}:${agent.agentId}`) % profile.turnSettleSpread);
+        };
+        const resolveGuestIdleTurnDelay = (agentId, turnCount) => {
+            const profile = getGuestMotionProfile('idle');
+            return profile.idleTurnBase + (hashGuestKey(`guest-idle-turn:${agentId}:${turnCount}`) % profile.idleTurnSpread);
+        };
+        const resolveGuestIdleFacing = (agentId, turnCount, currentFacing) => {
+            const preferredFacing = (hashGuestKey(`guest-idle-facing:${agentId}:${turnCount}`) % 2) === 0
+                ? 'left'
+                : 'right';
+            if (!currentFacing) return preferredFacing;
+            return preferredFacing === currentFacing
+                ? (preferredFacing === 'left' ? 'right' : 'left')
+                : preferredFacing;
+        };
+        const shouldGuestChangeNode = (agent, now) => {
+            const state = normalizeState(agent.state || 'idle');
+            if (state !== 'idle') return true;
+            const profile = getGuestMotionProfile(state);
+            const bucket = Math.floor(now / profile.roamWindowMs);
+            return (hashGuestKey(`guest-roam:${agent.agentId}:${bucket}`) % 100) < profile.roamChance;
+        };
+        const getGuestStepDuration = (distance, state) => {
+            const profile = getGuestMotionProfile(state);
+            return Math.max(2400, Math.min(7600, Math.round(distance * profile.stepFactor * 5.0625)));
+        };
+        const REAL_GUEST_IDLE_FRAME = 2;
+        const REAL_GUEST_MOVE_TIME_SCALE = 0.42;
+        const REAL_GUEST_IDLE_PRESENCE_BASE_MS = 2400;
+        const REAL_GUEST_IDLE_PRESENCE_SPREAD_MS = 1200;
+        const REAL_GUEST_IDLE_PRESENCE_BASE_OFFSET = 2;
+        const REAL_GUEST_IDLE_PRESENCE_OFFSET_SPREAD = 2;
+        const ensureGuestTweenState = guestId => {
+            if (!guestTweens[guestId]) guestTweens[guestId] = {};
+            return guestTweens[guestId];
+        };
+        const pruneGuestTweenState = guestId => {
+            if (!guestTweens[guestId]) return;
+            if (!guestTweens[guestId].move && !guestTweens[guestId].presence) delete guestTweens[guestId];
+        };
+        const stopGuestIdlePresence = (guestId, guest, resetPose = true) => {
+            if (guestTweens[guestId] && guestTweens[guestId].presence) {
+                try { guestTweens[guestId].presence.stop(); } catch (e) {}
+                delete guestTweens[guestId].presence;
+            }
+            if (resetPose && guest && guest.sprite && Number.isFinite(guest.idlePoseY)) {
+                guest.sprite.y = guest.idlePoseY;
+                syncGuestSpriteAnchor(guest);
+                syncGuestBubbleAnchor(guestId, guest);
+            }
+            if (guest) guest.idlePoseY = null;
+            pruneGuestTweenState(guestId);
+        };
+        const startGuestIdlePresence = (guestId, guest) => {
+            if (!game || !guest || guest.isDemo || !guest.sprite) return;
+            if (guestTweens[guestId] && guestTweens[guestId].presence) return;
+            guest.idlePoseY = guest.sprite.y;
+            const bobOffset = REAL_GUEST_IDLE_PRESENCE_BASE_OFFSET + (hashGuestKey(`guest-presence-offset:${guestId}`) % REAL_GUEST_IDLE_PRESENCE_OFFSET_SPREAD);
+            const bobDurationMs = REAL_GUEST_IDLE_PRESENCE_BASE_MS + (hashGuestKey(`guest-presence-duration:${guestId}`) % REAL_GUEST_IDLE_PRESENCE_SPREAD_MS);
+            ensureGuestTweenState(guestId).presence = game.tweens.add({
+                targets: guest.sprite,
+                y: guest.idlePoseY - bobOffset,
+                duration: bobDurationMs,
+                ease: 'Sine.easeInOut',
+                yoyo: true,
+                repeat: -1,
+                onUpdate: () => {
+                    syncGuestSpriteAnchor(guest);
+                    syncGuestBubbleAnchor(guestId, guest);
+                }
+            });
+            debugGuestMotion('anim-pose-hold', guestId, {
+                status: 'idle',
+                moving: false,
+                frame: REAL_GUEST_IDLE_FRAME,
+                bobOffset,
+                bobDurationMs,
+            }, 400);
+        };
+        const applyGuestSpriteAnimationMode = (agentId, guest, status, moving) => {
+            if (!guest || guest.isDemo || !guest.sprite || !guest.animIdleKey || !guest.sprite.anims) return;
+            if (status === 'idle' && !moving) {
+                if (guest.sprite.anims.isPlaying) guest.sprite.anims.stop();
+                if (typeof guest.sprite.setFrame === 'function') guest.sprite.setFrame(REAL_GUEST_IDLE_FRAME);
+                startGuestIdlePresence(agentId, guest);
+                return;
+            }
+            stopGuestIdlePresence(agentId, guest, true);
+            guest.sprite.anims.timeScale = REAL_GUEST_MOVE_TIME_SCALE;
+            if (!guest.sprite.anims.isPlaying || guest.sprite.anims.currentAnim?.key !== guest.animIdleKey) {
+                guest.sprite.anims.play(guest.animIdleKey, true);
+            }
+            debugGuestMotion('anim-play', agentId, {
+                status,
+                moving,
+                animIdleKey: guest.animIdleKey,
+                timeScale: REAL_GUEST_MOVE_TIME_SCALE,
+            }, 400);
+        };
+        const resolveGuestTargetNodeKey = (agent, area, currentNodeKey, occupiedNodeKeys, now) => {
+            const areaNodeKeys = getGuestAreaNodeKeys(area);
+            if (areaNodeKeys.length === 0) return null;
+            const state = normalizeState(agent.state || 'idle');
+            const preferFar = state === 'idle';
+            const desiredMinDistance = preferFar ? 2 : 1;
+            const desiredMaxDistance = preferFar ? 5 : 2;
+            const anchorNodeKey = currentNodeKey && GUEST_WALK_GRAPH[currentNodeKey]
+                ? currentNodeKey
+                : (areaNodeKeys[hashGuestKey(`${area}:${agent.agentId}`) % areaNodeKeys.length] || areaNodeKeys[0]);
+            const candidates = areaNodeKeys.filter(nodeKey => nodeKey !== anchorNodeKey && !occupiedNodeKeys.has(nodeKey));
+            if (candidates.length === 0) return anchorNodeKey;
+            const scored = candidates.map(nodeKey => {
+                const distance = getGuestPathDistance(anchorNodeKey, nodeKey);
+                const bandPenalty = distance < desiredMinDistance
+                    ? (desiredMinDistance - distance) * 100
+                    : (distance > desiredMaxDistance ? (distance - desiredMaxDistance) * 50 : 0);
+                const distanceScore = preferFar ? -distance : distance;
+                const jitter = hashGuestKey(`${agent.agentId}:${area}:${nodeKey}:${Math.floor(now / 1000)}`) % 17;
+                return { nodeKey, score: (distanceScore * 100) + bandPenalty + jitter };
+            });
+            scored.sort((left, right) => left.score - right.score || left.nodeKey.localeCompare(right.nodeKey));
+            return scored[0].nodeKey;
+        };
+        const syncGuestSpriteAnchor = guest => {
+            if (!guest || !guest.sprite || !guest.nameText) return;
+            const depth = typeof guest.sprite.depth === 'number' ? guest.sprite.depth : 2600;
+            const displayHeight = Number(guest.sprite.displayHeight || 0);
+            const labelOffset = guest.isDemo
+                ? 76
+                : Math.max(110, Math.round((displayHeight || 128) * 0.92));
+            guest.nameText.setOrigin(0.5, 1);
+            guest.nameText.setPosition(guest.sprite.x, Math.max(12, guest.sprite.y - labelOffset));
+            guest.nameText.setDepth(depth + 1);
+        };
+        const syncGuestBubbleAnchor = (guestId, guest) => {
+            const bubble = guestBubbles[guestId];
+            if (!bubble || !guest || !guest.sprite) return;
+            const spriteBounds = getDisplayObjectBounds(guest.sprite);
+            if (!spriteBounds || !bubble.list) return;
+            const labelBounds = guest.nameText ? getDisplayObjectBounds(guest.nameText) : null;
+            const anchorX = spriteBounds.centerX;
+            const anchorY = Math.max(12, (labelBounds ? labelBounds.y : spriteBounds.y) - 22);
+            bubble.x = 0;
+            bubble.y = 0;
+            if (bubble.list[0]) { bubble.list[0].x = anchorX; bubble.list[0].y = anchorY; }
+            if (bubble.list[1]) { bubble.list[1].x = anchorX; bubble.list[1].y = anchorY; }
+        };
+        const stopGuestMotion = guestId => {
+            if (guestTweens[guestId] && guestTweens[guestId].move) {
+                try { guestTweens[guestId].move.stop(); } catch (e) {}
+                delete guestTweens[guestId].move;
+            }
+            pruneGuestTweenState(guestId);
+        };
+        const stopGuestAllTweens = guestId => {
+            stopGuestMotion(guestId);
+            stopGuestIdlePresence(guestId, guestSprites[guestId], true);
+        };
+        const resolveFocusedMainNode = () => {
+            if (currentState === 'error' && window.errorBug && window.errorBug.visible) return window.errorBug;
+            if (currentState === 'syncing' && syncAnimSprite) return syncAnimSprite;
+            if (currentState !== 'idle' && window.starWorking && window.starWorking.visible) return window.starWorking;
+            if (star && star.visible) return star;
+            if (window.starWorking && window.starWorking.visible) return window.starWorking;
+            return null;
+        };
+        const resolveFocusedAgentTarget = () => {
+            const normalized = normalizeFocusedAgentId(focusedAgentId);
+            if (!normalized) return null;
+            if (normalized === 'main') {
+                const node = resolveFocusedMainNode();
+                const bounds = getDisplayObjectBounds(node);
+                if (!bounds) return null;
+                return {
+                    x: bounds.centerX,
+                    y: Math.max(12, bounds.y - 12),
+                    depth: (typeof node.depth === 'number' ? node.depth : 2600) + 4
+                };
+            }
+            const guest = guestSprites[normalized];
+            if (!guest) return null;
+            const labelBounds = getDisplayObjectBounds(guest.nameText);
+            if (labelBounds) {
+                return {
+                    x: labelBounds.centerX,
+                    y: Math.max(12, labelBounds.y - 10),
+                    depth: (typeof guest.nameText.depth === 'number' ? guest.nameText.depth : 2601) + 2
+                };
+            }
+            const spriteBounds = getDisplayObjectBounds(guest.sprite);
+            if (!spriteBounds) return null;
+            return {
+                x: spriteBounds.centerX,
+                y: Math.max(12, spriteBounds.y - 12),
+                depth: (typeof guest.sprite.depth === 'number' ? guest.sprite.depth : 2600) + 2
+            };
+        };
+        function ensureFocusedAgentMarker() {
+            if (!game) return null;
+            if (focusedAgentMarker) return focusedAgentMarker;
+            const shadow = game.add.rectangle(0, 0, 10, 10, 0x1d160f, 0.22);
+            shadow.setAngle(45);
+            const core = game.add.rectangle(0, 0, 7, 7, 0xf4e4b3, 0.95);
+            core.setAngle(45);
+            core.setStrokeStyle(1, 0x5b4631, 0.62);
+            focusedAgentMarker = game.add.container(0, 0, [shadow, core]);
+            focusedAgentMarker.setDepth(2604);
+            focusedAgentMarker.setVisible(false);
+            return focusedAgentMarker;
+        }
+        function updateFocusedAgentMarker() {
+            const marker = ensureFocusedAgentMarker();
+            if (!marker) return;
+            const target = resolveFocusedAgentTarget();
+            if (!target) {
+                marker.setVisible(false);
+                return;
+            }
+            marker.setPosition(target.x, target.y);
+            marker.setDepth(target.depth);
+            marker.setVisible(true);
+        }
+        function setFocusedAgentId(nextFocusedAgentId) {
+            focusedAgentId = normalizeFocusedAgentId(nextFocusedAgentId);
+            updateFocusedAgentMarker();
+            return focusedAgentId;
+        }
+        window.__setFocusedAgentId = setFocusedAgentId;
+        window.__getFocusedAgentId = () => focusedAgentId;
         const GUEST_AGENTS_FETCH_INTERVAL = 3500;
         const BLINK_INTERVAL = 2500;
         const BUBBLE_INTERVAL = 8000;
@@ -2754,7 +3331,89 @@
         let lastCatBubble = 0;
         let lastGuestAgentsFetch = 0;
         let lastGuestBubbleAt = 0;
+        let lastGuestMotionPlanSync = 0;
         const TYPEWRITER_DELAY = 50;
+        const syncStarIdlePose = () => {
+            if (!star) return;
+            star.setPosition(IDLE_SOFA_ANCHOR.x, IDLE_SOFA_ANCHOR.y + starIdlePresenceState.y);
+            star.setScale(IDLE_STAR_SCALE * starIdlePresenceState.scale);
+        };
+        const ensureStarIdlePresence = () => {
+            if (!game || starIdlePresenceTween) return;
+            starIdlePresenceTween = game.tweens.add({
+                targets: starIdlePresenceState,
+                y: -STAR_IDLE_PRESENCE_BOB_OFFSET,
+                scale: STAR_IDLE_PRESENCE_SCALE,
+                duration: STAR_IDLE_PRESENCE_DURATION_MS,
+                ease: 'Sine.easeInOut',
+                yoyo: true,
+                repeat: -1,
+            });
+        };
+        const stopStarIdlePresence = () => {
+            if (starIdlePresenceTween) {
+                try { starIdlePresenceTween.stop(); } catch (e) {}
+                starIdlePresenceTween = null;
+            }
+            starIdlePresenceState.y = 0;
+            starIdlePresenceState.scale = 1;
+            if (!star) return;
+            star.setScale(IDLE_STAR_SCALE);
+            star.setPosition(IDLE_SOFA_ANCHOR.x, IDLE_SOFA_ANCHOR.y);
+        };
+        const syncCatPose = () => {
+            if (!window.catSprite) return;
+            window.catSprite.setPosition(sceneX(RAW_POSITIONS.cat.x), RAW_POSITIONS.cat.y + catPresenceState.y);
+            window.catSprite.setScale(catPresenceState.scale);
+        };
+        const ensureCatPresence = () => {
+            if (!game || !window.catSprite || catPresenceTween) return;
+            catPresenceTween = game.tweens.add({
+                targets: catPresenceState,
+                y: -CAT_PRESENCE_BOB_OFFSET,
+                scale: CAT_PRESENCE_SCALE,
+                duration: CAT_PRESENCE_DURATION_MS,
+                ease: 'Sine.easeInOut',
+                yoyo: true,
+                repeat: -1,
+            });
+        };
+        const resolveCatPoseInterval = () => CAT_IDLE_POSE_BASE_MS + Math.floor(Math.random() * CAT_IDLE_POSE_SPREAD_MS);
+        const pickCatPoseFrame = (pool, fallbackFrame) => {
+            const currentFrame = Number(catMotionState.currentFrame);
+            const availableFrames = pool.filter(frame => frame !== currentFrame);
+            const nextPool = availableFrames.length > 0 ? availableFrames : pool;
+            if (nextPool.length === 0) return fallbackFrame;
+            return nextPool[Math.floor(Math.random() * nextPool.length)];
+        };
+        const setCatPoseFrame = frame => {
+            if (!window.catSprite || !Number.isFinite(frame)) return;
+            window.catSprite.setFrame(frame);
+            catMotionState.currentFrame = frame;
+        };
+        const wakeCat = () => {
+            const fallbackFrame = Number.isFinite(Number(catMotionState.currentFrame))
+                ? Number(catMotionState.currentFrame)
+                : (CAT_ALERT_POSE_FRAMES[0] ?? 0);
+            const wakeFrame = pickCatPoseFrame(window.catAlertPoseFrames || CAT_ALERT_POSE_FRAMES, fallbackFrame);
+            setCatPoseFrame(wakeFrame);
+            const now = Date.now();
+            catMotionState.wakeUntil = now + CAT_WAKE_POSE_HOLD_MS;
+            catMotionState.nextPoseAt = catMotionState.wakeUntil + resolveCatPoseInterval();
+            showCatBubble();
+            lastCatBubble = now;
+        };
+        const updateCatIdleBehavior = now => {
+            if (!window.catSprite) return;
+            ensureCatPresence();
+            syncCatPose();
+            if (now < Number(catMotionState.wakeUntil || 0)) return;
+            if (now < Number(catMotionState.nextPoseAt || 0)) return;
+            const idleFrames = window.catIdlePoseFrames || CAT_IDLE_POSE_FRAMES;
+            const fallbackFrame = idleFrames[0] ?? 0;
+            setCatPoseFrame(pickCatPoseFrame(idleFrames, fallbackFrame));
+            catMotionState.nextPoseAt = now + resolveCatPoseInterval();
+        };
         let lastSeenGuestIds = new Set(); // 用于检测新加入的访客，触发欢迎气泡
         let guestWelcomeInitialized = false;
 
@@ -4567,7 +5226,7 @@ function toggleBrokerPanel() {
             }
 
             list.innerHTML = visitors.map(agent => {
-                const name = agent.name || '未命名访客';
+                const name = getGuestDisplayName(agent);
                 const authStatus = agent.authStatus || 'pending';
                 const state = agent.state || 'idle';
                 const statusMap = {
@@ -4606,7 +5265,7 @@ function toggleBrokerPanel() {
         }
 
         function getAreaRect(area) {
-            // 区域坐标（海辛提供，左上-右下；这里的 x/y 作为 sprite 底部锚点坐标来用）
+            // 区域坐标（左上-右下；这里的 x/y 作为 sprite 底部锚点坐标来用）
             // 休息区域范围（511,262）（841,621）
             // 工作区域范围（190,526）（380,683）
             // error 区域范围（932,275）（1109,327）
@@ -4649,39 +5308,419 @@ function toggleBrokerPanel() {
             return arr[idx % arr.length];
         }
 
+        function startRealGuestMotion(agent) {
+            const guestId = agent.agentId;
+            const guest = guestSprites[guestId];
+            const motionState = guestMotionStates[guestId];
+            if (!guest || !motionState || !Array.isArray(motionState.pathNodeKeys) || motionState.pathNodeKeys.length === 0) return;
+            if (guestTweens[guestId] && guestTweens[guestId].move) return;
+            const nextNodeKey = motionState.pathNodeKeys[0];
+            const nextPoint = getGuestNodePoint(nextNodeKey);
+            if (!nextPoint) {
+                motionState.pathNodeKeys = [];
+                motionState.currentNodeKey = motionState.targetNodeKey || motionState.currentNodeKey;
+                return;
+            }
+            const targetPoint = getGuestNodePoint(motionState.targetNodeKey || nextNodeKey) || nextPoint;
+            const dx = targetPoint.x - guest.sprite.x;
+            const distance = Math.hypot(nextPoint.x - guest.sprite.x, nextPoint.y - guest.sprite.y);
+            const motionProfile = getGuestMotionProfile(motionState.status || agent.state || 'idle');
+            const desiredFacing = Math.abs(dx) > motionProfile.facingThresholdPx ? (dx < 0 ? 'left' : 'right') : (motionState.facing || null);
+            const now = Date.now();
+            if (
+                desiredFacing
+                && desiredFacing !== motionState.facing
+                && !motionState.pendingFacing
+                && !motionState.turnReadyAt
+            ) {
+                const turnDelayMs = resolveGuestTurnDelay(agent);
+                motionState.pendingFacing = desiredFacing;
+                motionState.turnReadyAt = now + turnDelayMs;
+                motionState.moveReadyAt = 0;
+                debugGuestMotion('turn-pending', guestId, {
+                    status: motionState.status || agent.state || 'idle',
+                    currentNodeKey: motionState.currentNodeKey || null,
+                    targetNodeKey: motionState.targetNodeKey || null,
+                    nextNodeKey,
+                    desiredFacing,
+                    facing: motionState.facing || null,
+                    dx: Math.round(dx),
+                    turnDelayMs,
+                });
+                return;
+            }
+            if (motionState.turnReadyAt && now < Number(motionState.turnReadyAt || 0)) {
+                return;
+            }
+            if (motionState.pendingFacing) {
+                if (guest.sprite.setFlipX) {
+                    guest.sprite.setFlipX(motionState.pendingFacing === 'left');
+                }
+                const turnSettleMs = resolveGuestTurnSettleDelay(agent);
+                motionState.facing = motionState.pendingFacing;
+                motionState.pendingFacing = null;
+                motionState.turnReadyAt = 0;
+                motionState.moveReadyAt = now + turnSettleMs;
+                debugGuestMotion('turn-apply', guestId, {
+                    status: motionState.status || agent.state || 'idle',
+                    facing: motionState.facing || null,
+                    turnSettleMs,
+                    targetNodeKey: motionState.targetNodeKey || null,
+                    nextNodeKey,
+                });
+                return;
+            }
+            if (motionState.moveReadyAt && now < Number(motionState.moveReadyAt || 0)) {
+                return;
+            }
+            if (motionState.moveReadyAt) {
+                motionState.moveReadyAt = 0;
+            }
+            if (desiredFacing && motionState.facing !== desiredFacing) {
+                if (guest.sprite.setFlipX) {
+                    guest.sprite.setFlipX(desiredFacing === 'left');
+                }
+                motionState.facing = desiredFacing;
+            }
+            applyGuestSpriteAnimationMode(guestId, guest, motionState.status || agent.state || 'idle', true);
+            debugGuestMotion('move-start', guestId, {
+                status: motionState.status || agent.state || 'idle',
+                currentNodeKey: motionState.currentNodeKey || null,
+                nextNodeKey,
+                targetNodeKey: motionState.targetNodeKey || null,
+                pathNodeKeys: [...motionState.pathNodeKeys],
+                desiredFacing,
+                facing: motionState.facing || null,
+                distance: Math.round(distance),
+                durationMs: getGuestStepDuration(distance, motionState.status),
+            });
+            guestTweens[guestId] = {
+                move: game.tweens.add({
+                    targets: guest.sprite,
+                    x: nextPoint.x,
+                    y: nextPoint.y,
+                    duration: getGuestStepDuration(distance, motionState.status),
+                    ease: 'Sine.easeInOut',
+                    onUpdate: () => {
+                        syncGuestSpriteAnchor(guest);
+                        syncGuestBubbleAnchor(guestId, guest);
+                    },
+                    onComplete: () => {
+                        motionState.currentNodeKey = nextNodeKey;
+                        motionState.pathNodeKeys.shift();
+                        if (motionState.pathNodeKeys.length === 0) {
+                            motionState.targetNodeKey = null;
+                            motionState.nextMoveAt = Date.now() + getGuestDwellDuration({
+                                agentId: guestId,
+                                state: motionState.status,
+                            });
+                        }
+                        debugGuestMotion('move-complete', guestId, {
+                            status: motionState.status || agent.state || 'idle',
+                            currentNodeKey: motionState.currentNodeKey || null,
+                            targetNodeKey: motionState.targetNodeKey || null,
+                            remainingPath: [...motionState.pathNodeKeys],
+                            nextMoveAt: Number(motionState.nextMoveAt || 0),
+                        });
+                        stopGuestMotion(guestId);
+                        applyGuestSpriteAnimationMode(
+                            guestId,
+                            guest,
+                            motionState.status || agent.state || 'idle',
+                            Array.isArray(motionState.pathNodeKeys) && motionState.pathNodeKeys.length > 0,
+                        );
+                        syncGuestSpriteAnchor(guest);
+                        syncGuestBubbleAnchor(guestId, guest);
+                        startRealGuestMotion(agent);
+                    }
+                })
+            };
+        }
+
+        function syncRealGuestMotionPlans(now) {
+            if (!game) return;
+            const occupiedNodeKeysByArea = {
+                breakroom: new Set(),
+                writing: new Set(),
+                error: new Set(),
+            };
+            const visitors = [...getMergedVisitors()]
+                .filter(agent => !(agent.isDemo || (DEMO_MODE && (agent.agentId === 'demo_nika' || agent.agentId === 'demo_mercury'))))
+                .sort((left, right) => String(left.agentId || left.name || '').localeCompare(String(right.agentId || right.name || '')));
+
+            visitors.forEach(agent => {
+                const guestId = agent.agentId;
+                const area = resolveGuestArea(agent);
+                const guest = guestSprites[guestId];
+                if (!guest) return;
+                const previousMotionState = guestMotionStates[guestId] || {};
+                const spriteBounds = getDisplayObjectBounds(guest.sprite);
+                const currentNodeKey = (
+                    previousMotionState.currentNodeKey
+                    && GUEST_WALK_GRAPH[previousMotionState.currentNodeKey]
+                )
+                    ? previousMotionState.currentNodeKey
+                    : findNearestGuestNodeKey(
+                        getGuestAreaNodeKeys(area),
+                        spriteBounds ? spriteBounds.centerX : guest.sprite.x,
+                        spriteBounds ? (spriteBounds.y + spriteBounds.height) : guest.sprite.y,
+                    );
+                const targetStillValid = (
+                    previousMotionState.area === area
+                    && previousMotionState.targetNodeKey
+                    && isGuestNodeInArea(area, previousMotionState.targetNodeKey)
+                    && (
+                        (Array.isArray(previousMotionState.pathNodeKeys) && previousMotionState.pathNodeKeys.length > 0)
+                        || now < Number(previousMotionState.nextMoveAt || 0)
+                    )
+                    && !occupiedNodeKeysByArea[area].has(previousMotionState.targetNodeKey)
+                );
+                const isDwelling = (
+                    previousMotionState.area === area
+                    && !previousMotionState.targetNodeKey
+                    && now < Number(previousMotionState.nextMoveAt || 0)
+                );
+                const shouldChangeNode = !isDwelling && shouldGuestChangeNode(agent, now);
+                const nextTargetNodeKey = targetStillValid
+                    ? previousMotionState.targetNodeKey
+                    : (isDwelling || !shouldChangeNode
+                        ? null
+                        : resolveGuestTargetNodeKey(agent, area, currentNodeKey, occupiedNodeKeysByArea[area], now));
+                const targetNodeKey = nextTargetNodeKey && nextTargetNodeKey !== currentNodeKey
+                    ? nextTargetNodeKey
+                    : null;
+
+                if (targetNodeKey) {
+                    occupiedNodeKeysByArea[area].add(targetNodeKey);
+                } else if (currentNodeKey) {
+                    occupiedNodeKeysByArea[area].add(currentNodeKey);
+                }
+
+                const hasActivePath = (
+                    previousMotionState.area === area
+                    && previousMotionState.targetNodeKey === targetNodeKey
+                    && Array.isArray(previousMotionState.pathNodeKeys)
+                    && previousMotionState.pathNodeKeys.length > 0
+                );
+                const status = normalizeState(agent.state || 'idle');
+                const preserveIdleTurnClock = (
+                    previousMotionState.area === area
+                    && previousMotionState.status === status
+                    && status === 'idle'
+                );
+
+                if (!hasActivePath && guestTweens[guestId] && guestTweens[guestId].move) {
+                    stopGuestMotion(guestId);
+                }
+
+                const pathNodeKeys = hasActivePath
+                    ? previousMotionState.pathNodeKeys
+                    : (
+                        targetNodeKey && currentNodeKey && currentNodeKey !== targetNodeKey
+                            ? findGuestPath(currentNodeKey, targetNodeKey).slice(1)
+                            : []
+                    );
+                const previousSignature = JSON.stringify({
+                    area: previousMotionState.area || null,
+                    status: previousMotionState.status || null,
+                    currentNodeKey: previousMotionState.currentNodeKey || null,
+                    targetNodeKey: previousMotionState.targetNodeKey || null,
+                    pathNodeKeys: Array.isArray(previousMotionState.pathNodeKeys) ? previousMotionState.pathNodeKeys : [],
+                    nextMoveAt: Number(previousMotionState.nextMoveAt || 0),
+                    nextIdleTurnAt: Number(previousMotionState.nextIdleTurnAt || 0),
+                });
+                const nextSignature = JSON.stringify({
+                    area,
+                    status,
+                    currentNodeKey: currentNodeKey || targetNodeKey || null,
+                    targetNodeKey: targetNodeKey || null,
+                    pathNodeKeys,
+                    nextMoveAt: isDwelling || targetStillValid
+                        ? Number(previousMotionState.nextMoveAt || 0)
+                        : (targetNodeKey ? Number(previousMotionState.nextMoveAt || 0) : (now + getGuestDwellDuration(agent))),
+                    nextIdleTurnAt: status === 'idle'
+                        ? (
+                            preserveIdleTurnClock && Number(previousMotionState.nextIdleTurnAt || 0) > now
+                                ? Number(previousMotionState.nextIdleTurnAt || 0)
+                                : (now + resolveGuestIdleTurnDelay(guestId, preserveIdleTurnClock ? Number(previousMotionState.idleTurnCount || 0) : 0))
+                        )
+                        : 0,
+                });
+
+                guestMotionStates[guestId] = {
+                    area,
+                    status,
+                    currentNodeKey: currentNodeKey || targetNodeKey,
+                    targetNodeKey,
+                    pathNodeKeys,
+                    facing: previousMotionState.facing || null,
+                    pendingFacing: previousMotionState.pendingFacing || null,
+                    turnReadyAt: Number(previousMotionState.turnReadyAt || 0),
+                    moveReadyAt: Number(previousMotionState.moveReadyAt || 0),
+                    idleTurnCount: preserveIdleTurnClock
+                        ? Number(previousMotionState.idleTurnCount || 0)
+                        : 0,
+                    nextIdleTurnAt: status === 'idle'
+                        ? (
+                            preserveIdleTurnClock && Number(previousMotionState.nextIdleTurnAt || 0) > now
+                                ? Number(previousMotionState.nextIdleTurnAt || 0)
+                                : (now + resolveGuestIdleTurnDelay(guestId, preserveIdleTurnClock ? Number(previousMotionState.idleTurnCount || 0) : 0))
+                        )
+                        : 0,
+                    nextMoveAt: isDwelling || targetStillValid
+                        ? Number(previousMotionState.nextMoveAt || 0)
+                        : (targetNodeKey ? Number(previousMotionState.nextMoveAt || 0) : (now + getGuestDwellDuration(agent))),
+                };
+                if (previousSignature !== nextSignature) {
+                    debugGuestMotion('plan', guestId, {
+                        area,
+                        status,
+                        currentNodeKey: currentNodeKey || null,
+                        targetNodeKey: targetNodeKey || null,
+                        pathNodeKeys,
+                        targetStillValid,
+                        isDwelling,
+                        shouldChangeNode,
+                        preserveIdleTurnClock,
+                        nextMoveAt: Number(guestMotionStates[guestId].nextMoveAt || 0),
+                        nextIdleTurnAt: Number(guestMotionStates[guestId].nextIdleTurnAt || 0),
+                    }, 120);
+                }
+
+                if (pathNodeKeys.length > 0) {
+                    startRealGuestMotion(agent);
+                } else {
+                    syncGuestSpriteAnchor(guest);
+                    syncGuestBubbleAnchor(guestId, guest);
+                }
+            });
+        }
+
+        function advancePendingGuestMotions() {
+            Object.keys(guestMotionStates).forEach(guestId => {
+                const motionState = guestMotionStates[guestId];
+                const guest = guestSprites[guestId];
+                if (!motionState || !guest || guest.isDemo) return;
+                if (!Array.isArray(motionState.pathNodeKeys) || motionState.pathNodeKeys.length === 0) return;
+                if (guestTweens[guestId] && guestTweens[guestId].move) return;
+                startRealGuestMotion({
+                    agentId: guestId,
+                    state: motionState.status || 'idle',
+                });
+            });
+        }
+
+        function advanceIdleGuestTurns(now) {
+            Object.keys(guestMotionStates).forEach(guestId => {
+                const motionState = guestMotionStates[guestId];
+                const guest = guestSprites[guestId];
+                if (!motionState || !guest || guest.isDemo) return;
+                if (motionState.status !== 'idle') return;
+                if (!getGuestMotionProfile(motionState.status).allowIdleTurns) return;
+                if (guestTweens[guestId] && guestTweens[guestId].move) return;
+                if (Array.isArray(motionState.pathNodeKeys) && motionState.pathNodeKeys.length > 0) return;
+                if (motionState.pendingFacing || motionState.turnReadyAt || motionState.moveReadyAt) return;
+                if (now < Number(motionState.nextIdleTurnAt || 0)) return;
+                const turnCount = Number(motionState.idleTurnCount || 0) + 1;
+                const nextFacing = resolveGuestIdleFacing(guestId, turnCount, motionState.facing || null);
+                if (guest.sprite.setFlipX) {
+                    guest.sprite.setFlipX(nextFacing === 'left');
+                }
+                motionState.facing = nextFacing;
+                motionState.idleTurnCount = turnCount;
+                motionState.nextIdleTurnAt = now + resolveGuestIdleTurnDelay(guestId, turnCount);
+                debugGuestMotion('idle-turn', guestId, {
+                    facing: motionState.facing || null,
+                    turnCount,
+                    nextIdleTurnAt: Number(motionState.nextIdleTurnAt || 0),
+                });
+                syncGuestSpriteAnchor(guest);
+                syncGuestBubbleAnchor(guestId, guest);
+            });
+        }
+
         function renderGuestAgentsInScene() {
             if (!game) return;
-            const visitors = getMergedVisitors();
+            const visitors = [...getMergedVisitors()].sort((left, right) => {
+                const leftDemo = !!left.isDemo;
+                const rightDemo = !!right.isDemo;
+                if (leftDemo !== rightDemo) return leftDemo ? 1 : -1;
+                return String(left.agentId || left.name || '').localeCompare(String(right.agentId || right.name || ''));
+            });
             const seenIds = new Set();
-            let idxBreak = 0, idxWrite = 0, idxError = 0;
+            const occupiedNodeIndicesByArea = {
+                breakroom: new Set(),
+                writing: new Set(),
+                error: new Set(),
+            };
+            const now = Date.now();
 
             visitors.forEach(agent => {
                 const id = agent.agentId;
                 seenIds.add(id);
+                const displayName = getGuestDisplayName(agent);
+                const sceneName = getGuestSceneName(agent);
 
                 const isDemo = !!agent.isDemo || (DEMO_MODE && (id === 'demo_nika' || id === 'demo_mercury' || agent.name === '尼卡' || agent.name === '水星'));
-                const area = agent.area || (agent.state === 'error' ? 'error' : (agent.state === 'idle' ? 'breakroom' : 'writing'));
+                const area = resolveGuestArea(agent);
+                let p = null;
 
-                const idx = area === 'breakroom' ? idxBreak++ : area === 'error' ? idxError++ : idxWrite++;
-                const p = isDemo
-                    ? randomPointInRect(getAreaRect(area))
-                    : getAreaPoint(area, idx);
+                if (isDemo) {
+                    p = randomPointInRect(getAreaRect(area));
+                } else {
+                    const areaNodeKeys = getGuestAreaNodeKeys(area);
+                    const previousMotionState = guestMotionStates[id] || {};
+                    const preferredNodeKey = (
+                        previousMotionState.currentNodeKey
+                        && isGuestNodeInArea(area, previousMotionState.currentNodeKey)
+                    )
+                        ? previousMotionState.currentNodeKey
+                        : areaNodeKeys[hashGuestKey(`${area}:${id}`) % Math.max(areaNodeKeys.length, 1)];
+                    const spawnNodeKey = (
+                        preferredNodeKey
+                        && !occupiedNodeIndicesByArea[area].has(preferredNodeKey)
+                    )
+                        ? preferredNodeKey
+                        : resolveGuestTargetNodeKey(agent, area, preferredNodeKey, occupiedNodeIndicesByArea[area], now);
+                    guestMotionStates[id] = {
+                        area,
+                        status: normalizeState(agent.state || 'idle'),
+                        currentNodeKey: spawnNodeKey || preferredNodeKey || areaNodeKeys[0] || null,
+                        targetNodeKey: previousMotionState.area === area ? (previousMotionState.targetNodeKey || null) : null,
+                        pathNodeKeys: previousMotionState.area === area && Array.isArray(previousMotionState.pathNodeKeys)
+                            ? previousMotionState.pathNodeKeys
+                            : [],
+                        facing: previousMotionState.area === area ? (previousMotionState.facing || null) : null,
+                        pendingFacing: previousMotionState.area === area ? (previousMotionState.pendingFacing || null) : null,
+                        turnReadyAt: previousMotionState.area === area ? Number(previousMotionState.turnReadyAt || 0) : 0,
+                        moveReadyAt: previousMotionState.area === area ? Number(previousMotionState.moveReadyAt || 0) : 0,
+                        idleTurnCount: previousMotionState.area === area ? Number(previousMotionState.idleTurnCount || 0) : 0,
+                        nextIdleTurnAt: previousMotionState.area === area
+                            ? Number(previousMotionState.nextIdleTurnAt || 0)
+                            : (normalizeState(agent.state || 'idle') === 'idle'
+                                ? (now + resolveGuestIdleTurnDelay(id, 0))
+                                : 0),
+                        nextMoveAt: previousMotionState.area === area
+                            ? Number(previousMotionState.nextMoveAt || 0)
+                            : resolveGuestInitialMoveAt(agent, now),
+                    };
+                    p = getGuestNodePoint(spawnNodeKey) || getAreaPoint(area, 0);
+                    if (spawnNodeKey) {
+                        occupiedNodeIndicesByArea[area].add(spawnNodeKey);
+                    }
+                }
 
                 if (!guestSprites[id]) {
-                    // 优先用图标：demo visitor 有专门映射
                     let sprite;
                     const isDemoNika = DEMO_MODE && (agent.agentId === 'demo_nika' || agent.name === '尼卡');
                     const isDemoMercury = DEMO_MODE && (agent.agentId === 'demo_mercury' || agent.name === '水星');
                     
                     if (isDemoNika || isDemoMercury) {
-                        // 统一使用动态像素角色，避免依赖已删除的 demo 静态图
                         const animKey = 'guest_anim_1';
                         const f = 0;
                         sprite = game.add.sprite(p.x, p.y, animKey, f).setOrigin(0.5, 1).setScale(1.1);
                         if (sprite.anims && sprite.anims.play) sprite.anims.play(animKey, true);
                     } else {
-                        // 非 demo 访客：优先用动画精灵（guest_anim_x），其次静态图，兜底星星
-                        // 先确定角色索引（1-6）
                         let animIdx = agent.avatar
                             ? parseInt((agent.avatar.match(/_(\d+)$/) || [])[1] || '0', 10)
                             : 0;
@@ -4719,66 +5758,58 @@ function toggleBrokerPanel() {
                         sprite.y = sprite.y + 10;
                     }
 
-                    // demo 水星下移 10px（仅 demo_mercury）
-                    const yOffset = (DEMO_MODE && (agent.agentId === 'demo_mercury' || agent.name === '水星')) ? 10 : 0;
-
-                    const nameTextY = isDemo ? ((p.y + yOffset) - 80) : ((p.y + yOffset) - 120);
-                    const nameText = game.add.text(p.x, nameTextY, agent.name || '访客', {
+                    const nameText = game.add.text(p.x, p.y - (isDemo ? 88 : 144), sceneName, {
                         fontFamily: 'ArkPixel, monospace',
-                        fontSize: isDemo ? '16px' : '15px',
+                        fontSize: isDemo ? '16px' : '14px',
                         fill: '#ffffff',
                         stroke: '#000',
                         strokeThickness: 3
                     }).setOrigin(0.5);
                     nameText.setDepth(2601);
 
-                    guestSprites[id] = { sprite, nameText };
+                    guestSprites[id] = { sprite, nameText, isDemo, animIdleKey: isDemo ? null : (sprite?.anims?.currentAnim?.key || null) };
+                    applyGuestSpriteAnimationMode(id, guestSprites[id], normalizeState(agent.state || 'idle'), false);
+                    syncGuestSpriteAnchor(guestSprites[id]);
                 } else {
                     const g = guestSprites[id];
-                    const yOffset = (DEMO_MODE && (agent.agentId === 'demo_mercury' || agent.name === '水星')) ? 10 : 0;
+                    g.isDemo = isDemo;
 
-                    // demo：平滑移动（避免闪现）；非 demo：保持稳定位置（避免轮询抖动）
                     if (isDemo) {
-                        // kill previous tweens for this id
-                        if (guestTweens[id] && guestTweens[id].move) {
-                            guestTweens[id].move.stop();
-                        }
-                        if (guestTweens[id] && guestTweens[id].name) {
-                            guestTweens[id].name.stop();
-                        }
-
-                        const duration = 2000 + Math.floor(Math.random() * 1000); // 2~3s 走路感
-                        const ease = 'Sine.easeInOut';
-
-                        const moveTween = game.tweens.add({
-                            targets: g.sprite,
-                            x: p.x,
-                            y: p.y + yOffset,
-                            duration,
-                            ease
-                        });
-                        const nameTween = game.tweens.add({
-                            targets: g.nameText,
-                            x: p.x,
-                            y: (p.y + yOffset) - 80,
-                            duration,
-                            ease
-                        });
-                        guestTweens[id] = { move: moveTween, name: nameTween };
-                    } else {
-                        g.sprite.x = p.x;
-                        g.sprite.y = p.y + yOffset;
-                        g.nameText.x = p.x;
-                        g.nameText.y = (p.y + yOffset) - 120;
+                        stopGuestAllTweens(id);
+                        const yOffset = (DEMO_MODE && (agent.agentId === 'demo_mercury' || agent.name === '水星')) ? 10 : 0;
+                        guestTweens[id] = {
+                            move: game.tweens.add({
+                                targets: g.sprite,
+                                x: p.x,
+                                y: p.y + yOffset,
+                                duration: 2000 + Math.floor(Math.random() * 1000),
+                                ease: 'Sine.easeInOut',
+                                onUpdate: () => {
+                                    syncGuestSpriteAnchor(g);
+                                    syncGuestBubbleAnchor(id, g);
+                                },
+                                onComplete: () => {
+                                    stopGuestMotion(id);
+                                    syncGuestSpriteAnchor(g);
+                                    syncGuestBubbleAnchor(id, g);
+                                }
+                            })
+                        };
                     }
 
-                    g.nameText.setText(agent.name || '访客');
+                    g.nameText.setText(sceneName);
+                    const motionState = guestMotionStates[id];
+                    const moving = !!(guestTweens[id] && guestTweens[id].move) || !!(motionState && Array.isArray(motionState.pathNodeKeys) && motionState.pathNodeKeys.length > 0);
+                    applyGuestSpriteAnimationMode(id, g, normalizeState(agent.state || 'idle'), moving);
+                    syncGuestSpriteAnchor(g);
                 }
             });
 
-            // 删除消失的 agent + 清理其气泡/tween
             Object.keys(guestSprites).forEach(id => {
                 if (!seenIds.has(id)) {
+                    if (guestTweens[id]) {
+                        stopGuestAllTweens(id);
+                    }
                     guestSprites[id].sprite.destroy();
                     guestSprites[id].nameText.destroy();
                     delete guestSprites[id];
@@ -4786,13 +5817,13 @@ function toggleBrokerPanel() {
                         guestBubbles[id].destroy();
                         delete guestBubbles[id];
                     }
-                    if (guestTweens[id]) {
-                        try { guestTweens[id].move && guestTweens[id].move.stop(); } catch(e) {}
-                        try { guestTweens[id].name && guestTweens[id].name.stop(); } catch(e) {}
-                        delete guestTweens[id];
+                    if (guestMotionStates[id]) {
+                        delete guestMotionStates[id];
                     }
                 }
             });
+
+            syncRealGuestMotionPlans(now);
         }
 
         function maybeShowGuestBubble(time) {
@@ -4853,7 +5884,7 @@ function toggleBrokerPanel() {
             if (!DEMO_MODE) return;
             ensureDemoVisitors();
 
-            // 按海辛需求：每 8 秒切换一次状态
+            // 每 8 秒切换一次状态
             window.__demoNextAt = window.__demoNextAt || 0;
             const now = Date.now();
             if (now < window.__demoNextAt) return;
@@ -4985,16 +6016,17 @@ function toggleBrokerPanel() {
                             if (newIds.length > 0) {
                                 // 只欢迎第一个新来的（避免同一时刻多人加入刷屏）
                                 const newAgent = (merged || []).find(a => a.agentId === newIds[0]);
-                                if (newAgent && newAgent.name) {
+                                const newAgentName = newAgent ? getGuestDisplayName(newAgent) : '';
+                                if (newAgent && newAgentName) {
                                     // 临时将 currentState 视为 writing 以允许 showBubble 展示
                                     const oldState = currentState;
                                     currentState = 'writing';
                                     // 临时更换 bubble 文案
                                     const lang = uiLang;
                                     const welcomeTexts = {
-                                        zh: [`欢迎 ${newAgent.name} 来到办公室～`,`Hi ${newAgent.name}，一起开工吧`,`${newAgent.name} 已加入，欢迎！`],
-                                        en: [`Welcome ${newAgent.name} to the office!`,`Hi ${newAgent.name}, let’s build something.`,`${newAgent.name} just joined — welcome!`],
-                                        ja: [`${newAgent.name} さん、オフィスへようこそ！`,`Hi ${newAgent.name}、一緒に進めよう。`,`${newAgent.name} さんが参加しました、歓迎！`]
+                                        zh: [`欢迎 ${newAgentName} 来到办公室～`,`Hi ${newAgentName}，一起开工吧`,`${newAgentName} 已加入，欢迎！`],
+                                        en: [`Welcome ${newAgentName} to the office!`,`Hi ${newAgentName}, let’s build something.`,`${newAgentName} just joined — welcome!`],
+                                        ja: [`${newAgentName} さん、オフィスへようこそ！`,`Hi ${newAgentName}、一緒に進めよう。`,`${newAgentName} さんが参加しました、歓迎！`]
                                     };
                                     const langPack = BUBBLE_TEXTS[lang] || BUBBLE_TEXTS.zh;
                                     const oldTexts = Array.isArray(langPack.writing) ? [...langPack.writing] : [];
@@ -5254,16 +6286,23 @@ function toggleBrokerPanel() {
 
             // Random cat at (94,557)
             const catsFrameCount = (this.textures.get('cats')?.frameTotal || 1) - 1;
-            const randomCatFrame = Math.floor(Math.random() * Math.max(1, catsFrameCount));
+            const catIdlePoseFrames = CAT_IDLE_POSE_FRAMES.filter(frame => frame <= catsFrameCount);
+            const catAlertPoseFrames = CAT_ALERT_POSE_FRAMES.filter(frame => frame <= catsFrameCount);
+            const randomCatFrame = catIdlePoseFrames[Math.floor(Math.random() * Math.max(1, catIdlePoseFrames.length))] ?? 0;
             const cat = game.add.sprite(sceneX(94), 557, 'cats', randomCatFrame).setOrigin(0.5);
             cat.setDepth(2000); // top layer
             cat.setInteractive({ useHandCursor: true });
-            // Expose to global for click handler
             window.catSprite = cat;
             window.catsFrameCount = catsFrameCount;
+            window.catIdlePoseFrames = catIdlePoseFrames;
+            window.catAlertPoseFrames = catAlertPoseFrames.length > 0 ? catAlertPoseFrames : catIdlePoseFrames;
+            catMotionState = {
+                currentFrame: randomCatFrame,
+                nextPoseAt: Date.now() + resolveCatPoseInterval(),
+                wakeUntil: 0,
+            };
             cat.on('pointerdown', () => {
-                const next = Math.floor(Math.random() * window.catsFrameCount);
-                window.catSprite.setFrame(next);
+                wakeCat();
             });
 
             // Coffee machine at (659,397) - animated sprite + shadow
@@ -5382,6 +6421,7 @@ function toggleBrokerPanel() {
                 flower
             };
             applyReadonlySceneLayout();
+            updateFocusedAgentMarker();
 
             // Debug: expose star sprite too (for path calibration / visuals)
             window.starSprite = star;
@@ -5685,28 +6725,30 @@ function toggleBrokerPanel() {
 
             // 移动 + 小踱步
             moveStar(time);
+            updateCatIdleBehavior(Date.now());
+
+            const guestNow = Date.now();
+            advanceIdleGuestTurns(guestNow);
+            advancePendingGuestMotions();
+
+            if (guestNow - lastGuestMotionPlanSync > GUEST_MOTION_PLAN_INTERVAL) {
+                syncRealGuestMotionPlans(guestNow);
+                lastGuestMotionPlanSync = guestNow;
+            }
 
             // guest 随机想法泡泡
             maybeShowGuestBubble(time);
 
-            // demo 平滑移动时：让气泡每帧跟随角色锚点（避免 tween 时气泡滞留在旧位置）
             try {
-                Object.keys(guestBubbles).forEach(id => {
-                    const b = guestBubbles[id];
+                Object.keys(guestSprites).forEach(id => {
                     const g = guestSprites[id];
-                    if (!b || !g) return;
-                    if (b.__followAgentId !== id) return;
-                    b.x = 0;
-                    b.y = 0;
-                    // children[0]=bg, children[1]=text
-                    const bx = g.sprite.x;
-                    const isDemoGuest = (id === 'demo_nika' || id === 'demo_mercury');
-                    const nameH = (g.nameText && g.nameText.height) ? g.nameText.height : 16;
-                    const by = isDemoGuest ? (g.sprite.y - 90) : ((g.nameText ? g.nameText.y : (g.sprite.y - 150)) - (nameH / 2) - 22);
-                    if (b.list && b.list[0]) { b.list[0].x = bx; b.list[0].y = by; }
-                    if (b.list && b.list[1]) { b.list[1].x = bx; b.list[1].y = by; }
+                    if (!g) return;
+                    syncGuestSpriteAnchor(g);
+                    syncGuestBubbleAnchor(id, g);
                 });
             } catch (e) {}
+
+            updateFocusedAgentMarker();
 
             // guest 列表会定时刷新
         }
@@ -5756,7 +6798,8 @@ function toggleBrokerPanel() {
                                 star.setVisible(true);
                                 star.setScale(IDLE_STAR_SCALE);
                                 star.anims.play('star_idle', true);
-                                star.setPosition(IDLE_SOFA_ANCHOR.x, IDLE_SOFA_ANCHOR.y);
+                                star.anims.timeScale = STAR_IDLE_ANIM_TIME_SCALE;
+                                syncStarIdlePose();
                         } else if (nextState === 'error') {
                             // Error: no working animation at desk
                             sofa.anims.stop();
@@ -5846,12 +6889,15 @@ function toggleBrokerPanel() {
 
             // idle 时锁定位置（不走任何移动路径）
             if (effectiveState === 'idle') {
+                ensureStarIdlePresence();
+                if (star && star.anims) star.anims.timeScale = STAR_IDLE_ANIM_TIME_SCALE;
                 if (star && star.visible) {
-                    star.setPosition(IDLE_SOFA_ANCHOR.x, IDLE_SOFA_ANCHOR.y);
+                    syncStarIdlePose();
                 }
                 isMoving = false;
                 return;
             }
+            stopStarIdlePresence();
 
             const dx = targetX - star.x;
             const dy = targetY - star.y;
@@ -5890,7 +6936,8 @@ function toggleBrokerPanel() {
                                 star.setVisible(true);
                                 star.setScale(IDLE_STAR_SCALE);
                                 star.anims.play('star_idle', true);
-                                star.setPosition(IDLE_SOFA_ANCHOR.x, IDLE_SOFA_ANCHOR.y);
+                                star.anims.timeScale = STAR_IDLE_ANIM_TIME_SCALE;
+                                syncStarIdlePose();
                                 sofa.anims.stop();
                                 sofa.setTexture('sofa_idle');
                             } else {
@@ -5918,7 +6965,8 @@ function toggleBrokerPanel() {
                             star.setVisible(true);
                             star.setScale(IDLE_STAR_SCALE);
                             star.anims.play('star_idle', true);
-                            star.setPosition(IDLE_SOFA_ANCHOR.x, IDLE_SOFA_ANCHOR.y);
+                            star.anims.timeScale = STAR_IDLE_ANIM_TIME_SCALE;
+                            syncStarIdlePose();
                             sofa.anims.stop();
                             sofa.setTexture('sofa_idle');
                         } else {

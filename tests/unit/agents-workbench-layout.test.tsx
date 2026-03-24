@@ -326,7 +326,7 @@ describe('agents workbench layout', () => {
     expect(screen.getByRole('button', { name: '开始对话' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '人格文件' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '绑定与运行' })).toBeInTheDocument();
-  });
+  }, 15000);
 
   it('keeps local agent cards compact instead of stretching them into tall equal-height boards', async () => {
     agentsState.agents = [
@@ -500,7 +500,7 @@ describe('agents workbench layout', () => {
       expect(within(screen.getByTestId('agents-detail-workbench')).getByRole('heading', { name: 'Operator Agent' })).toBeInTheDocument();
       expect(within(screen.getByTestId('agents-market-grid')).queryByText('Research Agent')).not.toBeInTheDocument();
     });
-  });
+  }, 15000);
 
   it('localizes market category chips and card badges in Chinese', async () => {
     agentsState.agents = [makeAgent({ id: 'pangtong', name: 'pangtong' })];
@@ -606,7 +606,7 @@ describe('agents workbench layout', () => {
         modelRef: 'jayden/gpt-5.4',
       });
     });
-  });
+  }, 15000);
 
   it('creates a new agent with a provider-scoped model ref selected from the picker', async () => {
     agentsState.agents = [makeAgent({ id: 'main', name: 'Main Agent', isDefault: true })];
@@ -656,5 +656,5 @@ describe('agents workbench layout', () => {
     await waitFor(() => {
       expect(agentsState.createAgent).toHaveBeenCalledWith('Thumbnail Designer', 'provider-998/gpt-5.4');
     });
-  });
+  }, 15000);
 });

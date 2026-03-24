@@ -77,7 +77,7 @@ interface ProviderAccountFormSectionsProps {
   onValidateKey: ProviderAccountValidateFn;
 }
 
-const inputClasses = 'app-field-surface h-9 rounded-[10px] border border-[hsl(var(--border-subtle)/0.82)] text-[13px] text-foreground placeholder:text-muted-foreground/55 shadow-none transition-colors focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20';
+const inputClasses = 'appearance-none app-field-surface h-9 rounded-[10px] border border-[hsl(var(--border-subtle)/0.82)] text-[13px] text-foreground placeholder:text-muted-foreground/55 shadow-none transition-colors focus:outline-none focus-visible:outline-none focus-visible:border-primary focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
 const tokenInputClasses = `${inputClasses} font-mono tracking-[0.01em]`;
 const sectionTitleClass = 'text-[13px] font-semibold text-foreground';
 const labelClasses = 'text-[13px] font-semibold text-foreground/80';

@@ -1,3 +1,5 @@
+import type { AgentAvatarProfile } from '../../shared/agent-avatar-persona';
+
 export interface AgentSummary {
   id: string;
   name: string;
@@ -10,6 +12,7 @@ export interface AgentSummary {
   agentDir: string;
   mainSessionKey: string;
   channelTypes: string[];
+  avatarProfile?: AgentAvatarProfile;
 }
 
 export interface AgentsSnapshot {

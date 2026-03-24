@@ -239,16 +239,16 @@ def load_state(persist_auto_idle=True):
 
 
 def get_office_name_from_identity():
-    """Read office display name from OpenClaw workspace IDENTITY.md (Name field) -> 'XXX的办公室'."""
+    """Read studio display name from OpenClaw workspace IDENTITY.md."""
     if not os.path.isfile(IDENTITY_FILE):
         return None
     try:
         with open(IDENTITY_FILE, "r", encoding="utf-8") as f:
             content = f.read()
-        m = re.search(r"-\s*\*\*Name:\*\*\s*(.+)", content)
+        m = re.search(r"-\s*\*\*(?:Name|名字)\s*[:：]\*\*\s*(.+)", content)
         if m:
             name = m.group(1).strip().replace("\r", "").split("\n")[0].strip()
-            return f"{name}的办公室" if name else None
+            return f"{name}的工作室" if name else None
     except Exception:
         pass
     return None
@@ -347,7 +347,7 @@ def invite_page():
 DEFAULT_AGENTS = [
     {
         "agentId": "star",
-        "name": "Star",
+        "name": "Main Agent",
         "isMain": True,
         "state": "idle",
         "detail": "待命中，随时准备为你服务",
@@ -907,9 +907,12 @@ def _validate_snapshot_state(data, generation):
     if status not in VALID_AGENT_STATES:
         return None
     detail = agent.get("detail")
+    scene_name = agent.get("sceneName")
     updated_at = agent.get("updatedAt") or data.get("updatedAt")
     detail_source = agent.get("detailSource")
     if not isinstance(detail, str):
+        return None
+    if scene_name is not None and (not isinstance(scene_name, str) or not scene_name.strip()):
         return None
     if detail_source not in {"detail-file", "event-summary", "default"}:
         return None
@@ -945,6 +948,7 @@ def _validate_snapshot_agents(data, generation):
             return None
         agent_id = item.get("agentId")
         display_name = item.get("displayName") or agent_id
+        scene_name = item.get("sceneName") or display_name
         status = item.get("status")
         detail = item.get("detail")
         updated_at = item.get("updatedAt") or data.get("updatedAt")
@@ -953,6 +957,8 @@ def _validate_snapshot_agents(data, generation):
             return None
         if not isinstance(display_name, str) or not display_name.strip():
             display_name = agent_id
+        if not isinstance(scene_name, str) or not scene_name.strip():
+            scene_name = display_name
         if status not in VALID_AGENT_STATES:
             return None
         if not isinstance(detail, str):
@@ -965,6 +971,7 @@ def _validate_snapshot_agents(data, generation):
             "agentId": agent_id,
             "name": display_name,
             "displayName": display_name,
+            "sceneName": scene_name,
             "state": status,
             "detail": detail,
             "updated_at": updated_at,

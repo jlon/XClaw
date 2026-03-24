@@ -48,48 +48,31 @@
 - 离线
 - 不会因为提示词或模型变化而漂移
 
-## 未决问题
+## 已落地决策
 
-### 1. 本地语义材料是否只读 `SOUL.md`
+- 本地语义材料按 `SOUL.md -> IDENTITY.md -> AGENTS.md` 的优先级读取首个可用文件
+- `avatarProfile` 已成为本地快照与市场 catalogue 合同的一部分
+- DiceBear 渲染保留在 renderer，语义判定保留在共享纯函数和 Electron 富化层
 
-当前倾向：
+## 仍需关注的问题
 
-- `SOUL.md` 为主
-- `IDENTITY.md` 为辅
-- `AGENTS.md` 仅作补充
+### 1. 规则词典精度仍受模板质量影响
 
-这条在实现前要锁。
+如果市场模板的 `summary / role / tags` 质量不高，archetype 只能退化到较宽泛的类别。
 
-### 2. archetype 数量要不要控制在 9 个以内
+### 2. 本地 persona 文件目前不做合并解析
 
-当前建议是 9 个左右。  
-如果 archetype 过多：
+当前实现只读取首个可用文件，不做多文件融合。
 
-- 关键词词典会膨胀
-- 测试会变脆
-- 视觉差异难以保持统一
+### 3. fallback 仍然是无语义 identicon
 
-### 3. 是否把 `avatarProfile` 做成 API 合同
-
-当前建议是“做成 API 合同”，因为：
-
-- 本地卡片列表需要首屏直出
-- renderer 不适合逐个读文件再判定
-
-### 4. 是否把 DiceBear 渲染放在 renderer
-
-当前倾向：
-
-- profile 在后端或 catalogue 侧生成
-- SVG/dataUri 在 renderer 生成
-
-这样可以少传输字符串，也更接近 UI 组件职责。
+这保证了稳定和兜底，但对完全缺少语义材料的 agent，视觉表达仍然只是“稳定占位图”。
 
 ## 当前最高优先级
 
-1. 先锁共享语义合同
-2. 再锁本地智能体富化入口
-3. 最后替换 `AgentAvatar` 的表现层
+1. 在真实界面里人工走查一轮典型 archetype
+2. 根据真实市场模板质量决定是否微调关键词词典
+3. 观察用户是否需要更强的 persona 差异度
 
 ## 当前风险
 

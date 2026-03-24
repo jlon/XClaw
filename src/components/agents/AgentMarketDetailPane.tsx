@@ -22,7 +22,7 @@ const actionButtonClasses =
   'h-10 rounded-[13px] border-transparent bg-primary px-5 text-[13px] font-semibold text-primary-foreground shadow-[0_10px_22px_rgba(15,23,42,0.12)] transition-colors hover:bg-primary/92';
 const summaryLabelClasses = 'text-[11px] font-medium uppercase tracking-[0.08em] text-foreground/44';
 const fieldInputClasses =
-  'h-[44px] rounded-xl text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30';
+  'appearance-none h-[44px] rounded-xl text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus:outline-none focus-visible:outline-none focus-visible:border-primary focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
 const installPanelClasses =
   'rounded-[22px] border border-[hsl(var(--primary)/0.12)] bg-[linear-gradient(180deg,hsl(var(--surface-elevated)/1)_0%,hsl(var(--surface-panel)/0.968)_100%)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.76),0_16px_28px_rgba(15,23,42,0.05)]';
 
@@ -59,7 +59,11 @@ export function AgentMarketDetailPane({
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/10 to-transparent" />
         <div className="relative flex min-w-0 flex-col gap-4">
           <div className="flex min-w-0 items-start gap-4">
-            <AgentAvatar agentId={`${marketItem.id}:${marketItem.category}`} size={60} />
+            <AgentAvatar
+              agentId={marketItem.avatarSeed || `${marketItem.id}:${marketItem.category}`}
+              profile={marketItem.avatarProfile}
+              size={60}
+            />
             <div className="min-w-0 space-y-3">
               <div className="space-y-1.5">
                 <h2 className="text-[24px] font-semibold tracking-tight text-foreground">

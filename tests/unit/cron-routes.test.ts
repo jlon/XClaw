@@ -21,6 +21,11 @@ describe('handleCronRoutes', () => {
       schedule: '0 9 * * *',
       enabled: true,
       agentId: 'ops',
+      target: {
+        channelType: 'feishu',
+        accountId: 'bot2',
+        recipientId: 'ou_123',
+      },
     });
 
     const rpc = vi.fn().mockResolvedValueOnce({
@@ -56,7 +61,12 @@ describe('handleCronRoutes', () => {
         agentId: 'ops',
         sessionTarget: 'isolated',
         payload: { kind: 'agentTurn', message: 'run ops brief' },
-        delivery: { mode: 'none' },
+        delivery: {
+          mode: 'announce',
+          channel: 'feishu',
+          accountId: 'bot2',
+          to: 'ou_123',
+        },
       }),
     );
     expect(sendJsonMock).toHaveBeenCalledWith(

@@ -15,7 +15,7 @@ describe('release branding source', () => {
       maintainerEmail: string;
       description: string;
     };
-    const builderConfigModule = await import(resolve(process.cwd(), 'electron-builder.config.cjs'));
+    const builderConfigModule = await import(resolve(process.cwd(), 'config/build/electron-builder.config.cjs'));
     const builderConfig = builderConfigModule.default ?? builderConfigModule;
 
     expect(builderConfig.appId).toBe(branding.appId);
@@ -31,7 +31,7 @@ describe('release branding source', () => {
   });
 
   it('uses release branding config in workflow and runtime help entrypoints', () => {
-    const workflow = readFileSync(resolve(process.cwd(), '.github/workflows/release.yml'), 'utf8');
+    const workflow = readFileSync(resolve(process.cwd(), '.github/workflows/package-beta.yml'), 'utf8');
     const menu = readFileSync(resolve(process.cwd(), 'electron/main/menu.ts'), 'utf8');
 
     expect(workflow).toContain('scripts/read-release-branding.mjs');

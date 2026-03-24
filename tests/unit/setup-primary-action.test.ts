@@ -4,6 +4,8 @@ import { resolveSetupPrimaryAction } from '@/components/setup/stage-utils';
 const labels = {
   activate: 'Get Started',
   takeoverImport: 'Import and Continue',
+  takeoverImportAndReview: 'Import and Review Providers',
+  providerReview: 'Review Providers',
   reviewSummary: 'Review Summary',
   providerSubmit: 'Save and Continue',
   advance: 'Next',

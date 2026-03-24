@@ -28,6 +28,8 @@ describe('package-mac-local', () => {
 
   it('builds local packaging args with current host arch and local electron dist on older hosts', () => {
     expect(buildMacLocalBuilderArgs({ platform: 'darwin', release: `${MIN_DARWIN_MAJOR_FOR_DMG - 1}.7.6` })).toEqual([
+      '-c',
+      'config/build/electron-builder.config.cjs',
       '--mac',
       'dir',
       resolveMacLocalArchArg({ arch: process.arch }),
@@ -40,6 +42,8 @@ describe('package-mac-local', () => {
 
   it('adds dmg on supported hosts while keeping current host arch and local electron dist', () => {
     expect(buildMacLocalBuilderArgs({ platform: 'darwin', release: `${MIN_DARWIN_MAJOR_FOR_DMG}.0.0` })).toEqual([
+      '-c',
+      'config/build/electron-builder.config.cjs',
       '--mac',
       'dir',
       'dmg',
@@ -68,7 +72,7 @@ describe('package-mac-local', () => {
         arch: 'x64',
         electronDist: null,
       }),
-    ).toEqual(['--mac', 'dir', '--x64', '--publish', 'never', '-c.mac.notarize=false']);
+    ).toEqual(['-c', 'config/build/electron-builder.config.cjs', '--mac', 'dir', '--x64', '--publish', 'never', '-c.mac.notarize=false']);
   });
 
   it('rejects non-macOS hosts', () => {

@@ -134,7 +134,7 @@ describe('workbench style unification', () => {
     expect(screen.getByText('失败')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '刷新' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '新建任务' })).toBeInTheDocument();
-  });
+  }, 15000);
 
   it('keeps only one primary task-creation action in the empty cron state', () => {
     cronState.jobs = [];

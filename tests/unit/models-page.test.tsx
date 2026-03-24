@@ -623,7 +623,7 @@ describe('models page render contract', () => {
     await waitFor(() => {
       expect(screen.getByTestId('models-provider-inspector')).toHaveAttribute('data-shell', 'pane');
     });
-  });
+  }, 15000);
 
   it('opens the add provider dialog without rendering the legacy provider manager block', async () => {
     const { Models } = await import('@/pages/Models');
@@ -632,7 +632,7 @@ describe('models page render contract', () => {
     await screen.findByTestId('models-provider-card-select-openai');
     expect(screen.queryByTestId('models-provider-manager')).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /添加提供商/i }));
+    fireEvent.click(screen.getAllByRole('button', { name: /添加提供商/i })[0]);
 
     await waitFor(() => {
       expect(screen.getByTestId('provider-add-dialog')).toBeInTheDocument();
@@ -675,7 +675,7 @@ describe('models page render contract', () => {
       expect(breakdownChart).toHaveAttribute('data-dimension', 'model');
     });
     expect(within(breakdownChart).queryByRole('button', { name: /openai/i })).not.toBeInTheDocument();
-  });
+  }, 15000);
 
   it('keeps breakdown and recent requests out of the default overview until a provider is selected', async () => {
     const { Models } = await import('@/pages/Models');

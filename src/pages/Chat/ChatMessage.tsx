@@ -8,21 +8,19 @@ import { Copy, Check, ChevronDown, ChevronRight, FileText, Film, Music, FileArch
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { createPortal } from 'react-dom';
-import { AgentAvatar } from '@/components/chat/AgentAvatar';
+import { AgentAvatar } from '@/components/agents/AgentAvatar';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { invokeIpc } from '@/lib/api-client';
 import type { RawMessage, AttachedFileMeta } from '@/stores/chat';
+import type { AgentSummary } from '@/types/agent';
 import { extractText, extractThinking, extractImages, extractToolUse, formatTimestamp, isSystemRuntimeMessage } from './message-utils';
 import { useTranslation } from 'react-i18next';
 
 interface ChatMessageProps {
   message: RawMessage;
   showThinking: boolean;
-  assistantAvatar?: {
-    label: string;
-    style: string;
-  };
+  assistantAvatar?: Pick<AgentSummary, 'id' | 'name' | 'avatarProfile'> | null;
   showAvatar?: boolean;
   isStreaming?: boolean;
   streamingTools?: Array<{
@@ -87,10 +85,10 @@ export const ChatMessage = memo(function ChatMessage({
       {!isUser && (
         showAvatar ? (
           <AgentAvatar
-            label={assistantAvatar?.label ?? 'A'}
-            style={assistantAvatar?.style ?? 'from-primary to-rose-500'}
-            className="mt-0.5 h-[34px] w-[34px]"
-            textClassName="text-sm"
+            agentId={assistantAvatar?.id ?? 'main'}
+            profile={assistantAvatar?.avatarProfile}
+            size={34}
+            className="mt-0.5"
           />
         ) : (
           <div data-testid="chat-assistant-avatar-placeholder" aria-hidden="true" className="mt-0.5 h-[34px] w-[34px] shrink-0" />

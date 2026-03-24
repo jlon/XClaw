@@ -122,6 +122,7 @@ export interface ProviderAccount {
 }
 
 import { providerIcons } from '@/assets/providers';
+import { cn } from '@/lib/utils';
 
 /** All supported provider types with UI metadata */
 export const PROVIDER_TYPE_INFO: ProviderTypeInfo[] = [
@@ -195,8 +196,14 @@ export function usesNativeColorProviderIcon(type: ProviderType | string): boolea
 }
 
 /** Whether a provider's logo needs CSS invert in dark mode */
-export function shouldInvertInDark(type: ProviderType | string): boolean {
-  return !usesNativeColorProviderIcon(type);
+export function getProviderIconClass(type: ProviderType | string, sizeClass: string): string {
+  return cn(
+    sizeClass,
+    'object-contain',
+    usesNativeColorProviderIcon(type)
+      ? 'opacity-100'
+      : 'opacity-[0.9] dark:brightness-0 dark:invert dark:opacity-[0.96]'
+  );
 }
 
 /** Provider list shown in the Setup wizard */

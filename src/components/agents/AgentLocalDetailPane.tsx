@@ -49,9 +49,9 @@ const shellCardClasses =
 const badgeClasses =
   'h-5 rounded-[10px] border border-border/70 bg-background/75 px-2 text-[10px] font-medium text-foreground/68 shadow-none';
 const actionButtonClasses =
-  'h-8 rounded-[12px] border-border/70 bg-transparent px-3.5 text-[12.5px] font-medium text-foreground/76 shadow-none transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
+  'workbench-motion-button workbench-motion-button--lift h-8 rounded-[12px] border-border/70 bg-transparent px-3.5 text-[12.5px] font-medium text-foreground/76 shadow-none hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
 const summaryLabelClasses = 'text-[11px] font-medium uppercase tracking-[0.08em] text-foreground/44';
-const tabButtonBaseClasses = 'h-8 rounded-[11px] px-3 text-[12.5px] font-medium transition-colors';
+const tabButtonBaseClasses = 'workbench-motion-button h-8 rounded-[11px] px-3 text-[12.5px] font-medium';
 const compactInsightSurfaceClasses =
   'rounded-[16px] border border-border/55 bg-[hsl(var(--surface-panel)/0.95)] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.62)]';
 
@@ -126,7 +126,7 @@ export function AgentLocalDetailPane({
         <div className="space-y-4">
           <div className="grid gap-4 min-[1080px]:grid-cols-[minmax(0,1fr)_auto] min-[1080px]:items-start">
             <div className="flex min-w-0 items-start gap-4">
-              <AgentAvatar agentId={agent.id} size={56} />
+              <AgentAvatar agentId={agent.id} profile={agent.avatarProfile} size={56} />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="text-[21px] font-semibold tracking-tight text-foreground">{agent.name}</h2>
@@ -245,7 +245,7 @@ export function AgentLocalDetailPane({
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="text-[13px] font-medium text-foreground">{channel.name}</p>
-                        <span className="inline-flex h-5 items-center rounded-full border border-border/55 bg-background/70 px-2 text-[10.5px] font-medium text-foreground/58">
+                        <span className="inline-flex h-5 items-center rounded-full border border-border/55 bg-[hsl(var(--surface-panel)/0.9)] px-2 text-[10.5px] font-medium text-foreground/58 dark:bg-[hsl(var(--surface-elevated)/0.82)]">
                           {channel.channelType}
                         </span>
                       </div>

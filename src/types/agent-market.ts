@@ -1,3 +1,5 @@
+import type { AgentAvatarProfile } from '../../shared/agent-avatar-persona';
+
 export interface AgentMarketDetailSection {
   kind: string;
   title: string;
@@ -15,6 +17,7 @@ export interface AgentMarketCatalogItem {
   installMode: string;
   localeKey: string;
   avatarSeed: string;
+  avatarProfile?: AgentAvatarProfile;
   headline: string;
   summary: string;
   highlights: string[];

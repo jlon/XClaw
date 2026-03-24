@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 describe('update release config', () => {
   it('removes oss publish and oss upload workflow from release pipeline', () => {
-    const builder = readFileSync(resolve(process.cwd(), 'electron-builder.config.cjs'), 'utf8');
+    const builder = readFileSync(resolve(process.cwd(), 'config/build/electron-builder.config.cjs'), 'utf8');
     const releaseWorkflow = readFileSync(resolve(process.cwd(), '.github/workflows/release.yml'), 'utf8');
 
     expect(builder).not.toContain('oss.intelli-spectrum.com');

@@ -43,6 +43,29 @@
 
 这是当前方案接受的取舍，优先保证主状态稳定。
 
+### upstream 原生 sender 仍未接入，但本地闭环已由 XClaw 内部桥接补齐
+
+当前仓库已经实现：
+
+- `studio.agent_status` 在 XClaw 主进程内的校验、session 取舍、TTL 回落与快照提交
+- gateway 现有 `agent` notification 到工作室实时协议的内部桥接
+- `main` 与本地其他 agent 的实时状态都能在不改 upstream runtime 的前提下进入同一快照链路
+
+但尚未实现：
+
+- agent runtime / gateway sender 侧真实发射原生 `studio.agent_status`
+
+这意味着当前真实运行态的边界是：
+
+- 对 XClaw 本地 agent：已经闭环，优先走 gateway `agent` 事件桥接，其次回退 `STAR_OFFICE_DETAIL.txt`
+- 对未来 upstream 原生 sender：尚未落地，需要后续验证与当前桥接的优先级切换
+- 对远端访客 agent：仍然不走本地 `join-agent` / `agent-push`
+
+所以“多 agent 实时状态协议”当前是：
+
+- 本地闭环已就绪
+- upstream 原生 sender 仍是后续增强，而不是当前阻塞项
+
 ## 待确认项
 
 ### 工作室端口是否需要最终对用户可见

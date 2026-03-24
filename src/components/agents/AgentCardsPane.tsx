@@ -114,7 +114,7 @@ export function AgentCardsPane({
                   <div className="absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-foreground/8 to-transparent" />
                   <div className="flex min-w-0 flex-col gap-2">
                     <div className="flex items-start gap-3">
-                      <AgentAvatar agentId={agent.id} size={46} className="mt-0.5" />
+                      <AgentAvatar agentId={agent.id} profile={agent.avatarProfile} size={46} className="mt-0.5" />
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
                           <h3 className="truncate text-[15px] font-semibold tracking-[-0.01em] text-foreground">

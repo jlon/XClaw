@@ -4,7 +4,7 @@ export const SETUP_STAGE_ORDER = ['start', 'preparation', 'provider', 'complete'
 
 export type SetupStage = (typeof SETUP_STAGE_ORDER)[number];
 
-export type SetupCompletePhase = 'applying' | 'summary';
+export type SetupCompletePhase = 'enhancements' | 'applying' | 'summary';
 
 export type SetupLegacyStepId =
   | 'takeover'

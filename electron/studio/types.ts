@@ -33,6 +33,7 @@ export type StudioRuntimeStatus = (typeof STUDIO_RUNTIME_STATUSES)[number];
 export interface StudioAgentSnapshot {
   agentId: string;
   displayName: string;
+  sceneName: string;
   status: StudioAgentStatus;
   detail: string;
   detailSource: StudioDetailSource;

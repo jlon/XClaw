@@ -57,8 +57,20 @@ export function SetupFooter({
   };
   const copy = stageCopy[stage];
   const isApplying = stage === 'complete' && completePhase === 'applying';
+  const isEnhancementPhase = stage === 'complete' && completePhase === 'enhancements';
+  const showPrimary = !isApplying && !isEnhancementPhase && Boolean(onPrimary);
   const resolvedPrimary = primaryLabel ?? copy.primary;
   const resolvedSecondary = secondaryLabel ?? copy.secondary;
+  const resolvedTitle = isApplying
+    ? t('wizard.footer.applying.title')
+    : isEnhancementPhase
+      ? t('wizard.footer.enhancements.title')
+      : copy.title;
+  const resolvedBody = isApplying
+    ? t('wizard.footer.applying.body')
+    : isEnhancementPhase
+      ? t('wizard.footer.enhancements.body')
+      : copy.body;
 
   return (
     <footer className={cn('flex min-h-[5.5rem] items-center justify-between gap-4 px-6 py-4', className)}>
@@ -73,9 +85,9 @@ export function SetupFooter({
           className="flex min-h-[5.5rem] w-full items-center justify-between gap-4"
         >
           <div className="min-w-0">
-            <div className="text-sm font-medium text-foreground">{isApplying ? t('wizard.footer.applying.title') : copy.title}</div>
+            <div className="text-sm font-medium text-foreground">{resolvedTitle}</div>
             <div className="mt-1 text-sm leading-6 text-muted-foreground">
-              {isApplying ? t('wizard.footer.applying.body') : copy.body}
+              {resolvedBody}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -89,7 +101,7 @@ export function SetupFooter({
                 {resolvedSecondary}
               </Button>
             ) : null}
-            {!isApplying && onPrimary ? (
+            {showPrimary ? (
               <Button onClick={onPrimary} disabled={!canProceed}>
                 {resolvedPrimary}
               </Button>

@@ -12,6 +12,7 @@ export interface SetupProviderOption {
   name: ReactNode;
   description?: ReactNode;
   iconUrl?: string;
+  iconClassName?: string;
   icon?: ReactNode;
   selected?: boolean;
   disabled?: boolean;
@@ -113,7 +114,7 @@ export function SetupProviderStage({
               disabled={provider.disabled || !provider.onSelect}
               onClick={() => provider.onSelect?.(provider.id)}
               className={cn(
-                'rounded-2xl border p-4 text-left transition-colors',
+                'workbench-motion-button workbench-motion-button--lift rounded-2xl border p-4 text-left',
                 provider.selected
                   ? 'border-primary/40 bg-primary/8 shadow-sm'
                   : 'border-border/70 app-field-surface hover:border-primary/30',
@@ -121,9 +122,9 @@ export function SetupProviderStage({
               )}
             >
               <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/70 bg-background/80">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/70 bg-[hsl(var(--surface-panel)/0.9)] dark:bg-[hsl(var(--surface-elevated)/0.82)]">
                   {provider.iconUrl ? (
-                    <img src={provider.iconUrl} alt="" className="h-6 w-6" />
+                    <img src={provider.iconUrl} alt="" className={provider.iconClassName || 'h-6 w-6 object-contain'} />
                   ) : provider.icon ? (
                     <span className="text-lg">{provider.icon}</span>
                   ) : (
@@ -151,7 +152,7 @@ export function SetupProviderStage({
               disabled={mode.disabled || !mode.onSelect}
               onClick={() => mode.onSelect?.(mode.id)}
               className={cn(
-                'flex-1 px-3 py-2 transition-colors',
+                'workbench-motion-button flex-1 px-3 py-2',
                 mode.selected
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:bg-[hsl(var(--surface-elevated)/0.82)] hover:text-foreground',

@@ -4,6 +4,10 @@ const screenshotAssets = import.meta.glob('../resources/screenshot/zh/*.{png,jpg
   eager: true,
   import: 'default',
 }) as Record<string, string>;
+const communityAssets = import.meta.glob('../src/assets/community/*.{png,jpg,jpeg,webp,svg}', {
+  eager: true,
+  import: 'default',
+}) as Record<string, string>;
 
 const screenshot = (name: string) => {
   const asset = screenshotAssets[`../resources/screenshot/zh/${name}`];
@@ -15,10 +19,32 @@ const screenshot = (name: string) => {
   return asset;
 };
 
+const communityAsset = (...names: string[]) => {
+  const asset = names.map((name) => communityAssets[`../src/assets/community/${name}`]).find(Boolean);
+
+  if (!asset) {
+    throw new Error(`Website community asset was not found. Tried: ${names.join(', ')}`);
+  }
+
+  return asset;
+};
+
+const releaseUrl = 'https://github.com/jlon/XClaw/releases';
+const repoUrl = 'https://github.com/jlon/XClaw';
+
 export const websiteContent = {
-  releaseUrl: 'https://github.com/jlon/XClaw/releases',
-  repoUrl: 'https://github.com/jlon/XClaw',
+  releaseUrl,
+  repoUrl,
   logoUrl,
+  contact: {
+    trigger: '联系方式',
+    tag: '微信群',
+    title: '扫码查看微信群联系方式',
+    description: '保持入口轻一点，右上角点开就能直接扫码。',
+    note: '微信扫码即可查看',
+    image: communityAsset('wecom-qr.png', 'image.png'),
+    alt: 'XClaw 微信群联系方式二维码',
+  },
   nav: [
     { label: '场景', href: '#scenarios' },
     { label: '核心能力', href: '#features' },
@@ -26,7 +52,7 @@ export const websiteContent = {
     { label: '下载', href: '#download' },
   ],
   hero: {
-    badge: '桌面 AI 工作台',
+    badge: 'AI 桌面工作台',
     brandline: '给你无限可能',
     subtitle: '让 AI 在桌面里持续工作',
     description: '把对话、渠道、技能和任务，收进一个真正可下载的桌面工作台。',
@@ -37,9 +63,9 @@ export const websiteContent = {
     stageDescription: '不是概念图，直接使用仓库里的真实截图。',
   },
   downloads: [
-    { label: 'macOS (Apple 芯片)', icon: 'apple', width: 'wide', href: 'https://github.com/jlon/XClaw/releases' },
-    { label: 'macOS (Intel 芯片)', icon: 'apple', width: 'wide', href: 'https://github.com/jlon/XClaw/releases' },
-    { label: 'Windows', icon: 'windows', width: 'narrow', href: 'https://github.com/jlon/XClaw/releases' },
+    { label: 'macOS (Apple 芯片)', icon: 'apple', width: 'wide', href: releaseUrl, downloadKey: 'macArm64' },
+    { label: 'macOS (Intel 芯片)', icon: 'apple', width: 'wide', href: releaseUrl, downloadKey: 'macX64' },
+    { label: 'Windows', icon: 'windows', width: 'narrow', href: releaseUrl, downloadKey: 'win' },
   ],
   stats: [
     { value: '安装即用', label: '下载后即可进入桌面工作台' },
@@ -188,8 +214,8 @@ export const websiteContent = {
   ],
   release: {
     title: '下载最新版本',
-    description: '安装包和更新说明统一放在 GitHub Releases，入口保持简单直接。',
-    primaryCta: '前往 Releases',
+    description: '安装包由官网直连下载，更新说明仍保留在 GitHub Releases。',
+    primaryCta: '查看更新说明',
     secondaryCta: '查看 GitHub',
   },
   footer: {

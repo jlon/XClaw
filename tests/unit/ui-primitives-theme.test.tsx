@@ -46,8 +46,10 @@ describe('shared ui primitives theme', () => {
 
     expect(screen.getByLabelText('input')).toHaveClass('rounded-[11px]');
     expect(screen.getByLabelText('input')).toHaveClass('border-border/70');
+    expect(screen.getByLabelText('input')).toHaveClass('caret-[hsl(var(--foreground))]');
     expect(screen.getByLabelText('textarea')).toHaveClass('rounded-[11px]');
     expect(screen.getByLabelText('textarea')).toHaveClass('border-border/70');
+    expect(screen.getByLabelText('textarea')).toHaveClass('caret-[hsl(var(--foreground))]');
     expect(screen.getByLabelText('select')).toHaveClass('rounded-[11px]');
     expect(screen.getByLabelText('select')).toHaveClass('border-border/70');
   });

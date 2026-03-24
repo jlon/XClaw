@@ -18,7 +18,7 @@ const badgeVariants = cva(
           'border-border/70 bg-muted/70 text-foreground/80 hover:bg-muted hover:text-foreground',
         destructive:
           'border-transparent bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/80',
-        outline: 'border-border/70 bg-background/80 text-foreground shadow-sm',
+        outline: 'border-border/70 bg-[hsl(var(--surface-panel)/0.9)] text-foreground shadow-none dark:bg-[hsl(var(--surface-elevated)/0.82)]',
         success:
           'border-transparent bg-emerald-500/12 text-emerald-700 dark:text-emerald-200',
         warning:

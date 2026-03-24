@@ -42,6 +42,8 @@ export const buildMacLocalBuilderArgs = ({
   electronDist = resolveLocalElectronDist(),
 } = {}) => {
   const args = [
+    '-c',
+    'config/build/electron-builder.config.cjs',
     '--mac',
     ...resolveMacLocalTargets({ platform, release }),
     resolveMacLocalArchArg({ arch }),

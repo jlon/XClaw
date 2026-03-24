@@ -102,6 +102,44 @@ describe('agent config lifecycle', () => {
     );
   });
 
+  it('derives avatar profiles from local agent workspace persona files', async () => {
+    await writeOpenClawJson({
+      agents: {
+        list: [
+          {
+            id: 'main',
+            name: 'Main',
+            default: true,
+            workspace: '~/.openclaw/workspace',
+          },
+          {
+            id: 'security-chief',
+            name: 'Security Chief',
+            workspace: '~/.openclaw/workspace-security-chief',
+          },
+        ],
+      },
+    });
+
+    await mkdir(join(testHome, '.openclaw', 'workspace'), { recursive: true });
+    await mkdir(join(testHome, '.openclaw', 'workspace-security-chief'), { recursive: true });
+    await writeFile(
+      join(testHome, '.openclaw', 'workspace-security-chief', 'SOUL.md'),
+      'You are a security and compliance specialist focused on access risk and vulnerability hardening.',
+      'utf8',
+    );
+
+    const { listAgentsSnapshot } = await import('@electron/utils/agent-config');
+    const snapshot = await listAgentsSnapshot();
+    const agent = snapshot.agents.find((entry) => entry.id === 'security-chief');
+
+    expect(agent?.avatarProfile).toMatchObject({
+      archetype: 'guardian',
+      source: 'semantic',
+      tone: 'emerald',
+    });
+  });
+
   it('persists agent model overrides as object config and preserves existing fallbacks', async () => {
     await writeOpenClawJson({
       agents: {

@@ -22,6 +22,14 @@ function resolvePlatform() {
   return window.electron?.platform;
 }
 
+function hasNativeElectronShell() {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  return !!window.electron?.ipcRenderer && /\bElectron\//i.test(window.navigator.userAgent || '');
+}
+
 type TitleBarProps = {
   pathname?: string;
 };
@@ -117,20 +125,22 @@ export function TitleBar({ pathname }: TitleBarProps = {}) {
 }
 
 function MacChatTitleBar({ chatSidebarVisible }: { chatSidebarVisible: boolean }) {
+  const dragRegionClassName = hasNativeElectronShell() ? 'drag-region' : '';
+  const noDragClassName = hasNativeElectronShell() ? 'no-drag' : '';
   return (
-    <div className="drag-region desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--mac flex h-9 shrink-0 items-center pr-2.5">
+    <div className={`${dragRegionClassName} desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--mac flex h-9 shrink-0 items-center pr-2.5`}>
       <div
         data-testid="chat-titlebar-session-slot"
         className={
           chatSidebarVisible
-            ? 'no-drag flex h-full w-[250px] shrink-0 items-center justify-end pr-3'
-            : 'no-drag flex h-full w-auto shrink-0 items-center justify-start pl-24 pr-2'
+            ? `${noDragClassName} flex h-full w-[250px] shrink-0 items-center justify-end pr-3`
+            : `${noDragClassName} flex h-full w-auto shrink-0 items-center justify-start pl-24 pr-2`
         }
       >
         <ChatSessionHeaderControls compact surface="titlebar" />
       </div>
       <div className="min-w-0 flex-1" />
-      <div className="no-drag flex shrink-0 items-center gap-1.5">
+      <div className={`${noDragClassName} flex shrink-0 items-center gap-1.5`}>
         <ChatToolbar compact />
         <GlobalTitleBarUtilities compact />
       </div>
@@ -147,14 +157,16 @@ function MacWorkspaceTitleBar({
   sidebarLabel: string;
   onToggleSidebar: () => void;
 }) {
+  const dragRegionClassName = hasNativeElectronShell() ? 'drag-region' : '';
+  const noDragClassName = hasNativeElectronShell() ? 'no-drag' : '';
   return (
-    <div className="drag-region desktop-app-titlebar desktop-app-titlebar--mac flex h-9 shrink-0 items-center pr-2.5">
+    <div className={`${dragRegionClassName} desktop-app-titlebar desktop-app-titlebar--mac flex h-9 shrink-0 items-center pr-2.5`}>
       <div
         data-testid="workspace-titlebar-sidebar-slot"
         className={
           sidebarExpanded
-            ? 'no-drag flex h-full w-56 shrink-0 items-center justify-end pr-3'
-            : 'no-drag flex h-full w-auto shrink-0 items-center justify-start pl-24 pr-2'
+            ? `${noDragClassName} flex h-full w-56 shrink-0 items-center justify-end pr-3`
+            : `${noDragClassName} flex h-full w-auto shrink-0 items-center justify-start pl-24 pr-2`
         }
       >
         <WorkspaceSidebarToggleButton
@@ -165,7 +177,7 @@ function MacWorkspaceTitleBar({
         />
       </div>
       <div className="min-w-0 flex-1" />
-      <div className="no-drag shrink-0">
+      <div className={`${noDragClassName} shrink-0`}>
         <GlobalTitleBarUtilities compact />
       </div>
     </div>
@@ -173,15 +185,18 @@ function MacWorkspaceTitleBar({
 }
 
 function MacSetupTitleBar() {
-  return <div className="drag-region desktop-app-titlebar desktop-app-titlebar--mac flex h-9 shrink-0" />;
+  const dragRegionClassName = hasNativeElectronShell() ? 'drag-region' : '';
+  return <div className={`${dragRegionClassName} desktop-app-titlebar desktop-app-titlebar--mac flex h-9 shrink-0`} />;
 }
 
 function MacStudioTitleBar() {
+  const dragRegionClassName = hasNativeElectronShell() ? 'drag-region' : '';
+  const noDragClassName = hasNativeElectronShell() ? 'no-drag' : '';
   return (
-    <div className="drag-region desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--mac flex h-9 shrink-0 items-center pr-2.5">
+    <div className={`${dragRegionClassName} desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--mac flex h-9 shrink-0 items-center pr-2.5`}>
       <div className="h-full w-auto shrink-0 pl-24 pr-2" />
       <div className="min-w-0 flex-1" />
-      <div className="no-drag flex shrink-0 items-center gap-1.5">
+      <div className={`${noDragClassName} flex shrink-0 items-center gap-1.5`}>
         <ChatToolbar compact />
         <GlobalTitleBarUtilities compact />
       </div>
@@ -206,6 +221,8 @@ function WindowsTitleBar({
   workspaceSidebarLabel: string;
   onToggleSidebar: () => void;
 }) {
+  const dragRegionClassName = hasNativeElectronShell() ? 'drag-region' : '';
+  const noDragClassName = hasNativeElectronShell() ? 'no-drag' : '';
   const [maximized, setMaximized] = useState(false);
 
   useEffect(() => {
@@ -231,14 +248,14 @@ function WindowsTitleBar({
   };
 
   return (
-    <div className="drag-region desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--win flex h-9 shrink-0 items-center pl-2">
+    <div className={`${dragRegionClassName} desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--win flex h-9 shrink-0 items-center pl-2`}>
       {isChatRoute ? (
         <div
           data-testid="chat-titlebar-session-slot"
           className={
             chatSidebarVisible
-              ? 'no-drag flex h-full w-[250px] shrink-0 items-center justify-end pr-3'
-              : 'no-drag flex h-full w-auto shrink-0 items-center justify-start pl-1 pr-2'
+              ? `${noDragClassName} flex h-full w-[250px] shrink-0 items-center justify-end pr-3`
+              : `${noDragClassName} flex h-full w-auto shrink-0 items-center justify-start pl-1 pr-2`
           }
         >
           <ChatSessionHeaderControls compact surface="titlebar" />
@@ -252,8 +269,8 @@ function WindowsTitleBar({
           data-testid="workspace-titlebar-sidebar-slot"
           className={
             workspaceSidebarExpanded
-              ? 'no-drag flex h-full w-56 shrink-0 items-center justify-end pr-3'
-              : 'no-drag flex h-full w-11 shrink-0 items-center justify-center'
+              ? `${noDragClassName} flex h-full w-56 shrink-0 items-center justify-end pr-3`
+              : `${noDragClassName} flex h-full w-11 shrink-0 items-center justify-center`
           }
         >
           <WorkspaceSidebarToggleButton
@@ -265,7 +282,7 @@ function WindowsTitleBar({
         </div>
       )}
       <div className="min-w-0 flex-1" />
-      <div className="no-drag flex h-full items-center">
+      <div className={`${noDragClassName} flex h-full items-center`}>
         {isChatRoute || isStudioRoute ? (
           <div className="mr-1.5">
             <ChatToolbar compact />

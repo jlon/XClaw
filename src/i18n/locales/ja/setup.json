@@ -248,18 +248,22 @@
         "progress": "進捗",
         "gatewayPendingHint": "ゲートウェイがまだ起動していない場合でも、アプリに入ったあと XClaw が引き続き起動処理を引き継ぎます。",
         "enhancements": {
-            "title": "任意の拡張環境",
-            "optionalBody": "この準備は XClaw への入場を妨げません。uv や Python 実行環境がこの端末に既にあればそのまま再利用し、必要になるまで後回しにもできます。",
-            "readyTitle": "拡張環境は利用可能です",
-            "readyBody": "再利用できるローカル環境が見つかりました。今はそのまま XClaw に入り、必要になった時だけ追加機能を整えられます。",
-            "prepareNow": "拡張環境を準備",
+            "stageTitle": "コア環境を準備",
+            "stageSubtitle": "最終サマリーに進む前に uv と Python 実行環境を確認します。",
+            "title": "Python 実行環境",
+            "requiredBody": "Python は XClaw のコア要件です。uv や Python 実行環境がこの端末に既にあればそのまま再利用し、なければ先に準備を完了する必要があります。",
+            "readyTitle": "コア環境の準備ができました",
+            "readyBody": "再利用できるローカル環境が見つかりました。このまま最終サマリーへ進めます。",
+            "prepareNow": "コア環境を準備",
             "preparing": "準備中...",
-            "prepareFailed": "拡張環境の準備に失敗しました",
+            "prepareFailed": "コア環境の準備に失敗しました",
+            "prepareIncomplete": "コア環境はまだ準備できていません。しばらくしてから再試行してください。",
             "uvLabel": "uv 環境",
             "pythonLabel": "Python 実行環境",
             "checking": "確認中",
             "reused": "再利用済み",
-            "notReady": "後で準備"
+            "notReady": "未準備",
+            "required": "必須"
         }
     },
     "nav": {
@@ -322,6 +326,10 @@
                 "body": "変更内容を確認してアプリに入ります。",
                 "primary": "XClaw を開く",
                 "secondary": "戻る"
+            },
+            "enhancements": {
+                "title": "コア環境を準備",
+                "body": "先に Python 実行環境の準備を完了してください。成功すると自動で最終サマリーへ進みます。"
             },
             "applying": {
                 "title": "変更を適用中",

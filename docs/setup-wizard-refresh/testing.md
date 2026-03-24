@@ -18,6 +18,10 @@
 - `fresh` 不能复用已配置 OpenClaw workspace
 - `takeover-import` 只允许 `takeover` 模式
 - `完成` 阶段已明确拆成“应用变更中”和“完成摘要”两个子状态
+- 若 `uv / Python` 未就绪，`完成` 阶段必须先进入“核心环境准备”子状态
+- Python 运行时是核心要求，不允许通过跳过增强绕过
+- `uv:install-all` 与 Gateway 后台自愈不得并发触发 Python 安装
+- setup 未完成时，Gateway 后台不得偷跑 Python 修复
 - 完成前关闭窗口不得写入 `setupComplete`
 - `complete.applying` 关闭窗口需要二次确认
 
@@ -26,8 +30,9 @@
 ### 代码级
 
 - `pnpm exec eslint src/pages/Setup/index.tsx src/components/setup/*.tsx tests/unit/setup-*.test.ts* --max-warnings=0`
+- `pnpm exec eslint electron/utils/uv-setup.ts electron/gateway/supervisor.ts tests/unit/uv-setup.test.ts tests/unit/gateway-supervisor.test.ts src/pages/Setup/index.tsx src/components/setup/SetupPreparationStage.tsx --max-warnings=0`
 - `pnpm exec eslint electron/main/setup-inspection.ts tests/unit/setup-inspection.test.ts --max-warnings=0`
-- `pnpm exec vitest run tests/unit/setup-inspection.test.ts tests/unit/setup-wizard-layout.test.tsx tests/unit/setup-wizard-flow.test.ts tests/unit/setup-takeover.test.tsx`
+- `pnpm exec vitest run tests/unit/uv-setup.test.ts tests/unit/gateway-supervisor.test.ts tests/unit/setup-inspection.test.ts tests/unit/setup-wizard-layout.test.tsx tests/unit/setup-wizard-flow.test.ts tests/unit/setup-takeover.test.tsx --testTimeout=15000`
 - `pnpm run typecheck`
 
 ### 构建级
@@ -44,7 +49,8 @@
 4. 确认 `/api/app/setup-inspection` 返回 `hasExistingOpenClaw=false`
 5. 进入准备页，只看到目录/端口/环境就绪确认
 6. 完成 provider 接入
-7. 确认经过完成页再进入首页
+7. 若本机无 `uv / Python`，确认必须先完成核心环境准备
+8. 确认经过完成页再进入首页
 
 补充：
 
@@ -62,9 +68,10 @@
 3. 确认开始页只看到路径选择与轻摘要，不出现日志/工程事实堆叠
 4. 在准备页查看导入摘要、冲突和警告
 5. 如需 provider review，在“模型与接入”阶段完成
-6. 确认最终仍经过完成页
-7. takeover 开始后，不得再切换到 fresh
-8. `main / Main` 这类大小写差异不得导致智能体数量或 provider 账号数量双计
+6. 若 Python 未就绪，确认 `complete` 先进入核心环境准备，再回到最终摘要
+7. 确认最终仍经过完成页
+8. takeover 开始后，不得再切换到 fresh
+9. `main / Main` 这类大小写差异不得导致智能体数量或 provider 账号数量双计
 
 ### 3. 高级路径
 
@@ -94,9 +101,10 @@
 
 - `pnpm exec eslint src/pages/Setup/index.tsx src/components/setup/SetupShell.tsx src/components/setup/SetupStepRail.tsx src/components/setup/SetupStartStage.tsx src/components/setup/SetupPreparationStage.tsx tests/unit/setup-wizard-layout.test.tsx --max-warnings=0`
 - `pnpm exec eslint electron/main/setup-inspection.ts tests/unit/setup-inspection.test.ts --max-warnings=0`
-- `pnpm exec vitest run tests/unit/setup-inspection.test.ts tests/unit/setup-wizard-layout.test.tsx tests/unit/setup-wizard-flow.test.ts --reporter=dot`
+- `pnpm exec eslint electron/utils/uv-setup.ts electron/gateway/supervisor.ts tests/unit/uv-setup.test.ts tests/unit/gateway-supervisor.test.ts src/pages/Setup/index.tsx src/components/setup/SetupPreparationStage.tsx --max-warnings=0`
+- `pnpm exec vitest run tests/unit/uv-setup.test.ts tests/unit/gateway-supervisor.test.ts tests/unit/setup-wizard-flow.test.ts tests/unit/setup-wizard-layout.test.tsx tests/unit/setup-takeover.test.tsx --testTimeout=15000`
 
 结果：
 
 - `eslint` 通过
-- `setup-inspection + setup-wizard-layout + setup-wizard-flow` 共 `20` 条测试通过
+- `uv-setup + gateway-supervisor + setup-wizard-flow + setup-wizard-layout + setup-takeover` 共 `27` 条测试通过

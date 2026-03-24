@@ -29,7 +29,7 @@ XClaw 根目录同时承载源码、Electron 打包配置、构建产物和本�
 
 ### 保留
 
-- 源码与配置：`src/`、`electron/`、`shared/`、`resources/`、`scripts/`、`package.json`、`electron-builder.yml`、`entitlements.mac.plist`
+- 源码与配置：`src/`、`electron/`、`shared/`、`resources/`、`scripts/`、`package.json`、`config/build/electron-builder.config.cjs`、`config/macos/entitlements.mac.plist`
 - 文档与工程元数据：`README*`、`LICENSE`、`SECURITY.md`、`AGENTS.md`
 
 ### 可清理

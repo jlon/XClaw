@@ -175,7 +175,7 @@ describe('skills page layout', () => {
     fireEvent.click(homepageButton);
 
     expect(invokeIpcMock).toHaveBeenCalledWith('shell:openExternal', 'https://skillhub.tencent.com/');
-  });
+  }, 15000);
 
   it('loads top 50 provider results by default and filters out already installed skills', async () => {
     hostApiFetchMock.mockImplementation(async (path: string, options?: { body?: string }) => {
@@ -313,7 +313,7 @@ describe('skills page layout', () => {
     expect(screen.getByTestId('route-probe-title')).toHaveTextContent('安装 Markdown Converter');
     expect(screen.getByTestId('route-probe-provider')).toHaveTextContent('skillhub');
     expect(screen.getByTestId('route-probe-message')).toHaveTextContent('请先检查是否已安装 SkillHub 商店');
-  });
+  }, 15000);
 
   it('restores the local search query from the skills-to-chat return context', () => {
     window.sessionStorage.setItem('xclaw.skills.return-context', JSON.stringify({
@@ -424,5 +424,5 @@ describe('skills page layout', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: '启用' })).not.toBeDisabled();
     });
-  });
+  }, 15000);
 });

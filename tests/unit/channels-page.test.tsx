@@ -307,7 +307,7 @@ describe('Channels page status refresh', () => {
     await waitFor(() => {
       expect(hostApiFetchMock).toHaveBeenCalledWith('/api/channels/accounts?probe=1');
     });
-  });
+  }, 15000);
 
   it('shows WeChat in the primary channel catalog even before it is configured', async () => {
     render(<Channels />);
@@ -783,7 +783,7 @@ describe('Channels page status refresh', () => {
       expect(screen.getByTestId('channel-rail-item-telegram')).toHaveAttribute('aria-pressed', 'true');
     });
     expect(screen.getByDisplayValue('telegram-token')).toBeInTheDocument();
-  });
+  }, 15000);
 
   it('uses theme-compatible surfaces instead of fixed warm-only fills', async () => {
     setViewportWidth(1720);

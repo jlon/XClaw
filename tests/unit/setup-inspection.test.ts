@@ -421,7 +421,7 @@ describe('inspectLocalOpenClawSetup', () => {
 
     expect(inspection.gatewayPort).toBe(19001);
     expect(inspection.defaultWorkspacePath).toBe('/Users/test/custom-workspace');
-    expect(inspection.configuredWorkspacePaths[0]).toBe('/Users/test/custom-workspace');
+    expect(inspection.configuredWorkspacePaths).toEqual([]);
   });
 
   it('does not treat a plain websocket listener as a reusable external gateway', async () => {

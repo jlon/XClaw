@@ -234,7 +234,9 @@ describe('chat layout', () => {
     expect(brandMark).not.toHaveClass('sidebar-brand-mark');
     expect(screen.getByText('Design review')).toBeInTheDocument();
     expect(screen.getByText('Launch draft')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Design review' })).toBeInTheDocument();
+    const designReviewRow = screen.getByRole('button', { name: 'Design review' });
+    expect(designReviewRow).toBeInTheDocument();
+    expect(designReviewRow.querySelector('img')).not.toBeNull();
     expect(screen.queryByText('Main')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Search chats' })).toBeInTheDocument();
     expect(screen.getByTestId('chat-titlebar-session-slot')).toHaveClass('w-[250px]');
@@ -565,7 +567,8 @@ describe('chat layout', () => {
     expect(screen.getByRole('link', { name: 'Skills' }).querySelector('.app-sidebar-toned-icon--skills')).not.toBeNull();
     expect(screen.getByRole('link', { name: 'Cron Tasks' }).querySelector('.app-sidebar-toned-icon--cron')).not.toBeNull();
     expect(screen.getByRole('link', { name: 'Settings' }).querySelector('.app-sidebar-toned-icon--settings')).not.toBeNull();
-    expect(screen.getByRole('button', { name: 'OpenClaw Page' }).querySelector('.app-sidebar-toned-icon--terminal')).not.toBeNull();
+    expect(screen.getByTestId('sidebar-brand-lockup')).toBeInTheDocument();
+    expect(screen.getByTestId('sidebar-brand-wordmark')).toHaveClass('sidebar-brand-wordmark');
     expect(screen.getByRole('button', { name: 'Collapse sidebar' })).toHaveClass('app-desktop-sidebar-toggle');
     expect(screen.getByRole('button', { name: 'Collapse sidebar' }).querySelector('[data-testid="qclaw-session-toggle-icon"]')).not.toBeNull();
   });

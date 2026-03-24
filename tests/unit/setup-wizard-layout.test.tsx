@@ -27,6 +27,8 @@ vi.mock('react-i18next', () => ({
       'wizard.footer.complete.body': '确认变更并进入应用。',
       'wizard.footer.complete.primary': '进入 XClaw',
       'wizard.footer.complete.secondary': '返回',
+      'wizard.footer.enhancements.title': '准备核心环境',
+      'wizard.footer.enhancements.body': '先完成 Python 运行时准备，成功后会自动进入最终摘要。',
       'wizard.footer.applying.title': '正在应用变更',
       'wizard.footer.applying.body': '请保持窗口打开，完成后会自动进入摘要。',
       'takeover.title': '检测到现有 OpenClaw',
@@ -106,6 +108,22 @@ describe('setup wizard shell', () => {
     expect(screen.getByText('正在应用变更')).toBeInTheDocument();
   });
 
+  it('hides the primary action while the required enhancement step is active', () => {
+    render(
+      <SetupFooter
+        stage="complete"
+        completePhase="enhancements"
+        canProceed
+        onBack={vi.fn()}
+        onPrimary={vi.fn()}
+        onExit={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByRole('button', { name: '进入 XClaw' })).not.toBeInTheDocument();
+    expect(screen.getByText('准备核心环境')).toBeInTheDocument();
+  });
+
   it('renders the welcome stage as a branded desktop-style hero instead of a plain utility card', () => {
     render(
       <SetupStartStage
@@ -158,7 +176,7 @@ describe('setup wizard shell', () => {
     );
 
     expect(screen.getByText('检测到现有 OpenClaw')).toBeInTheDocument();
-    expect(screen.getByText('接管现有安装')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '接管现有安装' })).toBeInTheDocument();
     expect(screen.queryByText('欢迎使用')).not.toBeInTheDocument();
   });
 });

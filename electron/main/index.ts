@@ -97,6 +97,7 @@ let hostEventBus!: HostEventBus;
 let studioService!: StudioService;
 let hostApiServer: Server | null = null;
 const mainWindowFocusState = createMainWindowFocusState();
+let initializationState: 'idle' | 'running' | 'complete' | 'failed' = 'idle';
 const handleBeforeQuit = createBeforeQuitHandler({
   app,
   setQuitting: () => {
@@ -144,6 +145,12 @@ function createWindow(): BrowserWindow {
     logger.debug(`Main window started loading: ${win.webContents.getURL() || '(pending url)'}`);
   });
 
+  win.webContents.on('did-start-navigation', (_event, url, isInPlace, isMainFrame) => {
+    if (isMainFrame) {
+      logger.debug(`Main window navigation started: url=${url} inPlace=${String(isInPlace)}`);
+    }
+  });
+
   win.webContents.on('dom-ready', () => {
     logger.debug(`Main window DOM ready: ${win.webContents.getURL() || '(unknown url)'}`);
   });
@@ -176,7 +183,13 @@ function createWindow(): BrowserWindow {
 
   // Load the app
   if (process.env.VITE_DEV_SERVER_URL) {
-    win.loadURL(process.env.VITE_DEV_SERVER_URL);
+    const targetUrl = process.env.VITE_DEV_SERVER_URL;
+    logger.debug(`Main window requested dev load: ${targetUrl}`);
+    void win.loadURL(targetUrl).then(() => {
+      logger.debug(`Main window loadURL resolved: ${targetUrl}`);
+    }).catch((error) => {
+      logger.error(`Main window loadURL rejected: ${targetUrl}`, error);
+    });
     if (process.env.XCLAW_OPEN_DEVTOOLS === '1') {
       win.webContents.openDevTools({ mode: 'detach' });
     }
@@ -297,7 +310,9 @@ async function initialize(): Promise<void> {
   createMenu();
 
   // Create the main window
-  const window = createMainWindow();
+  const window = mainWindow && !mainWindow.isDestroyed()
+    ? mainWindow
+    : createMainWindow();
 
   // Create system tray
   createTray(window);
@@ -515,13 +530,24 @@ if (gotTheLock) {
   app.whenReady().then(() => {
     applyPlatformAppIcon();
 
-    void initialize().catch((error) => {
-      logger.error('Application initialization failed:', error);
-    });
+    initializationState = 'running';
+    void initialize()
+      .then(() => {
+        initializationState = 'complete';
+      })
+      .catch((error) => {
+        initializationState = 'failed';
+        logger.error('Application initialization failed:', error);
+      });
 
     // Register activate handler AFTER app is ready to prevent
     // "Cannot create BrowserWindow before app is ready" on macOS.
     app.on('activate', () => {
+      if (initializationState === 'running') {
+        logger.debug('Ignoring activate while initialization is still running');
+        return;
+      }
+
       if (BrowserWindow.getAllWindows().length === 0) {
         createMainWindow();
       } else {

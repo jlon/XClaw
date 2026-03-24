@@ -69,7 +69,7 @@ export function SetupStepRail({ stages, className }: SetupStepRailProps) {
                     ? 'border-primary-foreground/20 bg-primary-foreground/15 text-primary-foreground'
                     : stage.status === 'current'
                       ? 'border-primary/30 bg-primary/10 text-primary'
-                      : 'border-border/70 bg-background/70 text-muted-foreground',
+                      : 'border-border/70 bg-[hsl(var(--surface-panel)/0.88)] text-muted-foreground dark:bg-[hsl(var(--surface-elevated)/0.78)]',
                 )}
               >
                 {stage.status === 'complete' ? <Check className="h-4 w-4" /> : index + 1}

@@ -65,11 +65,11 @@ interface SkillDetailDialogProps {
 const compactOutlineButtonClasses =
   'workbench-motion-control h-8 rounded-[12px] border border-border/70 bg-transparent px-3 text-[12px] font-medium text-foreground/78 shadow-none hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
 const tokenInputClasses =
-  'h-[44px] rounded-xl font-mono text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30';
+  'appearance-none h-[44px] rounded-xl font-mono text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus:outline-none focus-visible:outline-none focus-visible:border-primary focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
 const compactInputClasses =
-  'h-[38px] rounded-xl font-mono text-[12px] app-field-surface text-foreground/80 shadow-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30';
+  'appearance-none h-[38px] rounded-xl font-mono text-[12px] app-field-surface text-foreground/80 shadow-none transition-all focus:outline-none focus-visible:outline-none focus-visible:border-primary focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
 const badgeClasses =
-  'rounded-[10px] border border-border/70 bg-background/65 px-2.5 py-0.5 text-[10.5px] font-medium text-foreground/65 shadow-none transition-colors';
+  'rounded-[10px] border border-border/70 bg-[hsl(var(--surface-panel)/0.9)] px-2.5 py-0.5 text-[10.5px] font-medium text-foreground/65 shadow-none transition-colors dark:bg-[hsl(var(--surface-elevated)/0.82)]';
 const searchFieldClasses =
   'workbench-motion-control relative flex items-center rounded-[16px] border border-border/60 bg-[hsl(var(--surface-panel)/0.84)] px-3.5 py-2.5 hover:bg-[hsl(var(--surface-hover)/0.46)] focus-within:border-border/55 focus-within:bg-[hsl(var(--surface-panel)/0.96)]';
 const skillCardClasses =

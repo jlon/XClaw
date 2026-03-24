@@ -322,7 +322,15 @@ describe('api-client', () => {
 
     const call = invoker('gateway:rpc', ['exec.approval.resolve', { id: 'abc', decision: 'allow-once' }]);
 
+    await vi.waitFor(() => {
+      expect(openHandler).toBeTruthy();
+    });
     openHandler?.();
+
+    await vi.waitFor(() => {
+      expect(messageHandler).toBeTruthy();
+    });
+
     messageHandler?.({
       data: JSON.stringify({
         type: 'event',
@@ -331,7 +339,7 @@ describe('api-client', () => {
       }),
     } as MessageEvent);
 
-    await expect(call).rejects.toThrow('Gateway WS connect timeout');
+    await expect(call).rejects.toThrow('Gateway WS connect failed: FORBIDDEN: missing required scope operator.approvals');
 
     const connectFrame = sentFrames.find((frame) => frame.method === 'connect');
     expect(connectFrame).toBeTruthy();

@@ -10,6 +10,7 @@
 - [x] 修复空环境被误判为 takeover 的探测链路
 - [x] 修复 `fresh` 非原子激活、fresh 复用旧 workspace、takeover 状态串台
 - [x] 修复 Win/mac 默认大小写不敏感文件系统下的路径比较、agent ID 合并与磁盘足迹误判
+- [x] 收紧完成阶段：Python 作为核心要求，不允许通过“跳过增强”绕过
 - [ ] 补 Win/mac 手工验证
 
 ## 当前结论
@@ -19,6 +20,8 @@
 - 旧设计的问题核心不是主题，而是单任务面失败：开始和准备阶段同时承载过多职责
 - `setup-inspection` 之前误用会创建 `~/.openclaw` 的配置读链，导致隔离 fresh 环境也会被错误判成 takeover
 - `fresh` 和 `takeover` 真正要先修的是链路语义：路径、状态机、回滚必须先正确，视觉才能成立
+- `uv / Python` 之前被做成了“可选增强”的隐式跳过语义，这和“Python 是核心要求”相冲突，必须收回
+- `uv:install-all` 与 Gateway 后台自愈之前会并发触发 `uv python install 3.12`，在老机器上会把 CPU / IO / 内存压力同时拉高，必须收成单飞
 - 下一步代码改造将优先落在：
   - `SetupProviderStage`
   - `ProviderContent`
@@ -54,6 +57,11 @@
 20. inspection / takeover import 的 agent ID 合并已改成大小写不敏感去重，避免 `main / Main` 双计数
 21. 磁盘足迹探测已忽略 `desktop.ini / Thumbs.db / .DS_Store` 等元数据文件，避免 Windows/mac 假阳性
 22. `takeover` 准备页已从摘要卡墙收成“单一准备面 + 轻事实带”，`fresh` 准备页已从“表单块 + 状态块 + 诊断块”压成“配置主面 + 就绪主面”
+23. `完成` 阶段新增 `enhancements` 子状态；`uv / Python` 未就绪时，必须先完成核心环境准备，不能直接进入应用
+24. `OptionalEnhancementPanel` 现在会在准备完成后再次校验 `uv:status`；若 Python 仍未就绪，不会错误进入最终摘要
+25. `takeover` 相关回归已更新为等待核心环境检查完成后再继续，避免测试把异步检查误当成立即可操作状态
+26. `setupManagedPython()` 已加全局 single-flight；Setup 显式准备 Python 与 Gateway 后台自愈不再并发执行
+27. Setup 未完成时，Gateway 后台已停止偷跑 Python 修复，只在 setup 完成后才允许后台补环境
 
 ## 最新验证
 
@@ -61,12 +69,16 @@
 - `pnpm exec eslint electron/main/setup-inspection.ts tests/unit/setup-inspection.test.ts --max-warnings=0`
 - `pnpm exec eslint electron/main/setup-inspection.ts electron/main/takeover-runtime.ts --max-warnings=0`
 - `pnpm exec vitest run tests/unit/setup-inspection.test.ts tests/unit/setup-wizard-layout.test.tsx tests/unit/setup-wizard-flow.test.ts --reporter=dot`
+- `pnpm exec vitest run tests/unit/setup-wizard-flow.test.ts tests/unit/setup-wizard-layout.test.tsx tests/unit/setup-takeover.test.tsx --testTimeout=15000`
+- `pnpm exec vitest run tests/unit/uv-setup.test.ts tests/unit/gateway-supervisor.test.ts tests/unit/setup-wizard-flow.test.ts tests/unit/setup-wizard-layout.test.tsx tests/unit/setup-takeover.test.tsx --testTimeout=15000`
 - `curl -s http://127.0.0.1:3210/api/app/setup-inspection`（隔离 `HOME + userData` 实测）
 
 结果：
 
 - `eslint` 通过
 - `setup-inspection + setup-wizard-layout + setup-wizard-flow` 共 `20` 条通过
+- `setup-wizard-flow + setup-wizard-layout + setup-takeover` 共 `19` 条通过
+- `uv-setup + gateway-supervisor + setup-wizard-flow + setup-wizard-layout + setup-takeover` 共 `27` 条通过
 - 隔离环境返回 `hasExistingOpenClaw=false`、`suggestedMode=fresh`
 - `setup-inspection / takeover-runtime` 的定向 `eslint` 通过
 
