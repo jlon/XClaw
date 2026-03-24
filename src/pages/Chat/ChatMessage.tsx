@@ -336,11 +336,11 @@ function MessageMetaBar({ text, timestamp, align }: { text: string; timestamp?: 
   return (
     <div
       className={cn(
-        'app-chat-hoverbar app-chat-hoverbar--floating pointer-events-none absolute bottom-full z-10 mb-2 inline-flex items-center gap-1.5 rounded-full px-2 py-1 opacity-0 shadow-sm transition-opacity duration-200 select-none group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100',
-        align === 'end' ? 'right-0 justify-end' : 'left-0 justify-start',
+        'app-chat-hoverbar app-chat-hoverbar--floating pointer-events-none relative z-[1] mt-1.5 inline-flex w-fit items-center gap-1.5 rounded-full px-2 py-1 opacity-0 transition-[opacity,transform] duration-200 translate-y-1 select-none group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:translate-y-0 group-focus-within:opacity-100',
+        align === 'end' ? 'self-end' : 'self-start',
       )}
     >
-      <span className="app-chat-meta-row text-[11px] text-muted-foreground">
+      <span className="app-chat-meta-row text-[11px]">
         {timestamp ? formatTimestamp(timestamp) : ''}
       </span>
       {timestamp && <span className="app-chat-meta-divider" aria-hidden="true" />}
@@ -382,7 +382,7 @@ function MessageBubble({
         <p className="whitespace-pre-wrap break-words text-[14px] leading-[1.6]">{text}</p>
       ) : (
         <div className={cn(
-          'prose prose-sm dark:prose-invert max-w-none break-words text-[14px] leading-[1.6] text-foreground/94 prose-p:my-2 prose-ul:my-2.5 prose-ol:my-2.5 prose-li:my-1 prose-pre:my-2.5 prose-headings:mb-2 prose-headings:mt-4',
+          'prose prose-sm max-w-none break-words text-[14px] leading-[1.6] text-foreground/94 prose-headings:text-foreground prose-p:text-foreground/90 prose-strong:text-foreground prose-li:text-foreground/88 prose-ul:text-foreground/88 prose-ol:text-foreground/88 prose-code:text-foreground prose-p:my-2 prose-ul:my-2.5 prose-ol:my-2.5 prose-li:my-1 prose-pre:my-2.5 prose-headings:mb-2 prose-headings:mt-4',
           isStreaming && 'app-chat-streaming-content',
         )}>
           <ReactMarkdown
@@ -538,7 +538,7 @@ function ThinkingBlock({ content }: { content: string }) {
       </button>
       {expanded && (
         <div className="app-chat-secondary-body">
-          <div className="prose prose-sm dark:prose-invert max-w-none opacity-75">
+          <div className="prose prose-sm max-w-none opacity-75 prose-headings:text-foreground prose-p:text-foreground/78 prose-strong:text-foreground prose-li:text-foreground/74 prose-ul:text-foreground/74 prose-ol:text-foreground/74 prose-code:text-foreground">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
           </div>
         </div>

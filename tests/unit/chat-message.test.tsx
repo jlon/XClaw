@@ -112,6 +112,13 @@ describe('ChatMessage', () => {
     );
 
     expect(screen.getAllByTitle('Copy')).toHaveLength(2);
+
+    const hoverbars = Array.from(document.querySelectorAll('.app-chat-hoverbar'));
+    expect(hoverbars).toHaveLength(2);
+    hoverbars.forEach((hoverbar) => {
+      expect(hoverbar).not.toHaveClass('absolute');
+      expect(hoverbar).not.toHaveClass('bottom-full');
+    });
   });
 
   it('renders a visible assistant feedback rail with desktop-im thumbs affordances', () => {
