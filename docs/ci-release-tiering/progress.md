@@ -33,3 +33,10 @@
    - `package-beta.yml`
 2. 确认 mac ad-hoc 包在 CI 上的产物形式是否稳定
 3. 如有需要，再补一份“未来恢复正式签名发布”的迁移文档
+
+## 2026-03-24 补充
+
+- 已为 `package-test.yml` 和 `package-beta.yml` 增加 `build/preinstalled-skills` 缓存
+- `bundle-preinstalled-skills.mjs` 已支持在 CI 显式开启缓存复用时直接消费已有 bundle
+- 当前仍保留远程抓取作为缓存未命中的兜底路径，不损失内置技能能力
+- `package:mac:adhoc` 已收成只产出 `dmg`，保留 `x64 + arm64`，不再额外打 `zip`

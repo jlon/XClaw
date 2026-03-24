@@ -10,6 +10,8 @@ const ROOT = join(__dirname, '..');
 const MANIFEST_PATH = join(ROOT, 'resources', 'skills', 'preinstalled-manifest.json');
 const OUTPUT_ROOT = join(ROOT, 'build', 'preinstalled-skills');
 const TMP_ROOT = join(ROOT, 'build', '.tmp-preinstalled-skills');
+const LOCK_PATH = join(OUTPUT_ROOT, '.preinstalled-lock.json');
+const CACHE_ENV = 'XCLAW_USE_PREINSTALLED_SKILLS_CACHE';
 
 function loadManifest() {
   if (!existsSync(MANIFEST_PATH)) {
@@ -37,6 +39,38 @@ function groupByRepoRef(entries) {
     grouped.get(key).entries.push(entry);
   }
   return [...grouped.values()];
+}
+
+function loadExistingLock() {
+  if (!existsSync(LOCK_PATH)) return null;
+  const raw = readFileSync(LOCK_PATH, 'utf8');
+  const parsed = JSON.parse(raw);
+  return Array.isArray(parsed?.skills) ? parsed : null;
+}
+
+function hasValidCachedBundle(entries) {
+  const lock = loadExistingLock();
+  if (!lock) return false;
+  if (lock.skills.length !== entries.length) return false;
+  const expected = new Map(entries.map((entry) => [
+    entry.slug,
+    {
+      repo: entry.repo,
+      repoPath: normalizeRepoPath(entry.repoPath),
+      ref: entry.ref || 'main',
+    },
+  ]));
+  for (const item of lock.skills) {
+    const current = expected.get(item.slug);
+    if (!current) return false;
+    if (item.repo !== current.repo) return false;
+    if (normalizeRepoPath(item.repoPath) !== current.repoPath) return false;
+    if ((item.ref || 'main') !== current.ref) return false;
+    const skillDir = join(OUTPUT_ROOT, item.slug);
+    if (!existsSync(skillDir)) return false;
+    if (!existsSync(join(skillDir, 'SKILL.md'))) return false;
+  }
+  return true;
 }
 
 function createRepoDirName(repo, ref) {
@@ -110,6 +144,11 @@ if (process.env.SKIP_PREINSTALLED_SKILLS === '1') {
 
 const manifestSkills = loadManifest();
 
+if (process.env[CACHE_ENV] === '1' && hasValidCachedBundle(manifestSkills)) {
+  echo`♻️  Using cached preinstalled skills bundle from ${OUTPUT_ROOT}`;
+  process.exit(0);
+}
+
 rmSync(OUTPUT_ROOT, { recursive: true, force: true });
 mkdirSync(OUTPUT_ROOT, { recursive: true });
 rmSync(TMP_ROOT, { recursive: true, force: true });
@@ -162,6 +201,6 @@ for (const group of groups) {
   }
 }
 
-writeFileSync(join(OUTPUT_ROOT, '.preinstalled-lock.json'), `${JSON.stringify(lock, null, 2)}\n`, 'utf8');
+writeFileSync(LOCK_PATH, `${JSON.stringify(lock, null, 2)}\n`, 'utf8');
 rmSync(TMP_ROOT, { recursive: true, force: true });
 echo`Preinstalled skills ready: ${OUTPUT_ROOT}`;

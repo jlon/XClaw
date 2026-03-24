@@ -81,3 +81,37 @@ node scripts/resolve-release-version.mjs --input-version 1.2.3-beta.1 --channel 
 1. `package-beta.yml` 不能误走 SignPath 或 Apple notarization
 2. `package-test.yml` 不能依赖正式 secrets
 3. `beta` tag 不应再触发不存在的 stable 正式发布链
+4. 预装技能缓存命中时，打包不能再访问远程仓库
+5. 预装技能缓存缺失时，仍然要能自动回退到远程抓取
+
+## 预装技能缓存验证
+
+### 本地脚本验证
+
+```bash
+XCLAW_USE_PREINSTALLED_SKILLS_CACHE=1 node --check scripts/bundle-preinstalled-skills.mjs
+```
+
+### 行为验证
+
+准备一个完整的 `build/preinstalled-skills` 目录和 `.preinstalled-lock.json` 后，在 CI 或本地执行：
+
+```bash
+XCLAW_USE_PREINSTALLED_SKILLS_CACHE=1 pnpm run bundle:preinstalled-skills
+```
+
+预期：
+
+- 输出 `Using cached preinstalled skills bundle`
+- 不再打印 `Fetching ...`
+
+删除 `build/preinstalled-skills` 后再次执行：
+
+```bash
+XCLAW_USE_PREINSTALLED_SKILLS_CACHE=1 pnpm run bundle:preinstalled-skills
+```
+
+预期：
+
+- 回退到正常远程抓取
+- 生成新的 `.preinstalled-lock.json`

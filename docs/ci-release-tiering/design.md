@@ -117,6 +117,12 @@
 - tag 触发时发布 GitHub prerelease
 - 手动触发时只上传 artifact
 
+mac 产物约束：
+
+- 只产出 `dmg`
+- 保留 `x64 + arm64`
+- 不再为 Beta/Test 额外产出 `zip`
+
 ### `release.yml`
 
 当前不进入活跃 workflow。
@@ -146,3 +152,20 @@
 - 改 electron-builder 的平台 target 组合
 
 先把**当前真实可用**的 CI 架构收清楚，避免过度设计。
+
+## 预装技能缓存策略
+
+当前预装技能仍然来自第三方仓库，不改成功能降级的“跳过下载”模式。
+
+本轮采用的是最小风险加速方案：
+
+1. `package-test.yml` / `package-beta.yml` 在 CI 中缓存 `build/preinstalled-skills`
+2. `bundle-preinstalled-skills.mjs` 在显式开启 `XCLAW_USE_PREINSTALLED_SKILLS_CACHE=1` 时，若发现缓存目录和锁文件完整，则直接复用
+3. 缓存未命中或目录不完整时，仍按 manifest 从远程仓库重新抓取
+
+这样做的取舍是：
+
+- 优点：不损失内置技能功能，重复构建明显更快
+- 缺点：仍然依赖远程仓库，且 `ref=main` 的上游变更不会主动打爆缓存
+
+所以这只是当前阶段的加速手段，不是最终的可复现打包方案。

@@ -82,6 +82,8 @@ jobs:
           - os: ubuntu-latest
             platform: linux
     runs-on: ${{ matrix.os }}
+    env:
+      XCLAW_USE_PREINSTALLED_SKILLS_CACHE: '1'
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -104,6 +106,12 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+
+      - name: Restore preinstalled skills bundle cache
+        uses: actions/cache@v4
+        with:
+          path: build/preinstalled-skills
+          key: preinstalled-skills-${{ runner.os }}-${{ hashFiles('resources/skills/preinstalled-manifest.json', 'scripts/bundle-preinstalled-skills.mjs') }}
 
       - name: Download uv binaries for macOS
         if: matrix.platform == 'mac'
