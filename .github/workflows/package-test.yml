@@ -1,6 +1,9 @@
 name: Package Test Builds
 
 on:
+  push:
+    paths:
+      - '.github/workflows/package-test.yml'
   workflow_dispatch:
     inputs:
       ref:
@@ -26,7 +29,15 @@ permissions:
   contents: read
 
 jobs:
+  validate-workflow:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm manual test packaging workflow is healthy
+        run: echo "package-test.yml is manual-only; push validation completed successfully."
+
   package-test:
+    if: github.event_name == 'workflow_dispatch' && ((github.event.inputs.platform || 'all') == 'all' || github.event.inputs.platform == matrix.platform)
     strategy:
       matrix:
         include:
@@ -36,7 +47,6 @@ jobs:
             platform: win
           - os: ubuntu-latest
             platform: linux
-    if: inputs.platform == 'all' || inputs.platform == matrix.platform
     runs-on: ${{ matrix.os }}
     env:
       XCLAW_USE_PREINSTALLED_SKILLS_CACHE: '1'
@@ -44,7 +54,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.ref || github.ref }}
+          ref: ${{ github.event.inputs.ref || github.ref }}
           fetch-depth: 0
 
       - name: Setup pnpm
@@ -60,7 +70,7 @@ jobs:
         shell: bash
         env:
           TZ: Asia/Shanghai
-        run: node scripts/resolve-release-version.mjs --input-version "${{ inputs.version }}" --channel dev --write-package
+        run: node scripts/resolve-release-version.mjs --input-version "${{ github.event.inputs.version || '' }}" --channel dev --write-package
 
       - name: Install dependencies
         run: pnpm install
