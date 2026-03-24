@@ -241,15 +241,21 @@ async function mockChannelsApi(page: Page, theme: ThemeMode) {
   });
 }
 
+async function openFeishuChannel(page: Page) {
+  await expect(page.getByTestId('channel-entry-board')).toBeVisible();
+  await page.getByRole('button', { name: /^Feishu \/ Lark/i }).click();
+  await expect(page.getByTestId('channel-focus-workspace')).toBeVisible();
+}
+
 test('channels center saves normalized values and reselects newly added accounts in light theme', async ({ page }) => {
   await mockChannelsApi(page, 'light');
 
   await page.goto('/#/channels');
+  await expect(page.locator('html')).toHaveClass(/light/);
+
+  await openFeishuChannel(page);
 
   const editorAppId = page.getByLabel('App ID').first();
-
-  await expect(page.getByTestId('channels-workbench')).toBeVisible();
-  await expect(page.locator('html')).toHaveClass(/light/);
   await expect(editorAppId).toHaveValue('cli_xxx');
 
   await editorAppId.fill('  next-app-id  ');
@@ -278,23 +284,24 @@ test('channels center renders correctly in dark theme and opens the add-account 
 
   await page.goto('/#/channels');
 
-  await expect(page.getByTestId('channels-workbench')).toBeVisible();
   await expect(page.locator('html')).toHaveClass(/dark/);
 
+  await openFeishuChannel(page);
   await page.getByRole('button', { name: 'Add Account' }).click();
-  await expect(page.getByTestId('channel-config-modal-card')).toBeVisible();
-  await expect(page.getByTestId('channel-rail-item-feishu')).toHaveAttribute('aria-pressed', 'true');
+  const modal = page.getByTestId('channel-config-modal-card');
+  await expect(modal).toBeVisible();
+  await expect(modal.getByRole('heading', { name: 'Configure Feishu / Lark' })).toBeVisible();
 });
 
 test('channels center uses the custom Agent select instead of a native browser select', async ({ page }) => {
   await mockChannelsApi(page, 'light');
 
   await page.goto('/#/channels');
+  await expect(page.locator('select')).toHaveCount(0);
+
+  await openFeishuChannel(page);
 
   const agentSelect = page.getByTestId('channel-agent-select-trigger');
-
-  await expect(page.getByTestId('channels-workbench')).toBeVisible();
-  await expect(page.locator('select')).toHaveCount(0);
   await expect(agentSelect).toContainText('No Agent assigned');
 
   await agentSelect.click();

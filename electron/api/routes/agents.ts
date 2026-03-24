@@ -20,6 +20,7 @@ import {
 } from '../../utils/agent-config';
 import { deleteChannelAccountConfig } from '../../utils/channel-config';
 import { syncAllProviderAuthToRuntime } from '../../services/providers/provider-runtime-sync';
+import { injectStarOfficePrompt } from '../../studio/prompt-injector';
 import type { HostApiContext } from '../context';
 import { parseJsonBody, sendJson } from '../route-utils';
 
@@ -179,16 +180,26 @@ export async function handleAgentRoutes(
   }
 
   if (url.pathname === '/api/agents' && req.method === 'POST') {
-    try {
-      const body = await parseJsonBody<{ name: string; modelRef?: string | null }>(req);
-      const result = await createAgentWithId(body.name, { modelRef: body.modelRef });
+      try {
+        const body = await parseJsonBody<{ name: string; modelRef?: string | null }>(req);
+        const result = await createAgentWithId(body.name, { modelRef: body.modelRef });
+        const createdAgent = result.snapshot.agents.find((agent) => agent.id === result.createdAgentId);
+        const promptInjectionWarning = createdAgent
+        ? (await injectStarOfficePrompt(createdAgent.workspace)).warning
+        : 'Star Office 提示词注入失败，已跳过新建 agent：无法解析工作区路径';
       try {
         await finalizeAgentCreation(ctx);
+        await ctx.studioService.refreshAgentInventory();
       } catch (error) {
         await rollbackCreatedAgent(result.createdAgentId).catch(() => undefined);
         throw error;
       }
-      sendJson(res, 200, { success: true, ...result.snapshot, createdAgentId: result.createdAgentId });
+      sendJson(res, 200, {
+        success: true,
+        ...result.snapshot,
+        createdAgentId: result.createdAgentId,
+        warning: promptInjectionWarning,
+      });
     } catch (error) {
       sendJson(res, 500, { success: false, error: String(error) });
     }
@@ -210,6 +221,7 @@ export async function handleAgentRoutes(
         if (result.modelChanged) {
           void ctx.gatewayRuntimeController.requestRuntimeRefresh({ mode: 'restart' });
         }
+        await ctx.studioService.refreshAgentInventory();
         sendJson(res, 200, { success: true, applyingRuntime: result.modelChanged, ...result.snapshot });
       } catch (error) {
         sendJson(res, 500, { success: false, error: String(error) });
@@ -272,6 +284,7 @@ export async function handleAgentRoutes(
         await removeAgentWorkspaceDirectory(removedEntry).catch((err) => {
           console.warn('[agents] Failed to remove workspace after agent deletion:', err);
         });
+        await ctx.studioService.refreshAgentInventory();
         sendJson(res, 200, { success: true, ...snapshot });
       } catch (error) {
         sendJson(res, 500, { success: false, error: String(error) });

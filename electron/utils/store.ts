@@ -41,6 +41,7 @@ export interface AppSettings {
   gatewayDesiredState: GatewayDesiredState;
   gatewayManagedMode: GatewayManagedMode;
   gatewayPort: number;
+  studioPort: number;
   gatewayToken: string;
   proxyEnabled: boolean;
   proxyServer: string;
@@ -198,6 +199,7 @@ function createDefaultSettings(): AppSettings {
     gatewayDesiredState: 'running',
     gatewayManagedMode: 'unmanaged',
     gatewayPort: 18789,
+    studioPort: 3211,
     gatewayToken: generateToken(),
     proxyEnabled: false,
     proxyServer: '',

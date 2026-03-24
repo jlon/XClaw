@@ -21,7 +21,6 @@ import { useTranslation } from 'react-i18next';
 import { getSessionAvatar } from '@/lib/chat-avatar';
 import { cn } from '@/lib/utils';
 import { useStickToBottomInstant } from '@/hooks/use-stick-to-bottom-instant';
-import { useMinLoading } from '@/hooks/use-min-loading';
 import { XClawWelcomeWordmark } from '@/components/common/XClawWelcomeWordmark';
 import { hostApiFetch } from '@/lib/host-api';
 import { buildChatExportFileName, buildChatMarkdown } from './export-markdown';
@@ -95,7 +94,6 @@ export function Chat() {
   const [execApprovalBusy, setExecApprovalBusy] = useState(false);
   const [execApprovalError, setExecApprovalError] = useState<{ approvalId: string; message: string } | null>(null);
   const isHistoryLoading = loading && messages.length === 0;
-  const minLoading = useMinLoading(loading && messages.length > 0);
   const { contentRef, scrollRef } = useStickToBottomInstant(currentSessionKey);
   const isNearBottomRef = useRef(true);
   const consumedDraftLocationRef = useRef<string | null>(null);
@@ -592,8 +590,8 @@ export function Chat() {
         onScrollToLatest={scrollToLatest}
       />
 
-      {/* Transparent loading overlay */}
-      {(minLoading || isHistoryLoading) && !sending && (
+      {/* Only block the thread on first-load history; background refresh uses toolbar feedback */}
+      {isHistoryLoading && !sending && (
         <div className="absolute inset-0 z-50 flex items-center justify-center rounded-xl bg-background/18 pointer-events-auto">
           <div className="rounded-[12px] border border-border/65 bg-[hsl(var(--surface-elevated)/0.98)] p-2.5 shadow-none">
             <LoadingSpinner size="md" />

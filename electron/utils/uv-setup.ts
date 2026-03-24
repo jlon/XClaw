@@ -29,7 +29,7 @@ function getBundledUvPath(): string {
  * pick up a system-wide uv that may be a different (possibly broken) version.
  * In dev we fall through to the system PATH for convenience.
  */
-function resolveUvBin(): { bin: string; source: 'bundled' | 'path' | 'bundled-fallback' } {
+export function resolveUvBin(): { bin: string; source: 'bundled' | 'path' | 'bundled-fallback' } {
   const bundled = getBundledUvPath();
 
   if (app.isPackaged) {

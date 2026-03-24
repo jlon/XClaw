@@ -262,6 +262,7 @@ export function Agents() {
   const [activeAgentId, setActiveAgentId] = useState<string | null>(null);
   const [settingsAgentId, setSettingsAgentId] = useState<string | null>(null);
   const [agentToDelete, setAgentToDelete] = useState<AgentSummary | null>(null);
+  const [agentCreateWarning, setAgentCreateWarning] = useState<string | null>(null);
   const [browseMode, setBrowseMode] = useState<AgentBrowseMode>('agents');
   const [detailTab, setDetailTab] = useState<DetailTab>('persona');
   const [agentSearchValue, setAgentSearchValue] = useState('');
@@ -756,6 +757,25 @@ export function Agents() {
             </div>
           )}
 
+          {agentCreateWarning && (
+            <div className="mb-5 flex items-start gap-2.5 rounded-[14px] border border-[hsl(var(--warning))/0.15] bg-[hsl(var(--warning))/0.08] px-3.5 py-2.5 app-insight-surface">
+              <AlertCircle className="mt-0.5 h-5 w-5 text-amber-600 dark:text-amber-400" />
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-medium text-amber-900 dark:text-amber-100">
+                  {agentCreateWarning}
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setAgentCreateWarning(null)}
+                className="h-8 w-8 rounded-[12px] border-0 text-amber-700/70 hover:bg-amber-500/10 hover:text-amber-900 dark:text-amber-200/80 dark:hover:text-amber-100"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+
           <div
             data-testid="agents-workbench"
             className={cn(
@@ -959,11 +979,16 @@ export function Agents() {
         <AddAgentDialog
           onClose={() => setShowAddDialog(false)}
           onCreate={async (name, modelRef) => {
-            const createdAgentId = await createAgent(name, modelRef);
+            setAgentCreateWarning(null);
+            const { createdAgentId, warning } = await createAgent(name, modelRef);
             if (createdAgentId) {
               setBrowseMode('agents');
               setActiveAgentId(createdAgentId);
               setDetailTab('persona');
+            }
+            if (warning) {
+              setAgentCreateWarning(warning);
+              toast.warning(warning);
             }
             setShowAddDialog(false);
             toast.success(t('toast.agentCreated'));

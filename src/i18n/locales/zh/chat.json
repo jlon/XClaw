@@ -24,9 +24,13 @@
     },
     "noLogs": "（暂无日志）",
     "toolbar": {
+        "office": "工作室",
+        "backToChat": "对话",
         "refresh": "刷新聊天",
         "showThinking": "显示思考过程",
         "hideThinking": "隐藏思考过程",
+        "switchToLight": "切换到浅色主题",
+        "switchToDark": "切换到深色主题",
         "hideSessionPane": "隐藏会话栏",
         "showSessionPane": "显示会话栏",
         "scrollToLatest": "回到底部"

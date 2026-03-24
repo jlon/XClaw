@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-当前阶段：实现计划已完成，待执行
+当前阶段：实现中
 
 当前结论已经确认：
 
@@ -14,9 +14,12 @@
 - Python 复用现有 `uv + managed Python` 准备逻辑
 - 状态由 XClaw 主进程自动维护
 - 提示词注入只写入 `AGENTS.md`
+- `AGENTS.md` 幂等注入器已接入 fresh setup、takeover 和新增 agent 创建链路
 - 注入必须幂等，不能重复注册
 - 共享状态快照采用 `state.json + agents-state.json + manifest.json` 的同代提交模型
 - 工作室页面固定通过受控 `webview` handoff 加载，不允许 renderer 自行拼接地址
+- 主进程 `StudioService`、runtime manager、状态快照落盘与 host-api 路由已接入第一版
+- vendored runtime 已裁成最小 allowlist，并完成只读模式补丁与数据目录外置
 
 ## 里程碑
 
@@ -33,12 +36,21 @@
 - [x] 完成 3 轮子代理 spec review
 - [x] 根据 review 收敛状态快照一致性与 `webview` handoff 契约
 - [x] 产出 `implementation-plan.md`
+- [x] 完成 `Star-Office-UI` 最小化 vendoring 脚本与资源导入
+- [x] 完成工作室 runtime 路径层、Python 环境准备层与快照 schema 第一版
+- [x] 完成 `AGENTS.md` 幂等注入，并接入 fresh setup、takeover、新增 agent
+- [x] 完成 `/studio` 页面、`对话 / 工作室` 双 tab 与只读 `webview` 宿主第一版
+- [x] 完成 vendored runtime 只读补丁、数据目录切换与快照协议适配第一版
+- [x] 完成工作室错误态下的“重试并重装依赖”恢复链路
+- [x] 完成工作室环境初始化遮罩与初始化提示
+- [ ] 补齐 renderer 与 main-process 之间的剩余联调问题
+- [ ] 补齐 README、testing 文档与必要验证
 
 ## 下一步
 
-1. 按 `implementation-plan.md` 顺序执行 vendored runtime、主进程 studio service 和 renderer `/studio` 页面
-2. 按测试方案补齐单元测试、集成验证与通信回归
-3. 同步 README 与功能文档
+1. 收口剩余联调点，重点检查 runtime snapshot 字段、agent 清单刷新与 webview 导航边界
+2. 在有可用依赖的环境里补最小必要验证，不补形式化铺量测试
+3. 同步 README、`testing.md` 与实现说明
 
 ## 当前风险
 
@@ -46,8 +58,9 @@
 2. `Star-Office-UI` 的只读模式需要维护一层 XClaw 自己的 patch
 3. 工作室 sidecar 的启动失败与降级链路必须先做好，避免影响聊天主路径
 4. 共享状态快照的 schema 一旦落地，后续演进必须保持兼容纪律，不能在实现时临时加字段破坏协议
+5. 当前 worktree 没有独立 `node_modules`，大部分验证只能先做语法级和结构级检查
 
 ## 备注
 
-- 当前尚未进入实现阶段
-- 已完成 3 轮子代理审查，当前文档已收敛为可执行实现计划
+- 当前实现由主线 + 并行子代理共同推进，尚未做最终联调收口
+- 已完成的最小校验包括：vendoring 产物结构检查、`git diff --check`、新改文件语法级转译检查、工作室 runtime 强制重试恢复验证

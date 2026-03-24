@@ -69,6 +69,8 @@
 
 - 应用启动后，工作室 runtime 后台拉起但不阻塞聊天页
 - 访问 `/studio` 时，能根据 runtime 状态显示 `starting / ready / python-missing / runtime-error`
+- 工作室错误态下点击“重试运行时”后，主进程会重新准备 Python 环境并重装依赖
+- 运行时重试期间，工作室页会显示环境初始化遮罩，并阻止重复触发
 - `/studio` 在 ready 态下会渲染只读 `webview`
 - 工作室 ready 时能成功加载内嵌页面
 - 工作室出错时，聊天、设置、智能体工作台仍可正常使用
@@ -96,6 +98,14 @@
 3. 打开 `工作室`
 4. 验证出现“环境未就绪”提示
 5. 验证仍可通过现有准备流程修复
+
+### 运行时重试修复链路
+
+1. 让工作室进入 `python-missing` 或 `runtime-error`
+2. 点击 `重试运行时`
+3. 验证页面出现“环境初始化中”遮罩
+4. 验证 host-api 触发重新安装依赖而不是仅重启 sidecar
+5. 验证工作室最终回到 ready
 
 ### setup 新建链路
 
@@ -160,4 +170,16 @@ pnpm run comms:compare
 
 ## 当前状态
 
-- 设计阶段，尚未执行实现验证
+- 已完成的最小验证：
+  - `node --check scripts/vendor-star-office-runtime.mjs`
+  - `pnpm exec tsc --noEmit --pretty false`
+  - `git diff --check`
+  - `python3 -m py_compile resources/star-office-runtime/backend/app.py resources/star-office-runtime/backend/store_utils.py resources/star-office-runtime/backend/memo_utils.py resources/star-office-runtime/backend/security_utils.py`
+  - 本机 `uv` 与 managed Python 3.12 探针通过
+  - 使用临时 venv 安装 vendored runtime 依赖后，Flask sidecar `/health` smoke 通过
+  - 同一只读会话下，对 `/set_state` 的 POST 返回 `403 READONLY`
+  - 当前 dev 实例下，`POST /api/studio/runtime/retry` 携带 `repairEnvironment=true` 后返回 `ready`
+  - 全量 Playwright e2e 通过：`10 passed`
+- 尚未执行：
+  - `pnpm test`
+  - 通信回归与完整联调，因为主线实现还在收口

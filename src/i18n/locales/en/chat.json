@@ -24,9 +24,13 @@
     },
     "noLogs": "(No logs available yet)",
     "toolbar": {
+        "office": "Studio",
+        "backToChat": "Chat",
         "refresh": "Refresh chat",
         "showThinking": "Show thinking",
         "hideThinking": "Hide thinking",
+        "switchToLight": "Switch to light theme",
+        "switchToDark": "Switch to dark theme",
         "hideSessionPane": "Hide sessions",
         "showSessionPane": "Show sessions",
         "scrollToLatest": "Scroll to latest"

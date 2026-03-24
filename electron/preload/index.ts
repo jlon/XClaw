@@ -176,6 +176,7 @@ const electronAPI = {
         'oauth:success',
         'oauth:error',
         'openclaw:cli-installed',
+        'studioRuntimeChanged',
       ];
 
       if (validChannels.includes(channel)) {
@@ -218,6 +219,7 @@ const electronAPI = {
         'oauth:code',
         'oauth:success',
         'oauth:error',
+        'studioRuntimeChanged',
       ];
 
       if (validChannels.includes(channel)) {

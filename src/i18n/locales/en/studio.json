@@ -1,0 +1,27 @@
+{
+    "tabs": {
+        "chat": "Chat",
+        "studio": "Studio"
+    },
+    "empty": {
+        "title": "Waiting for the studio runtime",
+        "description": "The studio view will appear here once the runtime resolves a usable URL."
+    },
+    "runtime": {
+        "loading": "Loading runtime…",
+        "idle": "Waiting for runtime",
+        "starting": "Starting runtime…",
+        "ready": "Runtime ready",
+        "restarting": "Restarting runtime…",
+        "stopping": "Stopping runtime…",
+        "error": "Runtime issue",
+        "unknown": "Unknown runtime state"
+    },
+    "initializing": {
+        "title": "Initializing environment",
+        "description": "Rebuilding the Python environment and reinstalling studio dependencies. Please wait."
+    },
+    "actions": {
+        "retry": "Retry runtime"
+    }
+}

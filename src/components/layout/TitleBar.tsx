@@ -9,8 +9,10 @@ import { invokeIpc } from '@/lib/api-client';
 import { useLocation, useInRouterContext } from 'react-router-dom';
 import { ChatToolbar } from '@/pages/Chat/ChatToolbar';
 import { ChatSessionHeaderControls } from './ChatSessionHeaderControls';
+import { isChatRoutePath, isStudioRoutePath } from '@/lib/studio';
 import { useSettingsStore } from '@/stores/settings';
 import { WorkspaceSidebarToggleButton } from './WorkspaceSidebarToggleButton';
+import { GlobalTitleBarUtilities } from './GlobalTitleBarUtilities';
 
 function resolvePlatform() {
   if (typeof window === 'undefined') {
@@ -39,14 +41,16 @@ function resolveFallbackPathname() {
 
 function TitleBarChrome({ pathname }: { pathname: string }) {
   const platform = resolvePlatform();
-  const isChatRoute = pathname === '/' || pathname.startsWith('/new');
+  const isChatRoute = isChatRoutePath(pathname);
+  const isStudioRoute = isStudioRoutePath(pathname);
+  const isChatSurfaceRoute = isChatRoute || isStudioRoute;
   const isSetupRoute = pathname.startsWith('/setup');
   const chatFocusMode = useSettingsStore((state) => ('chatFocusMode' in state ? state.chatFocusMode : false));
   const sidebarCollapsed = useSettingsStore((state) => state.sidebarCollapsed);
   const setSidebarCollapsed = useSettingsStore((state) => state.setSidebarCollapsed);
   const hasDesktopBridge = !!window.electron?.ipcRenderer;
   const chatSidebarVisible = isChatRoute && !chatFocusMode;
-  const workspaceSidebarExpanded = !isChatRoute && !sidebarCollapsed;
+  const workspaceSidebarExpanded = !isChatSurfaceRoute && !sidebarCollapsed;
   const workspaceSidebarLabel = sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar';
   const handleWorkspaceSidebarToggle = () => {
     setSidebarCollapsed(!sidebarCollapsed);
@@ -56,7 +60,7 @@ function TitleBarChrome({ pathname }: { pathname: string }) {
     return (
       <div
         className={
-          isChatRoute
+          isChatSurfaceRoute
             ? 'desktop-app-titlebar desktop-app-titlebar--browser desktop-app-titlebar--chat h-9 shrink-0'
             : 'desktop-app-titlebar desktop-app-titlebar--browser h-9 shrink-0'
         }
@@ -67,6 +71,8 @@ function TitleBarChrome({ pathname }: { pathname: string }) {
   if (platform === 'darwin') {
     return isChatRoute ? (
       <MacChatTitleBar chatSidebarVisible={chatSidebarVisible} />
+    ) : isStudioRoute ? (
+      <MacStudioTitleBar />
     ) : isSetupRoute ? (
       <MacSetupTitleBar />
     ) : (
@@ -81,6 +87,7 @@ function TitleBarChrome({ pathname }: { pathname: string }) {
   return (
     <WindowsTitleBar
       isChatRoute={isChatRoute}
+      isStudioRoute={isStudioRoute}
       isSetupRoute={isSetupRoute}
       chatSidebarVisible={chatSidebarVisible}
       workspaceSidebarExpanded={workspaceSidebarExpanded}
@@ -123,8 +130,9 @@ function MacChatTitleBar({ chatSidebarVisible }: { chatSidebarVisible: boolean }
         <ChatSessionHeaderControls compact surface="titlebar" />
       </div>
       <div className="min-w-0 flex-1" />
-      <div className="no-drag shrink-0">
+      <div className="no-drag flex shrink-0 items-center gap-1.5">
         <ChatToolbar compact />
+        <GlobalTitleBarUtilities compact />
       </div>
     </div>
   );
@@ -157,6 +165,9 @@ function MacWorkspaceTitleBar({
         />
       </div>
       <div className="min-w-0 flex-1" />
+      <div className="no-drag shrink-0">
+        <GlobalTitleBarUtilities compact />
+      </div>
     </div>
   );
 }
@@ -165,8 +176,22 @@ function MacSetupTitleBar() {
   return <div className="drag-region desktop-app-titlebar desktop-app-titlebar--mac flex h-9 shrink-0" />;
 }
 
+function MacStudioTitleBar() {
+  return (
+    <div className="drag-region desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--mac flex h-9 shrink-0 items-center pr-2.5">
+      <div className="h-full w-auto shrink-0 pl-24 pr-2" />
+      <div className="min-w-0 flex-1" />
+      <div className="no-drag flex shrink-0 items-center gap-1.5">
+        <ChatToolbar compact />
+        <GlobalTitleBarUtilities compact />
+      </div>
+    </div>
+  );
+}
+
 function WindowsTitleBar({
   isChatRoute,
+  isStudioRoute,
   isSetupRoute,
   chatSidebarVisible,
   workspaceSidebarExpanded,
@@ -174,6 +199,7 @@ function WindowsTitleBar({
   onToggleSidebar,
 }: {
   isChatRoute: boolean;
+  isStudioRoute: boolean;
   isSetupRoute: boolean;
   chatSidebarVisible: boolean;
   workspaceSidebarExpanded: boolean;
@@ -217,6 +243,8 @@ function WindowsTitleBar({
         >
           <ChatSessionHeaderControls compact surface="titlebar" />
         </div>
+      ) : isStudioRoute ? (
+        <div className="h-full w-0 shrink-0" />
       ) : isSetupRoute ? (
         <div className="h-full w-0 shrink-0" />
       ) : (
@@ -238,9 +266,14 @@ function WindowsTitleBar({
       )}
       <div className="min-w-0 flex-1" />
       <div className="no-drag flex h-full items-center">
-        {isChatRoute ? (
-          <div className="mr-2">
+        {isChatRoute || isStudioRoute ? (
+          <div className="mr-1.5">
             <ChatToolbar compact />
+          </div>
+        ) : null}
+        {!isSetupRoute ? (
+          <div className="mr-2">
+            <GlobalTitleBarUtilities compact />
           </div>
         ) : null}
         <div className="flex h-full desktop-app-titlebar-controls">

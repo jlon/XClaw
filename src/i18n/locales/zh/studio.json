@@ -1,0 +1,27 @@
+{
+    "tabs": {
+        "chat": "对话",
+        "studio": "工作室"
+    },
+    "empty": {
+        "title": "等待工作室运行时",
+        "description": "当运行时解析出可用地址后，工作室视图会显示在这里。"
+    },
+    "runtime": {
+        "loading": "正在加载运行时…",
+        "idle": "等待运行时",
+        "starting": "正在启动运行时…",
+        "ready": "运行时已就绪",
+        "restarting": "正在重启运行时…",
+        "stopping": "正在停止运行时…",
+        "error": "运行时异常",
+        "unknown": "未知运行时状态"
+    },
+    "initializing": {
+        "title": "环境初始化中",
+        "description": "正在重新准备 Python 环境并安装工作室依赖，请稍候。"
+    },
+    "actions": {
+        "retry": "重试运行时"
+    }
+}

@@ -24,9 +24,13 @@
     },
     "noLogs": "（ログはまだありません）",
     "toolbar": {
+        "office": "スタジオ",
+        "backToChat": "チャット",
         "refresh": "チャットを更新",
         "showThinking": "思考を表示",
         "hideThinking": "思考を非表示",
+        "switchToLight": "ライトテーマに切り替え",
+        "switchToDark": "ダークテーマに切り替え",
         "hideSessionPane": "セッション一覧を隠す",
         "showSessionPane": "セッション一覧を表示",
         "scrollToLatest": "最新位置へ戻る"

@@ -45,6 +45,7 @@ import { weixinGuardianService } from '../utils/weixin-guardian';
 import { runSetupActivationSideEffects } from './setup-activation';
 import { applyUserDataDirOverride } from './user-data-override';
 import { createBeforeQuitHandler } from './quit-handoff';
+import { StudioService } from '../studio/service';
 
 const WINDOWS_APP_USER_MODEL_ID = 'app.XClaw.desktop';
 
@@ -93,6 +94,7 @@ let gatewayManager!: GatewayManager;
 let gatewayRuntimeController!: GatewayRuntimeController;
 let clawHubService!: ClawHubService;
 let hostEventBus!: HostEventBus;
+let studioService!: StudioService;
 let hostApiServer: Server | null = null;
 const mainWindowFocusState = createMainWindowFocusState();
 const handleBeforeQuit = createBeforeQuitHandler({
@@ -205,6 +207,25 @@ function focusMainWindow(): void {
 
   clearPendingSecondInstanceFocus(mainWindowFocusState);
   focusWindow(mainWindow);
+}
+
+function isAllowedStudioWebviewUrl(url: string): boolean {
+  try {
+    const resolvedUrl = studioService.getRuntimeSnapshot().resolvedUrl;
+    if (!resolvedUrl) {
+      return false;
+    }
+    const candidate = new URL(url);
+    const allowed = new URL(resolvedUrl);
+    const sameHost = candidate.hostname === allowed.hostname
+      || (
+        (candidate.hostname === '127.0.0.1' || candidate.hostname === 'localhost')
+        && (allowed.hostname === '127.0.0.1' || allowed.hostname === 'localhost')
+      );
+    return candidate.protocol === allowed.protocol && sameHost && candidate.port === allowed.port;
+  } catch {
+    return false;
+  }
 }
 
 function createMainWindow(): BrowserWindow {
@@ -323,6 +344,7 @@ async function initialize(): Promise<void> {
     gatewayManager,
     gatewayRuntimeController,
     clawHubService,
+    studioService,
     eventBus: hostEventBus,
     mainWindow: window,
   };
@@ -390,6 +412,11 @@ async function initialize(): Promise<void> {
     hostEventBus.emit('oauth:error', error);
   });
 
+  studioService.on('runtime-snapshot', (snapshot) => {
+    hostEventBus.emit('studioRuntimeChanged', snapshot);
+    mainWindow?.webContents.send('studioRuntimeChanged', snapshot);
+  });
+
   browserOAuthManager.on('oauth:start', (payload) => {
     hostEventBus.emit('oauth:start', payload);
   });
@@ -424,6 +451,9 @@ async function initialize(): Promise<void> {
       runtimeController: gatewayRuntimeController,
       mainWindow,
     });
+    void studioService.start().catch((error) => {
+      logger.warn('Failed to start Studio runtime:', error);
+    });
   } else {
     logger.info('Setup takeover is still pending; startup side effects are suspended');
   }
@@ -439,6 +469,7 @@ if (gotTheLock) {
   gatewayManager.setRecoveryArbiter(() => gatewayRuntimeController.shouldAutoRecover());
   clawHubService = new ClawHubService();
   hostEventBus = new HostEventBus();
+  studioService = new StudioService(gatewayManager);
 
   // When a second instance is launched, focus the existing window instead.
   app.on('second-instance', () => {
@@ -458,6 +489,29 @@ if (gotTheLock) {
   });
 
   // Application lifecycle
+  app.on('web-contents-created', (_event, contents) => {
+    contents.on('will-attach-webview', (event, webPreferences, params) => {
+      webPreferences.nodeIntegration = false;
+      webPreferences.contextIsolation = true;
+      webPreferences.sandbox = true;
+      delete webPreferences.preload;
+      if (!isAllowedStudioWebviewUrl(params.src)) {
+        event.preventDefault();
+      }
+    });
+
+    if (contents.getType() !== 'webview') {
+      return;
+    }
+
+    contents.setWindowOpenHandler(() => ({ action: 'deny' }));
+    contents.on('will-navigate', (event, url) => {
+      if (!isAllowedStudioWebviewUrl(url)) {
+        event.preventDefault();
+      }
+    });
+  });
+
   app.whenReady().then(() => {
     applyPlatformAppIcon();
 
@@ -483,6 +537,9 @@ if (gotTheLock) {
   });
 
   app.on('before-quit', handleBeforeQuit);
+  app.on('before-quit', () => {
+    void studioService.stop();
+  });
 }
 
 // Export for testing

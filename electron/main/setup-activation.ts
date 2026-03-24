@@ -16,6 +16,7 @@ import { runTakeoverReconciler } from './takeover-reconciler';
 import { readOpenClawConfig, writeOpenClawConfig } from '../utils/channel-config';
 import { withConfigLock } from '../utils/config-mutex';
 import { validateWorkspacePathInput } from '../utils/workspace-path';
+import { injectStarOfficePrompt } from '../studio/prompt-injector';
 
 type SetupActivationOptions = {
   gatewayManager: GatewayManager;
@@ -73,9 +74,9 @@ async function resolveSetupActivationDesiredState(): Promise<GatewayDesiredState
 
 async function applyFreshSetupSelections(
   options: Pick<SetupActivationOptions, 'gatewayManager' | 'setup'>,
-): Promise<void> {
+): Promise<string | null> {
   if (options.setup?.mode !== 'fresh') {
-    return;
+    return null;
   }
 
   const gatewayPort = normalizeRequestedGatewayPort(options.setup.gatewayPort);
@@ -115,6 +116,23 @@ async function applyFreshSetupSelections(
 
     await writeOpenClawConfig(config);
   });
+
+  return workspaceValidation.normalizedPath;
+}
+
+async function resolveConfiguredWorkspacePath(): Promise<string | null> {
+  const config = await readOpenClawConfig();
+  const agents = config.agents && typeof config.agents === 'object'
+    ? config.agents as Record<string, unknown>
+    : {};
+  const defaults = agents.defaults && typeof agents.defaults === 'object'
+    ? agents.defaults as Record<string, unknown>
+    : {};
+  const requestedWorkspace = typeof defaults.workspace === 'string' && defaults.workspace.trim()
+    ? defaults.workspace.trim()
+    : join(homedir(), '.openclaw', 'workspace');
+  const workspaceValidation = validateWorkspacePathInput(requestedWorkspace);
+  return workspaceValidation.normalizedPath;
 }
 
 async function captureFreshSetupRollbackSnapshot(
@@ -194,15 +212,28 @@ export async function runSetupActivationSideEffects(
     throw new Error('网关端口必须是 1-65535 的整数');
   }
   const freshRollbackSnapshot = await captureFreshSetupRollbackSnapshot(options);
+  const runBackgroundTask = (task: () => Promise<void>, errorMessage: string): void => {
+    void task().catch((error) => {
+      logger.warn(errorMessage, error);
+    });
+  };
 
   try {
-    await applyFreshSetupSelections(options);
+    const freshWorkspacePath = await applyFreshSetupSelections(options);
     await applyTakeoverSetupSelections(options);
-    const runBackgroundTask = (task: () => Promise<void>, errorMessage: string): void => {
-      void task().catch((error) => {
-        logger.warn(errorMessage, error);
-      });
-    };
+
+    const workspacePathForPromptInjection = freshWorkspacePath ?? await resolveConfiguredWorkspacePath().catch((error) => {
+      logger.warn('Failed to resolve workspace for Star Office prompt injection:', error);
+      return null;
+    });
+    if (workspacePathForPromptInjection) {
+      runBackgroundTask(async () => {
+        const result = await injectStarOfficePrompt(workspacePathForPromptInjection);
+        if (result.warning) {
+          logger.warn(result.warning);
+        }
+      }, 'Failed to inject Star Office prompt into workspace:');
+    }
 
     const gatewayDesiredState = await resolveSetupActivationDesiredState();
     if (gatewayDesiredState === 'running') {

@@ -1354,6 +1354,77 @@
   color: hsl(var(--foreground) / 0.94);
 }
 
+.app-chat-toolbar-button--studio {
+  background:
+    radial-gradient(circle at 14% 16%, hsl(var(--primary) / 0.08) 0%, transparent 44%),
+    linear-gradient(180deg, hsl(var(--surface-elevated) / 0.996) 0%, hsl(var(--surface-base) / 0.988) 100%);
+  border-color: hsl(var(--primary) / 0.16);
+  box-shadow:
+    inset 0 1px 0 hsl(var(--surface-elevated) / 0.94),
+    inset 0 0 0 1px hsl(var(--primary) / 0.035),
+    0 8px 18px hsl(var(--foreground) / 0.04);
+  color: hsl(var(--foreground) / 0.86);
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.app-chat-toolbar-button--studio:hover {
+  background:
+    radial-gradient(circle at 14% 16%, hsl(var(--primary) / 0.12) 0%, transparent 46%),
+    linear-gradient(180deg, hsl(var(--surface-elevated) / 1) 0%, hsl(var(--surface-base) / 1) 100%);
+  border-color: hsl(var(--primary) / 0.24);
+  box-shadow:
+    inset 0 1px 0 hsl(var(--surface-elevated) / 0.96),
+    inset 0 0 0 1px hsl(var(--primary) / 0.055),
+    0 10px 22px hsl(var(--foreground) / 0.05);
+  color: hsl(var(--foreground) / 0.96);
+  transform: translateY(-1px);
+}
+
+.app-chat-toolbar-button--studio-current {
+  background:
+    radial-gradient(circle at 14% 16%, hsl(var(--primary) / 0.15) 0%, transparent 48%),
+    linear-gradient(180deg, hsl(var(--primary) / 0.16) 0%, hsl(var(--primary) / 0.1) 100%);
+  border-color: hsl(var(--primary) / 0.3);
+  box-shadow:
+    inset 0 1px 0 hsl(var(--background) / 0.62),
+    inset 0 0 0 1px hsl(var(--primary) / 0.09),
+    0 10px 24px hsl(var(--primary) / 0.08);
+  color: hsl(var(--primary));
+}
+
+.app-chat-toolbar-button--studio-current:hover {
+  background:
+    radial-gradient(circle at 14% 16%, hsl(var(--primary) / 0.18) 0%, transparent 50%),
+    linear-gradient(180deg, hsl(var(--primary) / 0.18) 0%, hsl(var(--primary) / 0.12) 100%);
+  border-color: hsl(var(--primary) / 0.34);
+  color: hsl(var(--primary));
+}
+
+.app-chat-toolbar-button--studio svg {
+  transition: transform 180ms ease, color 180ms ease;
+}
+
+.app-chat-toolbar-button--studio:hover svg {
+  transform: translateY(-0.5px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-chat-toolbar-button--studio,
+  .app-chat-toolbar-button--studio svg {
+    transition: none;
+  }
+
+  .app-chat-toolbar-button--studio:hover,
+  .app-chat-toolbar-button--studio:hover svg {
+    transform: none;
+  }
+}
+
 .app-chat-toolbar-button--active {
   background:
     linear-gradient(180deg, hsl(var(--danger) / 0.1) 0%, hsl(var(--danger) / 0.07) 100%);
@@ -2705,7 +2776,7 @@
 }
 
 .app-chat-hoverbar--floating {
-  backdrop-filter: blur(10px);
+  backdrop-filter: none;
 }
 
 .app-chat-meta-row {
@@ -2946,8 +3017,32 @@
 }
 
 .dark .app-chat-bubble-user {
-  background: hsl(var(--primary) / 0.14);
-  border-color: hsl(var(--primary) / 0.18);
+  background: linear-gradient(180deg, hsl(var(--primary) / 0.16) 0%, hsl(var(--primary) / 0.22) 100%);
+  border-color: hsl(var(--primary) / 0.28);
+  color: hsl(var(--foreground));
+}
+
+.dark .app-chat-bubble-assistant {
+  color: hsl(var(--foreground) / 0.94);
+}
+
+.dark .app-chat-hoverbar {
+  background: hsl(var(--surface-elevated) / 0.94);
+  border-color: hsl(var(--border-subtle) / 0.84);
+  box-shadow: 0 10px 24px hsl(0 0% 0% / 0.24);
+}
+
+.dark .app-chat-meta-row {
+  color: hsl(var(--muted-foreground) / 0.86);
+}
+
+.dark .app-chat-meta-action {
+  color: hsl(var(--foreground) / 0.72);
+}
+
+.dark .app-chat-meta-action:hover {
+  background: hsl(var(--surface-hover) / 0.92);
+  color: hsl(var(--foreground));
 }
 
 .dark .app-chat-file-card {
