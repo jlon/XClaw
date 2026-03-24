@@ -68,3 +68,5 @@ docs/pr-session-notes-*.md
 .pnpm-store/
 .superpowers/
 .reference/
+__pycache__/
+*.pyc
