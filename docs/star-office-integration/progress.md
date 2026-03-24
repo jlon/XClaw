@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-当前阶段：设计完成，待编写实现计划
+当前阶段：实现计划已完成，待执行
 
 当前结论已经确认：
 
@@ -32,12 +32,13 @@
 - [x] 创建 `design.md` / `testing.md` / `issues.md` / `progress.md`
 - [x] 完成 3 轮子代理 spec review
 - [x] 根据 review 收敛状态快照一致性与 `webview` handoff 契约
+- [x] 产出 `implementation-plan.md`
 
 ## 下一步
 
-1. 基于本设计撰写 implementation plan
-2. 拆出 vendored runtime、主进程 sidecar 管理和注入工具三个实现模块
-3. 按测试方案补充单元测试与集成验证
+1. 按 `implementation-plan.md` 顺序执行 vendored runtime、主进程 studio service 和 renderer `/studio` 页面
+2. 按测试方案补齐单元测试、集成验证与通信回归
+3. 同步 README 与功能文档
 
 ## 当前风险
 
@@ -49,4 +50,4 @@
 ## 备注
 
 - 当前尚未进入实现阶段
-- 已完成 3 轮子代理审查，当前文档可以作为实现计划输入
+- 已完成 3 轮子代理审查，当前文档已收敛为可执行实现计划
