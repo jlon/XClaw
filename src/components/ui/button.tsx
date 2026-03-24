@@ -9,7 +9,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-[11px] border border-transparent text-sm font-medium ring-offset-background transition-[background-color,color,border-color,box-shadow] duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/18 focus-visible:ring-offset-0 disabled:pointer-events-none disabled:opacity-50',
+  'workbench-motion-button inline-flex items-center justify-center whitespace-nowrap rounded-[11px] border border-transparent text-sm font-medium ring-offset-background focus:outline-none focus-visible:outline-none focus-visible:border-ring focus-visible:ring-0 disabled:pointer-events-none disabled:opacity-50 motion-safe:active:translate-y-[0.5px]',
   {
     variants: {
       variant: {

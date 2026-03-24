@@ -51,6 +51,10 @@
   - 统一范围只包含：导航反馈、资源卡 hover、工具带控件、pane 换挡、reduced motion
   - 明确禁止 scale、bounce、blur 浮动和大面积呼吸
   - 不再允许 `transition-all` 和分散的 `150/180/200ms` 各自为政
+- [x] 共享按钮动效 grammar 已继续收平
+  - `Button / Tabs / Switch` 已接入统一的 `workbench-motion-button`
+  - 工作台 header CTA、icon button、Setup 模式切换、Provider 选择卡、Agent mode switch 不再各写一套 `transition-all`
+  - 聊天标题栏按钮与输入区工具按钮也已补齐同一套 hover / press / reduced-motion 纪律
 
 ## 三轮 review 结论
 

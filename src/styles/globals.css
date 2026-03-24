@@ -1345,6 +1345,12 @@
     inset 0 1px 0 hsl(var(--surface-elevated) / 0.92),
     0 8px 18px hsl(var(--foreground) / 0.04);
   color: hsl(var(--muted-foreground) / 0.82);
+  transition:
+    background-color var(--motion-fast) ease-out,
+    border-color var(--motion-fast) ease-out,
+    color var(--motion-fast) ease-out,
+    box-shadow var(--motion-fast) ease-out,
+    transform var(--motion-fast) ease-out;
 }
 
 .app-chat-toolbar-button:hover {
@@ -1352,6 +1358,11 @@
     linear-gradient(180deg, hsl(var(--surface-elevated) / 1) 0%, hsl(var(--surface-base) / 1) 100%);
   border-color: hsl(var(--border-subtle) / 1);
   color: hsl(var(--foreground) / 0.94);
+  transform: translateY(-1px);
+}
+
+.app-chat-toolbar-button:active {
+  transform: translateY(0);
 }
 
 .app-chat-toolbar-button--studio {
@@ -1414,11 +1425,24 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .workbench-motion-button,
+  .workbench-motion-control,
+  .workbench-motion-card,
+  .workbench-motion-pane,
+  .workbench-motion-icon,
+  .app-chat-toolbar-button,
+  .app-chat-composer-tool-button,
   .app-chat-toolbar-button--studio,
   .app-chat-toolbar-button--studio svg {
     transition: none;
   }
 
+  .workbench-motion-button--lift:hover,
+  .workbench-motion-button--lift:active,
+  .app-chat-toolbar-button:hover,
+  .app-chat-toolbar-button:active,
+  .app-chat-composer-tool-button:hover,
+  .app-chat-composer-tool-button:active,
   .app-chat-toolbar-button--studio:hover,
   .app-chat-toolbar-button--studio:hover svg {
     transform: none;
@@ -1830,11 +1854,16 @@
   border-color: #ececee;
   color: hsl(var(--foreground));
   box-shadow: 0 4px 12px rgb(18 24 33 / 0.04);
+  transform: translateY(-1px);
 }
 
 .app-chat-composer-tool-button:focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px hsl(var(--ring) / 0.12);
+}
+
+.app-chat-composer-tool-button:active {
+  transform: translateY(0);
 }
 
 .app-chat-composer-tool-button--active {
@@ -4312,7 +4341,26 @@
     border-color var(--motion-fast) ease-out,
     color var(--motion-fast) ease-out,
     box-shadow var(--motion-fast) ease-out,
-    opacity var(--motion-fast) ease-out;
+    opacity var(--motion-fast) ease-out,
+    transform var(--motion-fast) ease-out;
+}
+
+.workbench-motion-button {
+  transition:
+    background-color var(--motion-fast) ease-out,
+    border-color var(--motion-fast) ease-out,
+    color var(--motion-fast) ease-out,
+    box-shadow var(--motion-fast) ease-out,
+    opacity var(--motion-fast) ease-out,
+    transform var(--motion-fast) ease-out;
+}
+
+.workbench-motion-button--lift:hover {
+  transform: translateY(-1px);
+}
+
+.workbench-motion-button--lift:active {
+  transform: translateY(0);
 }
 
 .workbench-motion-card {

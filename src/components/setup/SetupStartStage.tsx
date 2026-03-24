@@ -105,7 +105,7 @@ function TakeoverStartContent({
           onClick={() => onModeChange('takeover')}
           disabled={modeLocked}
           className={cn(
-            'rounded-[1.1rem] px-4 py-3 text-left transition-all min-w-[13.5rem]',
+            'workbench-motion-button workbench-motion-button--lift rounded-[1.1rem] px-4 py-3 text-left min-w-[13.5rem]',
             mode === 'takeover'
               ? 'app-field-surface shadow-sm'
               : 'text-muted-foreground hover:bg-[hsl(var(--surface-hover)/0.75)] hover:text-foreground',
@@ -120,7 +120,7 @@ function TakeoverStartContent({
           onClick={() => onModeChange('fresh')}
           disabled={modeLocked}
           className={cn(
-            'rounded-[1.1rem] px-4 py-3 text-left transition-all min-w-[13.5rem]',
+            'workbench-motion-button workbench-motion-button--lift rounded-[1.1rem] px-4 py-3 text-left min-w-[13.5rem]',
             mode === 'fresh'
               ? 'app-field-surface shadow-sm'
               : 'text-muted-foreground hover:bg-[hsl(var(--surface-hover)/0.75)] hover:text-foreground',

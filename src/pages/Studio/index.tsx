@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertCircle, Loader2, RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   fetchStudioRuntime,
   retryStudioRuntime,
+  subscribeStudioSurfaceSuspend,
   subscribeStudioRuntimeChanged,
 } from '@/lib/studio';
 import type { StudioRuntimeSnapshot } from '@/types/studio';
@@ -35,6 +36,7 @@ export function Studio() {
   const [loading, setLoading] = useState(true);
   const [retrying, setRetrying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [suspending, setSuspending] = useState(false);
   const runtimeShellRef = useRef<HTMLDivElement | null>(null);
   const webviewRef = useRef<StudioWebViewElement | null>(null);
 
@@ -61,6 +63,10 @@ export function Studio() {
     setLoading(false);
   }), []);
 
+  useEffect(() => subscribeStudioSurfaceSuspend(() => {
+    setSuspending(true);
+  }), []);
+
   const resolvedUrl = typeof runtime?.resolvedUrl === 'string' ? runtime.resolvedUrl.trim() : '';
   const runtimeStatus = typeof runtime?.status === 'string'
     ? runtime.status.trim().toLowerCase()
@@ -73,10 +79,10 @@ export function Studio() {
   const runtimeInstanceKey = runtime?.runtimeInstanceId != null
     ? String(runtime.runtimeInstanceId)
     : resolvedUrl || 'studio-runtime';
-  const canRenderWebview = runtimeStatus === 'ready' && resolvedUrl.length > 0;
+  const canRenderWebview = !suspending && runtimeStatus === 'ready' && resolvedUrl.length > 0;
   const showInitializingMask = retrying || runtimeStatus === 'starting' || runtimeStatus === 'restarting';
 
-  const statusLabel = useMemo(() => {
+  const statusLabel = (() => {
     if (loading && !runtime) {
       return t('runtime.loading');
     }
@@ -91,7 +97,7 @@ export function Studio() {
       return t(`runtime.${statusKey}`);
     }
     return runtimeStatus ? runtimeStatus : t('runtime.unknown');
-  }, [error, loading, runtimeIssueText, runtimeStatus, t]);
+  })();
 
   const handleRetry = useCallback(async () => {
     setRetrying(true);
@@ -208,6 +214,8 @@ export function Studio() {
                 flex: '1 1 auto',
               }}
             />
+          ) : suspending ? (
+            <div className="h-full w-full bg-[hsl(var(--background))]" />
           ) : (
             <div className="flex h-full min-h-[520px] items-center justify-center px-6 py-8">
               <div className="max-w-[560px] rounded-[24px] border border-border/70 bg-[hsl(var(--surface-base)/0.9)] p-6 text-center shadow-[0_10px_30px_rgba(15,23,42,0.05)]">

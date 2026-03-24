@@ -27,7 +27,7 @@ export function AgentModeSwitch({ value, onChange, className }: AgentModeSwitchP
         onClick={() => onChange('agents')}
         aria-pressed={value === 'agents'}
         className={cn(
-          'flex h-8 min-w-[88px] items-center justify-center gap-2 whitespace-nowrap rounded-[12px] px-3 text-[12.5px] font-medium tracking-[-0.01em] transition-colors',
+          'workbench-motion-button flex h-8 min-w-[88px] items-center justify-center gap-2 whitespace-nowrap rounded-[12px] px-3 text-[12.5px] font-medium tracking-[-0.01em]',
           value === 'agents'
             ? 'bg-[hsl(var(--surface-panel)/0.72)] text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.78)]'
             : 'text-foreground/58 hover:text-foreground',
@@ -41,7 +41,7 @@ export function AgentModeSwitch({ value, onChange, className }: AgentModeSwitchP
         onClick={() => onChange('market')}
         aria-pressed={value === 'market'}
         className={cn(
-          'flex h-8 min-w-[88px] items-center justify-center gap-2 whitespace-nowrap rounded-[12px] px-3 text-[12.5px] font-medium tracking-[-0.01em] transition-colors',
+          'workbench-motion-button flex h-8 min-w-[88px] items-center justify-center gap-2 whitespace-nowrap rounded-[12px] px-3 text-[12.5px] font-medium tracking-[-0.01em]',
           value === 'market'
             ? 'bg-[hsl(var(--surface-panel)/0.72)] text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.78)]'
             : 'text-foreground/58 hover:text-foreground',
