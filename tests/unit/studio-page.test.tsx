@@ -1,5 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, render, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { Studio } from '@/pages/Studio';
 
 const {
@@ -64,6 +64,20 @@ describe('studio page', () => {
     studioRuntimeState.resolvedUrl = 'http://127.0.0.1:3211/electron-standalone?embedded=1&readonly=1';
     studioRuntimeState.runtimeInstanceId = 'runtime-1';
     studioRuntimeState.lastError = null;
+  });
+
+  it('centers the empty-state card when the runtime is unavailable', async () => {
+    studioRuntimeState.status = 'runtime-error';
+    studioRuntimeState.resolvedUrl = null;
+    studioRuntimeState.lastError = 'Studio runtime exited with code 1';
+
+    render(<Studio />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('studio-empty-state')).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId('studio-empty-state')).toHaveClass('grid', 'w-full', 'place-items-center');
   });
 
   it('does not execute the focused-agent marker script before webview dom-ready', async () => {

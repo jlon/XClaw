@@ -105,7 +105,30 @@ describe('setup wizard shell', () => {
     );
 
     expect(screen.queryByRole('button', { name: '进入 XClaw' })).not.toBeInTheDocument();
-    expect(screen.getByText('正在应用变更')).toBeInTheDocument();
+    expect(screen.getByTestId('setup-footer-body')).toHaveClass('justify-end');
+    expect(screen.getByTestId('setup-footer-shell')).toHaveClass('justify-end');
+    expect(screen.getByTestId('setup-footer-shell')).toHaveClass('py-3');
+    expect(screen.getByTestId('setup-footer-shell')).not.toHaveClass('min-h-[5.5rem]');
+    expect(screen.getByTestId('setup-footer-body')).not.toHaveClass('min-h-[5.5rem]');
+    expect(screen.queryByText('正在应用变更')).not.toBeInTheDocument();
+  });
+
+  it('keeps the start-step footer as a right-aligned action row without helper copy', () => {
+    render(
+      <SetupFooter
+        stage="start"
+        canProceed
+        onPrimary={vi.fn()}
+        onExit={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: '退出引导' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '下一步' })).toBeInTheDocument();
+    expect(screen.getByTestId('setup-footer-body')).toHaveClass('justify-end');
+    expect(screen.getByTestId('setup-footer-shell')).toHaveClass('justify-end');
+    expect(screen.queryByText('开始引导')).not.toBeInTheDocument();
+    expect(screen.queryByText('先确认怎么开始，再继续后面的准备和接入。')).not.toBeInTheDocument();
   });
 
   it('hides the primary action while the required enhancement step is active', () => {
@@ -121,7 +144,8 @@ describe('setup wizard shell', () => {
     );
 
     expect(screen.queryByRole('button', { name: '进入 XClaw' })).not.toBeInTheDocument();
-    expect(screen.getByText('准备核心环境')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '返回' })).toBeInTheDocument();
+    expect(screen.queryByText('准备核心环境')).not.toBeInTheDocument();
   });
 
   it('renders the welcome stage as a branded desktop-style hero instead of a plain utility card', () => {

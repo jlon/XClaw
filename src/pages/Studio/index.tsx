@@ -238,8 +238,8 @@ export function Studio() {
               }}
             />
           ) : (
-            <div className="flex h-full min-h-[520px] items-center justify-center px-6 py-8">
-              <div className="max-w-[560px] rounded-[24px] border border-border/70 bg-[hsl(var(--surface-base)/0.9)] p-6 text-center shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
+            <div data-testid="studio-empty-state" className="grid h-full min-h-[520px] w-full place-items-center px-6 py-8">
+              <div className="mx-auto w-full max-w-[560px] rounded-[24px] border border-border/70 bg-[hsl(var(--surface-base)/0.9)] p-6 text-center shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
                 <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl border border-border/70 bg-[hsl(var(--surface-elevated)/0.94)] text-foreground/72">
                   {loading && !runtime ? (
                     <Loader2 className="h-5 w-5 animate-spin" />

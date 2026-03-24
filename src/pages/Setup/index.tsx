@@ -74,6 +74,14 @@ import {
 // Use the shared provider registry for setup providers
 const providers = SETUP_PROVIDERS;
 
+type SetupEnvironmentStatus = {
+  uvInstalled: boolean;
+  pythonReady: boolean;
+  studioDependenciesReady: boolean;
+  studioInterpreterReady: boolean;
+  studioError?: string | null;
+};
+
 function getProtocolBaseUrlPlaceholder(
   apiProtocol: ProviderAccount['apiProtocol'],
 ): string {
@@ -173,11 +181,8 @@ export function Setup() {
 
   const resolveCompletionPhase = useCallback(async (): Promise<SetupCompletePhase> => {
     try {
-      const status = await invokeIpc('uv:status') as {
-        uvInstalled: boolean;
-        pythonReady: boolean;
-      };
-      const shouldShowEnhancements = !(status.uvInstalled && status.pythonReady);
+      const status = await invokeIpc('setup:environment-status') as SetupEnvironmentStatus;
+      const shouldShowEnhancements = !(status.uvInstalled && status.pythonReady && status.studioDependenciesReady);
       setEnhancementStepRequired(shouldShowEnhancements);
       return shouldShowEnhancements ? 'enhancements' : 'summary';
     } catch {
@@ -1633,13 +1638,14 @@ function CompleteContent({ completePhase, selectedProvider, onEnhancementPrepare
   const gatewayStatus = useGatewayStore((state) => state.status);
   const providerData = providers.find((p) => p.id === selectedProvider);
   const isEnhancementPhase = completePhase === 'enhancements';
+  const isApplyingPhase = completePhase === 'applying';
 
   return (
     <SetupCompleteStage
       phase={completePhase}
-      title={isEnhancementPhase ? t('complete.enhancements.stageTitle') : t('complete.title')}
-      subtitle={isEnhancementPhase ? t('complete.enhancements.stageSubtitle') : t('complete.subtitle')}
-      summaryCards={!isEnhancementPhase ? [
+      title={isApplyingPhase ? t('complete.applying.title') : isEnhancementPhase ? t('complete.enhancements.stageTitle') : t('complete.title')}
+      subtitle={isApplyingPhase ? t('complete.applying.subtitle') : isEnhancementPhase ? t('complete.enhancements.stageSubtitle') : t('complete.subtitle')}
+      summaryCards={!isEnhancementPhase && !isApplyingPhase ? [
         {
           label: t('complete.provider'),
           value: providerData ? (
@@ -1661,8 +1667,21 @@ function CompleteContent({ completePhase, selectedProvider, onEnhancementPrepare
           hint: gatewayStatus.state === 'running' ? undefined : t('complete.gatewayPendingHint'),
         },
       ] : undefined}
-      footerNote={isEnhancementPhase ? undefined : t('complete.footer')}
+      footerNote={isApplyingPhase ? undefined : isEnhancementPhase ? undefined : t('complete.footer')}
     >
+      {completePhase === 'applying' ? (
+        <div className="rounded-[1.5rem] border border-border/70 app-insight-surface p-5">
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/70 bg-[hsl(var(--surface-elevated)/0.95)] text-primary">
+              <Loader2 className="h-5 w-5 animate-spin" />
+            </span>
+            <div className="space-y-2">
+              <div className="text-sm font-medium text-foreground">{t('wizard.footer.applying.title')}</div>
+              <div className="text-sm leading-6 text-muted-foreground">{t('complete.applying.details')}</div>
+            </div>
+          </div>
+        </div>
+      ) : null}
       {completePhase === 'enhancements' ? <OptionalEnhancementPanel onPrepared={onEnhancementPrepared} /> : null}
     </SetupCompleteStage>
   );
@@ -1670,37 +1689,37 @@ function CompleteContent({ completePhase, selectedProvider, onEnhancementPrepare
 
 function OptionalEnhancementPanel({ onPrepared }: { onPrepared: () => void }) {
   const { t } = useTranslation('setup');
-  type EnhancementRuntimeStatus = {
-    uvInstalled: boolean;
-    pythonReady: boolean;
-  };
   const [status, setStatus] = useState<{
     loading: boolean;
     uvInstalled: boolean;
     pythonReady: boolean;
+    studioDependenciesReady: boolean;
     preparing: boolean;
     error: string | null;
   }>({
     loading: true,
     uvInstalled: false,
     pythonReady: false,
+    studioDependenciesReady: false,
     preparing: false,
     error: null,
   });
 
-  const refreshStatus = useCallback(async (): Promise<EnhancementRuntimeStatus | null> => {
+  const refreshStatus = useCallback(async (): Promise<SetupEnvironmentStatus | null> => {
     setStatus((current) => ({
       ...current,
       loading: true,
       error: null,
     }));
     try {
-      const next = await invokeIpc('uv:status') as EnhancementRuntimeStatus;
+      const next = await invokeIpc('setup:environment-status') as SetupEnvironmentStatus;
       setStatus((current) => ({
         ...current,
         loading: false,
         uvInstalled: next.uvInstalled,
         pythonReady: next.pythonReady,
+        studioDependenciesReady: next.studioDependenciesReady,
+        error: next.studioError ?? null,
       }));
       return next;
     } catch (error) {
@@ -1724,7 +1743,7 @@ function OptionalEnhancementPanel({ onPrepared }: { onPrepared: () => void }) {
       error: null,
     }));
     try {
-      const result = await invokeIpc('uv:install-all') as {
+      const result = await invokeIpc('setup:prepare-environment') as {
         success: boolean;
         error?: string;
       };
@@ -1732,7 +1751,7 @@ function OptionalEnhancementPanel({ onPrepared }: { onPrepared: () => void }) {
         throw new Error(result.error || t('complete.enhancements.prepareFailed'));
       }
       const nextStatus = await refreshStatus();
-      if (!nextStatus?.uvInstalled || !nextStatus.pythonReady) {
+      if (!nextStatus?.uvInstalled || !nextStatus.pythonReady || !nextStatus.studioDependenciesReady) {
         throw new Error(t('complete.enhancements.prepareIncomplete'));
       }
       toast.success(t('complete.enhancements.readyTitle'));
@@ -1751,7 +1770,7 @@ function OptionalEnhancementPanel({ onPrepared }: { onPrepared: () => void }) {
     }
   }, [onPrepared, refreshStatus, t]);
 
-  const environmentReady = status.uvInstalled && status.pythonReady;
+  const environmentReady = status.uvInstalled && status.pythonReady && status.studioDependenciesReady;
   const enhancementItems = [
     {
       id: 'uv',
@@ -1762,6 +1781,11 @@ function OptionalEnhancementPanel({ onPrepared }: { onPrepared: () => void }) {
       id: 'python',
       label: t('complete.enhancements.pythonLabel'),
       ready: status.pythonReady,
+    },
+    {
+      id: 'studio',
+      label: t('complete.enhancements.studioLabel'),
+      ready: status.studioDependenciesReady,
     },
   ];
 

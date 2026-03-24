@@ -242,6 +242,11 @@
     "complete": {
         "title": "设置完成！",
         "subtitle": "XClaw 已配置并准备就绪。您现在可以开始与您的 AI 助手聊天了。",
+        "applying": {
+            "title": "正在完成设置",
+            "subtitle": "XClaw 正在写入最终配置并启动核心服务，请保持窗口打开。",
+            "details": "通常只需要几秒钟，完成后会自动进入应用。"
+        },
         "provider": "AI 提供商",
         "components": "组件",
         "gateway": "网关",
@@ -251,17 +256,18 @@
         "gatewayPendingHint": "Gateway 尚未进入运行态时，进入应用后仍会继续接管启动。",
         "enhancements": {
             "stageTitle": "准备核心环境",
-            "stageSubtitle": "先确认 Python 运行时与 uv 已就绪，再进入最终摘要。",
-            "title": "Python 运行环境",
-            "requiredBody": "Python 是 XClaw 的核心要求。若本机已有 uv 或 Python 运行时，会优先直接复用；否则必须先完成准备。",
+            "stageSubtitle": "先确认 uv、Python 运行时和工作室依赖都已就绪，再进入最终摘要。",
+            "title": "核心运行环境",
+            "requiredBody": "XClaw 会在这里准备 uv、Python 运行时，以及工作室所需的 Python 依赖。若本机已有可复用环境，会优先直接复用；否则必须先完成准备。",
             "readyTitle": "增强能力已就绪",
-            "readyBody": "已检测到可复用的本机环境。你可以直接进入最终摘要。",
+            "readyBody": "已检测到可复用的本机环境与工作室依赖。你可以直接进入最终摘要。",
             "prepareNow": "准备核心环境",
             "preparing": "准备中...",
             "prepareFailed": "增强能力准备失败",
-            "prepareIncomplete": "核心环境尚未完成，请稍后重试。",
+            "prepareIncomplete": "核心环境或工作室依赖尚未完成，请稍后重试。",
             "uvLabel": "uv 环境",
             "pythonLabel": "Python 运行时",
+            "studioLabel": "工作室运行时",
             "checking": "检查中",
             "reused": "已复用",
             "notReady": "尚未就绪",
@@ -337,7 +343,7 @@
             },
             "applying": {
                 "title": "正在应用变更",
-                "body": "请保持窗口打开，完成后会自动进入摘要。"
+                "body": "请保持窗口打开，完成后会自动进入应用。"
             }
         },
         "exitDialog": {

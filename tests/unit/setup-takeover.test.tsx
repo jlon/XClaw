@@ -179,23 +179,27 @@ const { tMock } = vi.hoisted(() => ({
     'nav.getStarted': '开始使用',
     'complete.title': '设置完成！',
     'complete.subtitle': 'XClaw 已配置并准备就绪。',
+    'complete.applying.title': '正在完成设置',
+    'complete.applying.subtitle': 'XClaw 正在写入最终配置并启动核心服务，请保持窗口打开。',
+    'complete.applying.details': '通常只需要几秒钟，完成后会自动进入应用。',
     'complete.provider': 'AI 提供商',
     'complete.gateway': '网关',
     'complete.running': '运行中',
     'complete.footer': '你可以在设置中继续调整其它能力。',
     'complete.gatewayPendingHint': '网关还在准备中。',
     'complete.enhancements.stageTitle': '准备核心环境',
-    'complete.enhancements.stageSubtitle': '先确认 Python 运行时与 uv 已就绪，再进入最终摘要。',
-    'complete.enhancements.title': 'Python 运行环境',
-    'complete.enhancements.requiredBody': 'Python 是 XClaw 的核心要求。若本机已有 uv 或 Python 运行时，会优先直接复用；否则必须先完成准备。',
+    'complete.enhancements.stageSubtitle': '先确认 uv、Python 运行时和工作室依赖都已就绪，再进入最终摘要。',
+    'complete.enhancements.title': '核心运行环境',
+    'complete.enhancements.requiredBody': 'XClaw 会在这里准备 uv、Python 运行时，以及工作室所需的 Python 依赖。若本机已有可复用环境，会优先直接复用；否则必须先完成准备。',
     'complete.enhancements.readyTitle': '增强能力已就绪',
-    'complete.enhancements.readyBody': '已检测到可复用的本机环境。',
+    'complete.enhancements.readyBody': '已检测到可复用的本机环境与工作室依赖。',
     'complete.enhancements.prepareNow': '准备核心环境',
     'complete.enhancements.preparing': '准备中...',
     'complete.enhancements.prepareFailed': '增强能力准备失败',
-    'complete.enhancements.prepareIncomplete': '核心环境尚未完成，请稍后重试。',
+    'complete.enhancements.prepareIncomplete': '核心环境或工作室依赖尚未完成，请稍后重试。',
     'complete.enhancements.uvLabel': 'uv 环境',
     'complete.enhancements.pythonLabel': 'Python 运行时',
+    'complete.enhancements.studioLabel': '工作室运行时',
     'complete.enhancements.checking': '检查中',
     'complete.enhancements.reused': '已复用',
     'complete.enhancements.notReady': '尚未就绪',
@@ -223,7 +227,13 @@ vi.mock('sonner', () => ({
 }));
 
 describe('Setup takeover flow', () => {
-  let uvRuntimeState: { uvInstalled: boolean; pythonReady: boolean };
+  let environmentState: {
+    uvInstalled: boolean;
+    pythonReady: boolean;
+    studioDependenciesReady: boolean;
+    studioInterpreterReady: boolean;
+    studioError: string | null;
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -235,18 +245,24 @@ describe('Setup takeover flow', () => {
     gatewayState.status = { state: 'stopped', port: 18789 };
     gatewayState.init = vi.fn().mockResolvedValue(undefined);
     gatewayState.start = vi.fn();
-    uvRuntimeState = {
+    environmentState = {
       uvInstalled: false,
       pythonReady: false,
+      studioDependenciesReady: false,
+      studioInterpreterReady: false,
+      studioError: null,
     };
     invokeIpcMock.mockImplementation(async (channel: string) => {
-      if (channel === 'uv:status') {
-        return uvRuntimeState;
+      if (channel === 'setup:environment-status') {
+        return environmentState;
       }
-      if (channel === 'uv:install-all') {
-        uvRuntimeState = {
+      if (channel === 'setup:prepare-environment') {
+        environmentState = {
           uvInstalled: true,
           pythonReady: true,
+          studioDependenciesReady: true,
+          studioInterpreterReady: true,
+          studioError: null,
         };
         return {
           success: true,
@@ -583,7 +599,7 @@ describe('Setup takeover flow', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Python 运行环境')).toBeInTheDocument();
+      expect(screen.getByText('核心运行环境')).toBeInTheDocument();
       expect(screen.getByRole('button', { name: '准备核心环境' })).toBeEnabled();
     });
 
@@ -694,7 +710,7 @@ describe('Setup takeover flow', () => {
     fireEvent.click(screen.getByRole('button', { name: '下一步' }));
 
     await waitFor(() => {
-      expect(screen.getByText('Python 运行环境')).toBeInTheDocument();
+      expect(screen.getByText('核心运行环境')).toBeInTheDocument();
     });
 
     await waitFor(() => {
@@ -718,6 +734,179 @@ describe('Setup takeover flow', () => {
     });
     expect(navigateMock).toHaveBeenCalledWith('/');
   }, 15000);
+
+  it('shows a dedicated applying state while final setup activation is still pending', async () => {
+    let resolveActivation: ((value: { success: boolean }) => void) | null = null;
+
+    hostApiFetchMock.mockImplementation((path: string, init?: RequestInit) => {
+      if (path === '/api/app/setup-inspection') {
+        return Promise.resolve({
+          hasExistingOpenClaw: true,
+          suggestedMode: 'takeover',
+          counts: {
+            runtimeProviders: 1,
+            skills: 2,
+            extensions: 0,
+          },
+          defaultWorkspacePath: '/Users/test/.openclaw/workspace',
+        });
+      }
+
+      if (path === '/api/app/setup-plan' && init?.method === 'POST') {
+        return Promise.resolve({
+          mode: JSON.parse(String(init.body)).mode,
+          canApply: true,
+          blockingIssues: [],
+          warnings: [],
+        });
+      }
+
+      if (path === '/api/app/takeover-import' && init?.method === 'POST') {
+        return Promise.resolve({
+          state: 'complete',
+          step: 'complete',
+          importedAccountCount: 1,
+          defaultAccountId: 'moonshot',
+          warnings: [],
+          conflicts: [],
+          blockingIssues: [],
+        });
+      }
+
+      if (path === '/api/app/takeover-status' && !init) {
+        return Promise.resolve({
+          state: 'idle',
+          step: 'idle',
+          importedAccountCount: 0,
+          defaultAccountId: null,
+          warnings: [],
+          conflicts: [],
+          blockingIssues: [],
+        });
+      }
+
+      if (path === '/api/app/setup-activation' && init?.method === 'POST') {
+        return new Promise((resolve) => {
+          resolveActivation = resolve;
+        });
+      }
+
+      return Promise.reject(new Error(`Unexpected host API path: ${path}`));
+    });
+
+    render(<Setup />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText('接管现有安装').length).toBeGreaterThan(0);
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '下一步' }));
+    fireEvent.click(screen.getByRole('button', { name: '导入并继续' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '准备核心环境' })).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '准备核心环境' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '开始使用' })).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '开始使用' }));
+
+    await waitFor(() => {
+      expect(hostApiFetchMock).toHaveBeenCalledWith(
+        '/api/app/setup-activation',
+        expect.objectContaining({ method: 'POST' }),
+      );
+    });
+
+    expect(screen.getByText('正在完成设置')).toBeInTheDocument();
+    expect(screen.getByText('通常只需要几秒钟，完成后会自动进入应用。')).toBeInTheDocument();
+    expect(screen.queryByText('设置完成！')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '开始使用' })).not.toBeInTheDocument();
+
+    resolveActivation?.({ success: true });
+  });
+
+  it('keeps the enhancement step visible when only the Studio runtime dependencies are missing', async () => {
+    environmentState = {
+      uvInstalled: true,
+      pythonReady: true,
+      studioDependenciesReady: false,
+      studioInterpreterReady: true,
+      studioError: 'Studio virtual environment is missing',
+    };
+
+    hostApiFetchMock.mockImplementation((path: string, init?: RequestInit) => {
+      if (path === '/api/app/setup-inspection') {
+        return Promise.resolve({
+          hasExistingOpenClaw: true,
+          suggestedMode: 'takeover',
+          counts: {
+            runtimeProviders: 1,
+            skills: 1,
+            extensions: 0,
+          },
+          defaultWorkspacePath: '/Users/test/.openclaw/workspace',
+        });
+      }
+
+      if (path === '/api/app/setup-plan' && init?.method === 'POST') {
+        return Promise.resolve({
+          mode: JSON.parse(String(init.body)).mode,
+          canApply: true,
+          blockingIssues: [],
+          warnings: [],
+        });
+      }
+
+      if (path === '/api/app/takeover-import' && init?.method === 'POST') {
+        return Promise.resolve({
+          state: 'complete',
+          step: 'complete',
+          importedAccountCount: 1,
+          defaultAccountId: 'moonshot',
+          warnings: [],
+          conflicts: [],
+          blockingIssues: [],
+        });
+      }
+
+      if (path === '/api/app/takeover-status' && !init) {
+        return Promise.resolve({
+          state: 'idle',
+          step: 'idle',
+          importedAccountCount: 0,
+          defaultAccountId: null,
+          warnings: [],
+          conflicts: [],
+          blockingIssues: [],
+        });
+      }
+
+      return Promise.reject(new Error(`Unexpected host API path: ${path}`));
+    });
+
+    render(<Setup />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText('接管现有安装').length).toBeGreaterThan(0);
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '下一步' }));
+    fireEvent.click(screen.getByRole('button', { name: '导入并继续' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('核心运行环境')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('工作室运行时')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '准备核心环境' })).toBeEnabled();
+    });
+  });
 
   it('polls takeover status while import is still running', async () => {
     let resolveTakeoverImport: ((value: unknown) => void) | null = null;
@@ -817,7 +1006,7 @@ describe('Setup takeover flow', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Python 运行环境')).toBeInTheDocument();
+      expect(screen.getByText('核心运行环境')).toBeInTheDocument();
     });
 
     await waitFor(() => {
@@ -911,7 +1100,7 @@ describe('Setup takeover flow', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Python 运行环境')).toBeInTheDocument();
+      expect(screen.getByText('核心运行环境')).toBeInTheDocument();
     });
 
     await waitFor(() => {
@@ -997,7 +1186,7 @@ describe('Setup takeover flow', () => {
     fireEvent.click(screen.getByRole('button', { name: '下一步' }));
 
     await waitFor(() => {
-      expect(screen.getByText('Python 运行环境')).toBeInTheDocument();
+      expect(screen.getByText('核心运行环境')).toBeInTheDocument();
     });
 
     await waitFor(() => {
@@ -1120,7 +1309,7 @@ describe('Setup takeover flow', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Python 运行环境')).toBeInTheDocument();
+      expect(screen.getByText('核心运行环境')).toBeInTheDocument();
     });
 
     await waitFor(() => {
@@ -1225,7 +1414,7 @@ describe('Setup takeover flow', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Python 运行环境')).toBeInTheDocument();
+      expect(screen.getByText('核心运行环境')).toBeInTheDocument();
     });
 
     await waitFor(() => {

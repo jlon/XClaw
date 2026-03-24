@@ -32,6 +32,7 @@ import {
 } from '../utils/openclaw-auth';
 import { buildOpenClawControlUiUrl } from '../utils/openclaw-control-ui';
 import { logger } from '../utils/logger';
+import { ensureStudioPythonEnv, inspectStudioPythonEnv } from '../studio/python-env';
 import {
   saveChannelConfig,
   getChannelConfig,
@@ -1154,6 +1155,35 @@ function registerUvHandlers(): void {
     };
   });
 
+  ipcMain.handle('setup:environment-status', async () => {
+    const uvInstalled = await checkUvInstalled();
+    const pythonReady = uvInstalled ? await isPythonReady() : false;
+    const studio = uvInstalled
+      ? await inspectStudioPythonEnv().catch((error) => ({
+        uvInstalled,
+        interpreterReady: pythonReady,
+        dependenciesReady: false,
+        pythonPath: null,
+        venvPythonPath: null,
+        error: error instanceof Error ? error.message : String(error),
+      }))
+      : {
+        uvInstalled: false,
+        interpreterReady: false,
+        dependenciesReady: false,
+        pythonPath: null,
+        venvPythonPath: null,
+        error: null,
+      };
+    return {
+      uvInstalled,
+      pythonReady,
+      studioDependenciesReady: studio.dependenciesReady,
+      studioInterpreterReady: studio.interpreterReady,
+      studioError: studio.error,
+    };
+  });
+
   // Install uv and setup managed Python
   ipcMain.handle('uv:install-all', async () => {
     try {
@@ -1166,6 +1196,27 @@ function registerUvHandlers(): void {
       return { success: true };
     } catch (error) {
       console.error('Failed to setup uv/python:', error);
+      return { success: false, error: String(error) };
+    }
+  });
+
+  ipcMain.handle('setup:prepare-environment', async () => {
+    try {
+      const isInstalled = await checkUvInstalled();
+      if (!isInstalled) {
+        await installUv();
+      }
+      await setupManagedPython();
+      const studio = await ensureStudioPythonEnv();
+      if (!studio.dependenciesReady) {
+        return {
+          success: false,
+          error: studio.error || 'Studio dependencies are not ready',
+        };
+      }
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to prepare setup environment:', error);
       return { success: false, error: String(error) };
     }
   });

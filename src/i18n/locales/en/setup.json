@@ -240,6 +240,11 @@
     "complete": {
         "title": "Setup Complete!",
         "subtitle": "XClaw is configured and ready to use. You can now start chatting with your AI assistant.",
+        "applying": {
+            "title": "Finishing setup",
+            "subtitle": "XClaw is writing the final configuration and starting core services. Keep this window open.",
+            "details": "This usually only takes a few seconds. XClaw will enter the app automatically when it is done."
+        },
         "provider": "AI Provider",
         "components": "Components",
         "gateway": "Gateway",
@@ -249,17 +254,18 @@
         "gatewayPendingHint": "If the gateway is not running yet, XClaw will keep taking over the startup process after you enter the app.",
         "enhancements": {
             "stageTitle": "Prepare the core environment",
-            "stageSubtitle": "Confirm uv and the Python runtime before entering the final summary.",
-            "title": "Python runtime",
-            "requiredBody": "Python is a core XClaw requirement. If uv or a Python runtime already exists on this machine, XClaw reuses it; otherwise you must prepare it before entering the app.",
+            "stageSubtitle": "Confirm uv, the Python runtime, and the Studio dependencies before entering the final summary.",
+            "title": "Core runtime environment",
+            "requiredBody": "XClaw prepares uv, the Python runtime, and the Python dependencies required by Studio here. If this machine already has a reusable environment, XClaw uses it directly; otherwise you must finish the setup before entering the app.",
             "readyTitle": "Core environment is ready",
-            "readyBody": "A reusable local environment was found. XClaw can continue directly to the final summary.",
+            "readyBody": "A reusable local environment and Studio dependencies were found. XClaw can continue directly to the final summary.",
             "prepareNow": "Prepare the core environment",
             "preparing": "Preparing...",
             "prepareFailed": "Failed to prepare the core environment",
-            "prepareIncomplete": "The core environment is still not ready. Please try again in a moment.",
+            "prepareIncomplete": "The core environment or Studio dependencies are still not ready. Please try again in a moment.",
             "uvLabel": "uv environment",
             "pythonLabel": "Python runtime",
+            "studioLabel": "Studio runtime",
             "checking": "Checking",
             "reused": "Reused",
             "notReady": "Not ready",
@@ -333,7 +339,7 @@
             },
             "applying": {
                 "title": "Applying changes",
-                "body": "Keep this window open. The summary will appear automatically when everything is ready."
+                "body": "Keep this window open. XClaw will enter the app automatically when setup is done."
             }
         },
         "exitDialog": {

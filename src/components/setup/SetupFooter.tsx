@@ -29,28 +29,20 @@ export function SetupFooter({
   className,
 }: SetupFooterProps) {
   const { t } = useTranslation('setup');
-  const stageCopy: Record<SetupStage, { title: string; body: string; primary: string; secondary?: string }> = {
+  const stageCopy: Record<SetupStage, { primary: string; secondary?: string }> = {
     start: {
-      title: t('wizard.footer.start.title'),
-      body: t('wizard.footer.start.body'),
       primary: t('wizard.footer.start.primary'),
       secondary: t('wizard.footer.start.secondary'),
     },
     preparation: {
-      title: t('wizard.footer.preparation.title'),
-      body: t('wizard.footer.preparation.body'),
       primary: t('wizard.footer.preparation.primary'),
       secondary: t('wizard.footer.preparation.secondary'),
     },
     provider: {
-      title: t('wizard.footer.provider.title'),
-      body: t('wizard.footer.provider.body'),
       primary: t('wizard.footer.provider.primary'),
       secondary: t('wizard.footer.provider.secondary'),
     },
     complete: {
-      title: t('wizard.footer.complete.title'),
-      body: t('wizard.footer.complete.body'),
       primary: t('wizard.footer.complete.primary'),
       secondary: t('wizard.footer.complete.secondary'),
     },
@@ -61,35 +53,20 @@ export function SetupFooter({
   const showPrimary = !isApplying && !isEnhancementPhase && Boolean(onPrimary);
   const resolvedPrimary = primaryLabel ?? copy.primary;
   const resolvedSecondary = secondaryLabel ?? copy.secondary;
-  const resolvedTitle = isApplying
-    ? t('wizard.footer.applying.title')
-    : isEnhancementPhase
-      ? t('wizard.footer.enhancements.title')
-      : copy.title;
-  const resolvedBody = isApplying
-    ? t('wizard.footer.applying.body')
-    : isEnhancementPhase
-      ? t('wizard.footer.enhancements.body')
-      : copy.body;
 
   return (
-    <footer className={cn('flex min-h-[5.5rem] items-center justify-between gap-4 px-6 py-4', className)}>
+    <footer data-testid="setup-footer-shell" className={cn('flex items-center justify-end gap-4 px-6 py-3', className)}>
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={`${stage}-${completePhase}`}
+          data-testid="setup-footer-body"
           initial="hidden"
           animate="visible"
           exit="hidden"
           variants={setupStageItemVariants}
           transition={setupStageTransition}
-          className="flex min-h-[5.5rem] w-full items-center justify-between gap-4"
+          className="flex w-full items-center justify-end gap-2"
         >
-          <div className="min-w-0">
-            <div className="text-sm font-medium text-foreground">{resolvedTitle}</div>
-            <div className="mt-1 text-sm leading-6 text-muted-foreground">
-              {resolvedBody}
-            </div>
-          </div>
           <div className="flex items-center gap-2">
             {stage === 'start' && onExit ? (
               <Button variant="outline" onClick={onExit}>

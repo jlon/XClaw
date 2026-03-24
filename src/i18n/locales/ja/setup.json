@@ -240,6 +240,11 @@
     "complete": {
         "title": "セットアップ完了！",
         "subtitle": "XClawの構成が完了し、使用準備が整いました。AIアシスタントとのチャットを開始できます。",
+        "applying": {
+            "title": "セットアップを完了しています",
+            "subtitle": "XClaw が最終設定を書き込み、コアサービスを起動しています。このウィンドウを開いたままにしてください。",
+            "details": "通常は数秒で完了し、その後自動的にアプリへ入ります。"
+        },
         "provider": "AI プロバイダー",
         "components": "コンポーネント",
         "gateway": "ゲートウェイ",
@@ -249,17 +254,18 @@
         "gatewayPendingHint": "ゲートウェイがまだ起動していない場合でも、アプリに入ったあと XClaw が引き続き起動処理を引き継ぎます。",
         "enhancements": {
             "stageTitle": "コア環境を準備",
-            "stageSubtitle": "最終サマリーに進む前に uv と Python 実行環境を確認します。",
-            "title": "Python 実行環境",
-            "requiredBody": "Python は XClaw のコア要件です。uv や Python 実行環境がこの端末に既にあればそのまま再利用し、なければ先に準備を完了する必要があります。",
+            "stageSubtitle": "最終サマリーに進む前に uv、Python 実行環境、Studio 依存関係を確認します。",
+            "title": "コア実行環境",
+            "requiredBody": "XClaw はここで uv、Python 実行環境、そして Studio に必要な Python 依存関係を準備します。再利用できる環境がこの端末にあればそのまま使い、なければ先に準備を完了する必要があります。",
             "readyTitle": "コア環境の準備ができました",
-            "readyBody": "再利用できるローカル環境が見つかりました。このまま最終サマリーへ進めます。",
+            "readyBody": "再利用できるローカル環境と Studio 依存関係が見つかりました。このまま最終サマリーへ進めます。",
             "prepareNow": "コア環境を準備",
             "preparing": "準備中...",
             "prepareFailed": "コア環境の準備に失敗しました",
-            "prepareIncomplete": "コア環境はまだ準備できていません。しばらくしてから再試行してください。",
+            "prepareIncomplete": "コア環境または Studio 依存関係はまだ準備できていません。しばらくしてから再試行してください。",
             "uvLabel": "uv 環境",
             "pythonLabel": "Python 実行環境",
+            "studioLabel": "Studio 実行環境",
             "checking": "確認中",
             "reused": "再利用済み",
             "notReady": "未準備",
@@ -333,7 +339,7 @@
             },
             "applying": {
                 "title": "変更を適用中",
-                "body": "このウィンドウを開いたままにしてください。完了すると自動でサマリーへ進みます。"
+                "body": "このウィンドウを開いたままにしてください。完了すると自動でアプリへ入ります。"
             }
         },
         "exitDialog": {

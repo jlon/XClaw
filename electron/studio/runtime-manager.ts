@@ -17,24 +17,24 @@ import { STUDIO_DEFAULT_PORT, type StudioRuntimeSnapshot } from './types';
 const HEALTHCHECK_TIMEOUT_MS = 15_000;
 const HEALTHCHECK_INTERVAL_MS = 350;
 
-const isPortOpen = async (port: number): Promise<boolean> =>
+const isPortAvailable = async (port: number): Promise<boolean> =>
   await new Promise((resolve) => {
     const server = createServer();
     server.once('error', () => resolve(false));
     server.once('listening', () => {
       server.close(() => resolve(true));
     });
-    server.listen(port, '127.0.0.1');
+    server.listen(port, '0.0.0.0');
   });
 
 const allocatePort = async (preferredPort: number): Promise<number> => {
-  if (preferredPort > 0 && await isPortOpen(preferredPort)) {
+  if (preferredPort > 0 && await isPortAvailable(preferredPort)) {
     return preferredPort;
   }
   return await new Promise((resolve, reject) => {
     const server = createServer();
     server.once('error', reject);
-    server.listen(0, '127.0.0.1', () => {
+    server.listen(0, '0.0.0.0', () => {
       const address = server.address();
       if (!address || typeof address === 'string') {
         server.close(() => reject(new Error('Failed to allocate Studio port')));
