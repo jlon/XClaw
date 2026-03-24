@@ -8,6 +8,7 @@
 - 新增 `package-beta.yml`
   - 专门产出对外 Beta 包
   - tag 时发布 GitHub prerelease
+  - 手动触发时可选直接发布 GitHub prerelease
 - 删除旧的：
   - `release.yml`
   - `package-win-manual.yml`
@@ -40,3 +41,4 @@
 - `bundle-preinstalled-skills.mjs` 已支持在 CI 显式开启缓存复用时直接消费已有 bundle
 - 当前仍保留远程抓取作为缓存未命中的兜底路径，不损失内置技能能力
 - `package:mac:adhoc` 已收成只产出 `dmg`，保留 `x64 + arm64`，不再额外打 `zip`
+- `package-beta.yml` 已支持 `workflow_dispatch` 下显式发布 prerelease，并通过固定 `tag_name + overwrite_files` 支持同版本重复覆盖

@@ -14,6 +14,11 @@ on:
         description: 'Beta 版本号，例如 1.0.0-beta.1'
         required: false
         default: ''
+      publish_release:
+        description: '是否同时发布到 GitHub Beta Release'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -26,6 +31,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       is_beta: ${{ steps.channel.outputs.is_beta }}
       should_publish: ${{ steps.publish.outputs.should_publish }}
+      publish_target: ${{ steps.target.outputs.publish_target }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -47,6 +53,16 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Resolved beta version: $VERSION"
 
+      - name: Resolve publish target
+        id: target
+        shell: bash
+        run: |
+          if [[ -n "${{ github.event.inputs.ref || '' }}" ]]; then
+            echo "publish_target=${{ github.event.inputs.ref }}" >> $GITHUB_OUTPUT
+          else
+            echo "publish_target=${GITHUB_SHA}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Validate beta channel
         id: channel
         shell: bash
@@ -63,7 +79,7 @@ jobs:
         id: publish
         shell: bash
         run: |
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+          if [[ "${GITHUB_REF}" == refs/tags/* || "${{ github.event.inputs.publish_release || 'false' }}" == "true" ]]; then
             echo "should_publish=true" >> $GITHUB_OUTPUT
           else
             echo "should_publish=false" >> $GITHUB_OUTPUT
@@ -181,6 +197,7 @@ jobs:
         with:
           repository: ${{ steps.branding.outputs.github_repository }}
           tag_name: v${{ needs.prepare.outputs.version }}
+          target_commitish: ${{ needs.prepare.outputs.publish_target }}
           files: |
             release-artifacts/**/*.dmg
             release-artifacts/**/*.zip
@@ -208,7 +225,7 @@ jobs:
 
             ### 下载内容
 
-            - macOS：`.dmg` / `.zip`
+            - macOS：`.dmg`
             - Windows：`.exe`
             - Linux：`.AppImage` / `.deb` / `.rpm`
         env:

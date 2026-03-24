@@ -26,6 +26,7 @@
 3. `package-beta.yml`
    - 只产出对外 Beta 包
    - tag 时自动发布 GitHub prerelease
+   - 手动触发时可选直接发布 GitHub prerelease
    - 当前仍为未签名包
 
 稳定正式发布链暂时不放进活跃 workflow，避免假装已经具备签名能力。
@@ -115,7 +116,8 @@
 
 - 构建对外 Beta 包
 - tag 触发时发布 GitHub prerelease
-- 手动触发时只上传 artifact
+- 手动触发时可通过 `publish_release=true` 直接发布 GitHub prerelease
+- 同一 `version` 会复用同一个 `v<version>` prerelease，并覆盖同名产物
 
 mac 产物约束：
 
