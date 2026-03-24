@@ -2,46 +2,19 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildMacLocalBuilderArgs,
-  MIN_DARWIN_MAJOR_FOR_DMG,
-  parseDarwinMajor,
   resolveLocalElectronDist,
   resolveMacLocalArchArg,
   resolveMacLocalTargets,
 } from '../../scripts/package-mac-local.mjs';
 
 describe('package-mac-local', () => {
-  it('parses the Darwin major version', () => {
-    expect(parseDarwinMajor('21.6.0')).toBe(21);
-    expect(parseDarwinMajor('24.4.0')).toBe(24);
+  it('always includes dmg alongside unpacked output on macOS hosts', () => {
+    expect(resolveMacLocalTargets({ platform: 'darwin', release: '21.6.0' })).toEqual(['dir', 'dmg']);
+    expect(resolveMacLocalTargets({ platform: 'darwin', release: '24.4.0' })).toEqual(['dir', 'dmg']);
   });
 
-  it('falls back to zip-only on hosts below the dmg minimum', () => {
-    expect(resolveMacLocalTargets({ platform: 'darwin', release: `${MIN_DARWIN_MAJOR_FOR_DMG - 1}.7.6` })).toEqual(['dir']);
-  });
-
-  it('keeps dmg alongside unpacked output on supported macOS hosts', () => {
-    expect(resolveMacLocalTargets({ platform: 'darwin', release: `${MIN_DARWIN_MAJOR_FOR_DMG}.1.0` })).toEqual([
-      'dir',
-      'dmg',
-    ]);
-  });
-
-  it('builds local packaging args with current host arch and local electron dist on older hosts', () => {
-    expect(buildMacLocalBuilderArgs({ platform: 'darwin', release: `${MIN_DARWIN_MAJOR_FOR_DMG - 1}.7.6` })).toEqual([
-      '-c',
-      'config/build/electron-builder.config.cjs',
-      '--mac',
-      'dir',
-      resolveMacLocalArchArg({ arch: process.arch }),
-      '--publish',
-      'never',
-      '-c.mac.notarize=false',
-      `-c.electronDist=${resolveLocalElectronDist()}`,
-    ]);
-  });
-
-  it('adds dmg on supported hosts while keeping current host arch and local electron dist', () => {
-    expect(buildMacLocalBuilderArgs({ platform: 'darwin', release: `${MIN_DARWIN_MAJOR_FOR_DMG}.0.0` })).toEqual([
+  it('builds local packaging args with dmg enabled by default', () => {
+    expect(buildMacLocalBuilderArgs({ platform: 'darwin', release: '21.6.0' })).toEqual([
       '-c',
       'config/build/electron-builder.config.cjs',
       '--mac',
@@ -52,6 +25,19 @@ describe('package-mac-local', () => {
       'never',
       '-c.mac.notarize=false',
       `-c.electronDist=${resolveLocalElectronDist()}`,
+    ]);
+  });
+
+  it('allows retrying with dir-only targets after a dmg failure', () => {
+    expect(buildMacLocalBuilderArgs({ platform: 'darwin', arch: 'x64', electronDist: null, targets: ['dir'] })).toEqual([
+      '-c',
+      'config/build/electron-builder.config.cjs',
+      '--mac',
+      'dir',
+      '--x64',
+      '--publish',
+      'never',
+      '-c.mac.notarize=false',
     ]);
   });
 
@@ -68,11 +54,21 @@ describe('package-mac-local', () => {
     expect(
       buildMacLocalBuilderArgs({
         platform: 'darwin',
-        release: `${MIN_DARWIN_MAJOR_FOR_DMG - 1}.7.6`,
+        release: '21.6.0',
         arch: 'x64',
         electronDist: null,
       }),
-    ).toEqual(['-c', 'config/build/electron-builder.config.cjs', '--mac', 'dir', '--x64', '--publish', 'never', '-c.mac.notarize=false']);
+    ).toEqual([
+      '-c',
+      'config/build/electron-builder.config.cjs',
+      '--mac',
+      'dir',
+      'dmg',
+      '--x64',
+      '--publish',
+      'never',
+      '-c.mac.notarize=false',
+    ]);
   });
 
   it('rejects non-macOS hosts', () => {

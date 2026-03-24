@@ -6,22 +6,13 @@ import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import releaseBranding from '../config/release-branding.json' with { type: 'json' };
 
-export const MIN_DARWIN_MAJOR_FOR_DMG = 22;
 const require = createRequire(import.meta.url);
 
-export const parseDarwinMajor = (release) => {
-  const major = Number.parseInt(String(release).split('.')[0] ?? '', 10);
-  if (!Number.isFinite(major)) {
-    throw new Error(`Invalid Darwin release: ${release}`);
-  }
-  return major;
-};
-
-export const resolveMacLocalTargets = ({ platform = process.platform, release = os.release() } = {}) => {
+export const resolveMacLocalTargets = ({ platform = process.platform } = {}) => {
   if (platform !== 'darwin') {
     throw new Error('package:mac:local can only run on macOS');
   }
-  return parseDarwinMajor(release) >= MIN_DARWIN_MAJOR_FOR_DMG ? ['dir', 'dmg'] : ['dir'];
+  return ['dir', 'dmg'];
 };
 
 export const resolveMacLocalArchArg = ({ arch = process.arch } = {}) => {
@@ -37,15 +28,15 @@ export const resolveLocalElectronDist = ({ candidatePath } = {}) => {
 
 export const buildMacLocalBuilderArgs = ({
   platform = process.platform,
-  release = os.release(),
   arch = process.arch,
   electronDist = resolveLocalElectronDist(),
+  targets = resolveMacLocalTargets({ platform }),
 } = {}) => {
   const args = [
     '-c',
     'config/build/electron-builder.config.cjs',
     '--mac',
-    ...resolveMacLocalTargets({ platform, release }),
+    ...targets,
     resolveMacLocalArchArg({ arch }),
     '--publish',
     'never',
@@ -59,11 +50,17 @@ export const buildMacLocalBuilderArgs = ({
   return args;
 };
 
-const run = (command, args, env = process.env) => {
-  const result = spawnSync(command, args, { stdio: 'inherit', env });
+const run = (command, args, env = process.env) => spawnSync(command, args, { stdio: 'inherit', env });
+
+const runOrExit = (command, args, env = process.env) => {
+  const result = run(command, args, env);
+  if (result.error) {
+    throw result.error;
+  }
   if (result.status !== 0) {
     process.exit(result.status ?? 1);
   }
+  return result;
 };
 
 const readPackageVersion = () =>
@@ -90,26 +87,27 @@ const createLocalZipArtifact = ({ arch = process.arch } = {}) => {
 const main = () => {
   const release = os.release();
   const arch = process.arch;
-  const targets = resolveMacLocalTargets({ release });
-  if (targets.includes('dmg')) {
-    console.log(`package:mac:local detected Darwin ${release}. building macOS targets: ${targets.join(', ')} (${arch})`);
-  } else {
-    console.log(
-      `package:mac:local detected Darwin ${release}. local DMG packaging is skipped because electron-builder's dmg toolchain requires macOS 13+ on this host. building unpacked app for ${arch}.`,
-    );
-  }
+  const targets = resolveMacLocalTargets();
+  console.log(`package:mac:local detected Darwin ${release}. attempting macOS targets: ${targets.join(', ')} (${arch})`);
   const electronDist = resolveLocalElectronDist();
   if (electronDist) {
     console.log(`package:mac:local using local electron dist: ${electronDist}`);
   } else {
     console.log('package:mac:local did not find a local electron dist. falling back to electron-builder download flow.');
   }
-  run(
+  runOrExit(
     'pnpm',
     ['run', 'package'],
     { ...process.env, SKIP_PREINSTALLED_SKILLS: process.env.SKIP_PREINSTALLED_SKILLS ?? '1' },
   );
-  run('pnpm', ['exec', 'electron-builder', ...buildMacLocalBuilderArgs({ release, arch, electronDist })]);
+  const builderResult = run('pnpm', ['exec', 'electron-builder', ...buildMacLocalBuilderArgs({ arch, electronDist, targets })]);
+  if (builderResult.error) {
+    throw builderResult.error;
+  }
+  if (builderResult.status !== 0) {
+    console.warn(`package:mac:local DMG packaging failed on Darwin ${release}. retrying with unpacked app only.`);
+    runOrExit('pnpm', ['exec', 'electron-builder', ...buildMacLocalBuilderArgs({ arch, electronDist, targets: ['dir'] })]);
+  }
   createLocalZipArtifact({ arch });
 };
 
