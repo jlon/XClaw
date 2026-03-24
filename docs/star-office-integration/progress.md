@@ -15,6 +15,8 @@
 - 状态由 XClaw 主进程自动维护
 - 提示词注入只写入 `AGENTS.md`
 - 注入必须幂等，不能重复注册
+- 共享状态快照采用 `state.json + agents-state.json + manifest.json` 的同代提交模型
+- 工作室页面固定通过受控 `webview` handoff 加载，不允许 renderer 自行拼接地址
 
 ## 里程碑
 
@@ -28,6 +30,8 @@
 - [x] 明确“不能重复注册”是指提示词块不能重复注入
 - [x] 完成功能设计文档
 - [x] 创建 `design.md` / `testing.md` / `issues.md` / `progress.md`
+- [x] 完成 3 轮子代理 spec review
+- [x] 根据 review 收敛状态快照一致性与 `webview` handoff 契约
 
 ## 下一步
 
@@ -40,8 +44,9 @@
 1. 最小 vendoring 仍会带来可见体积增长，需要在实现阶段严格控制资源清单
 2. `Star-Office-UI` 的只读模式需要维护一层 XClaw 自己的 patch
 3. 工作室 sidecar 的启动失败与降级链路必须先做好，避免影响聊天主路径
+4. 共享状态快照的 schema 一旦落地，后续演进必须保持兼容纪律，不能在实现时临时加字段破坏协议
 
 ## 备注
 
 - 当前尚未进入实现阶段
-- 实现计划产出前，不做代码改动
+- 已完成 3 轮子代理审查，当前文档可以作为实现计划输入

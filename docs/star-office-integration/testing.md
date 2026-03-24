@@ -25,14 +25,26 @@
 
 - 主智能体状态能正确写入 `state.json`
 - 本地 agent 状态能正确写入 `agents-state.json`
+- `state.json`、`agents-state.json`、`manifest.json` 会带一致的 `schemaVersion` 与 `generation`
+- 状态文件写入采用临时文件 + 原子替换，不会留下半截 JSON
+- `manifest.json` 只会在两份状态文件都写入成功后最后提交
+- sidecar 只接受 manifest 指向的同代快照，不会混读不同代文件
+- 正式快照损坏或代际不一致时，能整体回退到 `last-known-good` 三件套
+- 缺少必填字段、状态枚举非法或 `schemaVersion` 不匹配时，会拒绝该快照
 - 写作 / 调研 / 执行 / 错误 / 空闲映射正确
-- `detail` 能按 `STAR_OFFICE_DETAIL.txt -> 最近用户消息摘要 -> 默认文案` 的顺序回退
+- 多个状态事件同时出现时，按既定优先级收敛为单一状态
+- 活动态在超过窗口后会稳定回落到 `idle`
+- `detail` 能按 `STAR_OFFICE_DETAIL.txt -> 该 agent 最近一次有效状态事件摘要 -> 默认文案` 的顺序回退
 
 ### runtime 管理
 
 - runtime 目录缺失关键资源时返回错误态
 - sidecar 端口冲突时能稳定失败并给出错误摘要
+- 首次端口冲突时能顺序探测新端口并持久化
+- 后续启动优先复用已持久化的工作室端口
 - Python 未就绪时能稳定返回 `python-missing`
+- 仅解释器存在但依赖未安装时，不会误判为 ready
+- smoke test 失败时不会误判为 ready
 - sidecar 健康检查失败时进入错误态而不是卡死
 
 ### 只读模式
@@ -40,13 +52,29 @@
 - `embedded=1&readonly=1` 下会隐藏控制栏
 - `embedded=1&readonly=1` 下会隐藏资产抽屉入口
 - `embedded=1&readonly=1` 下会隐藏 guest 操作按钮
+- 只读模式下所有写接口返回拒绝，而不是仅隐藏前端按钮
+
+### 嵌入承载
+
+- renderer 通过受控接口获取最终工作室 URL，而不是自己拼接 localhost 地址
+- 工作室页固定使用 `webview` 承载，而不是 `iframe`
+- 页面挂载时会先拉取 `getStudioRuntimeSnapshot()`，而不是依赖 renderer 本地推断
+- sidecar 端口变化或实例重启时，主进程会广播 `studioRuntimeChanged`
+- `runtimeInstanceId` 变化时，renderer 会销毁旧 `webview` 并重建
+- 非 `ready` 状态下不会残留旧 `webview`
+- `webview` 只允许同源导航，不允许跳转到其他 origin
+- `webview` 不允许 `new-window`、下载和非预期外链
 
 ## 集成测试
 
 - 应用启动后，工作室 runtime 后台拉起但不阻塞聊天页
 - 访问 `/studio` 时，能根据 runtime 状态显示 `starting / ready / python-missing / runtime-error`
+- `/studio` 在 ready 态下会渲染只读 `webview`
 - 工作室 ready 时能成功加载内嵌页面
 - 工作室出错时，聊天、设置、智能体工作台仍可正常使用
+- 从 `/studio` 点击 `对话` 时，会回到最后激活的聊天会话或聊天首页
+- sidecar 重启后，`/studio` 能基于新的 `runtimeInstanceId` 自动恢复加载
+- sidecar 端口重分配后，renderer 不需要自己拼新地址也能恢复工作室展示
 - setup fresh 完成后，主工作区 `AGENTS.md` 被幂等注入
 - setup takeover 完成后，接管工作区 `AGENTS.md` 被幂等注入
 - 智能体工作台新增 agent 后，新 agent 工作区具备注入规则且不会重复
@@ -97,6 +125,14 @@
 3. 验证没有资产抽屉入口
 4. 验证没有装修、生图、DIY 等入口
 5. 验证没有访客管理动作按钮
+
+### 运行时恢复验证
+
+1. 启动 XClaw 并进入 `工作室`
+2. 等待工作室进入 ready
+3. 手动终止工作室 sidecar，触发主进程重启
+4. 验证工作室页先进入错误或启动态，再自动恢复
+5. 验证恢复后展示的是新实例页面，而不是旧 `webview` 残留内容
 
 ## 回归检查
 
