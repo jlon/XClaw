@@ -20,6 +20,9 @@
 - `完成` 阶段已明确拆成“应用变更中”和“完成摘要”两个子状态
 - 若 `uv / Python` 未就绪，`完成` 阶段必须先进入“核心环境准备”子状态
 - Python 运行时是核心要求，不允许通过跳过增强绕过
+- `核心环境准备` 必须暴露真实运行态、失败态和取消态，不能继续使用一次性阻塞黑箱
+- `核心环境准备` 运行中必须显示实时日志，并允许用户手动收起或展开
+- `核心环境准备` 的取消按钮必须对应真实后台中断，而不是纯前端置灰
 - `uv:install-all` 与 Gateway 后台自愈不得并发触发 Python 安装
 - setup 未完成时，Gateway 后台不得偷跑 Python 修复
 - 完成前关闭窗口不得写入 `setupComplete`
@@ -34,6 +37,8 @@
 - `pnpm exec eslint electron/main/setup-inspection.ts tests/unit/setup-inspection.test.ts --max-warnings=0`
 - `pnpm exec vitest run tests/unit/uv-setup.test.ts tests/unit/gateway-supervisor.test.ts tests/unit/setup-inspection.test.ts tests/unit/setup-wizard-layout.test.tsx tests/unit/setup-wizard-flow.test.ts tests/unit/setup-takeover.test.tsx --testTimeout=15000`
 - `pnpm run typecheck`
+- `corepack pnpm exec eslint electron/main/ipc-handlers.ts electron/main/setup-environment-task.ts electron/preload/index.ts electron/studio/python-env.ts electron/utils/run-child-command.ts electron/utils/uv-setup.ts src/pages/Setup/index.tsx tests/unit/ipc-setup-environment-handlers.test.ts tests/unit/preload-ipc-channels.test.ts tests/unit/setup-takeover.test.tsx`
+- `corepack pnpm test tests/unit/preload-ipc-channels.test.ts tests/unit/ipc-setup-environment-handlers.test.ts tests/unit/setup-takeover.test.tsx`
 
 ### 构建级
 
@@ -89,6 +94,8 @@
 5. 不允许首步或准备页默认就出现内部滚动条
 6. `complete.applying` 中关闭窗口时出现二次确认，确认退出后不会进入首页
 7. Windows 的 `desktop.ini / Thumbs.db` 和 mac 的 `.DS_Store` 不得触发 takeover 检测
+8. `核心环境准备` 运行时必须默认展开日志，日志内容持续刷新，但用户可以随时手动收起
+9. 点击 `取消准备` 后，准备任务必须真正中断，按钮恢复到可再次启动状态，且不允许残留假 loading
 
 ## 回归风险
 
@@ -103,8 +110,11 @@
 - `pnpm exec eslint electron/main/setup-inspection.ts tests/unit/setup-inspection.test.ts --max-warnings=0`
 - `pnpm exec eslint electron/utils/uv-setup.ts electron/gateway/supervisor.ts tests/unit/uv-setup.test.ts tests/unit/gateway-supervisor.test.ts src/pages/Setup/index.tsx src/components/setup/SetupPreparationStage.tsx --max-warnings=0`
 - `pnpm exec vitest run tests/unit/uv-setup.test.ts tests/unit/gateway-supervisor.test.ts tests/unit/setup-wizard-flow.test.ts tests/unit/setup-wizard-layout.test.tsx tests/unit/setup-takeover.test.tsx --testTimeout=15000`
+- `corepack pnpm exec eslint electron/main/ipc-handlers.ts electron/main/setup-environment-task.ts electron/preload/index.ts electron/studio/python-env.ts electron/utils/run-child-command.ts electron/utils/uv-setup.ts src/pages/Setup/index.tsx tests/unit/ipc-setup-environment-handlers.test.ts tests/unit/preload-ipc-channels.test.ts tests/unit/setup-takeover.test.tsx`
+- `corepack pnpm test tests/unit/preload-ipc-channels.test.ts tests/unit/ipc-setup-environment-handlers.test.ts tests/unit/setup-takeover.test.tsx`
 
 结果：
 
 - `eslint` 通过
 - `uv-setup + gateway-supervisor + setup-wizard-flow + setup-wizard-layout + setup-takeover` 共 `27` 条测试通过
+- `setup preload + setup environment IPC + setup-takeover` 共 `19` 条测试通过

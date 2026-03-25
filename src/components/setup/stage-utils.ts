@@ -65,7 +65,7 @@ export const resolveSetupPrimaryAction = ({
   takeoverNeedsProviderReview = false,
   labels,
 }: SetupPrimaryActionInput): SetupPrimaryAction => {
-  if (stage === 'complete' && phase === 'summary') {
+  if (stage === 'complete' && (phase === 'summary' || phase === 'applying')) {
     return { intent: 'activate', label: labels.activate };
   }
 

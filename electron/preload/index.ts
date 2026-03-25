@@ -116,6 +116,8 @@ const electronAPI = {
         'uv:install-all',
         'setup:environment-status',
         'setup:prepare-environment',
+        'setup:prepare-environment-status',
+        'setup:prepare-environment-cancel',
         // Skill config (direct file access)
         'skill:updateConfig',
         'skill:getConfig',

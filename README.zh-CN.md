@@ -151,6 +151,8 @@ pnpm run init
 pnpm dev
 ```
 
+在 Linux 上，`pnpm dev` 现在会自动处理两类常见的无头开发故障：如果触发 `inotify` watcher 上限，会自动回退到 Chokidar polling；如果既没有 `DISPLAY` 也没有 `WAYLAND_DISPLAY`，则保留 Vite 开发服务并跳过 Electron 启动。只有在你已经准备好 Xvfb、VNC 或其他显示服务时，才建议额外设置 `XCLAW_FORCE_ELECTRON_DEV=1` 强制拉起 Electron。
+
 ### 首次启动
 
 第一次打开 XClaw 时，**设置向导** 会依次带你完成：
@@ -161,6 +163,8 @@ pnpm dev
 4. **验证**：进入主界面前先检查配置是否可用
 
 如果系统语言在支持范围内，向导会优先选中它；如果不支持，则自动回退到英文。
+
+当向导需要准备核心 Python 环境时，这一步现在会保留原位主按钮、展示可折叠的实时安装日志，并支持中途取消，而不再只是把按钮置灰。
 
 > Moonshot（Kimi）说明：XClaw 默认会保持 Kimi web search 为开启状态。
 > 当你配置了 Moonshot 后，XClaw 也会把 OpenClaw 配置里的 Kimi web search 同步到中国区端点（`https://api.moonshot.cn/v1`）。

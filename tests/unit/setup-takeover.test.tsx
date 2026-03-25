@@ -197,6 +197,7 @@ const { tMock } = vi.hoisted(() => ({
     'complete.enhancements.preparing': '准备中...',
     'complete.enhancements.prepareFailed': '增强能力准备失败',
     'complete.enhancements.prepareIncomplete': '核心环境或工作室依赖尚未完成，请稍后重试。',
+    'complete.enhancements.prepareCancelled': '已取消核心环境准备',
     'complete.enhancements.uvLabel': 'uv 环境',
     'complete.enhancements.pythonLabel': 'Python 运行时',
     'complete.enhancements.studioLabel': '工作室运行时',
@@ -204,6 +205,10 @@ const { tMock } = vi.hoisted(() => ({
     'complete.enhancements.reused': '已复用',
     'complete.enhancements.notReady': '尚未就绪',
     'complete.enhancements.required': '必须完成',
+    'complete.enhancements.logsShow': '查看日志',
+    'complete.enhancements.logsHide': '收起日志',
+    'complete.enhancements.logsTitle': '安装日志',
+    'complete.enhancements.cancel': '取消准备',
   }[key] ?? key),
 }));
 
@@ -234,6 +239,15 @@ describe('Setup takeover flow', () => {
     studioInterpreterReady: boolean;
     studioError: string | null;
   };
+  let prepareTaskState: {
+    state: 'idle' | 'running' | 'succeeded' | 'failed' | 'cancelled';
+    step: 'idle' | 'uv' | 'python' | 'studio' | 'verify';
+    canCancel: boolean;
+    error: string | null;
+    logs: Array<{ id: number; level: 'info' | 'error'; message: string }>;
+  };
+  let prepareTaskStatusCalls: number;
+  let prepareTaskMode: 'instant-success' | 'manual';
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -252,21 +266,85 @@ describe('Setup takeover flow', () => {
       studioInterpreterReady: false,
       studioError: null,
     };
+    prepareTaskState = {
+      state: 'idle',
+      step: 'idle',
+      canCancel: false,
+      error: null,
+      logs: [],
+    };
+    prepareTaskStatusCalls = 0;
+    prepareTaskMode = 'instant-success';
     invokeIpcMock.mockImplementation(async (channel: string) => {
       if (channel === 'setup:environment-status') {
         return environmentState;
       }
+      if (channel === 'setup:prepare-environment-status') {
+        prepareTaskStatusCalls += 1;
+        if (prepareTaskMode === 'instant-success' && prepareTaskState.state === 'running') {
+          environmentState = {
+            uvInstalled: true,
+            pythonReady: true,
+            studioDependenciesReady: true,
+            studioInterpreterReady: true,
+            studioError: null,
+          };
+          prepareTaskState = {
+            state: 'succeeded',
+            step: 'verify',
+            canCancel: false,
+            error: null,
+            startedAt: null,
+            finishedAt: Date.now(),
+            logs: [
+              ...prepareTaskState.logs,
+              { id: prepareTaskState.logs.length + 1, level: 'info', message: '核心环境已准备完成' },
+            ],
+          } as typeof prepareTaskState;
+        }
+        if (prepareTaskMode === 'manual' && prepareTaskState.state === 'running' && prepareTaskStatusCalls >= 2 && prepareTaskState.logs.length === 1) {
+          prepareTaskState = {
+            ...prepareTaskState,
+            step: 'studio',
+            logs: [
+              ...prepareTaskState.logs,
+              { id: 2, level: 'info', message: '正在安装工作室依赖' },
+            ],
+          };
+        }
+        return prepareTaskState;
+      }
       if (channel === 'setup:prepare-environment') {
-        environmentState = {
-          uvInstalled: true,
-          pythonReady: true,
-          studioDependenciesReady: true,
-          studioInterpreterReady: true,
-          studioError: null,
+        prepareTaskStatusCalls = 0;
+        prepareTaskState = {
+          state: 'running',
+          step: prepareTaskMode === 'manual' ? 'python' : 'uv',
+          canCancel: true,
+          error: null,
+          startedAt: Date.now(),
+          finishedAt: null,
+          logs: [
+            {
+              id: 1,
+              level: 'info',
+              message: prepareTaskMode === 'manual' ? '正在安装 Python 运行时' : '正在检查 uv 环境',
+            },
+          ],
+        } as typeof prepareTaskState;
+        return prepareTaskState;
+      }
+      if (channel === 'setup:prepare-environment-cancel') {
+        prepareTaskState = {
+          state: 'cancelled',
+          step: 'idle',
+          canCancel: false,
+          error: null,
+          logs: [
+            ...prepareTaskState.logs,
+            { id: prepareTaskState.logs.length + 1, level: 'info', message: '已取消核心环境准备' },
+          ],
         };
-        return {
-          success: true,
-        };
+        return { success: true };
       }
       return false;
     });
@@ -825,7 +903,11 @@ describe('Setup takeover flow', () => {
     expect(screen.getByText('正在完成设置')).toBeInTheDocument();
     expect(screen.getByText('通常只需要几秒钟，完成后会自动进入应用。')).toBeInTheDocument();
     expect(screen.queryByText('设置完成！')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: '开始使用' })).not.toBeInTheDocument();
+    const activationAction = screen.getByRole('button', { name: '开始使用' });
+
+    expect(activationAction).toBeDisabled();
+    expect(activationAction).toHaveAttribute('aria-busy', 'true');
+    expect(activationAction.querySelector('svg.animate-spin')).not.toBeNull();
 
     resolveActivation?.({ success: true });
   });
@@ -906,6 +988,101 @@ describe('Setup takeover flow', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: '准备核心环境' })).toBeEnabled();
     });
+  });
+
+  it('shows live setup logs and allows cancelling environment preparation', async () => {
+    prepareTaskMode = 'manual';
+
+    hostApiFetchMock.mockImplementation((path: string, init?: RequestInit) => {
+      if (path === '/api/app/setup-inspection') {
+        return Promise.resolve({
+          hasExistingOpenClaw: true,
+          suggestedMode: 'takeover',
+          counts: {
+            runtimeProviders: 1,
+            skills: 1,
+            extensions: 0,
+          },
+          defaultWorkspacePath: '/Users/test/.openclaw/workspace',
+        });
+      }
+
+      if (path === '/api/app/setup-plan' && init?.method === 'POST') {
+        return Promise.resolve({
+          mode: JSON.parse(String(init.body)).mode,
+          canApply: true,
+          blockingIssues: [],
+          warnings: [],
+        });
+      }
+
+      if (path === '/api/app/takeover-import' && init?.method === 'POST') {
+        return Promise.resolve({
+          state: 'complete',
+          step: 'complete',
+          importedAccountCount: 1,
+          defaultAccountId: 'moonshot',
+          warnings: [],
+          conflicts: [],
+          blockingIssues: [],
+        });
+      }
+
+      if (path === '/api/app/takeover-status' && !init) {
+        return Promise.resolve({
+          state: 'idle',
+          step: 'idle',
+          importedAccountCount: 0,
+          defaultAccountId: null,
+          warnings: [],
+          conflicts: [],
+          blockingIssues: [],
+        });
+      }
+
+      return Promise.reject(new Error(`Unexpected host API path: ${path}`));
+    });
+
+    render(<Setup />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText('接管现有安装').length).toBeGreaterThan(0);
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '下一步' }));
+    fireEvent.click(screen.getByRole('button', { name: '导入并继续' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '准备核心环境' })).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '准备核心环境' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '取消准备' })).toBeEnabled();
+    });
+
+    expect(screen.getByText('安装日志')).toBeInTheDocument();
+    expect(screen.getAllByText('正在安装 Python 运行时').length).toBeGreaterThan(0);
+
+    await waitFor(() => {
+      expect(screen.getAllByText('正在安装工作室依赖').length).toBeGreaterThan(0);
+    }, { timeout: 2500 });
+
+    fireEvent.click(screen.getByRole('button', { name: '收起日志' }));
+    expect(screen.queryAllByText('正在安装 Python 运行时')).toHaveLength(0);
+
+    fireEvent.click(screen.getByRole('button', { name: '查看日志' }));
+    expect(screen.getAllByText('正在安装 Python 运行时').length).toBeGreaterThan(0);
+
+    fireEvent.click(screen.getByRole('button', { name: '取消准备' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '准备核心环境' })).toBeEnabled();
+    });
+
+    expect(screen.queryByRole('button', { name: '取消准备' })).not.toBeInTheDocument();
+    expect(invokeIpcMock).toHaveBeenCalledWith('setup:prepare-environment-cancel');
   });
 
   it('polls takeover status while import is still running', async () => {
@@ -1296,7 +1473,11 @@ describe('Setup takeover flow', () => {
       expect(hostApiFetchMock).toHaveBeenCalledWith('/api/app/takeover-status');
     });
 
-    expect(screen.getByRole('button', { name: '导入并继续' })).toBeDisabled();
+    const takeoverAction = screen.getByRole('button', { name: '导入并继续' });
+
+    expect(takeoverAction).toBeDisabled();
+    expect(takeoverAction).toHaveAttribute('aria-busy', 'true');
+    expect(takeoverAction.querySelector('svg.animate-spin')).not.toBeNull();
 
     resolveTakeoverImport?.({
       state: 'complete',

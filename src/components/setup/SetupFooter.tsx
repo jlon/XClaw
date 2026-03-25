@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
+import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -11,6 +12,7 @@ interface SetupFooterProps {
   canProceed?: boolean;
   primaryLabel?: string;
   secondaryLabel?: string;
+  primaryLoading?: boolean;
   onBack?: () => void;
   onPrimary?: () => void;
   onExit?: () => void;
@@ -23,6 +25,7 @@ export function SetupFooter({
   canProceed = true,
   primaryLabel,
   secondaryLabel,
+  primaryLoading = false,
   onBack,
   onPrimary,
   onExit,
@@ -50,7 +53,8 @@ export function SetupFooter({
   const copy = stageCopy[stage];
   const isApplying = stage === 'complete' && completePhase === 'applying';
   const isEnhancementPhase = stage === 'complete' && completePhase === 'enhancements';
-  const showPrimary = !isApplying && !isEnhancementPhase && Boolean(onPrimary);
+  const isPrimaryLoading = primaryLoading || isApplying;
+  const showPrimary = !isEnhancementPhase && Boolean(onPrimary);
   const resolvedPrimary = primaryLabel ?? copy.primary;
   const resolvedSecondary = secondaryLabel ?? copy.secondary;
 
@@ -69,17 +73,18 @@ export function SetupFooter({
         >
           <div className="flex items-center gap-2">
             {stage === 'start' && onExit ? (
-              <Button variant="outline" onClick={onExit}>
+              <Button variant="outline" onClick={onExit} disabled={isPrimaryLoading}>
                 {resolvedSecondary ?? t('wizard.footer.start.secondary')}
               </Button>
             ) : null}
             {!isApplying && stage !== 'start' && resolvedSecondary && onBack ? (
-              <Button variant="ghost" onClick={onBack}>
+              <Button variant="ghost" onClick={onBack} disabled={isPrimaryLoading}>
                 {resolvedSecondary}
               </Button>
             ) : null}
             {showPrimary ? (
-              <Button onClick={onPrimary} disabled={!canProceed}>
+              <Button onClick={onPrimary} disabled={!canProceed || isPrimaryLoading} aria-busy={isPrimaryLoading ? 'true' : undefined}>
+                {isPrimaryLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 {resolvedPrimary}
               </Button>
             ) : null}

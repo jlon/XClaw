@@ -31,9 +31,13 @@ describe('preload IPC allowlist', () => {
 
     electronApi.ipcRenderer.invoke('setup:environment-status');
     electronApi.ipcRenderer.invoke('setup:prepare-environment', { repair: true });
+    electronApi.ipcRenderer.invoke('setup:prepare-environment-status');
+    electronApi.ipcRenderer.invoke('setup:prepare-environment-cancel');
 
     expect(invokeMock).toHaveBeenNthCalledWith(1, 'setup:environment-status');
     expect(invokeMock).toHaveBeenNthCalledWith(2, 'setup:prepare-environment', { repair: true });
+    expect(invokeMock).toHaveBeenNthCalledWith(3, 'setup:prepare-environment-status');
+    expect(invokeMock).toHaveBeenNthCalledWith(4, 'setup:prepare-environment-cancel');
   });
 
   it('still blocks channels outside the preload allowlist', async () => {

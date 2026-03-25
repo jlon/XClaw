@@ -7,6 +7,7 @@ const isPythonReadyMock = vi.fn();
 const setupManagedPythonMock = vi.fn();
 const inspectStudioPythonEnvMock = vi.fn();
 const ensureStudioPythonEnvMock = vi.fn();
+const createAbortError = () => Object.assign(new Error('Environment preparation cancelled'), { name: 'AbortError' });
 
 vi.mock('electron', () => ({
   ipcMain: {
@@ -120,8 +121,8 @@ describe('registerIpcHandlers setup environment channels', () => {
     });
   });
 
-  it('registers a setup environment prepare channel that provisions uv, Python, and studio dependencies together', async () => {
-    checkUvInstalledMock.mockResolvedValue(false);
+  it('registers a setup environment prepare channel that reports running progress and final success', async () => {
+    checkUvInstalledMock.mockResolvedValueOnce(false).mockResolvedValue(true);
 
     const { registerIpcHandlers } = await import('@electron/main/ipc-handlers');
     const gatewayManager = {
@@ -152,9 +153,98 @@ describe('registerIpcHandlers setup environment channels', () => {
       handleMock.mock.calls.map(([channel, handler]) => [channel as string, handler as (...args: unknown[]) => Promise<unknown>]),
     );
 
-    await expect(handlers.get('setup:prepare-environment')?.(undefined)).resolves.toEqual({ success: true });
+    await expect(handlers.get('setup:prepare-environment')?.(undefined)).resolves.toMatchObject({
+      state: 'running',
+      step: 'uv',
+      canCancel: true,
+      error: null,
+    });
+
+    await vi.waitFor(async () => {
+      await expect(handlers.get('setup:prepare-environment-status')?.(undefined)).resolves.toMatchObject({
+        state: 'succeeded',
+        step: 'verify',
+        canCancel: false,
+        error: null,
+      });
+    });
+
+    const finalStatus = await handlers.get('setup:prepare-environment-status')?.(undefined) as {
+      logs: Array<{ message: string }>;
+    };
+
+    expect(finalStatus.logs.map((entry) => entry.message)).toEqual(expect.arrayContaining([
+      expect.stringContaining('uv'),
+      expect.stringContaining('Python'),
+      expect.stringContaining('Studio'),
+    ]));
     expect(installUvMock).toHaveBeenCalledTimes(1);
     expect(setupManagedPythonMock).toHaveBeenCalledTimes(1);
     expect(ensureStudioPythonEnvMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('cancels an in-flight setup environment preparation task', async () => {
+    setupManagedPythonMock.mockImplementation(async ({ signal, onLog }: {
+      signal?: AbortSignal;
+      onLog?: (entry: { level: string; message: string }) => void;
+    } = {}) => {
+      onLog?.({ level: 'info', message: 'Installing managed Python 3.12' });
+      return await new Promise((_resolve, reject) => {
+        signal?.addEventListener('abort', () => reject(createAbortError()), { once: true });
+      });
+    });
+
+    const { registerIpcHandlers } = await import('@electron/main/ipc-handlers');
+    const gatewayManager = {
+      on: vi.fn(),
+      getStatus: vi.fn().mockReturnValue({ state: 'stopped', port: 18789 }),
+      isConnected: vi.fn().mockReturnValue(false),
+      start: vi.fn(),
+      stop: vi.fn(),
+      restart: vi.fn(),
+    };
+    const gatewayRuntimeController = {
+      requestStart: vi.fn().mockResolvedValue(undefined),
+      requestStop: vi.fn().mockResolvedValue(undefined),
+      requestRestart: vi.fn().mockResolvedValue(undefined),
+    };
+
+    registerIpcHandlers(
+      gatewayManager as never,
+      gatewayRuntimeController as never,
+      {} as never,
+      {
+        isDestroyed: vi.fn().mockReturnValue(false),
+        webContents: { send: vi.fn() },
+      } as never,
+    );
+
+    const handlers = new Map(
+      handleMock.mock.calls.map(([channel, handler]) => [channel as string, handler as (...args: unknown[]) => Promise<unknown>]),
+    );
+
+    await expect(handlers.get('setup:prepare-environment')?.(undefined)).resolves.toMatchObject({
+      state: 'running',
+      canCancel: true,
+    });
+
+    await expect(handlers.get('setup:prepare-environment-cancel')?.(undefined)).resolves.toMatchObject({
+      success: true,
+    });
+
+    await vi.waitFor(async () => {
+      await expect(handlers.get('setup:prepare-environment-status')?.(undefined)).resolves.toMatchObject({
+        state: 'cancelled',
+        canCancel: false,
+        error: null,
+      });
+    });
+
+    const cancelledStatus = await handlers.get('setup:prepare-environment-status')?.(undefined) as {
+      logs: Array<{ message: string }>;
+    };
+
+    expect(cancelledStatus.logs.at(-1)?.message).toContain('cancel');
+    expect(ensureStudioPythonEnvMock).not.toHaveBeenCalled();
   });
 });

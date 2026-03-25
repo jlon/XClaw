@@ -5,8 +5,19 @@ import { join } from 'path';
 import { getUvMirrorEnv } from './uv-env';
 import { logger } from './logger';
 import { quoteForCmd, needsWinShell } from './paths';
+import { createAbortError, isAbortError, runChildCommand } from './run-child-command';
 
 let setupManagedPythonFlight: Promise<void> | null = null;
+
+type SetupProgressEntry = {
+  level: 'info' | 'error';
+  message: string;
+};
+
+type SetupManagedPythonOptions = {
+  signal?: AbortSignal;
+  onLog?: (entry: SetupProgressEntry) => void;
+};
 
 /**
  * Get the path to the bundled uv binary
@@ -115,58 +126,44 @@ async function runPythonInstall(
   uvBin: string,
   env: Record<string, string | undefined>,
   label: string,
+  options: SetupManagedPythonOptions = {},
 ): Promise<void> {
   const useShell = needsWinShell(uvBin);
-  return new Promise<void>((resolve, reject) => {
-    const stderrChunks: string[] = [];
-    const stdoutChunks: string[] = [];
+  const stdoutChunks: string[] = [];
+  const stderrChunks: string[] = [];
 
-    const child = spawn(useShell ? quoteForCmd(uvBin) : uvBin, ['python', 'install', '3.12'], {
+  const result = await runChildCommand(
+    useShell ? quoteForCmd(uvBin) : uvBin,
+    ['python', 'install', '3.12'],
+    {
       shell: useShell,
       env,
+      signal: options.signal,
       windowsHide: true,
-    });
-
-    child.stdout?.on('data', (data) => {
-      const line = data.toString().trim();
-      if (line) {
+      onStdout: (line) => {
         stdoutChunks.push(line);
         logger.debug(`[python-setup:${label}] stdout: ${line}`);
-      }
-    });
-
-    child.stderr?.on('data', (data) => {
-      const line = data.toString().trim();
-      if (line) {
+        options.onLog?.({ level: 'info', message: line });
+      },
+      onStderr: (line) => {
         stderrChunks.push(line);
         logger.info(`[python-setup:${label}] stderr: ${line}`);
-      }
-    });
+        options.onLog?.({ level: 'info', message: line });
+      },
+    },
+  );
 
-    child.on('close', (code) => {
-      if (code === 0) {
-        resolve();
-      } else {
-        const stderr = stderrChunks.join('\n');
-        const stdout = stdoutChunks.join('\n');
-        const detail = stderr || stdout || '(no output captured)';
-        reject(new Error(
-          `Python installation failed with code ${code} [${label}]\n` +
-          `  uv binary: ${uvBin}\n` +
-          `  platform: ${process.platform}/${process.arch}\n` +
-          `  output: ${detail}`
-        ));
-      }
-    });
+  if (result.code === 0) {
+    return;
+  }
 
-    child.on('error', (err) => {
-      reject(new Error(
-        `Python installation spawn error [${label}]: ${err.message}\n` +
-        `  uv binary: ${uvBin}\n` +
-        `  platform: ${process.platform}/${process.arch}`
-      ));
-    });
-  });
+  const detail = result.stderr || result.stdout || stderrChunks.join('\n') || stdoutChunks.join('\n') || '(no output captured)';
+  throw new Error(
+    `Python installation failed with code ${result.code} [${label}]\n` +
+    `  uv binary: ${uvBin}\n` +
+    `  platform: ${process.platform}/${process.arch}\n` +
+    `  output: ${detail}`
+  );
 }
 
 /**
@@ -175,7 +172,11 @@ async function runPythonInstall(
  * Tries with mirror env first (for CN region), then retries without mirror
  * if the first attempt fails, to rule out mirror-specific issues.
  */
-export async function setupManagedPython(): Promise<void> {
+export async function setupManagedPython(options: SetupManagedPythonOptions = {}): Promise<void> {
+  if (options.signal?.aborted) {
+    throw createAbortError('Environment preparation cancelled');
+  }
+
   if (setupManagedPythonFlight) {
     logger.info('Reusing in-flight managed Python setup');
     return await setupManagedPythonFlight;
@@ -194,15 +195,21 @@ export async function setupManagedPython(): Promise<void> {
     const baseEnv: Record<string, string | undefined> = { ...process.env };
 
     try {
-      await runPythonInstall(uvBin, { ...baseEnv, ...uvEnv }, hasMirror ? 'mirror' : 'default');
+      await runPythonInstall(uvBin, { ...baseEnv, ...uvEnv }, hasMirror ? 'mirror' : 'default', options);
     } catch (firstError) {
+      if (isAbortError(firstError)) {
+        throw firstError;
+      }
       logger.warn('Python install attempt 1 failed:', firstError);
 
       if (hasMirror) {
         logger.info('Retrying Python install without mirror...');
         try {
-          await runPythonInstall(uvBin, baseEnv, 'no-mirror');
+          await runPythonInstall(uvBin, baseEnv, 'no-mirror', options);
         } catch (secondError) {
+          if (isAbortError(secondError)) {
+            throw secondError;
+          }
           logger.error('Python install attempt 2 (no mirror) also failed:', secondError);
           throw secondError;
         }
@@ -213,21 +220,25 @@ export async function setupManagedPython(): Promise<void> {
 
     const verifyShell = needsWinShell(uvBin);
     try {
-      const findPath = await new Promise<string>((resolve) => {
-        const child = spawn(verifyShell ? quoteForCmd(uvBin) : uvBin, ['python', 'find', '3.12'], {
+      const findResult = await runChildCommand(
+        verifyShell ? quoteForCmd(uvBin) : uvBin,
+        ['python', 'find', '3.12'],
+        {
           shell: verifyShell,
           env: { ...process.env, ...uvEnv },
+          signal: options.signal,
           windowsHide: true,
-        });
-        let output = '';
-        child.stdout?.on('data', (data) => { output += data; });
-        child.on('close', () => resolve(output.trim()));
-      });
+        },
+      );
+      const findPath = findResult.stdout.trim();
 
       if (findPath) {
         logger.info(`Managed Python 3.12 installed at: ${findPath}`);
       }
     } catch (err) {
+      if (isAbortError(err)) {
+        throw err;
+      }
       logger.warn('Could not determine Python path after install:', err);
     }
   })();

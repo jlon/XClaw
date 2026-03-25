@@ -32,7 +32,7 @@ import {
 } from '../utils/openclaw-auth';
 import { buildOpenClawControlUiUrl } from '../utils/openclaw-control-ui';
 import { logger } from '../utils/logger';
-import { ensureStudioPythonEnv, inspectStudioPythonEnv } from '../studio/python-env';
+import { inspectStudioPythonEnv } from '../studio/python-env';
 import {
   saveChannelConfig,
   getChannelConfig,
@@ -72,6 +72,7 @@ import {
 import { validateApiKeyWithProvider } from '../services/providers/provider-validation';
 import { appUpdater } from './updater';
 import { PORTS } from '../utils/config';
+import { createSetupEnvironmentTaskController } from './setup-environment-task';
 
 type AppRequest = {
   id?: string;
@@ -1141,21 +1142,9 @@ function registerCronHandlers(gatewayManager: GatewayManager): void {
  * UV-related IPC handlers
  */
 function registerUvHandlers(): void {
-  // Check if uv is installed
-  ipcMain.handle('uv:check', async () => {
-    return await checkUvInstalled();
-  });
+  const setupEnvironmentTask = createSetupEnvironmentTaskController();
 
-  ipcMain.handle('uv:status', async () => {
-    const uvInstalled = await checkUvInstalled();
-    const pythonReady = uvInstalled ? await isPythonReady() : false;
-    return {
-      uvInstalled,
-      pythonReady,
-    };
-  });
-
-  ipcMain.handle('setup:environment-status', async () => {
+  const resolveSetupEnvironmentStatus = async () => {
     const uvInstalled = await checkUvInstalled();
     const pythonReady = uvInstalled ? await isPythonReady() : false;
     const studio = uvInstalled
@@ -1182,6 +1171,24 @@ function registerUvHandlers(): void {
       studioInterpreterReady: studio.interpreterReady,
       studioError: studio.error,
     };
+  };
+
+  // Check if uv is installed
+  ipcMain.handle('uv:check', async () => {
+    return await checkUvInstalled();
+  });
+
+  ipcMain.handle('uv:status', async () => {
+    const uvInstalled = await checkUvInstalled();
+    const pythonReady = uvInstalled ? await isPythonReady() : false;
+    return {
+      uvInstalled,
+      pythonReady,
+    };
+  });
+
+  ipcMain.handle('setup:environment-status', async () => {
+    return await resolveSetupEnvironmentStatus();
   });
 
   // Install uv and setup managed Python
@@ -1201,24 +1208,15 @@ function registerUvHandlers(): void {
   });
 
   ipcMain.handle('setup:prepare-environment', async () => {
-    try {
-      const isInstalled = await checkUvInstalled();
-      if (!isInstalled) {
-        await installUv();
-      }
-      await setupManagedPython();
-      const studio = await ensureStudioPythonEnv();
-      if (!studio.dependenciesReady) {
-        return {
-          success: false,
-          error: studio.error || 'Studio dependencies are not ready',
-        };
-      }
-      return { success: true };
-    } catch (error) {
-      console.error('Failed to prepare setup environment:', error);
-      return { success: false, error: String(error) };
-    }
+    return await setupEnvironmentTask.start();
+  });
+
+  ipcMain.handle('setup:prepare-environment-status', async () => {
+    return setupEnvironmentTask.getSnapshot();
+  });
+
+  ipcMain.handle('setup:prepare-environment-cancel', async () => {
+    return await setupEnvironmentTask.cancel();
   });
 }
 

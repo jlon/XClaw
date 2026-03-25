@@ -82,6 +82,30 @@ type SetupEnvironmentStatus = {
   studioError?: string | null;
 };
 
+type SetupEnvironmentTaskSnapshot = {
+  state: 'idle' | 'running' | 'succeeded' | 'failed' | 'cancelled';
+  step: 'idle' | 'uv' | 'python' | 'studio' | 'verify';
+  canCancel: boolean;
+  error: string | null;
+  startedAt: number | null;
+  finishedAt: number | null;
+  logs: Array<{
+    id: number;
+    level: 'info' | 'error';
+    message: string;
+  }>;
+};
+
+const createIdleSetupEnvironmentTask = (): SetupEnvironmentTaskSnapshot => ({
+  state: 'idle',
+  step: 'idle',
+  canCancel: false,
+  error: null,
+  startedAt: null,
+  finishedAt: null,
+  logs: [],
+});
+
 function getProtocolBaseUrlPlaceholder(
   apiProtocol: ProviderAccount['apiProtocol'],
 ): string {
@@ -587,6 +611,11 @@ export function Setup() {
     t,
     takeoverStatus?.state,
   ]);
+  const footerPrimaryLoading = (
+    (currentStage === 'preparation' && setupMode === 'takeover' && takeoverSubmitting)
+    || (currentStage === 'provider' && setupMode === 'fresh' && providerPrimarySubmitting)
+    || (currentStage === 'complete' && completePhase === 'applying')
+  );
 
   const handleExitRequest = useCallback(() => {
     if (canActivateSetup({ stage: currentStage, phase: completePhase })) {
@@ -682,6 +711,7 @@ export function Setup() {
               completePhase={completePhase}
               canProceed={canProceed}
               primaryLabel={currentStage === 'complete' && completePhase === 'enhancements' ? undefined : footerPrimaryAction.label}
+              primaryLoading={footerPrimaryLoading}
               onBack={
                 currentStage === 'start'
                 || (currentStage === 'preparation' && setupMode === 'takeover' && takeoverTaskRunning)
@@ -1694,16 +1724,19 @@ function OptionalEnhancementPanel({ onPrepared }: { onPrepared: () => void }) {
     uvInstalled: boolean;
     pythonReady: boolean;
     studioDependenciesReady: boolean;
-    preparing: boolean;
     error: string | null;
+    notice: string | null;
   }>({
     loading: true,
     uvInstalled: false,
     pythonReady: false,
     studioDependenciesReady: false,
-    preparing: false,
     error: null,
+    notice: null,
   });
+  const [prepareTask, setPrepareTask] = useState<SetupEnvironmentTaskSnapshot>(createIdleSetupEnvironmentTask);
+  const [logsExpanded, setLogsExpanded] = useState(false);
+  const handledTaskRef = useRef<string | null>(null);
 
   const refreshStatus = useCallback(async (): Promise<SetupEnvironmentStatus | null> => {
     setStatus((current) => ({
@@ -1720,6 +1753,7 @@ function OptionalEnhancementPanel({ onPrepared }: { onPrepared: () => void }) {
         pythonReady: next.pythonReady,
         studioDependenciesReady: next.studioDependenciesReady,
         error: next.studioError ?? null,
+        notice: current.notice,
       }));
       return next;
     } catch (error) {
@@ -1727,6 +1761,22 @@ function OptionalEnhancementPanel({ onPrepared }: { onPrepared: () => void }) {
         ...current,
         loading: false,
         error: String(error),
+        notice: null,
+      }));
+      return null;
+    }
+  }, []);
+
+  const refreshPrepareTask = useCallback(async (): Promise<SetupEnvironmentTaskSnapshot | null> => {
+    try {
+      const next = await invokeIpc('setup:prepare-environment-status') as SetupEnvironmentTaskSnapshot;
+      setPrepareTask(next);
+      return next;
+    } catch (error) {
+      setStatus((current) => ({
+        ...current,
+        error: String(error),
+        notice: null,
       }));
       return null;
     }
@@ -1734,43 +1784,110 @@ function OptionalEnhancementPanel({ onPrepared }: { onPrepared: () => void }) {
 
   useEffect(() => {
     void refreshStatus();
-  }, [refreshStatus]);
+    void refreshPrepareTask();
+  }, [refreshPrepareTask, refreshStatus]);
+
+  useEffect(() => {
+    if (prepareTask.state !== 'running') {
+      return;
+    }
+
+    setLogsExpanded(true);
+    void refreshPrepareTask();
+    const pollId = window.setInterval(() => {
+      void refreshPrepareTask();
+    }, 1000);
+
+    return () => {
+      window.clearInterval(pollId);
+    };
+  }, [prepareTask.state, refreshPrepareTask]);
+
+  useEffect(() => {
+    const taskKey = `${prepareTask.state}:${prepareTask.finishedAt ?? 0}`;
+    if (!prepareTask.finishedAt || handledTaskRef.current === taskKey) {
+      return;
+    }
+
+    if (prepareTask.state !== 'succeeded' && prepareTask.state !== 'failed' && prepareTask.state !== 'cancelled') {
+      return;
+    }
+
+    handledTaskRef.current = taskKey;
+
+    if (prepareTask.state === 'succeeded') {
+      void (async () => {
+        const nextStatus = await refreshStatus();
+        if (!nextStatus?.uvInstalled || !nextStatus.pythonReady || !nextStatus.studioDependenciesReady) {
+          setStatus((current) => ({
+            ...current,
+            error: t('complete.enhancements.prepareIncomplete'),
+            notice: null,
+          }));
+          toast.error(t('complete.enhancements.prepareFailed'));
+          return;
+        }
+        toast.success(t('complete.enhancements.readyTitle'));
+        onPrepared();
+      })();
+      return;
+    }
+
+    if (prepareTask.state === 'failed') {
+      setStatus((current) => ({
+        ...current,
+        error: prepareTask.error || t('complete.enhancements.prepareFailed'),
+        notice: null,
+      }));
+      toast.error(t('complete.enhancements.prepareFailed'));
+      return;
+    }
+
+    setStatus((current) => ({
+      ...current,
+      error: null,
+      notice: t('complete.enhancements.prepareCancelled'),
+    }));
+    toast.warning(t('complete.enhancements.prepareCancelled'));
+  }, [onPrepared, prepareTask.error, prepareTask.finishedAt, prepareTask.state, refreshStatus, t]);
 
   const handlePrepare = useCallback(async () => {
     setStatus((current) => ({
       ...current,
-      preparing: true,
       error: null,
+      notice: null,
     }));
     try {
-      const result = await invokeIpc('setup:prepare-environment') as {
-        success: boolean;
-        error?: string;
-      };
-      if (!result.success) {
-        throw new Error(result.error || t('complete.enhancements.prepareFailed'));
-      }
-      const nextStatus = await refreshStatus();
-      if (!nextStatus?.uvInstalled || !nextStatus.pythonReady || !nextStatus.studioDependenciesReady) {
-        throw new Error(t('complete.enhancements.prepareIncomplete'));
-      }
-      toast.success(t('complete.enhancements.readyTitle'));
-      onPrepared();
+      const nextTask = await invokeIpc('setup:prepare-environment') as SetupEnvironmentTaskSnapshot;
+      handledTaskRef.current = null;
+      setPrepareTask(nextTask);
+      setLogsExpanded(true);
     } catch (error) {
       setStatus((current) => ({
         ...current,
         error: String(error),
+        notice: null,
       }));
       toast.error(t('complete.enhancements.prepareFailed'));
-    } finally {
+    }
+  }, [t]);
+
+  const handleCancel = useCallback(async () => {
+    try {
+      await invokeIpc('setup:prepare-environment-cancel');
+      await refreshPrepareTask();
+    } catch (error) {
       setStatus((current) => ({
         ...current,
-        preparing: false,
+        error: String(error),
+        notice: null,
       }));
+      toast.error(t('complete.enhancements.prepareFailed'));
     }
-  }, [onPrepared, refreshStatus, t]);
+  }, [refreshPrepareTask, t]);
 
   const environmentReady = status.uvInstalled && status.pythonReady && status.studioDependenciesReady;
+  const preparing = prepareTask.state === 'running';
   const enhancementItems = [
     {
       id: 'uv',
@@ -1788,6 +1905,7 @@ function OptionalEnhancementPanel({ onPrepared }: { onPrepared: () => void }) {
       ready: status.studioDependenciesReady,
     },
   ];
+  const showLogsToggle = prepareTask.logs.length > 0;
 
   return (
     <div className="rounded-[1.5rem] border border-border/70 app-insight-surface p-5">
@@ -1799,23 +1917,53 @@ function OptionalEnhancementPanel({ onPrepared }: { onPrepared: () => void }) {
               ? t('complete.enhancements.readyBody')
               : t('complete.enhancements.requiredBody')}
           </div>
+          {preparing ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>{prepareTask.logs.at(-1)?.message || t('complete.enhancements.preparing')}</span>
+            </div>
+          ) : null}
         </div>
-        {!environmentReady ? (
-          <Button
-            variant="default"
-            onClick={() => { void handlePrepare(); }}
-            disabled={status.loading || status.preparing}
-          >
-            {status.preparing ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {t('complete.enhancements.preparing')}
-              </>
-            ) : (
-              t('complete.enhancements.prepareNow')
-            )}
-          </Button>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          {!environmentReady ? (
+            <Button
+              variant="default"
+              onClick={() => { void handlePrepare(); }}
+              disabled={status.loading || preparing}
+              aria-busy={preparing}
+            >
+              {preparing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {t('complete.enhancements.preparing')}
+                </>
+              ) : (
+                t('complete.enhancements.prepareNow')
+              )}
+            </Button>
+          ) : null}
+          {preparing ? (
+            <Button
+              variant="outline"
+              onClick={() => { void handleCancel(); }}
+              disabled={!prepareTask.canCancel}
+            >
+              {t('complete.enhancements.cancel')}
+            </Button>
+          ) : null}
+          {showLogsToggle ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setLogsExpanded((current) => !current);
+              }}
+              aria-expanded={logsExpanded}
+            >
+              {logsExpanded ? t('complete.enhancements.logsHide') : t('complete.enhancements.logsShow')}
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       <div className="mt-4 space-y-3">
@@ -1850,6 +1998,33 @@ function OptionalEnhancementPanel({ onPrepared }: { onPrepared: () => void }) {
           </div>
         ))}
       </div>
+
+      {logsExpanded && prepareTask.logs.length > 0 ? (
+        <div className="mt-4 rounded-[18px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.82)]">
+          <div className="border-b border-border/60 px-4 py-3 text-sm font-medium text-foreground">
+            {t('complete.enhancements.logsTitle')}
+          </div>
+          <div className="app-setup-scrollbar-hidden max-h-56 overflow-y-auto px-4 py-3 font-mono text-[12px] leading-5">
+            {prepareTask.logs.map((entry) => (
+              <div
+                key={entry.id}
+                className={cn(
+                  'whitespace-pre-wrap break-words',
+                  entry.level === 'error' ? 'text-destructive' : 'text-muted-foreground',
+                )}
+              >
+                {entry.message}
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {status.notice ? (
+        <div className="mt-4 rounded-[18px] border border-amber-500/20 bg-[hsl(var(--warning)/0.08)] px-4 py-3 text-sm leading-6 text-amber-700 dark:text-amber-300">
+          {status.notice}
+        </div>
+      ) : null}
 
       {status.error ? (
         <div className="mt-4 rounded-[18px] border border-red-500/20 bg-[hsl(var(--danger)/0.08)] px-4 py-3 text-sm leading-6 text-destructive">

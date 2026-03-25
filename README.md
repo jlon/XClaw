@@ -146,6 +146,8 @@ pnpm run init
 pnpm dev
 ```
 
+On Linux, `pnpm dev` now handles two common headless-host failures automatically: it retries with Chokidar polling if the `inotify` watcher limit is exhausted, and if neither `DISPLAY` nor `WAYLAND_DISPLAY` is present it keeps Vite running but skips Electron startup. Set `XCLAW_FORCE_ELECTRON_DEV=1` if you have already prepared Xvfb, VNC, or another display server and still want Electron launched.
+
 ### First Launch
 
 On the first run, the **Setup Wizard** walks you through:
@@ -156,6 +158,8 @@ On the first run, the **Setup Wizard** walks you through:
 4. **Verification**: confirm the setup before entering the main app
 
 If your system language is supported, the wizard picks it by default. Otherwise, it falls back to English.
+
+When the wizard needs to provision the core Python environment, the setup step now keeps the primary action in place, shows live install logs in a collapsible panel, and supports cancellation instead of only greying out the UI.
 
 > Moonshot (Kimi) note: XClaw keeps Kimi web search enabled by default.
 > When Moonshot is configured, XClaw also syncs Kimi web search in OpenClaw config to the China endpoint (`https://api.moonshot.cn/v1`).

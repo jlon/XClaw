@@ -233,12 +233,16 @@ function RuntimePreparationContent({
   const { t } = useTranslation('setup');
   const gatewayStatus = useGatewayStore((state) => state.status);
   const startGateway = useGatewayStore((state) => state.start);
+  const [checksRefreshing, setChecksRefreshing] = useState(false);
   const [checks, setChecks] = useState({
     nodejs: { status: 'checking' as 'checking' | 'success' | 'error', message: '' },
     openclaw: { status: 'checking' as 'checking' | 'success' | 'error', message: '' },
     gateway: { status: 'checking' as 'checking' | 'success' | 'error', message: '' },
   });
   const [showLogs, setShowLogs] = useState(false);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [openingLogDir, setOpeningLogDir] = useState(false);
+  const [gatewayStartPending, setGatewayStartPending] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [logContent, setLogContent] = useState('');
   const [openclawDir, setOpenclawDir] = useState('');
@@ -246,6 +250,7 @@ function RuntimePreparationContent({
   const gatewayAutoStartAttemptedRef = useRef(false);
 
   const runChecks = useCallback(async () => {
+    setChecksRefreshing(true);
     setChecks({
       nodejs: { status: 'checking', message: '' },
       openclaw: { status: 'checking', message: '' },
@@ -326,6 +331,7 @@ function RuntimePreparationContent({
         },
       }));
     }
+    setChecksRefreshing(false);
   }, [t]);
 
   useEffect(() => {
@@ -398,11 +404,16 @@ function RuntimePreparationContent({
   }, [gatewayStatus.state, t]);
 
   const handleStartGateway = useCallback(async () => {
+    setGatewayStartPending(true);
     setChecks((prev) => ({
       ...prev,
       gateway: { status: 'checking', message: t('runtime.status.gatewayStarting') },
     }));
-    await startGateway();
+    try {
+      await startGateway();
+    } finally {
+      setGatewayStartPending(false);
+    }
   }, [startGateway, t]);
 
   useEffect(() => {
@@ -428,6 +439,7 @@ function RuntimePreparationContent({
   }, [checks.nodejs.status, checks.openclaw.status, gatewayStatus.state, handleStartGateway]);
 
   const handleShowLogs = async () => {
+    setLogsLoading(true);
     try {
       const logs = await hostApiFetch<{ content: string }>('/api/logs?tailLines=100');
       setLogContent(logs.content);
@@ -435,10 +447,13 @@ function RuntimePreparationContent({
     } catch {
       setLogContent('(Failed to load logs)');
       setShowLogs(true);
+    } finally {
+      setLogsLoading(false);
     }
   };
 
   const handleOpenLogDir = async () => {
+    setOpeningLogDir(true);
     try {
       const { dir: logDir } = await hostApiFetch<{ dir: string | null }>('/api/logs/dir');
       if (logDir) {
@@ -446,6 +461,8 @@ function RuntimePreparationContent({
       }
     } catch {
       return;
+    } finally {
+      setOpeningLogDir(false);
     }
   };
 
@@ -534,6 +551,7 @@ function RuntimePreparationContent({
       message: checks.gateway.message,
     },
   ] as const;
+  const showStartGatewayAction = checks.gateway.status === 'error' || gatewayStartPending;
 
   return (
     <div className="space-y-5">
@@ -666,11 +684,24 @@ function RuntimePreparationContent({
         {advancedOpen ? (
           <div className="mt-4 space-y-4">
             <div className="flex flex-wrap gap-2">
-              <Button variant="ghost" size="sm" onClick={handleShowLogs}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleShowLogs}
+                disabled={logsLoading}
+                aria-busy={logsLoading ? 'true' : undefined}
+              >
+                {logsLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 {t('runtime.viewLogs')}
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => { void runChecks(); }}>
-                <RefreshCw className="mr-2 h-4 w-4" />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { void runChecks(); }}
+                disabled={checksRefreshing}
+                aria-busy={checksRefreshing ? 'true' : undefined}
+              >
+                {checksRefreshing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
                 {t('runtime.recheck')}
               </Button>
             </div>
@@ -698,8 +729,15 @@ function RuntimePreparationContent({
               <div className="grid grid-cols-[1fr_auto] items-center gap-4 rounded-2xl border border-border/70 app-field-surface p-3">
                 <div className="flex items-center gap-2 text-left">
                   <span>{t('runtime.gateway')}</span>
-                  {checks.gateway.status === 'error' ? (
-                    <Button variant="outline" size="sm" onClick={handleStartGateway}>
+                  {showStartGatewayAction ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleStartGateway}
+                      disabled={gatewayStartPending}
+                      aria-busy={gatewayStartPending ? 'true' : undefined}
+                    >
+                      {gatewayStartPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                       {t('runtime.startGateway')}
                     </Button>
                   ) : null}
@@ -715,8 +753,15 @@ function RuntimePreparationContent({
                 <div className="mb-2 flex items-center justify-between">
                   <p className="text-sm font-medium text-foreground">{t('runtime.logs.title')}</p>
                   <div className="flex gap-2">
-                    <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={handleOpenLogDir}>
-                      <ExternalLink className="mr-1 h-3 w-3" />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={handleOpenLogDir}
+                      disabled={openingLogDir}
+                      aria-busy={openingLogDir ? 'true' : undefined}
+                    >
+                      {openingLogDir ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <ExternalLink className="mr-1 h-3 w-3" />}
                       {t('runtime.logs.openFolder')}
                     </Button>
                     <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setShowLogs(false)}>

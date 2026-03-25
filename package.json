@@ -24,7 +24,7 @@
     "scripts": {
         "init": "pnpm install && pnpm run uv:download",
         "predev": "zx scripts/prepare-preinstalled-skills-dev.mjs",
-        "dev": "vite",
+        "dev": "node scripts/dev-vite.mjs",
         "website:dev": "vite --open /website/",
         "website:preview": "vite preview --open /website/",
         "build": "vite build && zx scripts/bundle-openclaw.mjs && zx scripts/bundle-openclaw-plugins.mjs && zx scripts/bundle-preinstalled-skills.mjs && electron-builder -c config/build/electron-builder.config.cjs",

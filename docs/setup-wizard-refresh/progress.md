@@ -62,6 +62,9 @@
 25. `takeover` 相关回归已更新为等待核心环境检查完成后再继续，避免测试把异步检查误当成立即可操作状态
 26. `setupManagedPython()` 已加全局 single-flight；Setup 显式准备 Python 与 Gateway 后台自愈不再并发执行
 27. Setup 未完成时，Gateway 后台已停止偷跑 Python 修复，只在 setup 完成后才允许后台补环境
+28. `核心环境准备` 子步骤已改成真正的后台任务状态：主进程会持有运行态、失败态和取消态，不再只有一次性阻塞调用
+29. `OptionalEnhancementPanel` 现在会显示可折叠的实时安装日志，并在运行中提供明确的取消按钮，而不是只把动作置灰
+30. `setupManagedPython()` 与 `ensureStudioPythonEnv()` 已补 AbortSignal 中断能力；Windows 会用进程树终止，mac/Linux 会走信号终止
 
 ## 最新验证
 
@@ -72,6 +75,9 @@
 - `pnpm exec vitest run tests/unit/setup-wizard-flow.test.ts tests/unit/setup-wizard-layout.test.tsx tests/unit/setup-takeover.test.tsx --testTimeout=15000`
 - `pnpm exec vitest run tests/unit/uv-setup.test.ts tests/unit/gateway-supervisor.test.ts tests/unit/setup-wizard-flow.test.ts tests/unit/setup-wizard-layout.test.tsx tests/unit/setup-takeover.test.tsx --testTimeout=15000`
 - `curl -s http://127.0.0.1:3210/api/app/setup-inspection`（隔离 `HOME + userData` 实测）
+- `corepack pnpm exec eslint electron/main/ipc-handlers.ts electron/main/setup-environment-task.ts electron/preload/index.ts electron/studio/python-env.ts electron/utils/run-child-command.ts electron/utils/uv-setup.ts src/pages/Setup/index.tsx tests/unit/ipc-setup-environment-handlers.test.ts tests/unit/preload-ipc-channels.test.ts tests/unit/setup-takeover.test.tsx`
+- `corepack pnpm test tests/unit/preload-ipc-channels.test.ts tests/unit/ipc-setup-environment-handlers.test.ts tests/unit/setup-takeover.test.tsx`
+- `corepack pnpm run typecheck`
 
 结果：
 
@@ -79,8 +85,10 @@
 - `setup-inspection + setup-wizard-layout + setup-wizard-flow` 共 `20` 条通过
 - `setup-wizard-flow + setup-wizard-layout + setup-takeover` 共 `19` 条通过
 - `uv-setup + gateway-supervisor + setup-wizard-flow + setup-wizard-layout + setup-takeover` 共 `27` 条通过
+- `setup preload + setup environment IPC + setup-takeover` 共 `19` 条通过
 - 隔离环境返回 `hasExistingOpenClaw=false`、`suggestedMode=fresh`
 - `setup-inspection / takeover-runtime` 的定向 `eslint` 通过
+- 新增 `setup environment` 相关定向 `eslint` 与 `typecheck` 通过
 
 ## 本轮说明
 

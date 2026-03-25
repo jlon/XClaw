@@ -36,7 +36,7 @@ import type { AddProviderDialogOptions } from './provider-account-create';
 const inputClasses = 'appearance-none h-9 rounded-[10px] border border-border/70 bg-[hsl(var(--surface-panel)/0.96)] text-[13px] text-foreground placeholder:text-muted-foreground/55 shadow-none transition-colors focus:outline-none focus-visible:outline-none focus-visible:border-primary focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
 const tokenInputClasses = `${inputClasses} font-mono tracking-[0.01em]`;
 const labelClasses = 'text-[13px] font-semibold text-foreground/80';
-const modalSurfaceClasses = 'app-modal-surface w-full rounded-[20px] border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.99)] shadow-[0_18px_48px_rgba(15,23,42,0.12)]';
+const modalSurfaceClasses = 'app-modal-surface flex max-h-[88vh] w-full flex-col rounded-[20px] border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.99)] shadow-[0_18px_48px_rgba(15,23,42,0.12)]';
 const primaryButtonClass = 'workbench-motion-button workbench-motion-button--lift rounded-[10px] h-8 px-4 bg-primary text-primary-foreground shadow-none hover:bg-primary/92';
 const segmentedTrackClass = 'flex rounded-[10px] border border-border/60 bg-[hsl(var(--surface-base)/0.96)] p-0.5 gap-0.5';
 const segmentedActiveClass = 'border border-[hsl(var(--primary)/0.16)] bg-[hsl(var(--surface-elevated)/0.98)] text-primary shadow-none';
@@ -403,8 +403,8 @@ export function AddProviderDialog({
   );
 
   return (
-    <div className="app-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4" data-testid="provider-add-dialog">
-      <Card className={cn(modalSurfaceClasses, 'max-w-[68rem] overflow-hidden')}>
+    <div className="app-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4" data-testid="provider-add-dialog">
+      <Card className={cn(modalSurfaceClasses, 'max-w-[64rem] overflow-hidden')}>
         <CardHeader className="relative shrink-0 border-b border-[hsl(var(--border-subtle)/0.72)] px-5 py-4">
           <CardTitle className="text-[15px] font-semibold tracking-tight text-foreground">{t('aiProviders.dialog.title')}</CardTitle>
           <CardDescription className="mt-0.5 text-[11.5px] text-foreground/66">
@@ -419,81 +419,82 @@ export function AddProviderDialog({
             <X className="h-4 w-4" />
           </Button>
         </CardHeader>
-        <CardContent className="p-4">
-          <div className="flex flex-col gap-3.5">
-            <section className={cn(panelSurfaceClass, 'shrink-0 p-2.5')}>
-              {availableTypes.length ? (
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                  {availableTypes.map((type) => {
-                    const selected = type.id === selectedType;
-                    const meta = type.model || (type.supportsApiKey ? 'API Key' : 'OAuth');
-                    return (
-                      <button
-                        key={type.id}
-                        type="button"
-                        disabled={saving || oauthFlowing}
-                        onClick={() => {
-                          if (!selected) {
-                            selectType(type);
-                          }
-                        }}
-                        className={cn(
-                          listRowClass,
-                          selected && pickerCardActiveClass,
-                          'min-h-[74px] rounded-[14px] focus:outline-none focus-visible:outline-none focus-visible:border-[hsl(var(--border-strong)/0.42)] focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-60',
-                        )}
-                      >
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border border-[hsl(var(--border-subtle)/0.76)] bg-[hsl(var(--surface-base)/0.92)]">
-                          {getProviderIconUrl(type.id) ? (
-                            <img src={getProviderIconUrl(type.id)} alt={type.name} className={getProviderIconClass(type.id, 'h-4 w-4')} />
+        <CardContent className="min-h-0 flex flex-1 flex-col overflow-hidden p-0">
+          <div className="app-provider-dialog-body app-setup-scrollbar-hidden min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4">
+            <div className="flex flex-col gap-3.5">
+              <section className={cn(panelSurfaceClass, 'shrink-0 p-2.5')}>
+                {availableTypes.length ? (
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                    {availableTypes.map((type) => {
+                      const selected = type.id === selectedType;
+                      const meta = type.model || (type.supportsApiKey ? 'API Key' : 'OAuth');
+                      return (
+                        <button
+                          key={type.id}
+                          type="button"
+                          disabled={saving || oauthFlowing}
+                          onClick={() => {
+                            if (!selected) {
+                              selectType(type);
+                            }
+                          }}
+                          className={cn(
+                            listRowClass,
+                            selected && pickerCardActiveClass,
+                            'min-h-[74px] rounded-[14px] focus:outline-none focus-visible:outline-none focus-visible:border-[hsl(var(--border-strong)/0.42)] focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-60',
+                          )}
+                        >
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border border-[hsl(var(--border-subtle)/0.76)] bg-[hsl(var(--surface-base)/0.92)]">
+                            {getProviderIconUrl(type.id) ? (
+                              <img src={getProviderIconUrl(type.id)} alt={type.name} className={getProviderIconClass(type.id, 'h-4 w-4')} />
+                            ) : (
+                              <span className="text-[15px]">{type.icon}</span>
+                            )}
+                          </div>
+                          <div className="min-w-0 space-y-0.5">
+                            <p className="truncate text-[12.5px] font-semibold leading-none text-foreground">{type.id === 'custom' ? t('aiProviders.custom') : type.name}</p>
+                            <p className="line-clamp-1 text-[10.5px] leading-4 text-muted-foreground/72">{meta}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="flex flex-1 items-center justify-center rounded-[14px] border border-dashed border-[hsl(var(--border-subtle)/0.72)] bg-[hsl(var(--surface-base)/0.42)] px-4 text-center text-[12.5px] text-muted-foreground">
+                    {t('aiProviders.dialog.desc')}
+                  </div>
+                )}
+              </section>
+
+              <section className={cn(panelSurfaceClass, 'flex flex-col')}>
+                {selectedType && typeInfo ? (
+                  <>
+                    <div className="flex shrink-0 items-start justify-between gap-4 border-b border-[hsl(var(--border-subtle)/0.72)] px-4 py-3">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] border border-[hsl(var(--border-subtle)/0.76)] bg-[hsl(var(--surface-base)/0.92)]">
+                          {getProviderIconUrl(selectedType) ? (
+                            <img src={getProviderIconUrl(selectedType)} alt={typeInfo.name} className={getProviderIconClass(selectedType, 'h-[18px] w-[18px]')} />
                           ) : (
-                            <span className="text-[15px]">{type.icon}</span>
+                            <span className="text-lg">{typeInfo.icon}</span>
                           )}
                         </div>
-                        <div className="min-w-0 space-y-0.5">
-                          <p className="truncate text-[12.5px] font-semibold leading-none text-foreground">{type.id === 'custom' ? t('aiProviders.custom') : type.name}</p>
-                          <p className="line-clamp-1 text-[10.5px] leading-4 text-muted-foreground/72">{meta}</p>
+                        <div className="min-w-0">
+                          <p className="truncate text-[13.5px] font-semibold text-foreground">{typeInfo.id === 'custom' ? t('aiProviders.custom') : typeInfo.name}</p>
+                          <p className="mt-0.5 text-[11px] text-muted-foreground">{typeInfo.id}</p>
                         </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="flex flex-1 items-center justify-center rounded-[14px] border border-dashed border-[hsl(var(--border-subtle)/0.72)] bg-[hsl(var(--surface-base)/0.42)] px-4 text-center text-[12.5px] text-muted-foreground">
-                  {t('aiProviders.dialog.desc')}
-                </div>
-              )}
-            </section>
-
-            <section className={cn(panelSurfaceClass, 'flex flex-col')}>
-              {selectedType && typeInfo ? (
-                <>
-                  <div className="flex shrink-0 items-start justify-between gap-4 border-b border-[hsl(var(--border-subtle)/0.72)] px-4 py-3">
-                    <div className="flex min-w-0 items-center gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] border border-[hsl(var(--border-subtle)/0.76)] bg-[hsl(var(--surface-base)/0.92)]">
-                        {getProviderIconUrl(selectedType) ? (
-                          <img src={getProviderIconUrl(selectedType)} alt={typeInfo.name} className={getProviderIconClass(selectedType, 'h-[18px] w-[18px]')} />
-                        ) : (
-                          <span className="text-lg">{typeInfo.icon}</span>
-                        )}
                       </div>
-                      <div className="min-w-0">
-                        <p className="truncate text-[13.5px] font-semibold text-foreground">{typeInfo.id === 'custom' ? t('aiProviders.custom') : typeInfo.name}</p>
-                        <p className="mt-0.5 text-[11px] text-muted-foreground">{typeInfo.id}</p>
-                      </div>
+                      {providerDocsUrl ? (
+                        <a
+                          href={providerDocsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex shrink-0 items-center gap-1 text-[12px] font-medium text-primary hover:text-primary/80"
+                        >
+                          {t('aiProviders.dialog.customDoc')}
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                      ) : null}
                     </div>
-                    {providerDocsUrl ? (
-                      <a
-                        href={providerDocsUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex shrink-0 items-center gap-1 text-[12px] font-medium text-primary hover:text-primary/80"
-                      >
-                        {t('aiProviders.dialog.customDoc')}
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </a>
-                    ) : null}
-                  </div>
 
                   <div className="px-4 py-3.5">
                     <div className="space-y-2.5">
@@ -714,7 +715,7 @@ export function AddProviderDialog({
                     </div>
                   </div>
 
-                  <div className="flex shrink-0 justify-end gap-3 border-t border-[hsl(var(--border-subtle)/0.72)] px-4 py-3">
+                  <div className="app-provider-dialog-footer flex shrink-0 justify-end gap-3 border-t border-[hsl(var(--border-subtle)/0.72)] px-4 py-3">
                     <Button
                       onClick={handleAdd}
                       className={cn(primaryButtonClass, 'h-9 px-6 text-[12.5px] font-semibold', useOAuthFlow && 'hidden')}
@@ -724,13 +725,14 @@ export function AddProviderDialog({
                       {t('aiProviders.dialog.add')}
                     </Button>
                   </div>
-                </>
-              ) : (
-                <div className="flex h-full items-center justify-center px-6 text-center text-[12.5px] text-muted-foreground">
-                  {t('aiProviders.dialog.desc')}
-                </div>
-              )}
-            </section>
+                  </>
+                ) : (
+                  <div className="flex h-full items-center justify-center px-6 text-center text-[12.5px] text-muted-foreground">
+                    {t('aiProviders.dialog.desc')}
+                  </div>
+                )}
+              </section>
+            </div>
           </div>
         </CardContent>
       </Card>

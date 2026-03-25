@@ -92,7 +92,7 @@ describe('setup wizard shell', () => {
     expect(onSelect).not.toHaveBeenCalled();
   });
 
-  it('changes footer semantics when completion is still applying changes', () => {
+  it('keeps a loading primary action visible while completion is still applying changes', () => {
     render(
       <SetupFooter
         stage="complete"
@@ -104,7 +104,11 @@ describe('setup wizard shell', () => {
       />,
     );
 
-    expect(screen.queryByRole('button', { name: '进入 XClaw' })).not.toBeInTheDocument();
+    const primaryAction = screen.getByRole('button', { name: '进入 XClaw' });
+
+    expect(primaryAction).toBeDisabled();
+    expect(primaryAction).toHaveAttribute('aria-busy', 'true');
+    expect(primaryAction.querySelector('svg.animate-spin')).not.toBeNull();
     expect(screen.getByTestId('setup-footer-body')).toHaveClass('justify-end');
     expect(screen.getByTestId('setup-footer-shell')).toHaveClass('justify-end');
     expect(screen.getByTestId('setup-footer-shell')).toHaveClass('py-3');

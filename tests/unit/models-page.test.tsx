@@ -639,6 +639,26 @@ describe('models page render contract', () => {
     });
   });
 
+  it('keeps the add provider dialog viewport bounded with a hidden-scrollbar body', async () => {
+    const { Models } = await import('@/pages/Models');
+    render(<Models />);
+
+    await screen.findByTestId('models-provider-card-select-openai');
+    fireEvent.click(screen.getAllByRole('button', { name: /添加提供商/i })[0]);
+
+    const dialog = await screen.findByTestId('provider-add-dialog');
+    const card = dialog.querySelector('.app-modal-surface');
+    const body = dialog.querySelector('.app-provider-dialog-body');
+    const footer = dialog.querySelector('.app-provider-dialog-footer');
+
+    expect(card).not.toBeNull();
+    expect(card).toHaveClass('flex', 'max-h-[88vh]', 'flex-col', 'overflow-hidden', 'max-w-[64rem]');
+    expect(body).not.toBeNull();
+    expect(body).toHaveClass('min-h-0', 'flex-1', 'overflow-y-auto', 'overscroll-contain', 'app-setup-scrollbar-hidden');
+    expect(footer).not.toBeNull();
+    expect(footer).toHaveClass('shrink-0');
+  });
+
   it('keeps the models scroll area inside a vertical flex shell so the page can scroll', async () => {
     const { Models } = await import('@/pages/Models');
     render(<Models />);

@@ -1,15 +1,17 @@
-import { spawn } from 'child_process';
 import { existsSync } from 'fs';
 import { mkdir, rm } from 'fs/promises';
 import { getUvMirrorEnv } from '../utils/uv-env';
 import { logger } from '../utils/logger';
 import { needsWinShell, quoteForCmd } from '../utils/paths';
+import { createAbortError, runChildCommand } from '../utils/run-child-command';
 import { checkUvInstalled, resolveUvBin, setupManagedPython } from '../utils/uv-setup';
 import { getStudioRequirementsPath, getStudioVenvDir, getStudioVenvPythonPath } from './paths';
 import type { StudioPythonReadiness } from './types';
 
 interface EnsureStudioPythonEnvOptions {
   forceReinstall?: boolean;
+  signal?: AbortSignal;
+  onLog?: (entry: { level: 'info' | 'error'; message: string }) => void;
 }
 
 const runCommand = async (
@@ -18,31 +20,25 @@ const runCommand = async (
   options: {
     cwd?: string;
     env?: Record<string, string | undefined>;
+    signal?: AbortSignal;
+    onStdout?: (message: string) => void;
+    onStderr?: (message: string) => void;
   } = {},
 ): Promise<{ code: number; stdout: string; stderr: string }> => {
   const useShell = needsWinShell(command);
-  return await new Promise((resolve) => {
-    const child = spawn(useShell ? quoteForCmd(command) : command, args, {
+  return await runChildCommand(
+    useShell ? quoteForCmd(command) : command,
+    args,
+    {
       cwd: options.cwd,
       env: options.env,
       shell: useShell,
+      signal: options.signal,
       windowsHide: true,
-    });
-    let stdout = '';
-    let stderr = '';
-    child.stdout?.on('data', (chunk) => {
-      stdout += chunk.toString();
-    });
-    child.stderr?.on('data', (chunk) => {
-      stderr += chunk.toString();
-    });
-    child.on('error', (error) => {
-      resolve({ code: -1, stdout, stderr: error.message });
-    });
-    child.on('close', (code) => {
-      resolve({ code: code ?? -1, stdout: stdout.trim(), stderr: stderr.trim() });
-    });
-  });
+      onStdout: options.onStdout,
+      onStderr: options.onStderr,
+    },
+  );
 };
 
 export async function getManagedPythonPath(): Promise<string | null> {
@@ -109,11 +105,19 @@ export async function ensureStudioPythonEnv(
   const forceReinstall = options.forceReinstall === true;
   const initial = await inspectStudioPythonEnv();
   if (initial.dependenciesReady && !forceReinstall) {
+    options.onLog?.({ level: 'info', message: 'Studio dependencies already available' });
     return initial;
   }
 
   if (!initial.interpreterReady) {
-    await setupManagedPython();
+    await setupManagedPython({
+      signal: options.signal,
+      onLog: options.onLog,
+    });
+  }
+
+  if (options.signal?.aborted) {
+    throw createAbortError('Environment preparation cancelled');
   }
 
   const pythonPath = await getManagedPythonPath();
@@ -140,20 +144,33 @@ export async function ensureStudioPythonEnv(
   }
 
   if (forceReinstall) {
+    options.onLog?.({ level: 'info', message: 'Removing existing Studio virtual environment' });
     await rm(venvDir, { recursive: true, force: true });
   }
 
   await mkdir(venvDir, { recursive: true });
 
-  const venvResult = await runCommand(uvBin, ['venv', '--python', pythonPath, venvDir], { env });
+  options.onLog?.({ level: 'info', message: 'Creating Studio virtual environment' });
+  const venvResult = await runCommand(uvBin, ['venv', '--python', pythonPath, venvDir], {
+    env,
+    signal: options.signal,
+    onStdout: (message) => options.onLog?.({ level: 'info', message }),
+    onStderr: (message) => options.onLog?.({ level: 'info', message }),
+  });
   if (venvResult.code !== 0) {
     throw new Error(venvResult.stderr || venvResult.stdout || 'Failed to create Studio virtual environment');
   }
 
+  options.onLog?.({ level: 'info', message: 'Installing Studio Python dependencies' });
   const installResult = await runCommand(
     uvBin,
     ['pip', 'install', '--python', venvPythonPath, '-r', requirementsPath],
-    { env },
+    {
+      env,
+      signal: options.signal,
+      onStdout: (message) => options.onLog?.({ level: 'info', message }),
+      onStderr: (message) => options.onLog?.({ level: 'info', message }),
+    },
   );
   if (installResult.code !== 0) {
     logger.error('Studio dependency install failed', installResult);

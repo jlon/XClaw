@@ -1,8 +1,28 @@
+import process from 'node:process';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import electron from 'vite-plugin-electron';
 import renderer from 'vite-plugin-electron-renderer';
 import { resolve } from 'path';
+import {
+  getElectronDevRuntime,
+  getElectronDevSkipMessage,
+  shouldReloadElectronDev,
+} from './scripts/dev-runtime.mjs';
+
+const electronDevRuntime = getElectronDevRuntime();
+let hasWarnedElectronDevSkip = false;
+
+const warnElectronDevSkip = () => {
+  if (hasWarnedElectronDevSkip) {
+    return;
+  }
+
+  hasWarnedElectronDevSkip = true;
+  console.warn(getElectronDevSkipMessage());
+};
+
+const hasElectronApp = () => Boolean(Reflect.get(process, 'electronApp'));
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -18,6 +38,11 @@ export default defineConfig({
         // Main process entry file
         entry: 'electron/main/index.ts',
         onstart(options) {
+          if (!electronDevRuntime.shouldLaunch) {
+            warnElectronDevSkip();
+            return;
+          }
+
           options.startup();
         },
         vite: {
@@ -33,6 +58,11 @@ export default defineConfig({
         // Preload scripts entry file
         entry: 'electron/preload/index.ts',
         onstart(options) {
+          if (!shouldReloadElectronDev({ ...electronDevRuntime, hasElectronApp: hasElectronApp() })) {
+            warnElectronDevSkip();
+            return;
+          }
+
           options.reload();
         },
         vite: {

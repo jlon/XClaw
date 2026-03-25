@@ -38,6 +38,7 @@ const { hostApiFetchMock, invokeIpcMock, gatewayState, tMock } = vi.hoisted(() =
     'runtime.summary.description': 'Confirm the runtime summary before continuing.',
     'runtime.summary.ready': 'Ready',
     'runtime.summary.attention': 'Needs attention',
+    'runtime.summary.gatewayStopped': 'Gateway stopped',
     'runtime.issue.title': 'Environment issue detected',
     'runtime.issue.desc': 'Resolve the issue before continuing.',
     'runtime.viewLogs': 'View logs',
@@ -160,5 +161,208 @@ describe('Setup preparation stage', () => {
     expect(screen.getByRole('button', { name: 'View logs' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Re-check' })).toBeInTheDocument();
     expect(screen.getByText('/tmp/openclaw')).toBeInTheDocument();
+  });
+
+  it('shows loading feedback while logs are still being fetched', async () => {
+    let resolveLogs: ((value: { content: string }) => void) | null = null;
+
+    hostApiFetchMock.mockImplementation((path: string) => {
+      if (path === '/api/logs?tailLines=100') {
+        return new Promise((resolve) => {
+          resolveLogs = resolve;
+        });
+      }
+
+      return Promise.resolve({ content: 'tail' });
+    });
+
+    render(
+      <SetupPreparationStage
+        mode="fresh"
+        onStatusChange={vi.fn()}
+        workspacePath="/Users/test/.openclaw/workspace"
+        gatewayPortInput="18789"
+        onWorkspacePathChange={vi.fn()}
+        onGatewayPortInputChange={vi.fn()}
+        workspaceError={null}
+        gatewayPortError={null}
+        plan={{
+          mode: 'fresh',
+          canApply: true,
+          blockingIssues: [],
+          warnings: [],
+          runtime: {
+            gatewayPort: 18789,
+            portAvailable: true,
+            suggestedGatewayPort: 18789,
+            externalGatewayDetected: false,
+            configChanging: false,
+          },
+          workspace: {
+            defaultPath: '/Users/test/.openclaw/workspace',
+            configuredPaths: [],
+          },
+        }}
+        planLoading={false}
+        inspection={null}
+        status={null}
+        submitting={false}
+      />,
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Advanced diagnostics' }));
+    fireEvent.click(screen.getByRole('button', { name: 'View logs' }));
+
+    const logsAction = screen.getByRole('button', { name: 'View logs' });
+
+    expect(logsAction).toBeDisabled();
+    expect(logsAction).toHaveAttribute('aria-busy', 'true');
+    expect(logsAction.querySelector('svg.animate-spin')).not.toBeNull();
+
+    resolveLogs?.({ content: 'tail' });
+
+    expect(await screen.findByText('tail')).toBeInTheDocument();
+  });
+
+  it('shows loading feedback while diagnostics are being re-checked', async () => {
+    let resolveRecheck: ((value: { packageExists: boolean; isBuilt: boolean; dir: string; version: string }) => void) | null = null;
+
+    invokeIpcMock
+      .mockResolvedValueOnce({
+        packageExists: true,
+        isBuilt: true,
+        dir: '/tmp/openclaw',
+        version: '1.2.3',
+      })
+      .mockImplementationOnce(() => new Promise((resolve) => {
+        resolveRecheck = resolve;
+      }));
+
+    render(
+      <SetupPreparationStage
+        mode="fresh"
+        onStatusChange={vi.fn()}
+        workspacePath="/Users/test/.openclaw/workspace"
+        gatewayPortInput="18789"
+        onWorkspacePathChange={vi.fn()}
+        onGatewayPortInputChange={vi.fn()}
+        workspaceError={null}
+        gatewayPortError={null}
+        plan={{
+          mode: 'fresh',
+          canApply: true,
+          blockingIssues: [],
+          warnings: [],
+          runtime: {
+            gatewayPort: 18789,
+            portAvailable: true,
+            suggestedGatewayPort: 18789,
+            externalGatewayDetected: false,
+            configChanging: false,
+          },
+          workspace: {
+            defaultPath: '/Users/test/.openclaw/workspace',
+            configuredPaths: [],
+          },
+        }}
+        planLoading={false}
+        inspection={null}
+        status={null}
+        submitting={false}
+      />,
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Advanced diagnostics' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Re-check' }));
+
+    const recheckAction = screen.getByRole('button', { name: 'Re-check' });
+
+    expect(recheckAction).toBeDisabled();
+    expect(recheckAction).toHaveAttribute('aria-busy', 'true');
+    expect(recheckAction.querySelector('svg.animate-spin')).not.toBeNull();
+
+    await act(async () => {
+      resolveRecheck?.({
+        packageExists: true,
+        isBuilt: true,
+        dir: '/tmp/openclaw',
+        version: '1.2.4',
+      });
+      await Promise.resolve();
+    });
+
+    expect((await screen.findAllByText('OpenClaw package ready v1.2.4')).length).toBeGreaterThan(0);
+  });
+
+  it('keeps the gateway start action visible and loading while the launch request is pending', async () => {
+    let resolveStart: (() => void) | null = null;
+
+    gatewayState.status = { state: 'error', error: 'Gateway failed to boot', port: 18789 };
+    gatewayState.start = vi.fn(() => new Promise<void>((resolve) => {
+      resolveStart = resolve;
+    }));
+
+    render(
+      <SetupPreparationStage
+        mode="fresh"
+        onStatusChange={vi.fn()}
+        workspacePath="/Users/test/.openclaw/workspace"
+        gatewayPortInput="18789"
+        onWorkspacePathChange={vi.fn()}
+        onGatewayPortInputChange={vi.fn()}
+        workspaceError={null}
+        gatewayPortError={null}
+        plan={{
+          mode: 'fresh',
+          canApply: true,
+          blockingIssues: [],
+          warnings: [],
+          runtime: {
+            gatewayPort: 18789,
+            portAvailable: true,
+            suggestedGatewayPort: 18789,
+            externalGatewayDetected: false,
+            configChanging: false,
+          },
+          workspace: {
+            defaultPath: '/Users/test/.openclaw/workspace',
+            configuredPaths: [],
+          },
+        }}
+        planLoading={false}
+        inspection={null}
+        status={null}
+        submitting={false}
+      />,
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Advanced diagnostics' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Start gateway' }));
+
+    const startGatewayAction = screen.getByRole('button', { name: 'Start gateway' });
+
+    expect(startGatewayAction).toBeDisabled();
+    expect(startGatewayAction).toHaveAttribute('aria-busy', 'true');
+    expect(startGatewayAction.querySelector('svg.animate-spin')).not.toBeNull();
+
+    await act(async () => {
+      resolveStart?.();
+      await Promise.resolve();
+    });
   });
 });
