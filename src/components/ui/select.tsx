@@ -72,7 +72,7 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
             position="popper"
             sideOffset={8}
             className={cn(
-              'z-50 max-h-72 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-[16px] border border-border/70 bg-popover text-popover-foreground shadow-[0_12px_28px_rgba(15,23,42,0.08)]',
+              'z-30 max-h-72 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-md border border-border/70 bg-popover text-popover-foreground shadow-md',
               contentClassName,
             )}
           >
@@ -84,7 +84,7 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
                     key={optionValue}
                     value={optionValue}
                     disabled={option.disabled}
-                    className="relative flex w-full cursor-default select-none items-center rounded-[10px] py-2 pl-9 pr-3 text-sm outline-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-40 data-[highlighted]:bg-[hsl(var(--foreground)/0.05)] data-[highlighted]:text-foreground"
+                    className="relative flex w-full cursor-default items-center rounded px-2 py-1.5 pl-8 text-[13px] outline-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-[hsl(var(--surface-hover))] data-[highlighted]:text-foreground"
                   >
                     <span className="absolute left-3 flex h-4 w-4 items-center justify-center">
                       <SelectPrimitive.ItemIndicator>
