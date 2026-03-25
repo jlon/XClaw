@@ -3,7 +3,7 @@ import { mkdir, rm } from 'fs/promises';
 import { getUvMirrorEnv } from '../utils/uv-env';
 import { logger } from '../utils/logger';
 import { needsWinShell, quoteForCmd } from '../utils/paths';
-import { createAbortError, runChildCommand } from '../utils/run-child-command';
+import { createAbortError, isAbortError, runChildCommand } from '../utils/run-child-command';
 import { checkUvInstalled, resolveUvBin, setupManagedPython } from '../utils/uv-setup';
 import { getStudioRequirementsPath, getStudioVenvDir, getStudioVenvPythonPath } from './paths';
 import type { StudioPythonReadiness } from './types';
@@ -14,6 +14,11 @@ interface EnsureStudioPythonEnvOptions {
   onLog?: (entry: { level: 'info' | 'error'; message: string }) => void;
 }
 
+const PYTHON_FIND_TIMEOUT_MS = 15_000;
+const STUDIO_PROBE_TIMEOUT_MS = 15_000;
+const STUDIO_VENV_CREATE_TIMEOUT_MS = 60_000;
+const STUDIO_DEPENDENCY_INSTALL_TIMEOUT_MS = 120_000;
+
 const runCommand = async (
   command: string,
   args: string[],
@@ -21,6 +26,7 @@ const runCommand = async (
     cwd?: string;
     env?: Record<string, string | undefined>;
     signal?: AbortSignal;
+    timeoutMs?: number;
     onStdout?: (message: string) => void;
     onStderr?: (message: string) => void;
   } = {},
@@ -34,11 +40,39 @@ const runCommand = async (
       env: options.env,
       shell: useShell,
       signal: options.signal,
+      timeoutMs: options.timeoutMs,
       windowsHide: true,
       onStdout: options.onStdout,
       onStderr: options.onStderr,
     },
   );
+};
+
+const installStudioDependencies = async (
+  uvBin: string,
+  venvPythonPath: string,
+  requirementsPath: string,
+  env: Record<string, string | undefined>,
+  label: string,
+  options: EnsureStudioPythonEnvOptions,
+): Promise<void> => {
+  options.onLog?.({ level: 'info', message: 'Installing Studio Python dependencies' });
+  const installResult = await runCommand(
+    uvBin,
+    ['pip', 'install', '--python', venvPythonPath, '-r', requirementsPath],
+    {
+      env,
+      signal: options.signal,
+      timeoutMs: STUDIO_DEPENDENCY_INSTALL_TIMEOUT_MS,
+      onStdout: (message) => options.onLog?.({ level: 'info', message }),
+      onStderr: (message) => options.onLog?.({ level: 'info', message }),
+    },
+  );
+  if (installResult.code === 0) {
+    return;
+  }
+  const detail = installResult.stderr || installResult.stdout || `Failed to install Studio dependencies [${label}]`;
+  throw new Error(detail);
 };
 
 export async function getManagedPythonPath(): Promise<string | null> {
@@ -47,7 +81,7 @@ export async function getManagedPythonPath(): Promise<string | null> {
     return null;
   }
   const { bin: uvBin } = resolveUvBin();
-  const result = await runCommand(uvBin, ['python', 'find', '3.12']);
+  const result = await runCommand(uvBin, ['python', 'find', '3.12'], { timeoutMs: PYTHON_FIND_TIMEOUT_MS });
   return result.code === 0 && result.stdout ? result.stdout.split(/\r?\n/).pop() ?? null : null;
 }
 
@@ -88,7 +122,11 @@ export async function inspectStudioPythonEnv(): Promise<StudioPythonReadiness> {
     };
   }
 
-  const dependencyProbe = await runCommand(venvPythonPath, ['-c', 'import flask; from PIL import Image']);
+  const dependencyProbe = await runCommand(
+    venvPythonPath,
+    ['-c', 'import flask; from PIL import Image'],
+    { timeoutMs: STUDIO_PROBE_TIMEOUT_MS },
+  );
   return {
     uvInstalled: true,
     interpreterReady: true,
@@ -134,7 +172,9 @@ export async function ensureStudioPythonEnv(
 
   const { bin: uvBin } = resolveUvBin();
   const uvEnv = await getUvMirrorEnv();
-  const env = { ...process.env, ...uvEnv };
+  const baseEnv = { ...process.env };
+  const hasMirror = Object.keys(uvEnv).length > 0;
+  const preferredEnv = { ...baseEnv, ...uvEnv };
   const venvDir = getStudioVenvDir();
   const venvPythonPath = getStudioVenvPythonPath();
   const requirementsPath = getStudioRequirementsPath();
@@ -152,8 +192,9 @@ export async function ensureStudioPythonEnv(
 
   options.onLog?.({ level: 'info', message: 'Creating Studio virtual environment' });
   const venvResult = await runCommand(uvBin, ['venv', '--python', pythonPath, venvDir], {
-    env,
+    env: preferredEnv,
     signal: options.signal,
+    timeoutMs: STUDIO_VENV_CREATE_TIMEOUT_MS,
     onStdout: (message) => options.onLog?.({ level: 'info', message }),
     onStderr: (message) => options.onLog?.({ level: 'info', message }),
   });
@@ -161,20 +202,38 @@ export async function ensureStudioPythonEnv(
     throw new Error(venvResult.stderr || venvResult.stdout || 'Failed to create Studio virtual environment');
   }
 
-  options.onLog?.({ level: 'info', message: 'Installing Studio Python dependencies' });
-  const installResult = await runCommand(
-    uvBin,
-    ['pip', 'install', '--python', venvPythonPath, '-r', requirementsPath],
-    {
-      env,
-      signal: options.signal,
-      onStdout: (message) => options.onLog?.({ level: 'info', message }),
-      onStderr: (message) => options.onLog?.({ level: 'info', message }),
-    },
-  );
-  if (installResult.code !== 0) {
-    logger.error('Studio dependency install failed', installResult);
-    throw new Error(installResult.stderr || installResult.stdout || 'Failed to install Studio dependencies');
+  try {
+    await installStudioDependencies(
+      uvBin,
+      venvPythonPath,
+      requirementsPath,
+      preferredEnv,
+      hasMirror ? 'mirror' : 'default',
+      options,
+    );
+  } catch (error) {
+    if (isAbortError(error)) {
+      throw error;
+    }
+    if (!hasMirror) {
+      logger.error('Studio dependency install failed', error);
+      throw error;
+    }
+    logger.warn('Studio dependency install failed with mirror, retrying without mirror:', error);
+    options.onLog?.({ level: 'info', message: 'Retrying Studio dependency install without mirror' });
+    try {
+      await installStudioDependencies(
+        uvBin,
+        venvPythonPath,
+        requirementsPath,
+        baseEnv,
+        'no-mirror',
+        options,
+      );
+    } catch (retryError) {
+      logger.error('Studio dependency install failed after mirror fallback', retryError);
+      throw retryError;
+    }
   }
 
   return await inspectStudioPythonEnv();

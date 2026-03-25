@@ -54,6 +54,8 @@
 - 后续启动优先复用已持久化的工作室端口
 - Python 未就绪时能稳定返回 `python-missing`
 - 仅解释器存在但依赖未安装时，不会误判为 ready
+- 工作室 Python 依赖安装在镜像失败后会回退到无镜像重试
+- 工作室 Python 依赖安装子进程超时后不会无限卡住
 - smoke test 失败时不会误判为 ready
 - sidecar 健康检查失败时进入错误态而不是卡死
 
@@ -184,6 +186,12 @@ pnpm run comms:compare
 ## 当前状态
 
 - 已完成的最小验证：
+  - `pnpm test tests/unit/run-child-command.test.ts tests/unit/studio-python-env.test.ts`
+  - `pnpm test tests/unit/uv-setup.test.ts`
+  - `pnpm test tests/unit/studio-runtime-manager.test.ts`
+  - `pnpm test tests/unit/ipc-setup-environment-handlers.test.ts`
+  - `pnpm exec eslint electron/utils/run-child-command.ts electron/studio/python-env.ts electron/utils/uv-setup.ts tests/unit/run-child-command.test.ts tests/unit/studio-python-env.test.ts --max-warnings=0`
+  - `pnpm run typecheck`
   - `node --check scripts/vendor-star-office-runtime.mjs`
   - `pnpm exec tsc --noEmit --pretty false`
   - `git diff --check`

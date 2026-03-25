@@ -5,6 +5,7 @@ type RunChildCommandOptions = {
   env?: Record<string, string | undefined>;
   shell?: boolean;
   signal?: AbortSignal;
+  timeoutMs?: number;
   windowsHide?: boolean;
   onStdout?: (message: string) => void;
   onStderr?: (message: string) => void;
@@ -21,6 +22,9 @@ export const createAbortError = (message = 'Operation cancelled'): Error => Obje
 });
 
 export const isAbortError = (error: unknown): boolean => error instanceof Error && error.name === 'AbortError';
+export const createTimeoutError = (message = 'Operation timed out'): Error => Object.assign(new Error(message), {
+  name: 'TimeoutError',
+});
 
 const emitCommandOutput = (
   output: string,
@@ -73,6 +77,7 @@ export const runChildCommand = async (
     let settled = false;
     let stdout = '';
     let stderr = '';
+    let timeout: ReturnType<typeof setTimeout> | null = null;
 
     const child = spawn(command, args, {
       cwd: options.cwd,
@@ -86,6 +91,10 @@ export const runChildCommand = async (
         return;
       }
       settled = true;
+      if (timeout) {
+        clearTimeout(timeout);
+        timeout = null;
+      }
       options.signal?.removeEventListener('abort', handleAbort);
       handler();
     };
@@ -101,6 +110,14 @@ export const runChildCommand = async (
     }
 
     options.signal?.addEventListener('abort', handleAbort, { once: true });
+
+    if (typeof options.timeoutMs === 'number' && options.timeoutMs > 0) {
+      timeout = setTimeout(() => {
+        terminateChildProcess(child);
+        finish(() => reject(createTimeoutError(`Command timed out after ${options.timeoutMs}ms`)));
+      }, options.timeoutMs);
+      timeout.unref?.();
+    }
 
     child.stdout?.on('data', (chunk) => {
       const text = chunk.toString();

@@ -8,6 +8,8 @@ import { quoteForCmd, needsWinShell } from './paths';
 import { createAbortError, isAbortError, runChildCommand } from './run-child-command';
 
 let setupManagedPythonFlight: Promise<void> | null = null;
+const MANAGED_PYTHON_INSTALL_TIMEOUT_MS = 10 * 60_000;
+const MANAGED_PYTHON_FIND_TIMEOUT_MS = 15_000;
 
 type SetupProgressEntry = {
   level: 'info' | 'error';
@@ -139,6 +141,7 @@ async function runPythonInstall(
       shell: useShell,
       env,
       signal: options.signal,
+      timeoutMs: MANAGED_PYTHON_INSTALL_TIMEOUT_MS,
       windowsHide: true,
       onStdout: (line) => {
         stdoutChunks.push(line);
@@ -227,6 +230,7 @@ export async function setupManagedPython(options: SetupManagedPythonOptions = {}
           shell: verifyShell,
           env: { ...process.env, ...uvEnv },
           signal: options.signal,
+          timeoutMs: MANAGED_PYTHON_FIND_TIMEOUT_MS,
           windowsHide: true,
         },
       );
