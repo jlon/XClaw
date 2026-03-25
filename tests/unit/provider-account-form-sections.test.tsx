@@ -123,6 +123,7 @@ describe('ProviderAccountFormSections', () => {
     expect(screen.getByText('凭证与验证')).toBeInTheDocument();
     expect(screen.getByLabelText('API Key')).toBeInTheDocument();
     expect(screen.queryByTestId('provider-summary-view')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Documentation' })).not.toBeInTheDocument();
   });
 
   it('validates a replacement key and forwards the save payload', async () => {

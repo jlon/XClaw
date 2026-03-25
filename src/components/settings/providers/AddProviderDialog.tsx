@@ -19,7 +19,6 @@ import { hostApiFetch } from '@/lib/host-api';
 import { subscribeHostEvent } from '@/lib/host-events';
 import {
   PROVIDER_TYPE_INFO,
-  getProviderDocsUrl,
   getProviderIconClass,
   getProviderIconUrl,
   getProviderTypeInfo,
@@ -72,7 +71,7 @@ export function AddProviderDialog({
   onValidateKey,
   devModeUnlocked,
 }: AddProviderDialogProps) {
-  const { t, i18n } = useTranslation('settings');
+  const { t } = useTranslation('settings');
   const [selectedType, setSelectedType] = useState<ProviderType | null>(null);
   const [name, setName] = useState('');
   const [apiKey, setApiKey] = useState('');
@@ -98,7 +97,6 @@ export function AddProviderDialog({
   const [authMode, setAuthMode] = useState<'oauth' | 'apikey'>('apikey');
 
   const typeInfo = selectedType ? getProviderTypeInfo(selectedType) : undefined;
-  const providerDocsUrl = getProviderDocsUrl(typeInfo, i18n.language);
   const showModelIdField = shouldShowProviderModelId(typeInfo, devModeUnlocked);
   const isOAuth = typeInfo?.isOAuth ?? false;
   const supportsApiKey = typeInfo?.supportsApiKey ?? false;
@@ -483,17 +481,6 @@ export function AddProviderDialog({
                           <p className="mt-0.5 text-[11px] text-muted-foreground">{typeInfo.id}</p>
                         </div>
                       </div>
-                      {providerDocsUrl ? (
-                        <a
-                          href={providerDocsUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex shrink-0 items-center gap-1 text-[12px] font-medium text-primary hover:text-primary/80"
-                        >
-                          {t('aiProviders.dialog.customDoc')}
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </a>
-                      ) : null}
                     </div>
 
                   <div className="px-4 py-3.5">

@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  getProviderDocsUrl,
   getProviderTypeInfo,
   resolveProviderApiKeyForSave,
   shouldShowProviderModelId,
@@ -103,7 +102,7 @@ export function ProviderAccountFormSections({
   onCancel,
   onValidateKey,
 }: ProviderAccountFormSectionsProps) {
-  const { t, i18n } = useTranslation('settings');
+  const { t } = useTranslation('settings');
   const { account, status } = item;
   const [label, setLabel] = useState(account.label);
   const [newKey, setNewKey] = useState('');
@@ -117,7 +116,6 @@ export function ProviderAccountFormSections({
   const [validating, setValidating] = useState(false);
   const [saving, setSaving] = useState(false);
   const typeInfo = getProviderTypeInfo(account.vendorId);
-  const providerDocsUrl = getProviderDocsUrl(typeInfo, i18n.language);
   const showModelIdField = shouldShowProviderModelId(typeInfo, devModeUnlocked);
   const canEditModelConfig = Boolean(typeInfo?.showBaseUrl || showModelIdField);
   const fallbackOptions = allProviders.filter((candidate) => candidate.account.id !== account.id);
@@ -245,20 +243,6 @@ export function ProviderAccountFormSections({
 
   return (
     <div className={rootClass} data-testid="provider-account-form-sections" data-mode={mode} data-density={density}>
-      {providerDocsUrl && !compact ? (
-        <div className={cn('mb-2 -mt-2 flex justify-end', compact && 'md:col-span-2 md:mb-0 md:mt-0')}>
-          <a
-            href={providerDocsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-[11.5px] font-medium text-primary hover:text-primary/80"
-          >
-            {t('aiProviders.dialog.customDoc')}
-            <ExternalLink className="h-3 w-3" />
-          </a>
-        </div>
-      ) : null}
-
       {compact ? (
         <section className={setupSectionClass}>
           <div className="flex items-start justify-between gap-3">
@@ -272,17 +256,6 @@ export function ProviderAccountFormSections({
                 ].filter(Boolean).join(' · ')}
               </p>
             </div>
-            {providerDocsUrl ? (
-              <a
-                href={providerDocsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-[11.5px] font-medium text-primary hover:text-primary/80"
-              >
-                {t('aiProviders.dialog.customDoc')}
-                <ExternalLink className="h-3 w-3" />
-              </a>
-            ) : null}
           </div>
           <div className="grid gap-2.5 md:grid-cols-2">
             <div className="space-y-1.5">

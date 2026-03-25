@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import { BookOpen, ExternalLink } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -67,7 +66,6 @@ interface ChannelConfigEditorProps {
   onSave: () => void;
   onToggleEnabled: (checked: boolean) => void;
   onBindAgent: (agentId: string) => void;
-  onOpenDocs: () => void;
   onOpenModal: () => void;
   onWeixinGuardianToggle: (checked: boolean) => void;
 }
@@ -247,7 +245,6 @@ export function ChannelConfigEditor({
   onSave,
   onToggleEnabled,
   onBindAgent,
-  onOpenDocs,
   onOpenModal,
   onWeixinGuardianToggle,
 }: ChannelConfigEditorProps) {
@@ -275,16 +272,6 @@ export function ChannelConfigEditor({
               <h3 className={inspectorTitleClass}>{title}</h3>
               <p className={inspectorSubtitleClass}>{description}</p>
             </div>
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-7 rounded-[10px] px-3 text-[11.5px]"
-              onClick={onOpenDocs}
-            >
-              <BookOpen className="mr-1 h-3.5 w-3.5" />
-              {t('dialog.viewDocs')}
-              <ExternalLink className="ml-1 h-3.5 w-3.5" />
-            </Button>
           </div>
           <Button onClick={onOpenModal} className="h-8 rounded-[10px] px-3 text-[11.5px]">
             {t('account.addByQr')}
@@ -303,16 +290,6 @@ export function ChannelConfigEditor({
               <h3 className={inspectorTitleClass}>{title}</h3>
               <p className={inspectorSubtitleClass}>{description}</p>
             </div>
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-7 rounded-[10px] px-3 text-[11.5px]"
-              onClick={onOpenDocs}
-            >
-              <BookOpen className="mr-1 h-3.5 w-3.5" />
-              {t('dialog.viewDocs')}
-              <ExternalLink className="ml-1 h-3.5 w-3.5" />
-            </Button>
           </div>
           <Button onClick={onOpenModal} className="h-8 rounded-[10px] px-3 text-[11.5px]">
             {t('dialog.generateQRCode')}
@@ -331,16 +308,6 @@ export function ChannelConfigEditor({
               <h3 className={inspectorTitleClass}>{title}</h3>
               <p className={inspectorSubtitleClass}>{description}</p>
             </div>
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-7 rounded-[10px] px-3 text-[11.5px]"
-              onClick={onOpenDocs}
-            >
-              <BookOpen className="mr-1 h-3.5 w-3.5" />
-              {t('dialog.viewDocs')}
-              <ExternalLink className="ml-1 h-3.5 w-3.5" />
-            </Button>
           </div>
           <Button onClick={onOpenModal} className="h-8 rounded-[10px] px-3 text-[11.5px]">
             {selectedGroup ? t('account.edit') : t('dialog.saveAndConnect')}
@@ -368,16 +335,6 @@ export function ChannelConfigEditor({
               onClick={onOpenModal}
             >
               {selectedIsWeixin ? t(selectedAccountId ? 'account.relogin' : 'account.addByQr') : t('account.edit')}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-7 rounded-[10px] px-3 text-[11.5px]"
-              onClick={onOpenDocs}
-            >
-              <BookOpen className="mr-1 h-3.5 w-3.5" />
-              {t('dialog.viewDocs')}
-              <ExternalLink className="ml-1 h-3.5 w-3.5" />
             </Button>
           </div>
         </div>

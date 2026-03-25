@@ -103,6 +103,7 @@ describe('ChannelConfigModal theme compatibility', () => {
     expect(container.innerHTML).toContain('border-b border-border/45');
     expect(container.innerHTML).toContain('rounded-[16px]');
     expect(container.innerHTML).toContain('rounded-[12px]');
+    expect(screen.queryByRole('button', { name: 'dialog.viewDocs' })).not.toBeInTheDocument();
   });
 
   it('uses start and poll routes for openclaw-weixin without subscribing to weixin host events', async () => {

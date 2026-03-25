@@ -864,6 +864,7 @@ describe('Channels page status refresh', () => {
     expect(screen.getByTestId('channels-editor-scroll').className).toContain('subtle-scrollbar');
     expect(screen.getByRole('button', { name: 'account.add' }).className).not.toContain('bg-primary');
     expect(screen.getByRole('button', { name: 'dialog.updateAndReconnect' }).className).toContain('bg-primary');
+    expect(screen.queryByRole('button', { name: 'dialog.viewDocs' })).not.toBeInTheDocument();
   });
 
   it('keeps the behavior section concise instead of repeating extra helper copy', async () => {

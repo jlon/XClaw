@@ -514,6 +514,7 @@ describe('models page render contract', () => {
     expect(screen.getByText('回退策略')).toBeInTheDocument();
     expect(screen.getByText('凭证与验证')).toBeInTheDocument();
     expect(screen.getByTestId('models-provider-inspector-footer')).toBeInTheDocument();
+    expect(within(screen.getByTestId('models-provider-inspector')).queryByRole('link')).not.toBeInTheDocument();
   });
 
   it('lets the inspector switch between accounts that share one runtime provider scope', async () => {
@@ -582,6 +583,7 @@ describe('models page render contract', () => {
     expect(screen.getByText('凭证与验证')).toBeInTheDocument();
     expect(screen.getByLabelText('API Key')).toBeInTheDocument();
     expect(screen.getByTestId('models-provider-inspector-footer')).toBeInTheDocument();
+    expect(within(screen.getByTestId('models-provider-inspector')).queryByRole('link')).not.toBeInTheDocument();
   });
 
   it('uses modal below ultrawide and pane at ultrawide for the provider inspector', async () => {
@@ -637,6 +639,7 @@ describe('models page render contract', () => {
     await waitFor(() => {
       expect(screen.getByTestId('provider-add-dialog')).toBeInTheDocument();
     });
+    expect(within(screen.getByTestId('provider-add-dialog')).queryByRole('link')).not.toBeInTheDocument();
   });
 
   it('keeps the add provider dialog viewport bounded with a hidden-scrollbar body', async () => {

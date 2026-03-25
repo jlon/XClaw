@@ -1000,19 +1000,6 @@ export function Channels() {
     }
   };
 
-  const openChannelDocs = (channelType: ChannelType) => {
-    const url = t(CHANNEL_META[channelType].docsUrl);
-    try {
-      if (window.electron?.openExternal) {
-        window.electron.openExternal(url);
-        return;
-      }
-    } catch {
-      // ignore and fall back
-    }
-    window.open(url, '_blank');
-  };
-
   const openConfigModal = async (
     channelType: ChannelType,
     options?: {
@@ -1188,10 +1175,6 @@ export function Channels() {
       onBindAgent={(agentId) => {
         if (!selectedChannelType || !selectedAccountId) return;
         void handleBindAgent(selectedChannelType, selectedAccountId, agentId);
-      }}
-      onOpenDocs={() => {
-        if (!selectedChannelType) return;
-        openChannelDocs(selectedChannelType);
       }}
       onOpenModal={handleOpenSelectedModal}
       onWeixinGuardianToggle={(checked) => {

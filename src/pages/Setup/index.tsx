@@ -57,7 +57,6 @@ import {
   type ProviderAccount,
   type ProviderType,
   type ProviderTypeInfo,
-  getProviderDocsUrl,
   getProviderIconClass,
   getProviderIconUrl,
   resolveProviderApiKeyForSave,
@@ -862,7 +861,7 @@ function ProviderContent({
   onConfiguredChange,
   onPrimaryActionChange,
 }: ProviderContentProps) {
-  const { t, i18n } = useTranslation(['setup', 'settings']);
+  const { t } = useTranslation(['setup', 'settings']);
   const devModeUnlocked = useSettingsStore((state) => state.devModeUnlocked);
   const [showKey, setShowKey] = useState(false);
   const [validating, setValidating] = useState(false);
@@ -1099,7 +1098,6 @@ function ProviderContent({
   }, [onApiKeyChange, selectedProvider, providers]);
 
   const selectedProviderData = providers.find((p) => p.id === selectedProvider);
-  const providerDocsUrl = getProviderDocsUrl(selectedProviderData, i18n.language);
   const selectedProviderIconUrl = selectedProviderData
     ? getProviderIconUrl(selectedProviderData.id)
     : undefined;
@@ -1352,36 +1350,23 @@ function ProviderContent({
         >
           {selectedProvider && selectedProviderData ? (
             <div className="space-y-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] border border-border/65 bg-[hsl(var(--surface-elevated)/0.82)]">
-                    {selectedProviderIconUrl ? (
-                      <img
-                        src={selectedProviderIconUrl}
-                        alt={selectedProviderData.name}
-                        className={getProviderIconClass(selectedProviderData.id, 'h-5 w-5')}
-                      />
-                    ) : (
-                      <span className="text-base leading-none">{selectedProviderData.icon}</span>
-                    )}
-                  </div>
-                  <div className="space-y-0.5">
-                    <div className="text-lg font-semibold text-foreground">
-                      {selectedProviderData.id === 'custom' ? t('settings:aiProviders.custom') : selectedProviderData.name}
-                    </div>
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] border border-border/65 bg-[hsl(var(--surface-elevated)/0.82)]">
+                  {selectedProviderIconUrl ? (
+                    <img
+                      src={selectedProviderIconUrl}
+                      alt={selectedProviderData.name}
+                      className={getProviderIconClass(selectedProviderData.id, 'h-5 w-5')}
+                    />
+                  ) : (
+                    <span className="text-base leading-none">{selectedProviderData.icon}</span>
+                  )}
+                </div>
+                <div className="space-y-0.5">
+                  <div className="text-lg font-semibold text-foreground">
+                    {selectedProviderData.id === 'custom' ? t('settings:aiProviders.custom') : selectedProviderData.name}
                   </div>
                 </div>
-                {providerDocsUrl ? (
-                  <a
-                    href={providerDocsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 rounded-full border border-border/65 bg-[hsl(var(--surface-panel)/0.9)] px-3 py-1.5 text-[13px] font-medium text-foreground/70 transition-colors hover:text-foreground dark:bg-[hsl(var(--surface-elevated)/0.82)]"
-                  >
-                    {t('provider.docsLink')}
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
-                ) : null}
               </div>
 
               {isOAuth && supportsApiKey ? (

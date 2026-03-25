@@ -2,8 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   X,
   Loader2,
-  ExternalLink,
-  BookOpen,
   Eye,
   EyeOff,
   Check,
@@ -595,20 +593,6 @@ export function ChannelConfigModal({
     }
   };
 
-  const openDocs = () => {
-    if (!meta?.docsUrl) return;
-    const url = t(meta.docsUrl);
-    try {
-      if (window.electron?.openExternal) {
-        window.electron.openExternal(url);
-      } else {
-        window.open(url, '_blank');
-      }
-    } catch {
-      window.open(url, '_blank');
-    }
-  };
-
   const isFormValid = () => {
     if (!meta) return false;
     return meta.configFields
@@ -752,22 +736,13 @@ export function ChannelConfigModal({
               )}
 
               <div className={cn('space-y-4 p-4 shadow-none', modalSurfaceClasses)}>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="space-y-1">
                   <div>
                     <p className={labelClasses}>{t('dialog.howToConnect')}</p>
                     <p className="mt-1 text-[12.5px] leading-5 text-muted-foreground/76">
                       {meta ? t(meta.description.replace('channels:', '')) : ''}
                     </p>
                   </div>
-                  <Button
-                    variant="outline"
-                    className={cn(outlineButtonClasses, 'shrink-0')}
-                    onClick={openDocs}
-                  >
-                    <BookOpen className="mr-1 h-3 w-3" />
-                    {t('dialog.viewDocs')}
-                    <ExternalLink className="ml-1 h-3 w-3" />
-                  </Button>
                 </div>
                 <ol className="list-decimal space-y-1.5 pl-5 text-[12.5px] leading-relaxed text-muted-foreground/78">
                   {meta?.instructions.map((instruction, index) => (

@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { getProviderDocsUrl, getProviderTypeInfo } from '@/lib/providers';
+import { getProviderTypeInfo } from '@/lib/providers';
 import { hasConfiguredCredentials, type ProviderListItem } from '@/lib/provider-accounts';
 import {
   getAuthModeLabel,
@@ -43,7 +43,7 @@ export function ProviderInspectorView({
   onDelete,
   onSetDefault,
 }: ProviderInspectorViewProps) {
-  const { t, i18n } = useTranslation(['dashboard', 'settings']);
+  const { t } = useTranslation(['dashboard', 'settings']);
   const { account, status } = item;
   const typeInfo = getProviderTypeInfo(account.vendorId);
   const isDefault = defaultAccountId === account.id;
@@ -53,7 +53,6 @@ export function ProviderInspectorView({
       .map((fallbackId) => allProviders.find((candidate) => candidate.account.id === fallbackId)?.account.label)
       .filter(Boolean),
   ];
-  const docsUrl = typeInfo ? getProviderDocsUrl(typeInfo, i18n.language) ?? typeInfo.apiKeyUrl : undefined;
   const configured = hasConfiguredCredentials(account, status);
 
   return (
@@ -76,19 +75,7 @@ export function ProviderInspectorView({
           <FactRow
             label={t('settings:aiProviders.sections.credentials', '凭证与验证')}
             value={(
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                <span>{configured ? t('settings:aiProviders.card.configured', '已配置') : t('settings:aiProviders.dialog.apiKeyMissing', '未配置 API Key')}</span>
-                {docsUrl ? (
-                  <a
-                    href={docsUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-medium text-primary/88 hover:text-primary"
-                  >
-                    {t('dashboard:models.docs', 'docs')}
-                  </a>
-                ) : null}
-              </div>
+              <span>{configured ? t('settings:aiProviders.card.configured', '已配置') : t('settings:aiProviders.dialog.apiKeyMissing', '未配置 API Key')}</span>
             )}
             span="full"
           />
