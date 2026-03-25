@@ -75,10 +75,10 @@ export function AgentCardsPane({
     <div className={className}>
       <section
         data-testid="agents-browser-rail"
-        className="rounded-[20px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.99)] px-4 py-3.5 shadow-[0_10px_22px_rgba(15,23,42,0.035),inset_0_1px_0_rgba(255,255,255,0.7)]"
+        className="rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated)/0.99)] px-4 py-3.5 shadow-sm"
       >
         <div className="flex flex-wrap items-center gap-2.5">
-          <div className="workbench-motion-control flex h-10 min-w-0 flex-1 items-center gap-2.5 rounded-[16px] border border-border/70 bg-[hsl(var(--surface-panel)/0.84)] px-3.5 hover:bg-[hsl(var(--surface-hover)/0.4)] focus-within:border-border/60 focus-within:bg-[hsl(var(--surface-elevated)/0.98)]">
+          <div className="workbench-motion-control flex h-10 min-w-0 flex-1 items-center gap-2.5 rounded-md border border-border/70 bg-[hsl(var(--surface-panel)/0.84)] px-3.5 hover:bg-[hsl(var(--surface-hover)/0.4)] focus-within:border-border/60 focus-within:bg-[hsl(var(--surface-elevated)/0.98)]">
             <Search className="h-4 w-4 shrink-0 text-foreground/34" />
             <Input
               value={searchValue}
@@ -105,10 +105,10 @@ export function AgentCardsPane({
                   onClick={() => onSelectAgent(agent)}
                   aria-pressed={selected}
                   className={cn(
-                    'workbench-motion-card group relative flex w-full flex-col overflow-hidden rounded-[22px] border px-4 py-4 text-left',
+                    'workbench-motion-card group relative flex w-full flex-col overflow-hidden rounded-xl border px-4 py-4 text-left',
                     selected
-                      ? 'border-[hsl(var(--primary)/0.18)] bg-[linear-gradient(180deg,hsl(var(--surface-elevated)/1)_0%,hsl(var(--surface-panel)/0.984)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_16px_28px_rgba(15,23,42,0.05)]'
-                      : 'border-border/60 bg-[linear-gradient(180deg,hsl(var(--surface-elevated)/0.995)_0%,hsl(var(--surface-panel)/0.972)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.76),0_10px_20px_rgba(15,23,42,0.03)] motion-safe:hover:-translate-y-[1px] hover:border-border/74 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.82),0_14px_24px_rgba(15,23,42,0.04)]',
+                      ? 'border-[hsl(var(--primary)/0.18)] bg-[hsl(var(--surface-elevated))] shadow-sm'
+                      : 'border-border/60 bg-[hsl(var(--surface-elevated))] shadow-sm hover:border-border/74 hover:shadow-md cursor-default',
                   )}
                 >
                   <div className="absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-foreground/8 to-transparent" />
@@ -148,7 +148,7 @@ export function AgentCardsPane({
         ) : (
           <div
             data-testid="agents-empty-state"
-            className="app-empty-surface flex h-full min-h-[420px] flex-col items-center justify-center rounded-[18px] border border-dashed border-border/55 px-6 py-10 text-center"
+            className="app-empty-surface flex h-full min-h-[420px] flex-col items-center justify-center rounded-xl border border-dashed border-border/55 px-6 py-10 text-center"
           >
             <div className="max-w-[420px]">
               <h3 className="text-[20px] font-semibold tracking-tight text-foreground">

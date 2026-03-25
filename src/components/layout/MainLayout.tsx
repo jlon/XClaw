@@ -17,9 +17,11 @@ export function MainLayout() {
   const chatFocusMode = useSettingsStore((state) => ('chatFocusMode' in state ? state.chatFocusMode : false));
   const cachedChatOutletRef = useRef(outlet);
 
-  if (isChatRoute && outlet) {
-    cachedChatOutletRef.current = outlet;
-  }
+  useEffect(() => {
+    if (isChatRoute && outlet) {
+      cachedChatOutletRef.current = outlet;
+    }
+  }, [isChatRoute, outlet]);
 
   const showChatSessionsPane = isChatRoute && !chatFocusMode;
   const showWorkspaceSidebar = !isChatRoute;
@@ -70,7 +72,8 @@ export function MainLayout() {
                   isChatRoute ? 'relative' : 'pointer-events-none absolute inset-0 opacity-0',
                 )}
               >
-                {cachedChatOutletRef.current}
+                {/* eslint-disable-next-line react-hooks/refs */}
+                {isChatRoute ? outlet : cachedChatOutletRef.current}
               </div>
               <div
                 aria-hidden={!isStudioRoute}

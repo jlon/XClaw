@@ -158,7 +158,7 @@ export function SetupCompleteStage({
       ) : null}
 
       {footerNote ? (
-        <motion.div variants={setupStageItemVariants} className="rounded-[18px] app-insight-surface p-4 text-sm leading-6 text-muted-foreground">
+        <motion.div variants={setupStageItemVariants} className="rounded-xl app-insight-surface p-4 text-sm leading-6 text-muted-foreground">
           {footerNote}
         </motion.div>
       ) : null}

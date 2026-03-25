@@ -16,8 +16,8 @@ interface ProviderBoardCardProps {
   onSelect: (accountId: string) => void;
 }
 
-const cardClass = 'workbench-motion-card rounded-[18px] border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.985)] px-4 py-3 text-left motion-safe:hover:-translate-y-px hover:border-[hsl(var(--border-strong)/0.28)] hover:bg-[hsl(var(--surface-elevated)/1)] hover:shadow-[0_8px_18px_rgba(15,23,42,0.035)]';
-const selectedCardClass = 'border-[hsl(var(--border-strong)/0.42)] bg-[hsl(var(--surface-elevated)/1)] shadow-[0_10px_20px_rgba(15,23,42,0.045)]';
+const cardClass = 'workbench-motion-card rounded-xl border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.985)] px-4 py-3 text-left hover:border-[hsl(var(--border-strong)/0.28)] hover:bg-[hsl(var(--surface-elevated)/1)] hover:shadow-sm';
+const selectedCardClass = 'border-[hsl(var(--border-strong)/0.42)] bg-[hsl(var(--surface-elevated)/1)] shadow-sm';
 
 export const ProviderBoardCard = ({
   summary,
@@ -52,7 +52,7 @@ export const ProviderBoardCard = ({
     <article
       className={cn(
         cardClass,
-        'flex min-h-[108px] cursor-pointer flex-col gap-2 focus:outline-none focus-visible:outline-none focus-visible:border-[hsl(var(--border-strong)/0.42)] focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0',
+        'flex min-h-[108px] cursor-default flex-col gap-2 focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 focus-visible:border-transparent',
         selected && selectedCardClass,
       )}
       role="button"

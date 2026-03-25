@@ -46,7 +46,7 @@ describe('second-wave desktop theme rollout', () => {
     expect(source).toContain('app-insight-surface');
     expect(source).toContain('app-field-surface');
     expect(source).toContain('border-border/70');
-    expect(source).toContain('rounded-[12px]');
+    expect(source).toContain('rounded-md');
     expect(source).toContain('app-cron-summary-pill');
     expect(source).toContain('hover:bg-[hsl(var(--surface-hover)/0.46)]');
   });
@@ -84,7 +84,7 @@ describe('second-wave desktop theme rollout', () => {
 
     expect(source).not.toContain('bg-secondary/80');
     expect(source).not.toContain('hover:bg-accent/60');
-    expect(source).toContain('rounded-[10px]');
+    expect(source).toContain('rounded-md');
     expect(source).toContain('app-pane-surface');
     expect(source).toContain('app-modal-surface');
     expect(source).toContain('searchFieldClass');

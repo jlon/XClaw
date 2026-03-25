@@ -58,7 +58,7 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
           aria-label={ariaLabel}
           data-testid={dataTestId}
           className={cn(
-            'appearance-none inline-flex h-10 w-full items-center justify-between gap-2 rounded-[11px] border border-border/70 bg-[hsl(var(--surface-panel)/1)] px-3 py-2 text-sm text-foreground shadow-none transition-colors data-[placeholder]:text-muted-foreground/70 focus:outline-none focus-visible:outline-none focus-visible:border-ring focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:truncate',
+            'appearance-none inline-flex h-8 w-full items-center justify-between gap-2 rounded-md border border-border/70 bg-[hsl(var(--surface-panel)/1)] px-3 py-2 text-[13px] text-foreground shadow-sm transition-colors data-[placeholder]:text-muted-foreground/70 focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:truncate',
             className,
           )}
         >

@@ -228,19 +228,19 @@ export function SetupProviderStage({
       ) : null}
 
       {statusPanel ? (
-        <motion.div variants={setupStageItemVariants} className="rounded-[18px] border border-primary/18 app-insight-surface p-4 text-sm leading-6 text-muted-foreground">
+        <motion.div variants={setupStageItemVariants} className="rounded-xl border border-primary/18 app-insight-surface p-4 text-sm leading-6 text-muted-foreground">
           {statusPanel}
         </motion.div>
       ) : null}
 
       {validationMessage ? (
-        <motion.div variants={setupStageItemVariants} className="rounded-[18px] app-insight-surface p-4 text-sm leading-6 text-muted-foreground">
+        <motion.div variants={setupStageItemVariants} className="rounded-xl app-insight-surface p-4 text-sm leading-6 text-muted-foreground">
           {validationMessage}
         </motion.div>
       ) : null}
 
       {footerNote ? (
-        <motion.div variants={setupStageItemVariants} className="rounded-[18px] app-insight-surface p-4 text-sm leading-6 text-muted-foreground">
+        <motion.div variants={setupStageItemVariants} className="rounded-xl app-insight-surface p-4 text-sm leading-6 text-muted-foreground">
           {footerNote}
         </motion.div>
       ) : null}

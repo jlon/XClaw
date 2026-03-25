@@ -43,9 +43,9 @@ describe('skills detail modal primitives', () => {
     fireEvent.click(screen.getByRole('button', { name: 'View skill' }));
 
     const dialog = screen.getByRole('dialog');
-    expect(dialog).toHaveClass('rounded-[18px]');
+    expect(dialog).toHaveClass('rounded-xl');
     expect(dialog).toHaveClass('border-border/70');
-    expect(dialog).toHaveClass('bg-[hsl(var(--surface-elevated)/0.98)]');
+    expect(dialog).toHaveClass('bg-[hsl(var(--surface-elevated))]');
     expect(screen.getByText('Skill details')).toBeInTheDocument();
     expect(screen.getByText('Desktop-neutral modal surface for skill metadata.')).toBeInTheDocument();
   });

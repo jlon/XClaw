@@ -35,7 +35,7 @@ describe('skills add menu primitives', () => {
     fireEvent.pointerDown(screen.getByRole('button', { name: 'Add skill' }));
 
     const menu = await screen.findByRole('menu');
-    expect(menu).toHaveClass('rounded-[16px]');
+    expect(menu).toHaveClass('rounded-md');
     expect(menu).toHaveClass('border-border/70');
     expect(menu).toHaveClass('bg-popover');
     expect(await screen.findByRole('menuitem', { name: 'Create skill' })).toBeInTheDocument();

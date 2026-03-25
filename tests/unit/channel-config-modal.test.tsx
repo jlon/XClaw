@@ -101,8 +101,8 @@ describe('ChannelConfigModal theme compatibility', () => {
     expect(container.innerHTML).toContain('app-modal-surface');
     expect(container.innerHTML).toContain('app-pane-surface');
     expect(container.innerHTML).toContain('border-b border-border/45');
-    expect(container.innerHTML).toContain('rounded-[16px]');
-    expect(container.innerHTML).toContain('rounded-[12px]');
+    expect(container.innerHTML).toContain('rounded-xl');
+    expect(container.innerHTML).toContain('rounded-md');
     expect(screen.queryByRole('button', { name: 'dialog.viewDocs' })).not.toBeInTheDocument();
   });
 

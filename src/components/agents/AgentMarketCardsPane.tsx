@@ -41,10 +41,10 @@ export function AgentMarketCardsPane({
                   type="button"
                   onClick={() => onSelectMarketItem(item)}
                   className={cn(
-                    'workbench-motion-card group relative flex min-h-[172px] flex-col overflow-hidden rounded-[22px] border px-4 py-4 text-left',
+                    'workbench-motion-card group relative flex min-h-[172px] flex-col overflow-hidden rounded-xl border px-4 py-4 text-left',
                     selected
-                      ? 'border-[hsl(var(--primary)/0.18)] bg-[linear-gradient(180deg,hsl(var(--surface-elevated)/1)_0%,hsl(var(--surface-panel)/0.978)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_16px_28px_rgba(15,23,42,0.05)]'
-                      : 'border-border/60 bg-[linear-gradient(180deg,hsl(var(--surface-elevated)/0.997)_0%,hsl(var(--surface-panel)/0.97)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_10px_20px_rgba(15,23,42,0.03)] motion-safe:hover:-translate-y-[1px] hover:border-border/74 hover:bg-[linear-gradient(180deg,hsl(var(--surface-elevated)/1)_0%,hsl(var(--surface-panel)/0.978)_100%)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.84),0_14px_24px_rgba(15,23,42,0.04)]',
+                      ? 'border-[hsl(var(--primary)/0.18)] bg-[hsl(var(--surface-elevated))] shadow-sm'
+                      : 'border-border/60 bg-[hsl(var(--surface-elevated))] shadow-sm hover:border-border/74 hover:bg-[hsl(var(--surface-elevated))] hover:shadow-md cursor-default',
                   )}
                 >
                   <div className="relative flex items-start justify-between gap-3">
@@ -56,7 +56,7 @@ export function AgentMarketCardsPane({
                       />
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-foreground/46">
-                          <span className="inline-flex h-5 items-center rounded-full border border-border/55 bg-[hsl(var(--surface-panel)/0.9)] px-2 font-medium text-foreground/52 shadow-[inset_0_1px_0_rgba(255,255,255,0.62)]">
+                          <span className="inline-flex h-5 items-center rounded-sm border border-border/55 bg-[hsl(var(--surface-panel)/0.9)] px-2 font-medium text-foreground/52 shadow-none select-none">
                             {resolveMarketCategoryLabel(t, item.category)}
                           </span>
                         </div>
@@ -93,9 +93,9 @@ export function AgentMarketCardsPane({
       ) : (
         <div
           data-testid="agents-market-empty-state"
-          className="app-empty-surface flex h-full min-h-[420px] flex-col items-center justify-center rounded-[20px] border border-dashed border-border/55 px-6 py-10 text-center"
+          className="app-empty-surface flex h-full min-h-[420px] flex-col items-center justify-center rounded-xl border border-dashed border-border/55 px-6 py-10 text-center"
         >
-          <div className="rounded-[18px] border border-border/55 bg-[hsl(var(--surface-panel)/0.92)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.56)]">
+          <div className="rounded-xl border border-border/55 bg-[hsl(var(--surface-panel)/0.92)] p-4 shadow-sm">
             <Store className="h-10 w-10 text-foreground/28" />
           </div>
           <h3 className="mt-4 text-[20px] font-semibold tracking-tight text-foreground">

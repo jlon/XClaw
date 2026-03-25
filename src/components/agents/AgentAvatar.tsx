@@ -16,7 +16,7 @@ export function AgentAvatar({ agentId, profile, size = 40, className }: AgentAva
     <span
       aria-hidden="true"
       className={cn(
-        'inline-flex shrink-0 overflow-hidden rounded-[14px] border shadow-[inset_0_1px_0_rgba(255,255,255,0.58)]',
+        'inline-flex shrink-0 overflow-hidden rounded-md border shadow-sm',
         className,
       )}
       style={{

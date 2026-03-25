@@ -38,13 +38,15 @@ describe('chat desktop shell theme', () => {
     const toolbarSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/ChatToolbar.tsx'), 'utf8');
     const inputSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/ChatInput.tsx'), 'utf8');
 
+    const titleBarUtilsSource = readFileSync(resolve(process.cwd(), 'src/components/layout/GlobalTitleBarUtilities.tsx'), 'utf8');
+
     expect(themeSource).toContain('.app-chat-header-meta');
     expect(pageSource).not.toContain('app-chat-welcome-agent');
     expect(pageSource).not.toContain('app-chat-meta-pill');
     expect(toolbarSource).toContain('app-chat-toolbar-group');
-    expect(toolbarSource).toContain('app-chat-connection-indicator');
-    expect(toolbarSource).toContain('app-chat-runtime-pill');
-    expect(toolbarSource).toContain('status-indicator-glow');
+    expect(titleBarUtilsSource).toContain('app-chat-connection-indicator');
+    expect(titleBarUtilsSource).toContain('app-chat-runtime-pill');
+    expect(titleBarUtilsSource).toContain('status-indicator-glow');
     expect(inputSource).toContain('app-chat-composer-dock');
     expect(inputSource).not.toContain('app-chat-connection-indicator');
   });
@@ -175,8 +177,8 @@ describe('chat desktop shell theme', () => {
     expect(themeSource).toContain('.app-chat-bubble-user {\n  background: hsl(var(--primary) / 0.085);');
     expect(themeSource).toContain('.app-chat-message-column--assistant {\n  align-items: flex-start;\n  max-width: min(70%, 44rem);');
     expect(themeSource).toContain('.app-chat-message-column--user {\n  align-items: flex-end;\n  margin-inline-start: auto;\n  max-width: min(70%, 34rem);');
-    expect(messageSource).toContain("? 'app-chat-bubble-user rounded-[12px] rounded-br-[4px] border px-4 py-3'");
-    expect(messageSource).toContain(": 'app-chat-bubble-assistant rounded-[12px] rounded-bl-[4px] px-0 py-0 text-foreground'");
+    expect(messageSource).toContain("? 'app-chat-bubble-user rounded-md rounded-br-[2px] border px-4 py-3'");
+    expect(messageSource).toContain(": 'app-chat-bubble-assistant rounded-md rounded-bl-[2px] px-0 py-0 text-foreground'");
   });
 
   it('keeps runtime typing bubbles separate from tool status rails so loading rows stay visually complete', () => {
@@ -185,7 +187,7 @@ describe('chat desktop shell theme', () => {
 
     expect(pageSource).toContain('app-chat-typing-bubble');
     expect(themeSource).toContain('.app-chat-typing-bubble');
-    expect(pageSource).not.toContain('app-chat-tool-status w-fit rounded-[14px] px-3 py-2 text-foreground');
+    expect(pageSource).not.toContain('app-chat-tool-status w-fit rounded-md px-3 py-2 text-foreground');
   });
 
   it('uses a lighter first-paint scroll strategy instead of hiding the chat scroller before reveal', () => {
@@ -218,7 +220,7 @@ describe('chat desktop shell theme', () => {
   it('keeps chat media on QClaw-style natural previews instead of forcing square thumbnails', () => {
     const messageSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/ChatMessage.tsx'), 'utf8');
 
-    expect(messageSource).toContain("group/img app-chat-media-card relative max-h-[200px] max-w-[200px] cursor-zoom-in overflow-hidden rounded-[8px]");
+    expect(messageSource).toContain("group/img app-chat-media-card relative max-h-[200px] max-w-[200px] cursor-zoom-in overflow-hidden rounded-md");
     expect(messageSource).toContain("className=\"block max-h-[200px] max-w-[200px] object-cover\"");
     expect(messageSource).not.toContain("group/img app-chat-media-card relative h-32 w-32");
   });
@@ -255,7 +257,7 @@ describe('chat desktop shell theme', () => {
     expect(themeSource).toContain('.app-chat-typing-bubble');
     expect(themeSource).toContain('.app-chat-typing-indicator');
     expect(themeSource).toContain('.app-chat-typing-status');
-    expect(pageSource).not.toContain('app-chat-runtime-pill w-fit rounded-[14px] px-3 py-2 text-foreground');
+    expect(pageSource).not.toContain('app-chat-runtime-pill w-fit rounded-md px-3 py-2 text-foreground');
   });
 
   it('isolates heavy chat secondary blocks and code blocks with content visibility hints', () => {

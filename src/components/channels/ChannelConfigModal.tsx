@@ -659,7 +659,7 @@ export function ChannelConfigModal({
                     key={type}
                     onClick={() => setSelectedType(type)}
                     className={cn(
-                      `group relative flex min-h-[92px] items-center gap-3 rounded-[12px] border border-border/55 p-3 text-left shadow-none transition-colors ${modalSubtleSurfaceClasses}`,
+                      `group relative flex min-h-[92px] items-center gap-3 rounded-md border border-border/55 p-3 text-left shadow-none transition-colors ${modalSubtleSurfaceClasses}`,
                       isConfigured
                         ? 'border-border/65 bg-[hsl(var(--foreground)/0.04)]'
                         : 'hover:border-border/60 hover:bg-[hsl(var(--foreground)/0.028)]'

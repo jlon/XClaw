@@ -17,14 +17,14 @@ export interface AgentMarketDetailPaneProps {
 }
 
 const shellCardClasses =
-  'rounded-[24px] border border-border/70 bg-[linear-gradient(180deg,hsl(var(--surface-elevated)/0.998)_0%,hsl(var(--surface-panel)/0.972)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.72),0_14px_28px_rgba(15,23,42,0.04)]';
+  'rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated))] shadow-lg';
 const actionButtonClasses =
-  'h-10 rounded-[13px] border-transparent bg-primary px-5 text-[13px] font-semibold text-primary-foreground shadow-[0_10px_22px_rgba(15,23,42,0.12)] transition-colors hover:bg-primary/92';
+  'h-8 rounded-md border-transparent bg-primary px-4 text-[13px] font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/92';
 const summaryLabelClasses = 'text-[11px] font-medium uppercase tracking-[0.08em] text-foreground/44';
 const fieldInputClasses =
   'appearance-none h-[44px] rounded-xl text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus:outline-none focus-visible:outline-none focus-visible:border-primary focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
 const installPanelClasses =
-  'rounded-[22px] border border-[hsl(var(--primary)/0.12)] bg-[linear-gradient(180deg,hsl(var(--surface-elevated)/1)_0%,hsl(var(--surface-panel)/0.968)_100%)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.76),0_16px_28px_rgba(15,23,42,0.05)]';
+  'rounded-xl border border-[hsl(var(--primary)/0.12)] bg-[hsl(var(--surface-elevated))] p-4 shadow-md';
 
 export function AgentMarketDetailPane({
   marketItem,
@@ -73,7 +73,7 @@ export function AgentMarketDetailPane({
                   {copy.summary || t('workbench.market.noRole')}
                 </p>
                 <div className="flex flex-wrap items-center gap-2 text-[11.5px] text-foreground/46">
-                  <span className="inline-flex h-5 items-center rounded-full border border-border/55 bg-[hsl(var(--surface-panel)/0.9)] px-2 font-medium text-foreground/52 shadow-[inset_0_1px_0_rgba(255,255,255,0.62)]">
+                  <span className="inline-flex h-5 items-center rounded-sm border border-border/55 bg-[hsl(var(--surface-panel)/0.9)] px-2 font-medium text-foreground/52 shadow-none select-none">
                     {resolveMarketCategoryLabel(t, marketItem.category)}
                   </span>
                   {copy.headline && copy.headline !== copy.name ? <span>{copy.headline}</span> : null}
@@ -117,7 +117,7 @@ export function AgentMarketDetailPane({
               copy.highlights.map((highlight) => (
                 <div
                   key={`${marketItem.id}:${highlight}`}
-                  className="flex min-h-[44px] items-start gap-2 rounded-[14px] border border-border/55 bg-[hsl(var(--surface-panel)/0.9)] px-3 py-2.5 text-[12px] text-foreground/68 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]"
+                  className="flex min-h-[44px] items-start gap-2 rounded-lg border border-border/55 bg-[hsl(var(--surface-panel)/0.9)] px-3 py-2.5 text-[12px] text-foreground/68 shadow-sm"
                 >
                   <span className="mt-[5px] h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/24" />
                   <span className="leading-[1.55]">{highlight}</span>
@@ -157,11 +157,11 @@ export function AgentMarketDetailPane({
         <div>
           <p className="text-[13px] font-semibold tracking-tight text-foreground">{t('workbench.market.sourceSummaryTitle')}</p>
           <div className="mt-3 space-y-2 text-[12.5px] leading-[1.6] text-foreground/58">
-            <div className="flex items-start justify-between gap-3 rounded-[14px] border border-border/55 bg-[hsl(var(--surface-panel)/0.9)] px-3.5 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]">
+            <div className="flex items-start justify-between gap-3 rounded-lg border border-border/55 bg-[hsl(var(--surface-panel)/0.9)] px-3.5 py-3 shadow-sm">
               <p className={summaryLabelClasses}>{t('workbench.market.sourcePathLabel')}</p>
               <p className="min-w-0 flex-1 break-all text-right text-foreground/64">{marketItem.sourcePath}</p>
             </div>
-            <div className="flex items-start justify-between gap-3 rounded-[14px] border border-border/55 bg-[hsl(var(--surface-panel)/0.9)] px-3.5 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]">
+            <div className="flex items-start justify-between gap-3 rounded-lg border border-border/55 bg-[hsl(var(--surface-panel)/0.9)] px-3.5 py-3 shadow-sm">
               <p className={summaryLabelClasses}>Raw URL</p>
               <p className="min-w-0 flex-1 break-all text-right text-foreground/58">{marketItem.rawUrl}</p>
             </div>

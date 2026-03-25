@@ -345,7 +345,7 @@ export function ChatSessionsPane() {
               <span className="truncate">{t('chat:sessionPane.workspaceLauncher')}</span>
             </button>
             {workspaceMenuOpen ? (
-              <div className="absolute bottom-[calc(100%+8px)] left-0 z-30 w-[188px] rounded-[15px] border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] p-1.5 shadow-[var(--shadow-sm)]">
+              <div className="absolute bottom-[calc(100%+8px)] left-0 z-30 w-[188px] rounded-lg border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] p-1.5 shadow-[var(--shadow-sm)]">
                 <div className="space-y-0.5">
                   {workspaceItems.map((item) => {
                     const Icon = item.icon;
@@ -353,7 +353,7 @@ export function ChatSessionsPane() {
                       <button
                         key={item.to}
                         type="button"
-                        className="app-chat-session-workspace-item flex h-8 w-full items-center gap-2.5 rounded-[10px] px-2.5 text-left text-[12.5px] text-foreground/76 transition-[background-color,color] duration-150 hover:text-foreground"
+                        className="app-chat-session-workspace-item flex h-8 w-full items-center gap-2.5 rounded-md px-2.5 text-left text-[12.5px] text-foreground/76 transition-[background-color,color] duration-150 hover:text-foreground"
                         onClick={() => {
                           setWorkspaceMenuOpen(false);
                           navigate(item.to);
@@ -369,7 +369,7 @@ export function ChatSessionsPane() {
                   <div className="my-1 border-t border-[hsl(var(--border-subtle)/0.78)]" />
                   <button
                     type="button"
-                    className="app-chat-session-workspace-item flex h-8 w-full items-center gap-2.5 rounded-[10px] px-2.5 text-left text-[12.5px] text-foreground/68 transition-[background-color,color] duration-150 hover:text-foreground"
+                    className="app-chat-session-workspace-item flex h-8 w-full items-center gap-2.5 rounded-md px-2.5 text-left text-[12.5px] text-foreground/68 transition-[background-color,color] duration-150 hover:text-foreground"
                     onClick={() => {
                       setWorkspaceMenuOpen(false);
                       void openDevConsole();

@@ -24,7 +24,7 @@ export function ChatToolbar({ compact = false }: { compact?: boolean }) {
           <Button
             variant="ghost"
             size="icon"
-            className={cn('app-chat-toolbar-button rounded-[10px]', compact ? 'h-7 w-7' : 'h-8 w-8')}
+            className={cn('app-chat-toolbar-button rounded-md', compact ? 'h-7 w-7' : 'h-8 w-8')}
             onClick={() => refresh()}
             disabled={loading}
           >
@@ -43,7 +43,7 @@ export function ChatToolbar({ compact = false }: { compact?: boolean }) {
               variant="ghost"
               size="icon"
               className={cn(
-                'app-chat-toolbar-button rounded-[10px]',
+                'app-chat-toolbar-button rounded-md',
                 compact ? 'h-7 w-7' : 'h-8 w-8',
                 showThinking && 'app-chat-toolbar-button--active',
               )}

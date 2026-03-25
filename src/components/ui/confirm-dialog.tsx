@@ -81,7 +81,7 @@ export function ConfirmDialog({
     >
       <div
         className={cn(
-          'app-panel-surface-elevated mx-4 max-w-md rounded-[18px] p-6 shadow-[0_16px_36px_rgba(15,23,42,0.08)]',
+          'app-panel-surface-elevated mx-4 max-w-md rounded-xl p-5 shadow-lg',
           'focus:outline-none'
         )}
         tabIndex={-1}

@@ -54,11 +54,11 @@ import {
 const DEFAULT_USAGE_FETCH_MAX_ATTEMPTS = 6;
 const WINDOWS_USAGE_FETCH_MAX_ATTEMPTS = 10;
 const USAGE_FETCH_RETRY_DELAY_MS = 1500;
-const toggleGroupClass = 'app-field-surface flex rounded-[9px] border border-[hsl(var(--border-subtle)/0.82)] p-0.5';
-const toggleActiveClass = 'rounded-[8px] border border-[hsl(var(--primary)/0.16)] bg-[hsl(var(--surface-elevated)/0.98)] text-primary';
-const toggleIdleClass = 'rounded-[8px] text-muted-foreground hover:bg-[hsl(var(--surface-hover)/0.84)] hover:text-foreground';
-const emptyStateClass = 'app-empty-surface flex items-center justify-center rounded-[20px] py-12 text-muted-foreground';
-const usageSurfaceClass = 'app-pane-surface rounded-[18px] border border-[hsl(var(--border-subtle)/0.82)] px-4 py-3';
+const toggleGroupClass = 'app-field-surface flex rounded-md border border-[hsl(var(--border-subtle)/0.82)] p-0.5 select-none';
+const toggleActiveClass = 'rounded-sm border border-[hsl(var(--primary)/0.16)] bg-[hsl(var(--surface-elevated)/0.98)] text-primary';
+const toggleIdleClass = 'rounded-sm text-muted-foreground hover:bg-[hsl(var(--surface-hover)/0.84)] hover:text-foreground';
+const emptyStateClass = 'app-empty-surface flex items-center justify-center rounded-xl py-10 text-muted-foreground';
+const usageSurfaceClass = 'app-pane-surface rounded-xl border border-[hsl(var(--border-subtle)/0.82)] px-4 py-3';
 
 function normalizeUsageProviderKey(provider: string | null | undefined): string {
   return provider?.trim().toLowerCase() || 'unknown';
@@ -565,7 +565,7 @@ export function Models() {
                 />
               </div>
             ) : (
-              <div className="app-insight-surface rounded-[14px] border border-[hsl(var(--border-subtle)/0.78)] px-3.5 py-3 text-[13px] text-muted-foreground">
+              <div className="app-insight-surface rounded-lg border border-[hsl(var(--border-subtle)/0.78)] px-3.5 py-3 text-[13px] text-muted-foreground">
                 {t('dashboard:models.selectProviderForDetails', '选择一个提供商，查看归因分布与最近请求。')}
               </div>
             )}
@@ -752,8 +752,8 @@ function UsageContentPopup({
   unknownModelLabel: string;
 }) {
   return (
-    <div className="app-modal-overlay fixed inset-0 z-50 flex items-center justify-center px-4" role="dialog" aria-modal="true">
-      <div className="app-panel-surface-elevated w-full max-w-3xl rounded-2xl">
+    <div className="app-modal-overlay fixed inset-0 z-30 flex items-center justify-center px-4" role="dialog" aria-modal="true">
+      <div className="app-panel-surface-elevated w-full max-w-3xl rounded-xl shadow-lg">
         <div className="flex items-start justify-between gap-3 border-b border-border/70 px-5 py-4">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-foreground">{title}</p>

@@ -84,11 +84,11 @@ describe('ChatMessage', () => {
 
     expect(userPrimary).toBeInTheDocument();
     expect(assistantPrimary).toBeInTheDocument();
-    expect(userBubble).toHaveClass('rounded-[12px]');
-    expect(userBubble).toHaveClass('rounded-br-[4px]');
+    expect(userBubble).toHaveClass('rounded-md');
+    expect(userBubble).toHaveClass('rounded-br-[2px]');
     expect(userBubble).toHaveClass('border');
-    expect(assistantBubble).toHaveClass('rounded-[12px]');
-    expect(assistantBubble).toHaveClass('rounded-bl-[4px]');
+    expect(assistantBubble).toHaveClass('rounded-md');
+    expect(assistantBubble).toHaveClass('rounded-bl-[2px]');
     expect(assistantBubble).not.toHaveClass('rounded-tl-[6px]');
   });
 

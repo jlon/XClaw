@@ -36,7 +36,7 @@ export function ExecApprovalOverlay({
 
   return (
     <div className="pointer-events-none absolute inset-0 z-40 flex items-start justify-center px-6 pt-6">
-      <div className="pointer-events-auto w-full max-w-[44rem] rounded-[24px] border border-[hsl(var(--border)/0.78)] bg-[hsl(var(--background)/0.92)] p-5 shadow-[0_26px_80px_rgba(15,23,42,0.14)] backdrop-blur-xl">
+      <div className="pointer-events-auto w-full max-w-[44rem] rounded-xl border border-border/70 bg-background p-5 shadow-xl">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[hsl(var(--warning)/0.18)] bg-[hsl(var(--warning)/0.12)] text-[hsl(var(--warning))] shadow-none">

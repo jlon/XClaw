@@ -24,7 +24,7 @@ interface FactRowProps {
   span?: 'normal' | 'full';
 }
 
-const surfaceClass = 'app-insight-surface rounded-[14px] border border-[hsl(var(--border-subtle)/0.78)] px-4 py-3';
+const surfaceClass = 'app-insight-surface rounded-lg border border-[hsl(var(--border-subtle)/0.78)] px-4 py-3';
 
 function FactRow({ label, value, span = 'normal' }: FactRowProps) {
   return (

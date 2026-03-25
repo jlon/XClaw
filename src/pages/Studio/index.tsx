@@ -206,7 +206,7 @@ export function Studio() {
           className="studio-runtime-shell relative flex min-h-0 flex-1 overflow-hidden rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated))] shadow-sm"
         >
           {showInitializingMask ? (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-[hsl(var(--background)/0.72)] px-6 backdrop-blur-sm">
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-[hsl(var(--background)/0.9)] px-6">
               <div className="w-full max-w-[360px] rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated))] p-5 text-center shadow-lg">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-border/70 bg-[hsl(var(--surface-elevated)/0.94)] text-foreground/72">
                   <Loader2 className="h-5 w-5 animate-spin" />
@@ -277,7 +277,7 @@ export function Studio() {
                     void handleRetry();
                   }}
                   disabled={retrying}
-                  className="mt-5 inline-flex h-10 items-center gap-2 rounded-[14px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.88)] px-4 text-[13px] font-medium text-foreground transition-colors hover:bg-[hsl(var(--surface-hover)/0.5)] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="mt-5 inline-flex h-8 items-center gap-2 rounded-md border border-border/70 bg-[hsl(var(--surface-elevated)/0.88)] px-4 text-[13px] font-medium text-foreground shadow-sm transition-colors hover:bg-[hsl(var(--surface-hover)/0.5)] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {retrying ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
                   <span>{t('actions.retry')}</span>

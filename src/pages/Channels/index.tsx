@@ -1214,7 +1214,7 @@ export function Channels() {
                       value={activeQuery}
                       onChange={(event) => setActiveQuery(event.target.value)}
                       placeholder={t('searchPlaceholder')}
-                      className={cn(searchFieldClass, 'h-8 rounded-[12px]')}
+                      className={cn(searchFieldClass, 'h-8 rounded-md')}
                     />
                   </div>
 
@@ -1360,7 +1360,7 @@ export function Channels() {
                                     </span>
                                     <div
                                       data-testid={`channel-rail-indicator-${channelType}`}
-                                      className={cn('h-2.5 w-2.5 shrink-0 rounded-[999px]', getConfiguredChannelRailTone(group.enabled))}
+                                      className={cn('h-2.5 w-2.5 shrink-0 rounded-full', getConfiguredChannelRailTone(group.enabled))}
                                     />
                                   </div>
                                 </div>
@@ -1403,7 +1403,7 @@ export function Channels() {
                                     <span className={railStateBadgeClass}>{t('available')}</span>
                                     <div
                                       data-testid={`channel-rail-indicator-${channelType}`}
-                                      className="status-indicator status-indicator-idle h-2.5 w-2.5 shrink-0 rounded-[999px]"
+                                      className="status-indicator status-indicator-idle h-2.5 w-2.5 shrink-0 rounded-full"
                                     />
                                   </div>
                                 </div>

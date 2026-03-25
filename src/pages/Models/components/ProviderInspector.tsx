@@ -29,7 +29,7 @@ interface ProviderInspectorProps {
 }
 
 const paneSurfaceClass = 'app-pane-surface rounded-[20px] border border-[hsl(var(--border-subtle)/0.82)] shadow-none';
-const modalSurfaceClass = 'app-modal-surface rounded-[22px] border border-[hsl(var(--border-subtle)/0.86)] shadow-[0_18px_48px_rgba(15,23,42,0.12)]';
+const modalSurfaceClass = 'app-modal-surface rounded-xl border border-[hsl(var(--border-subtle)/0.86)] shadow-lg';
 
 export function ProviderInspector({
   shell,

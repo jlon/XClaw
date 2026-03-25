@@ -32,16 +32,16 @@ import { cn } from '@/lib/utils';
 import { getProtocolBaseUrlPlaceholder } from './ProviderAccountFormSections';
 import type { AddProviderDialogOptions } from './provider-account-create';
 
-const inputClasses = 'appearance-none h-9 rounded-[10px] border border-border/70 bg-[hsl(var(--surface-panel)/0.96)] text-[13px] text-foreground placeholder:text-muted-foreground/55 shadow-none transition-colors focus:outline-none focus-visible:outline-none focus-visible:border-primary focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
+const inputClasses = 'appearance-none h-8 rounded-md border border-border/70 bg-[hsl(var(--surface-panel)/0.96)] text-[13px] text-foreground placeholder:text-muted-foreground/55 shadow-sm transition-colors focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 focus-visible:border-transparent';
 const tokenInputClasses = `${inputClasses} font-mono tracking-[0.01em]`;
 const labelClasses = 'text-[13px] font-semibold text-foreground/80';
-const modalSurfaceClasses = 'app-modal-surface flex max-h-[88vh] w-full flex-col rounded-[20px] border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.99)] shadow-[0_18px_48px_rgba(15,23,42,0.12)]';
-const primaryButtonClass = 'workbench-motion-button workbench-motion-button--lift rounded-[10px] h-8 px-4 bg-primary text-primary-foreground shadow-none hover:bg-primary/92';
-const segmentedTrackClass = 'flex rounded-[10px] border border-border/60 bg-[hsl(var(--surface-base)/0.96)] p-0.5 gap-0.5';
+const modalSurfaceClasses = 'app-modal-surface flex max-h-[88vh] w-full flex-col rounded-xl border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.99)] shadow-lg';
+const primaryButtonClass = 'workbench-motion-button workbench-motion-button--lift rounded-md h-8 px-4 bg-primary text-primary-foreground shadow-sm hover:bg-primary/92';
+const segmentedTrackClass = 'flex rounded-md border border-border/60 bg-[hsl(var(--surface-base)/0.96)] p-0.5 gap-0.5';
 const segmentedActiveClass = 'border border-[hsl(var(--primary)/0.16)] bg-[hsl(var(--surface-elevated)/0.98)] text-primary shadow-none';
 const segmentedIdleClass = 'text-muted-foreground/82 hover:bg-[hsl(var(--foreground)/0.035)]';
-const listRowClass = 'flex flex-col items-start gap-1.5 rounded-[14px] border border-[hsl(var(--border-subtle)/0.62)] px-2.5 py-2.5 text-left transition-colors hover:border-[hsl(var(--border-strong)/0.24)] hover:bg-[hsl(var(--surface-hover)/0.68)]';
-const panelSurfaceClass = 'app-insight-surface rounded-[12px] border border-[hsl(var(--border-subtle)/0.78)] bg-[hsl(var(--surface-elevated)/0.96)]';
+const listRowClass = 'flex flex-col items-start gap-1.5 rounded-lg border border-[hsl(var(--border-subtle)/0.62)] px-2.5 py-2.5 text-left transition-colors hover:border-[hsl(var(--border-strong)/0.24)] hover:bg-[hsl(var(--surface-hover)/0.68)]';
+const panelSurfaceClass = 'app-insight-surface rounded-lg border border-[hsl(var(--border-subtle)/0.78)] bg-[hsl(var(--surface-elevated)/0.96)] shadow-sm';
 const setupGridClass = 'grid gap-3 md:grid-cols-2';
 const pickerCardActiveClass = 'border-[hsl(var(--border-strong)/0.34)] bg-[hsl(var(--surface-elevated)/1)] shadow-[0_8px_18px_rgba(15,23,42,0.04)]';
 
@@ -411,7 +411,7 @@ export function AddProviderDialog({
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-4 top-4 h-7 w-7 rounded-[10px] text-muted-foreground hover:bg-[hsl(var(--foreground)/0.05)] hover:text-foreground"
+            className="absolute right-4 top-4 h-7 w-7 rounded-md text-muted-foreground hover:bg-[hsl(var(--foreground)/0.05)] hover:text-foreground"
             onClick={onClose}
           >
             <X className="h-4 w-4" />
@@ -439,10 +439,10 @@ export function AddProviderDialog({
                           className={cn(
                             listRowClass,
                             selected && pickerCardActiveClass,
-                            'min-h-[74px] rounded-[14px] focus:outline-none focus-visible:outline-none focus-visible:border-[hsl(var(--border-strong)/0.42)] focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-60',
+                            'min-h-[74px] rounded-lg focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 focus-visible:border-transparent disabled:cursor-not-allowed disabled:opacity-60',
                           )}
                         >
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border border-[hsl(var(--border-subtle)/0.76)] bg-[hsl(var(--surface-base)/0.92)]">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[hsl(var(--border-subtle)/0.76)] bg-[hsl(var(--surface-base)/0.92)]">
                             {getProviderIconUrl(type.id) ? (
                               <img src={getProviderIconUrl(type.id)} alt={type.name} className={getProviderIconClass(type.id, 'h-4 w-4')} />
                             ) : (

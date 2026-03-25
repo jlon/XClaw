@@ -84,7 +84,7 @@ function RailTooltip({
         aria-hidden="true"
         className="pointer-events-none absolute left-full top-1/2 z-20 ml-2 -translate-y-1/2 translate-x-1 opacity-0 transition-[opacity,transform] duration-150 group-hover/sidebar-item:translate-x-0 group-hover/sidebar-item:opacity-100 group-focus-within/sidebar-item:translate-x-0 group-focus-within/sidebar-item:opacity-100"
       >
-        <span className="block max-w-[160px] overflow-hidden text-ellipsis whitespace-nowrap rounded-[10px] border border-border/80 bg-[hsl(var(--surface-elevated)/0.995)] px-2.5 py-1.5 text-[12px] font-medium text-popover-foreground shadow-[0_6px_18px_rgba(15,23,42,0.06)]">
+        <span className="block max-w-[160px] overflow-hidden text-ellipsis whitespace-nowrap rounded-md border border-border/80 bg-[hsl(var(--surface-elevated)/0.995)] px-2.5 py-1.5 text-[12px] font-medium text-popover-foreground shadow-[0_6px_18px_rgba(15,23,42,0.06)]">
           {label}
         </span>
       </div>

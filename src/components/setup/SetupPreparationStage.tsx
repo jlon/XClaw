@@ -494,7 +494,7 @@ function RuntimePreparationContent({
         {isLong ? (
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="cursor-pointer font-medium text-red-300 hover:text-red-200">...</span>
+              <span className="cursor-default font-medium text-red-300 hover:text-red-200">...</span>
             </TooltipTrigger>
             <TooltipContent side="top" className="max-w-sm whitespace-normal break-words text-xs">
               {message}

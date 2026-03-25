@@ -597,7 +597,7 @@ export function Chat() {
       {/* Only block the thread on first-load history; background refresh uses toolbar feedback */}
       {isHistoryLoading && !sending && (
         <div className="absolute inset-0 z-50 flex items-center justify-center rounded-xl bg-background/18 pointer-events-auto">
-          <div className="rounded-[12px] border border-border/65 bg-[hsl(var(--surface-elevated)/0.98)] p-2.5 shadow-none">
+          <div className="rounded-md border border-border/65 bg-[hsl(var(--surface-elevated)/0.98)] p-2.5 shadow-sm">
             <LoadingSpinner size="md" />
           </div>
         </div>

@@ -18,7 +18,7 @@ export function AgentModeSwitch({ value, onChange, className }: AgentModeSwitchP
       data-testid="agents-mode-switch"
       aria-label={t('subtitle')}
       className={cn(
-        'inline-flex h-10 shrink-0 items-stretch rounded-[16px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.992)] p-1 shadow-[0_8px_18px_rgba(15,23,42,0.03),inset_0_1px_0_rgba(255,255,255,0.72)]',
+        'inline-flex h-8 shrink-0 items-stretch rounded-md border border-border/70 bg-[hsl(var(--surface-elevated)/0.992)] p-1 shadow-sm',
         className,
       )}
     >
@@ -29,7 +29,7 @@ export function AgentModeSwitch({ value, onChange, className }: AgentModeSwitchP
         className={cn(
           'workbench-motion-button flex h-8 min-w-[88px] items-center justify-center gap-2 whitespace-nowrap rounded-[12px] px-3 text-[12.5px] font-medium tracking-[-0.01em]',
           value === 'agents'
-            ? 'bg-[hsl(var(--surface-panel)/0.72)] text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.78)]'
+            ? 'bg-[hsl(var(--surface-panel)/0.72)] text-foreground shadow-sm'
             : 'text-foreground/58 hover:text-foreground',
         )}
       >
@@ -43,7 +43,7 @@ export function AgentModeSwitch({ value, onChange, className }: AgentModeSwitchP
         className={cn(
           'workbench-motion-button flex h-8 min-w-[88px] items-center justify-center gap-2 whitespace-nowrap rounded-[12px] px-3 text-[12.5px] font-medium tracking-[-0.01em]',
           value === 'market'
-            ? 'bg-[hsl(var(--surface-panel)/0.72)] text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.78)]'
+            ? 'bg-[hsl(var(--surface-panel)/0.72)] text-foreground shadow-sm'
             : 'text-foreground/58 hover:text-foreground',
         )}
       >

@@ -792,13 +792,13 @@ describe('Channels page status refresh', () => {
     await enterChannelFromBoard('feishu', { expectLayout: 'workbench' });
 
     await waitFor(() => {
-      expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('bg-[hsl(var(--surface-elevated)/0.98)]');
+      expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('bg-[hsl(var(--surface-active))]');
     });
 
     expect(screen.getByTestId('channel-rail-item-feishu').className).not.toContain('#f7f2e9');
-    expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('bg-[hsl(var(--surface-elevated)/0.98)]');
-    expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('rounded-[14px]');
-    expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('shadow-[0_6px_16px_hsl(var(--foreground)/0.035)]');
+    expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('bg-[hsl(var(--surface-active))]');
+    expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('rounded-md');
+    expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('shadow-none');
 
     expect(screen.getByPlaceholderText('searchPlaceholder').className).not.toContain('#f5f1e8');
     expect(screen.getByPlaceholderText('searchPlaceholder').className).toContain('bg-[hsl(var(--surface-panel)/0.86)]');
@@ -843,9 +843,9 @@ describe('Channels page status refresh', () => {
 
     await enterChannelFromBoard('feishu', { expectLayout: 'workbench' });
 
-    expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('rounded-[14px]');
+    expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('rounded-md');
     expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('px-2.5');
-    expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('py-2');
+    expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('py-1.5');
     expect(screen.getByTestId('channel-rail-meta-feishu').className).toContain('gap-1.5');
     expect(screen.getByTestId('channel-rail-count-feishu')).toHaveTextContent('1');
     expect(screen.getByTestId('channel-rail-indicator-feishu')).toBeInTheDocument();
