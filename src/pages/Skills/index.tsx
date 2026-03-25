@@ -63,19 +63,19 @@ interface SkillDetailDialogProps {
 }
 
 const compactOutlineButtonClasses =
-  'workbench-motion-control h-8 rounded-[12px] border border-border/70 bg-transparent px-3 text-[12px] font-medium text-foreground/78 shadow-none hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
+  'workbench-motion-control h-8 rounded-md border border-border/70 bg-transparent px-3 text-[12px] font-medium text-foreground/78 shadow-sm hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
 const tokenInputClasses =
-  'appearance-none h-[44px] rounded-xl font-mono text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus:outline-none focus-visible:outline-none focus-visible:border-primary focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
+  'appearance-none h-8 rounded-md font-mono text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-sm transition-all focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0';
 const compactInputClasses =
-  'appearance-none h-[38px] rounded-xl font-mono text-[12px] app-field-surface text-foreground/80 shadow-none transition-all focus:outline-none focus-visible:outline-none focus-visible:border-primary focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
+  'appearance-none h-8 rounded-md font-mono text-[12px] app-field-surface text-foreground/80 shadow-sm transition-all focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0';
 const badgeClasses =
-  'rounded-[10px] border border-border/70 bg-[hsl(var(--surface-panel)/0.9)] px-2.5 py-0.5 text-[10.5px] font-medium text-foreground/65 shadow-none transition-colors dark:bg-[hsl(var(--surface-elevated)/0.82)]';
+  'rounded-sm border border-border/70 bg-[hsl(var(--surface-panel)/0.9)] px-2.5 py-0.5 text-[10.5px] font-medium text-foreground/65 shadow-none transition-colors dark:bg-[hsl(var(--surface-elevated)/0.82)] select-none';
 const searchFieldClasses =
-  'workbench-motion-control relative flex items-center rounded-[16px] border border-border/60 bg-[hsl(var(--surface-panel)/0.84)] px-3.5 py-2.5 hover:bg-[hsl(var(--surface-hover)/0.46)] focus-within:border-border/55 focus-within:bg-[hsl(var(--surface-panel)/0.96)]';
+  'workbench-motion-control relative flex items-center rounded-md border border-border/60 bg-[hsl(var(--surface-panel)/0.84)] px-3.5 py-2 hover:bg-[hsl(var(--surface-hover)/0.46)] focus-within:border-border/55 focus-within:bg-[hsl(var(--surface-panel)/0.96)]';
 const skillCardClasses =
-  'app-skills-card workbench-motion-card group relative flex min-h-[198px] flex-col rounded-[24px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.988)] px-[18px] py-[17px] shadow-[0_10px_24px_rgba(15,23,42,0.05)] motion-safe:hover:-translate-y-[1px] hover:border-border/90 hover:shadow-[0_16px_32px_rgba(15,23,42,0.08)] sm:px-5 sm:py-[18px]';
+  'app-skills-card workbench-motion-card group relative flex min-h-[160px] flex-col rounded-lg border border-border/70 bg-[hsl(var(--surface-elevated)/0.988)] px-4 py-4 shadow-sm motion-safe:hover:-translate-y-[1px] hover:border-border/90 hover:shadow-md cursor-default';
 const providerResultClasses =
-  'workbench-motion-card group flex items-start gap-4 rounded-[20px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.985)] p-4 shadow-[0_8px_22px_rgba(15,23,42,0.04)] hover:border-border/85 hover:shadow-[0_14px_28px_rgba(15,23,42,0.07)]';
+  'workbench-motion-card group flex items-start gap-4 rounded-lg border border-border/70 bg-[hsl(var(--surface-elevated)/0.985)] p-4 shadow-sm hover:border-border/85 hover:shadow-md';
 const DEFAULT_PROVIDER_RESULT_LIMIT = 50;
 const SEARCH_PROVIDER_RESULT_LIMIT = 24;
 
@@ -166,7 +166,7 @@ function SkillCardGlyph({
     <div
       data-testid={`skills-card-glyph-${skillId}`}
       className={cn(
-        'relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[16px] border shadow-none',
+        'relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border shadow-sm',
         toneClasses.shell,
       )}
     >
@@ -285,12 +285,12 @@ function SkillDetailDialog({ skill, isOpen, onClose, onToggle, togglePending = f
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[min(84vh,760px)] max-w-[720px] gap-0 overflow-hidden rounded-[22px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.995)] p-0 shadow-[0_20px_48px_rgba(15,23,42,0.12)]">
+      <DialogContent className="max-h-[min(84vh,760px)] max-w-[720px] gap-0 overflow-hidden rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated))] p-0 shadow-lg">
         <div className="flex h-full min-h-0 max-h-[min(84vh,760px)] flex-col">
           <div className="shrink-0 border-b border-border/70 px-6 py-5">
             <div className="flex items-start justify-between gap-4">
               <DialogHeader className="min-w-0 space-y-0 text-left">
-                <div className="mb-3 flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] border border-border/70 bg-[hsl(var(--surface-panel)/0.92)] text-[22px] shadow-none">
+                <div className="mb-3 flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border/70 bg-[hsl(var(--surface-panel)/0.92)] text-[22px] shadow-sm">
                   {skill.icon || '🔧'}
                 </div>
                 <DialogTitle className="truncate text-[20px] font-semibold tracking-tight text-foreground">
@@ -371,7 +371,7 @@ function SkillDetailDialog({ skill, isOpen, onClose, onToggle, togglePending = f
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-7 gap-1.5 rounded-[12px] px-2.5 text-[12px] font-semibold text-foreground/78 hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground"
+                      className="h-7 gap-1.5 rounded-md px-2.5 text-[12px] font-semibold text-foreground/78 hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground"
                       onClick={() => setEnvVars((current) => [...current, { key: '', value: '' }])}
                     >
                       <Plus className="h-3 w-3" strokeWidth={3} />
@@ -381,7 +381,7 @@ function SkillDetailDialog({ skill, isOpen, onClose, onToggle, togglePending = f
 
                   <div className="space-y-2">
                     {envVars.length === 0 ? (
-                      <div className="flex items-center rounded-[12px] border border-border/70 app-field-surface px-3.5 py-2.5 text-[12.5px] font-medium italic text-foreground/50 shadow-none">
+                      <div className="flex items-center rounded-md border border-border/70 app-field-surface px-3.5 py-2.5 text-[12.5px] font-medium italic text-foreground/50 shadow-sm">
                         {t('detail.noEnvVars', { defaultValue: '未配置环境变量。' })}
                       </div>
                     ) : null}
@@ -391,19 +391,19 @@ function SkillDetailDialog({ skill, isOpen, onClose, onToggle, togglePending = f
                         <Input
                           value={env.key}
                           onChange={(event) => setEnvVars((current) => current.map((item, currentIndex) => currentIndex === index ? { ...item, key: event.target.value } : item))}
-                          className={cn('h-[38px] flex-1', tokenInputClasses)}
+                          className={cn('h-8 flex-1', tokenInputClasses)}
                           placeholder={t('detail.keyPlaceholder', { defaultValue: '键名' })}
                         />
                         <Input
                           value={env.value}
                           onChange={(event) => setEnvVars((current) => current.map((item, currentIndex) => currentIndex === index ? { ...item, value: event.target.value } : item))}
-                          className={cn('h-[38px] flex-1', tokenInputClasses)}
+                          className={cn('h-8 flex-1', tokenInputClasses)}
                           placeholder={t('detail.valuePlaceholder', { defaultValue: '值' })}
                         />
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-9 w-9 shrink-0 rounded-xl text-destructive/70 transition-colors hover:bg-destructive/10 hover:text-destructive"
+                          className="h-8 w-8 shrink-0 rounded-md text-destructive/70 transition-colors hover:bg-destructive/10 hover:text-destructive"
                           onClick={() => setEnvVars((current) => current.filter((_, currentIndex) => currentIndex !== index))}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -434,7 +434,7 @@ function SkillDetailDialog({ skill, isOpen, onClose, onToggle, togglePending = f
               {!skill.isCore ? (
                 <Button
                   onClick={handleSaveConfig}
-                  className="h-[40px] rounded-[12px] border border-transparent bg-primary px-5 text-[13px] font-semibold text-primary-foreground shadow-none transition-all hover:bg-primary/90"
+                  className="h-8 rounded-md border border-transparent bg-primary px-5 text-[13px] font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90"
                   disabled={isSaving}
                 >
                   {isSaving ? t('detail.saving') : t('detail.saveConfig')}
@@ -444,7 +444,7 @@ function SkillDetailDialog({ skill, isOpen, onClose, onToggle, togglePending = f
               {!skill.isCore ? (
                 <Button
                   variant="outline"
-                  className="h-[40px] rounded-[12px] border-border/70 bg-transparent px-5 text-[13px] font-semibold text-foreground/80 shadow-none transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground"
+                  className="h-8 rounded-md border-border/70 bg-transparent px-5 text-[13px] font-semibold text-foreground/80 shadow-sm transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground"
                   disabled={togglePending}
                   onClick={() => {
                     onToggle(!skill.enabled);
@@ -461,7 +461,7 @@ function SkillDetailDialog({ skill, isOpen, onClose, onToggle, togglePending = f
               {!skill.isCore && !skill.isBundled && onUninstall && skill.slug ? (
                 <Button
                   variant="outline"
-                  className="h-[40px] rounded-[12px] border-border/70 bg-transparent px-5 text-[13px] font-semibold text-foreground/80 shadow-none transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground"
+                  className="h-8 rounded-md border-border/70 bg-transparent px-5 text-[13px] font-semibold text-foreground/80 shadow-sm transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground"
                   disabled={togglePending}
                   onClick={() => {
                     onUninstall(skill.slug!);
@@ -669,7 +669,7 @@ function ProviderSearchDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[min(82vh,760px)] max-h-[min(82vh,760px)] max-w-[880px] flex-col gap-0 overflow-hidden rounded-[24px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.995)] p-0 shadow-[0_20px_52px_rgba(15,23,42,0.14)]">
+      <DialogContent className="flex h-[min(82vh,760px)] max-h-[min(82vh,760px)] max-w-[880px] flex-col gap-0 overflow-hidden rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated))] p-0 shadow-lg">
         <div className="flex min-h-0 flex-1 flex-col">
           <div className="border-b border-border/70 px-6 py-5">
             <DialogHeader className="space-y-0 text-left">
@@ -687,7 +687,7 @@ function ProviderSearchDialog({
                     <Button
                       type="button"
                       variant="outline"
-                      className="h-9 rounded-[12px] px-3 text-[12px] font-semibold shadow-none"
+                      className="h-8 rounded-md px-3 text-[12px] font-semibold shadow-sm"
                       onClick={handleOpenProviderHomepage}
                     >
                       <Globe className="mr-1.5 h-3.5 w-3.5" />
@@ -695,7 +695,7 @@ function ProviderSearchDialog({
                     </Button>
                   ) : null}
                   {meta ? (
-                    <Badge variant="secondary" className="rounded-[12px] border border-border/60 bg-[hsl(var(--surface-panel)/0.94)] px-3 py-1 text-[11px] font-semibold text-foreground/62 shadow-none">
+                    <Badge variant="secondary" className="rounded-md border border-border/60 bg-[hsl(var(--surface-panel)/0.94)] px-3 py-1 text-[11px] font-semibold text-foreground/62 shadow-none select-none">
                       {meta.badge}
                     </Badge>
                   ) : null}
@@ -716,7 +716,7 @@ function ProviderSearchDialog({
                   <button
                     type="button"
                     onClick={() => onQueryChange('')}
-                    className="ml-2 shrink-0 rounded-[10px] px-1.5 py-1 text-foreground/42 transition-colors hover:bg-[hsl(var(--surface-hover)/0.52)] hover:text-foreground"
+                    className="ml-2 shrink-0 rounded-sm px-1.5 py-1 text-foreground/42 transition-colors hover:bg-[hsl(var(--surface-hover)/0.52)] hover:text-foreground"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -727,21 +727,21 @@ function ProviderSearchDialog({
 
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-5">
             {error ? (
-              <div className="mb-4 flex items-center gap-2.5 rounded-[16px] border border-destructive/16 bg-[hsl(var(--danger))/0.06] px-4 py-3 text-[13px] font-medium text-destructive">
+              <div className="mb-4 flex items-center gap-2.5 rounded-lg border border-destructive/16 bg-[hsl(var(--danger))/0.06] px-4 py-3 text-[13px] font-medium text-destructive">
                 <AlertCircle className="h-4.5 w-4.5 shrink-0" />
                 <span>{error}</span>
               </div>
             ) : null}
 
             {loading ? (
-              <div className="flex min-h-[320px] flex-col items-center justify-center rounded-[22px] border border-dashed border-border/70 bg-[hsl(var(--surface-panel)/0.64)] text-foreground/54">
+              <div className="flex min-h-[280px] flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-[hsl(var(--surface-panel)/0.64)] text-foreground/54">
                 <LoadingSpinner size="lg" />
                 <p className="mt-4 text-[13px] font-medium">{t('providerSearch.loading', { defaultValue: '正在搜索技能目录…' })}</p>
               </div>
             ) : null}
 
             {!loading && results.length === 0 ? (
-              <div className="flex min-h-[320px] flex-col items-center justify-center rounded-[22px] border border-dashed border-border/70 bg-[hsl(var(--surface-panel)/0.64)] text-center text-foreground/54">
+              <div className="flex min-h-[280px] flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-[hsl(var(--surface-panel)/0.64)] text-center text-foreground/54">
                 <Puzzle className="h-10 w-10 opacity-45" />
                 <p className="mt-4 text-[14px] font-semibold text-foreground/72">
                   {query.trim()
@@ -781,12 +781,12 @@ function ProviderSearchDialog({
 
                         <div className="mt-3.5 flex flex-wrap items-center justify-end gap-2 border-t border-border/55 pt-3">
                           {typeof item.metadata?.sourceUrl === 'string' && item.metadata.sourceUrl ? (
-                            <Button type="button" variant="outline" className="h-9 rounded-[12px] px-3 text-[12px] font-semibold shadow-none" onClick={() => onOpenSource(item)}>
+                            <Button type="button" variant="outline" className="h-8 rounded-md px-3 text-[12px] font-semibold shadow-sm" onClick={() => onOpenSource(item)}>
                               <Globe className="mr-1.5 h-3.5 w-3.5" />
                               {t('providerSearch.openSource', { defaultValue: '查看' })}
                             </Button>
                           ) : null}
-                          <Button type="button" className="h-9 rounded-[12px] px-3.5 text-[12px] font-semibold shadow-none" onClick={() => onInstall(item)}>
+                          <Button type="button" className="h-8 rounded-md px-3.5 text-[12px] font-semibold shadow-sm" onClick={() => onInstall(item)}>
                             {t('providerSearch.sendToChat', { defaultValue: '发送到聊天' })}
                             <ChevronRight className="ml-1.5 h-3.5 w-3.5" />
                           </Button>
@@ -831,7 +831,7 @@ function GitHubImportDialog({
 }: GitHubImportDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[640px] gap-0 rounded-[24px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.995)] p-0 shadow-[0_20px_48px_rgba(15,23,42,0.12)]">
+      <DialogContent className="max-w-[640px] gap-0 rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated))] p-0 shadow-lg">
         <div className="border-b border-border/70 px-6 py-5">
           <DialogHeader className="space-y-0 text-left">
             <DialogTitle className="text-[22px] font-semibold tracking-tight text-foreground">
@@ -869,10 +869,10 @@ function GitHubImportDialog({
         </div>
 
         <div className="flex items-center justify-end gap-3 border-t border-border/70 px-6 py-4">
-          <Button type="button" variant="outline" className="h-[40px] rounded-[12px] px-4 text-[13px] font-semibold" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="outline" className="h-8 rounded-md px-4 text-[13px] font-semibold shadow-sm" onClick={() => onOpenChange(false)}>
             {t('common.cancel', { defaultValue: '取消' })}
           </Button>
-          <Button type="button" className="h-[40px] rounded-[12px] px-4 text-[13px] font-semibold shadow-none" onClick={onSubmit}>
+          <Button type="button" className="h-8 rounded-md px-4 text-[13px] font-semibold shadow-sm" onClick={onSubmit}>
             {t('githubImport.sendToChat', { defaultValue: '发送到聊天' })}
           </Button>
         </div>
@@ -1214,7 +1214,7 @@ export function Skills() {
           </div>
 
           <div className="flex flex-col gap-3 md:flex-row md:items-center">
-            <div className={cn(searchFieldClasses, 'h-[46px] flex-1 rounded-[18px] px-4 py-0')}>
+            <div className={cn(searchFieldClasses, 'h-9 flex-1 rounded-md px-3 py-0')}>
               <Puzzle className="h-4.5 w-4.5 shrink-0 text-muted-foreground" />
               <input
                 value={searchQuery}
@@ -1226,7 +1226,7 @@ export function Skills() {
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="shrink-0 rounded-[10px] px-1.5 py-1 text-foreground/42 transition-colors hover:bg-[hsl(var(--surface-hover)/0.52)] hover:text-foreground"
+                  className="shrink-0 rounded-sm px-1.5 py-1 text-foreground/42 transition-colors hover:bg-[hsl(var(--surface-hover)/0.52)] hover:text-foreground"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -1268,7 +1268,7 @@ export function Skills() {
 
         <WorkspacePageScrollArea id="skills-page-scroll-area">
           {showGatewayWarning ? (
-            <div className="mb-5 flex items-center gap-2.5 rounded-[16px] border border-amber-500/15 bg-amber-500/6 px-4 py-3 app-insight-surface">
+            <div className="mb-5 flex items-center gap-2.5 rounded-lg border border-amber-500/15 bg-amber-500/6 px-4 py-3 app-insight-surface">
               <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               <span className="text-[13px] font-medium text-amber-900 dark:text-amber-100">
                 {t('gatewayWarning', { defaultValue: '网关未运行。没有活跃的网关，无法加载技能。' })}
@@ -1277,15 +1277,15 @@ export function Skills() {
           ) : null}
 
           {error ? (
-            <div className="mb-5 flex items-center gap-2.5 rounded-[16px] border border-destructive/16 bg-[hsl(var(--danger))/0.06] px-4 py-3 text-[13px] font-medium text-destructive">
+            <div className="mb-5 flex items-center gap-2.5 rounded-lg border border-destructive/16 bg-[hsl(var(--danger))/0.06] px-4 py-3 text-[13px] font-medium text-destructive">
               <AlertCircle className="h-4.5 w-4.5 shrink-0" />
               <span>{error}</span>
             </div>
           ) : null}
 
           {filteredSkills.length === 0 ? (
-            <div className="flex min-h-[420px] flex-col items-center justify-center rounded-[28px] border border-dashed border-border/70 bg-[hsl(var(--surface-panel)/0.62)] px-6 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-[22px] border border-[hsl(var(--primary)/0.18)] bg-[hsl(var(--primary)/0.1)] text-[30px] text-primary shadow-none">
+            <div className="flex min-h-[360px] flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-[hsl(var(--surface-panel)/0.62)] px-6 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-[hsl(var(--primary)/0.18)] bg-[hsl(var(--primary)/0.1)] text-[24px] text-primary shadow-sm">
                 🧩
               </div>
               <h2 className="mt-5 text-[18px] font-semibold tracking-tight text-foreground">

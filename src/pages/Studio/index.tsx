@@ -256,17 +256,17 @@ export function Studio() {
                 <div className="mt-4 space-y-2 text-[12px] font-medium text-foreground/56">
                   <div>{statusLabel}</div>
                   {resolvedUrl ? (
-                    <div className="truncate rounded-[14px] border border-border/60 bg-background/60 px-3 py-2 font-mono text-[11px] text-foreground/66">
+                    <div className="truncate rounded-md border border-border/60 bg-background/60 px-3 py-2 font-mono text-[11px] text-foreground/66">
                       {resolvedUrl}
                     </div>
                   ) : null}
                   {error ? (
-                    <div className="rounded-[14px] border border-rose-200/80 bg-rose-500/6 px-3 py-2 text-rose-700">
+                    <div className="rounded-md border border-rose-200/80 bg-rose-500/6 px-3 py-2 text-rose-700">
                       {error}
                     </div>
                   ) : null}
                   {runtimeIssueText ? (
-                    <div className="rounded-[14px] border border-rose-200/80 bg-rose-500/6 px-3 py-2 text-rose-700">
+                    <div className="rounded-md border border-rose-200/80 bg-rose-500/6 px-3 py-2 text-rose-700">
                       {runtimeIssueText}
                     </div>
                   ) : null}
