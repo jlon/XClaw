@@ -27,7 +27,7 @@
     --border: 0 0% 90.2%;
     --input: 0 0% 90.2%;
     --ring: 12 52% 42%;
-    --radius: 0.375rem;
+    --radius: 0.75rem;
     --surface-base: 0 0% 99.65%;
     --surface-elevated: 0 0% 100%;
     --surface-panel: 0 0% 97.45%;
@@ -45,12 +45,12 @@
     --danger: 6 65% 45%;
     --info: 193 62% 42%;
     --runtime: 215 16% 52%;
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
-    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06), 0 0 1px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.1);
-    --motion-fast: 75ms;
-    --motion-base: 150ms;
-    --motion-slow: 220ms;
+    --shadow-sm: 0 8px 24px rgba(18, 24, 33, 0.05);
+    --shadow-md: 0 18px 42px rgba(18, 24, 33, 0.09);
+    --shadow-lg: 0 28px 64px rgba(18, 24, 33, 0.12);
+    --motion-fast: 140ms;
+    --motion-base: 220ms;
+    --motion-slow: 360ms;
   }
 
   .dark {
@@ -91,12 +91,12 @@
     --danger: 5 64% 57%;
     --info: 194 70% 57%;
     --runtime: 214 12% 64%;
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
-    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.18), 0 0 1px rgba(0, 0, 0, 0.2);
-    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.24), 0 0 1px rgba(0, 0, 0, 0.2);
-    --motion-fast: 75ms;
-    --motion-base: 150ms;
-    --motion-slow: 220ms;
+    --shadow-sm: 0 14px 34px rgba(0, 0, 0, 0.28);
+    --shadow-md: 0 24px 52px rgba(0, 0, 0, 0.34);
+    --shadow-lg: 0 36px 80px rgba(0, 0, 0, 0.42);
+    --motion-fast: 140ms;
+    --motion-base: 220ms;
+    --motion-slow: 360ms;
   }
 }
 
