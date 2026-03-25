@@ -119,6 +119,7 @@ describe('registerIpcHandlers setup environment channels', () => {
       studioInterpreterReady: true,
       studioError: null,
     });
+    expect(isPythonReadyMock).not.toHaveBeenCalled();
   });
 
   it('registers a setup environment prepare channel that reports running progress and final success', async () => {

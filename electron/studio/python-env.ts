@@ -18,6 +18,7 @@ const PYTHON_FIND_TIMEOUT_MS = 15_000;
 const STUDIO_PROBE_TIMEOUT_MS = 15_000;
 const STUDIO_VENV_CREATE_TIMEOUT_MS = 60_000;
 const STUDIO_DEPENDENCY_INSTALL_TIMEOUT_MS = 120_000;
+let managedPythonPathCache: string | null | undefined;
 
 const runCommand = async (
   command: string,
@@ -48,8 +49,17 @@ const runCommand = async (
   );
 };
 
+const getPipMirrorEnv = (uvEnv: Record<string, string | undefined>): Record<string, string> =>
+  uvEnv.UV_INDEX_URL ? { PIP_INDEX_URL: uvEnv.UV_INDEX_URL } : {};
+
+const probeStudioDependencies = async (venvPythonPath: string): Promise<{ code: number; stdout: string; stderr: string }> =>
+  await runCommand(
+    venvPythonPath,
+    ['-c', 'import flask; from PIL import Image'],
+    { timeoutMs: STUDIO_PROBE_TIMEOUT_MS },
+  );
+
 const installStudioDependencies = async (
-  uvBin: string,
   venvPythonPath: string,
   requirementsPath: string,
   env: Record<string, string | undefined>,
@@ -58,8 +68,8 @@ const installStudioDependencies = async (
 ): Promise<void> => {
   options.onLog?.({ level: 'info', message: 'Installing Studio Python dependencies' });
   const installResult = await runCommand(
-    uvBin,
-    ['pip', 'install', '--python', venvPythonPath, '-r', requirementsPath],
+    venvPythonPath,
+    ['-m', 'pip', 'install', '-r', requirementsPath],
     {
       env,
       signal: options.signal,
@@ -75,14 +85,19 @@ const installStudioDependencies = async (
   throw new Error(detail);
 };
 
-export async function getManagedPythonPath(): Promise<string | null> {
+export async function getManagedPythonPath(options: { forceRefresh?: boolean } = {}): Promise<string | null> {
+  if (!options.forceRefresh && managedPythonPathCache !== undefined) {
+    return managedPythonPathCache;
+  }
   const uvInstalled = await checkUvInstalled();
   if (!uvInstalled) {
+    managedPythonPathCache = null;
     return null;
   }
   const { bin: uvBin } = resolveUvBin();
   const result = await runCommand(uvBin, ['python', 'find', '3.12'], { timeoutMs: PYTHON_FIND_TIMEOUT_MS });
-  return result.code === 0 && result.stdout ? result.stdout.split(/\r?\n/).pop() ?? null : null;
+  managedPythonPathCache = result.code === 0 && result.stdout ? result.stdout.split(/\r?\n/).pop() ?? null : null;
+  return managedPythonPathCache;
 }
 
 export async function inspectStudioPythonEnv(): Promise<StudioPythonReadiness> {
@@ -122,11 +137,7 @@ export async function inspectStudioPythonEnv(): Promise<StudioPythonReadiness> {
     };
   }
 
-  const dependencyProbe = await runCommand(
-    venvPythonPath,
-    ['-c', 'import flask; from PIL import Image'],
-    { timeoutMs: STUDIO_PROBE_TIMEOUT_MS },
-  );
+  const dependencyProbe = await probeStudioDependencies(venvPythonPath);
   return {
     uvInstalled: true,
     interpreterReady: true,
@@ -158,7 +169,10 @@ export async function ensureStudioPythonEnv(
     throw createAbortError('Environment preparation cancelled');
   }
 
-  const pythonPath = await getManagedPythonPath();
+  let pythonPath = initial.pythonPath;
+  if (!pythonPath) {
+    pythonPath = await getManagedPythonPath({ forceRefresh: true });
+  }
   if (!pythonPath) {
     return {
       uvInstalled: true,
@@ -170,11 +184,11 @@ export async function ensureStudioPythonEnv(
     };
   }
 
-  const { bin: uvBin } = resolveUvBin();
   const uvEnv = await getUvMirrorEnv();
   const baseEnv = { ...process.env };
-  const hasMirror = Object.keys(uvEnv).length > 0;
-  const preferredEnv = { ...baseEnv, ...uvEnv };
+  const pipMirrorEnv = getPipMirrorEnv(uvEnv);
+  const hasMirror = Object.keys(pipMirrorEnv).length > 0;
+  const preferredEnv = { ...baseEnv, ...pipMirrorEnv };
   const venvDir = getStudioVenvDir();
   const venvPythonPath = getStudioVenvPythonPath();
   const requirementsPath = getStudioRequirementsPath();
@@ -191,8 +205,8 @@ export async function ensureStudioPythonEnv(
   await mkdir(venvDir, { recursive: true });
 
   options.onLog?.({ level: 'info', message: 'Creating Studio virtual environment' });
-  const venvResult = await runCommand(uvBin, ['venv', '--python', pythonPath, venvDir], {
-    env: preferredEnv,
+  const venvResult = await runCommand(pythonPath, ['-m', 'venv', venvDir], {
+    env: baseEnv,
     signal: options.signal,
     timeoutMs: STUDIO_VENV_CREATE_TIMEOUT_MS,
     onStdout: (message) => options.onLog?.({ level: 'info', message }),
@@ -204,7 +218,6 @@ export async function ensureStudioPythonEnv(
 
   try {
     await installStudioDependencies(
-      uvBin,
       venvPythonPath,
       requirementsPath,
       preferredEnv,
@@ -223,7 +236,6 @@ export async function ensureStudioPythonEnv(
     options.onLog?.({ level: 'info', message: 'Retrying Studio dependency install without mirror' });
     try {
       await installStudioDependencies(
-        uvBin,
         venvPythonPath,
         requirementsPath,
         baseEnv,
@@ -236,5 +248,13 @@ export async function ensureStudioPythonEnv(
     }
   }
 
-  return await inspectStudioPythonEnv();
+  const dependencyProbe = await probeStudioDependencies(venvPythonPath);
+  return {
+    uvInstalled: true,
+    interpreterReady: true,
+    dependenciesReady: dependencyProbe.code === 0,
+    pythonPath,
+    venvPythonPath,
+    error: dependencyProbe.code === 0 ? null : dependencyProbe.stderr || dependencyProbe.stdout || 'Studio dependencies are missing',
+  };
 }

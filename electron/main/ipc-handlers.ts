@@ -1146,11 +1146,10 @@ function registerUvHandlers(): void {
 
   const resolveSetupEnvironmentStatus = async () => {
     const uvInstalled = await checkUvInstalled();
-    const pythonReady = uvInstalled ? await isPythonReady() : false;
     const studio = uvInstalled
       ? await inspectStudioPythonEnv().catch((error) => ({
         uvInstalled,
-        interpreterReady: pythonReady,
+        interpreterReady: false,
         dependenciesReady: false,
         pythonPath: null,
         venvPythonPath: null,
@@ -1166,7 +1165,7 @@ function registerUvHandlers(): void {
       };
     return {
       uvInstalled,
-      pythonReady,
+      pythonReady: studio.interpreterReady,
       studioDependenciesReady: studio.dependenciesReady,
       studioInterpreterReady: studio.interpreterReady,
       studioError: studio.error,

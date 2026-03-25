@@ -96,37 +96,144 @@ describe('ensureStudioPythonEnv', () => {
       if (target === '/tmp/studio/backend/requirements.txt') {
         return true;
       }
-      if (target === '/tmp/studio/.venv/bin/python') {
-        return runChildCommandMock.mock.calls.length >= 5;
-      }
       return false;
     });
   });
 
-  it('retries studio dependency installation without mirror env after the mirrored install fails', async () => {
-    runChildCommandMock
-      .mockResolvedValueOnce({ code: 0, stdout: '/tmp/python-3.12', stderr: '' })
-      .mockResolvedValueOnce({ code: 0, stdout: '/tmp/python-3.12', stderr: '' })
-      .mockResolvedValueOnce({ code: 0, stdout: '', stderr: '' })
-      .mockResolvedValueOnce({ code: 1, stdout: '', stderr: 'mirror install failed' })
-      .mockResolvedValueOnce({ code: 0, stdout: 'installed', stderr: '' })
-      .mockResolvedValueOnce({ code: 0, stdout: '/tmp/python-3.12', stderr: '' })
-      .mockResolvedValueOnce({ code: 0, stdout: '', stderr: '' });
+  it('uses the managed python interpreter directly for studio venv and dependency installation', async () => {
+    let venvCreated = false;
+    existsSyncMock.mockImplementation((target: string) => {
+      if (target === '/tmp/studio/backend/requirements.txt') {
+        return true;
+      }
+      if (target === '/tmp/studio/.venv/bin/python') {
+        return venvCreated;
+      }
+      return false;
+    });
+
+    runChildCommandMock.mockImplementation(async (command: string, args: string[]) => {
+      if (command === '/tmp/bin/uv' && args.join(' ') === 'python find 3.12') {
+        return { code: 0, stdout: '/tmp/python-3.12', stderr: '' };
+      }
+      if (command === '/tmp/python-3.12' && args.join(' ') === '-m venv /tmp/studio/.venv') {
+        venvCreated = true;
+        return { code: 0, stdout: '', stderr: '' };
+      }
+      if (
+        command === '/tmp/studio/.venv/bin/python' &&
+        args.join(' ') === '-m pip install -r /tmp/studio/backend/requirements.txt'
+      ) {
+        const lastCall = runChildCommandMock.mock.calls.at(-1);
+        const env = lastCall?.[2]?.env as Record<string, string | undefined> | undefined;
+        if (env?.PIP_INDEX_URL) {
+          return { code: 1, stdout: '', stderr: 'mirror install failed' };
+        }
+        return { code: 0, stdout: 'installed', stderr: '' };
+      }
+      if (command === '/tmp/studio/.venv/bin/python' && args.join(' ') === '-c import flask; from PIL import Image') {
+        return { code: 0, stdout: '', stderr: '' };
+      }
+      throw new Error(`Unexpected command: ${command} ${args.join(' ')}`);
+    });
 
     const { ensureStudioPythonEnv } = await import('@electron/studio/python-env');
 
     const readiness = await ensureStudioPythonEnv();
 
     expect(readiness.dependenciesReady).toBe(true);
+    const uvFindCalls = runChildCommandMock.mock.calls.filter(
+      ([command, args]) => command === '/tmp/bin/uv' && Array.isArray(args) && args.join(' ') === 'python find 3.12',
+    );
+    expect(uvFindCalls).toHaveLength(1);
+    expect(runChildCommandMock).not.toHaveBeenCalledWith(
+      '/tmp/bin/uv',
+      expect.arrayContaining(['venv']),
+      expect.anything(),
+    );
+    expect(runChildCommandMock).not.toHaveBeenCalledWith(
+      '/tmp/bin/uv',
+      expect.arrayContaining(['pip']),
+      expect.anything(),
+    );
+    expect(runChildCommandMock).toHaveBeenCalledWith(
+      '/tmp/python-3.12',
+      ['-m', 'venv', '/tmp/studio/.venv'],
+      expect.objectContaining({
+        timeoutMs: 60_000,
+        windowsHide: true,
+      }),
+    );
     const installCalls = runChildCommandMock.mock.calls.filter(
-      ([command, args]) => command === '/tmp/bin/uv' && Array.isArray(args) && args[0] === 'pip',
+      ([command, args]) =>
+        command === '/tmp/studio/.venv/bin/python' &&
+        Array.isArray(args) &&
+        args.join(' ') === '-m pip install -r /tmp/studio/backend/requirements.txt',
     );
     expect(installCalls).toHaveLength(2);
     expect(installCalls[0]?.[2]).toMatchObject({
-      env: expect.objectContaining({ UV_INDEX_URL: 'https://mirror.invalid/simple' }),
+      env: expect.objectContaining({ PIP_INDEX_URL: 'https://mirror.invalid/simple' }),
     });
     expect(installCalls[1]?.[2]).toMatchObject({
-      env: expect.not.objectContaining({ UV_INDEX_URL: expect.any(String) }),
+      env: expect.not.objectContaining({ PIP_INDEX_URL: expect.any(String) }),
     });
+  });
+
+  it('rebuilds an existing partial studio venv before invoking pip', async () => {
+    let venvRebuilt = false;
+    existsSyncMock.mockImplementation((target: string) => {
+      if (target === '/tmp/studio/backend/requirements.txt') {
+        return true;
+      }
+      if (target === '/tmp/studio/.venv/bin/python') {
+        return true;
+      }
+      return false;
+    });
+
+    runChildCommandMock.mockImplementation(async (command: string, args: string[]) => {
+      if (command === '/tmp/bin/uv' && args.join(' ') === 'python find 3.12') {
+        return { code: 0, stdout: '/tmp/python-3.12', stderr: '' };
+      }
+      if (command === '/tmp/studio/.venv/bin/python' && args.join(' ') === '-c import flask; from PIL import Image') {
+        return venvRebuilt
+          ? { code: 0, stdout: '', stderr: '' }
+          : { code: 1, stdout: '', stderr: 'missing dependencies' };
+      }
+      if (command === '/tmp/python-3.12' && args.join(' ') === '-m venv /tmp/studio/.venv') {
+        venvRebuilt = true;
+        return { code: 0, stdout: '', stderr: '' };
+      }
+      if (
+        command === '/tmp/studio/.venv/bin/python' &&
+        args.join(' ') === '-m pip install -r /tmp/studio/backend/requirements.txt'
+      ) {
+        return venvRebuilt
+          ? { code: 0, stdout: 'installed', stderr: '' }
+          : { code: 1, stdout: '', stderr: 'No module named pip' };
+      }
+      throw new Error(`Unexpected command: ${command} ${args.join(' ')}`);
+    });
+
+    const { ensureStudioPythonEnv } = await import('@electron/studio/python-env');
+
+    const readiness = await ensureStudioPythonEnv();
+
+    expect(readiness.dependenciesReady).toBe(true);
+    expect(runChildCommandMock).toHaveBeenCalledWith(
+      '/tmp/python-3.12',
+      ['-m', 'venv', '/tmp/studio/.venv'],
+      expect.objectContaining({
+        timeoutMs: 60_000,
+        windowsHide: true,
+      }),
+    );
+    const installCall = runChildCommandMock.mock.calls.find(
+      ([command, args]) =>
+        command === '/tmp/studio/.venv/bin/python' &&
+        Array.isArray(args) &&
+        args.join(' ') === '-m pip install -r /tmp/studio/backend/requirements.txt',
+    );
+    expect(installCall).toBeDefined();
   });
 });

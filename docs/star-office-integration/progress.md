@@ -76,3 +76,4 @@
 - 当前实现由主线 + 并行子代理共同推进；工作室主功能已通，`studio.agent_status` 的主进程接收侧和本地桥接闭环都已落地
 - 已完成的最小校验包括：vendoring 产物结构检查、`git diff --check`、新改文件语法级转译检查、工作室 runtime 强制重试恢复验证、`studio-state-manager` 专用单测、工作室入口 Playwright e2e、全量 Playwright e2e
 - 2026-03-25 补充：工作室 Python 依赖安装链路已补上子进程超时与“镜像失败后无镜像重试”，避免 Windows 上卡在“正在重新准备 Python 环境并安装工作室依赖”
+- 2026-03-25 补充：工作室 `.venv` 创建与依赖安装已改成直接走 managed Python 的 `venv + pip`，并去掉 setup 状态接口里的重复 Python 探测，减少 Windows 上重复弹空控制台窗口的机会

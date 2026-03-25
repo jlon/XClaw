@@ -56,6 +56,8 @@
 - 仅解释器存在但依赖未安装时，不会误判为 ready
 - 工作室 Python 依赖安装在镜像失败后会回退到无镜像重试
 - 工作室 Python 依赖安装子进程超时后不会无限卡住
+- setup 的工作室环境状态探测不会为同一次刷新重复触发 Python readiness 探测
+- 工作室 `.venv` 创建与依赖安装直接走 managed Python，而不是继续调用 `uv venv` / `uv pip`
 - smoke test 失败时不会误判为 ready
 - sidecar 健康检查失败时进入错误态而不是卡死
 

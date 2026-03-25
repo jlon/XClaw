@@ -1894,61 +1894,71 @@ function OptionalEnhancementPanel({ onPrepared }: { onPrepared: () => void }) {
 
   return (
     <div className="rounded-[1.5rem] border border-border/70 app-insight-surface p-5">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div className="space-y-2">
-          <div className="text-base font-semibold text-foreground">{t('complete.enhancements.title')}</div>
-          <div className="text-sm leading-6 text-muted-foreground">
-            {environmentReady
-              ? t('complete.enhancements.readyBody')
-              : t('complete.enhancements.requiredBody')}
-          </div>
-          {preparing ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>{prepareTask.logs.at(-1)?.message || t('complete.enhancements.preparing')}</span>
+      <div className="space-y-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div className="min-w-0 space-y-2">
+            <div className="text-base font-semibold text-foreground">{t('complete.enhancements.title')}</div>
+            <div className="text-sm leading-6 text-muted-foreground">
+              {environmentReady
+                ? t('complete.enhancements.readyBody')
+                : t('complete.enhancements.requiredBody')}
             </div>
-          ) : null}
+          </div>
+          <div
+            data-testid="setup-enhancement-actions"
+            className="flex w-full flex-wrap items-center justify-end gap-2 sm:flex-nowrap md:w-auto md:self-start"
+          >
+            {!environmentReady ? (
+              <Button
+                variant="default"
+                onClick={() => { void handlePrepare(); }}
+                disabled={status.loading || preparing}
+                aria-busy={preparing}
+              >
+                {preparing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {t('complete.enhancements.preparing')}
+                  </>
+                ) : (
+                  t('complete.enhancements.prepareNow')
+                )}
+              </Button>
+            ) : null}
+            {preparing ? (
+              <Button
+                variant="outline"
+                onClick={() => { void handleCancel(); }}
+                disabled={!prepareTask.canCancel}
+              >
+                {t('complete.enhancements.cancel')}
+              </Button>
+            ) : null}
+            {showLogsToggle ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setLogsExpanded((current) => !current);
+                }}
+                aria-expanded={logsExpanded}
+              >
+                {logsExpanded ? t('complete.enhancements.logsHide') : t('complete.enhancements.logsShow')}
+              </Button>
+            ) : null}
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {!environmentReady ? (
-            <Button
-              variant="default"
-              onClick={() => { void handlePrepare(); }}
-              disabled={status.loading || preparing}
-              aria-busy={preparing}
-            >
-              {preparing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t('complete.enhancements.preparing')}
-                </>
-              ) : (
-                t('complete.enhancements.prepareNow')
-              )}
-            </Button>
-          ) : null}
-          {preparing ? (
-            <Button
-              variant="outline"
-              onClick={() => { void handleCancel(); }}
-              disabled={!prepareTask.canCancel}
-            >
-              {t('complete.enhancements.cancel')}
-            </Button>
-          ) : null}
-          {showLogsToggle ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setLogsExpanded((current) => !current);
-              }}
-              aria-expanded={logsExpanded}
-            >
-              {logsExpanded ? t('complete.enhancements.logsHide') : t('complete.enhancements.logsShow')}
-            </Button>
-          ) : null}
-        </div>
+        {preparing ? (
+          <div
+            data-testid="setup-enhancement-live-status"
+            className="flex min-w-0 items-start gap-3 rounded-[1.1rem] border border-border/70 bg-[hsl(var(--surface-elevated)/0.82)] px-4 py-3"
+          >
+            <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-primary" />
+            <span className="min-w-0 break-words text-sm leading-6 text-muted-foreground">
+              {prepareTask.logs.at(-1)?.message || t('complete.enhancements.preparing')}
+            </span>
+          </div>
+        ) : null}
       </div>
 
       <div className="mt-4 space-y-3">

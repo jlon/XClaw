@@ -72,3 +72,4 @@ docs/pr-session-notes-*.md
 .reference/
 __pycache__/
 *.pyc
+tmp/

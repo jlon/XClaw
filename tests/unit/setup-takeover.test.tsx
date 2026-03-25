@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { Setup } from '@/pages/Setup/index';
 
 const {
@@ -1083,6 +1083,84 @@ describe('Setup takeover flow', () => {
 
     expect(screen.queryByRole('button', { name: '取消准备' })).not.toBeInTheDocument();
     expect(invokeIpcMock).toHaveBeenCalledWith('setup:prepare-environment-cancel');
+  });
+
+  it('renders the live enhancement status below the action row so log text does not shove footer actions around', async () => {
+    prepareTaskMode = 'manual';
+
+    hostApiFetchMock.mockImplementation((path: string, init?: RequestInit) => {
+      if (path === '/api/app/setup-inspection') {
+        return Promise.resolve({
+          hasExistingOpenClaw: true,
+          suggestedMode: 'takeover',
+          counts: {
+            runtimeProviders: 1,
+            skills: 1,
+            extensions: 0,
+          },
+          defaultWorkspacePath: '/Users/test/.openclaw/workspace',
+        });
+      }
+
+      if (path === '/api/app/setup-plan' && init?.method === 'POST') {
+        return Promise.resolve({
+          mode: JSON.parse(String(init.body)).mode,
+          canApply: true,
+          blockingIssues: [],
+          warnings: [],
+        });
+      }
+
+      if (path === '/api/app/takeover-import' && init?.method === 'POST') {
+        return Promise.resolve({
+          state: 'complete',
+          step: 'complete',
+          importedAccountCount: 1,
+          defaultAccountId: 'moonshot',
+          warnings: [],
+          conflicts: [],
+          blockingIssues: [],
+        });
+      }
+
+      if (path === '/api/app/takeover-status' && !init) {
+        return Promise.resolve({
+          state: 'idle',
+          step: 'idle',
+          importedAccountCount: 0,
+          defaultAccountId: null,
+          warnings: [],
+          conflicts: [],
+          blockingIssues: [],
+        });
+      }
+
+      return Promise.reject(new Error(`Unexpected host API path: ${path}`));
+    });
+
+    render(<Setup />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText('接管现有安装').length).toBeGreaterThan(0);
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '下一步' }));
+    fireEvent.click(screen.getByRole('button', { name: '导入并继续' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '准备核心环境' })).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '准备核心环境' }));
+
+    const actionRow = await screen.findByTestId('setup-enhancement-actions');
+    const statusRow = await screen.findByTestId('setup-enhancement-live-status');
+
+    expect(actionRow).toHaveClass('justify-end');
+    expect(actionRow).toHaveClass('sm:flex-nowrap');
+    expect(statusRow).toHaveTextContent('正在安装 Python 运行时');
+    expect(within(actionRow).queryByText('正在安装 Python 运行时')).not.toBeInTheDocument();
+    expect(within(actionRow).getByRole('button', { name: '取消准备' })).toBeEnabled();
   });
 
   it('polls takeover status while import is still running', async () => {

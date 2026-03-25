@@ -7,7 +7,43 @@
   !include "nsProcess.nsh"
 !endif
 
+!ifndef BUILD_UNINSTALLER
+  !define MUI_ABORTWARNING
+
+  Var XClawInstallPageActive
+
+  !macro customInit
+    StrCpy $XClawInstallPageActive "0"
+  !macroend
+
+  !macro customHeader
+    ShowInstDetails show
+  !macroend
+
+  !macro customPageAfterChangeDir
+    !define MUI_PAGE_CUSTOMFUNCTION_SHOW XClawInstFilesShow
+  !macroend
+
+  Function XClawEnableInstallCancel
+    GetDlgItem $0 $HWNDPARENT 2
+    EnableWindow $0 1
+  FunctionEnd
+
+  Function XClawInstFilesShow
+    StrCpy $XClawInstallPageActive "1"
+    SetDetailsView show
+    SetDetailsPrint both
+    Call XClawEnableInstallCancel
+  FunctionEnd
+!endif
+
 !macro customCheckAppRunning
+  !ifndef BUILD_UNINSTALLER
+    StrCpy $XClawInstallPageActive "1"
+    SetDetailsView show
+    SetDetailsPrint both
+    Call XClawEnableInstallCancel
+  !endif
 
   ${nsProcess::FindProcess} "${APP_EXECUTABLE_FILENAME}" $R0
 
@@ -199,4 +235,3 @@
   _cu_enumDone:
   _cu_skipRemove:
 !macroend
-
