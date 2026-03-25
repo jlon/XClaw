@@ -150,6 +150,8 @@ On Linux, `pnpm dev` now handles two common headless-host failures automatically
 
 Windows packaging now trims non-target `node-llama-cpp` accelerator variants during `after-pack` and keeps only the CPU prebuilt for the target architecture. This cuts installer payload significantly without removing the CPU local-memory path.
 
+The beta release workflow now publishes the mainstream Windows build through the x64 installer only. Local multi-arch packaging remains available through `pnpm run package:win` when you explicitly need both Windows architectures.
+
 ### First Launch
 
 On the first run, the **Setup Wizard** walks you through:

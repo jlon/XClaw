@@ -51,6 +51,7 @@
         "package:mac:adhoc": "node scripts/package-mac-adhoc.mjs",
         "package:mac:local": "node scripts/package-mac-local.mjs",
         "package:win": "pnpm run package && electron-builder -c config/build/electron-builder.config.cjs --win --publish never",
+        "package:win:x64": "pnpm run package && electron-builder -c config/build/electron-builder.win-x64.config.cjs --win --publish never",
         "package:linux": "pnpm run package && electron-builder -c config/build/electron-builder.config.cjs --linux --publish never",
         "release": "pnpm run uv:download && pnpm run package && electron-builder -c config/build/electron-builder.config.cjs --publish never",
         "version:date": "node scripts/version-date.mjs",

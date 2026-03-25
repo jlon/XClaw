@@ -75,6 +75,8 @@ node scripts/resolve-release-version.mjs --input-version 1.2.3-beta.1 --channel 
 - 产物命名为 Beta 包
 - 创建 GitHub prerelease
 - 不要求签名 secrets
+- Windows 默认只产出 `win-x64.exe`
+- Windows `latest.yml` 只指向 `win-x64.exe`
 
 ## 风险回归点
 

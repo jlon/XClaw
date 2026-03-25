@@ -155,6 +155,8 @@ pnpm dev
 
 Windows 打包现在会在 `after-pack` 阶段裁掉非目标平台的 `node-llama-cpp` 加速变体，并只保留目标架构的 CPU 预编译包，在不移除 CPU 本地 memory 路径的前提下显著降低安装包体积。
 
+Beta 发布工作流现在默认只发布面向主流 Windows 用户的 x64 安装器；如果你本地确实需要同时打出多个 Windows 架构，仍然可以继续使用 `pnpm run package:win`。
+
 ### 首次启动
 
 第一次打开 XClaw 时，**设置向导** 会依次带你完成：

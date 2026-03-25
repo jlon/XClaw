@@ -4,7 +4,7 @@
 
 ### 1. Linux 交叉打 Windows 包无法完成最终安装器产物
 
-当前环境缺少 `wine`，`electron-builder` 在进入 Windows 签名/安装器阶段后会停止。这个问题与本轮裁剪逻辑无关，但会影响最终 NSIS 产物验证。
+这个问题已经关闭。当前环境补齐 `wine`、`wine32`、`wine64` 和 `xvfb` 后，已经可以完成 Windows 安装器构建。
 
 ### 2. 交叉环境没有真正的 Windows `node-llama-cpp` 预编译件
 
@@ -14,21 +14,33 @@
 
 这轮的目标是桌面安装包显著瘦身，所以默认只保留目标架构 CPU 预编译包。`CUDA`、`CUDA-ext`、`Vulkan` 等加速变体不会再被默认捆绑。
 
+### 4. 线上最新 Beta Release 仍然是旧提交产物
+
+`gh release view v2026.3.24-beta.0` 显示当前线上 Beta Release 仍然指向 `9267b12`，还没有包含本地最新的瘦身提交，因此 Release 页面上的 Windows 安装包体积暂时不会自动变小。
+
 ## 后续候选项
 
-### 1. Windows 主机补一次真实安装器验证
+### 1. 推送最新提交并重新触发 Beta 发布
 
-需要在原生 Windows 环境重新执行 `pnpm run package:win`，确认：
+需要先把当前本地 `ahead 2` 的提交推到远端，再重新执行 `package-beta.yml`，确认：
+
+- GitHub Release 开始发布新的 `win-x64.exe`
+- 旧的 `win.exe` 合并包不再出现
+- Release 页面上的 Windows 资产体积显著下降
+
+### 2. Windows 主机补一次真实安装器验证
+
+需要在原生 Windows 环境重新执行 `pnpm run package:win` 或 `pnpm run package:win:x64`，确认：
 
 - `@node-llama-cpp/win-x64` 被保留
 - 安装器体积相对旧基线继续下降
 - 本地 memory 的 CPU 路径可正常初始化
 
-### 2. 评估是否需要保留可选 GPU 构建开关
+### 3. 评估是否需要保留可选 GPU 构建开关
 
 如果后续发行策略需要同时提供“瘦身版”和“带 GPU 加速版”，可以考虑增加显式构建开关，而不是恢复默认全量捆绑。
 
-### 3. 继续排查第二梯队重包
+### 4. 继续排查第二梯队重包
 
 本轮裁掉最大头后，新的大包已经明显收敛，后续再评估：
 

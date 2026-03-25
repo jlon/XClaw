@@ -18,6 +18,8 @@
 
 这说明继续调 NSIS 压缩级别没有意义，真正的问题是 bundle 里把同一平台下的多套 `node-llama-cpp` 预编译变体全部带进去了。
 
+后续再对 GitHub Beta Release 做核对时，又确认了第二个问题：发布链路仍然在上传旧提交生成的双架构 Windows 安装器。即使本地已经把单架构体积压下去，Release 页面依然会继续出现 400 MB 以上的 `win-x64.exe` 和更大的合并版 `win.exe`。
+
 ## 方案选择
 
 本轮选择在 `after-pack` 阶段做目标平台裁剪，而不是在 `bundle-openclaw` 阶段提前删除：
@@ -36,6 +38,13 @@
 - Linux arm64：仅保留 `@node-llama-cpp/linux-arm64`
 - Linux armv7l：仅保留 `@node-llama-cpp/linux-armv7l`
 
+在此基础上，Beta 发布链路再做一层 2/8 收敛：
+
+- 本地通用脚本 `package:win` 保持双架构能力，不破坏原有开发与补包能力
+- GitHub `package-beta.yml` 改走专用的 `package:win:x64`
+- `package:win:x64` 使用单独的 `electron-builder.win-x64.config.cjs`
+- 专用配置只保留 `nsis/x64`，避免 `electron-builder` 根据基础配置再次产出 arm64 与合并版 `win.exe`
+
 ## 不做的事情
 
 这轮明确不做下面这些高风险动作：
@@ -44,5 +53,6 @@
 - 不修改 renderer 或 Setup 的任何交互
 - 不做按需下载或运行时补装
 - 不顺手扩大到别的原生依赖
+- 不把本地默认 Windows 打包脚本直接改成 x64-only
 
-原因很直接：用户当前的核心诉求是 Windows 安装包过大，这个问题已经有足够强的证据指向 `node-llama-cpp` 变体冗余，先把这个最大的确定性收益拿到。
+原因很直接：用户当前的核心诉求是 Windows 安装包过大，这个问题已经有足够强的证据指向 `node-llama-cpp` 变体冗余和 Beta 发布双架构冗余，先把这两个确定性收益拿到。

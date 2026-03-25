@@ -147,7 +147,7 @@ jobs:
 
       - name: Build Windows beta package
         if: matrix.platform == 'win'
-        run: pnpm run package:win
+        run: pnpm run package:win:x64
 
       - name: Build Linux beta package
         if: matrix.platform == 'linux'

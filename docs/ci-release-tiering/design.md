@@ -125,6 +125,12 @@ mac 产物约束：
 - 保留 `x64 + arm64`
 - 不再为 Beta/Test 额外产出 `zip`
 
+win 产物约束：
+
+- Beta 默认只发布 `x64`
+- 走专用 `package:win:x64`
+- 不再额外生成 arm64 与合并版 `win.exe`
+
 ### `release.yml`
 
 当前不进入活跃 workflow。
