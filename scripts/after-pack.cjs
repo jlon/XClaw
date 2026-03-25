@@ -365,6 +365,7 @@ exports.default = async function afterPack(context) {
   const appOutDir = context.appOutDir;
   const platform = context.electronPlatformName; // 'win32' | 'darwin' | 'linux'
   const arch = resolveArch(context.arch);
+  const { pruneNodeLlamaCppPackages } = await import('./openclaw-bundle-pruning.mjs');
 
   console.log(`[after-pack] Target: ${platform}/${arch}`);
 
@@ -446,5 +447,10 @@ exports.default = async function afterPack(context) {
   const nativeRemoved = cleanupNativePlatformPackages(dest, platform, arch);
   if (nativeRemoved > 0) {
     console.log(`[after-pack] ✅ Removed ${nativeRemoved} non-target native platform packages.`);
+  }
+
+  const llamaRemoved = pruneNodeLlamaCppPackages(dest, { platform, arch });
+  if (llamaRemoved.length > 0) {
+    console.log(`[after-pack] ✅ node-llama-cpp: removed ${llamaRemoved.length} non-target or accelerator variants.`);
   }
 };

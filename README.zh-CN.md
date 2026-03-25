@@ -153,6 +153,8 @@ pnpm dev
 
 在 Linux 上，`pnpm dev` 现在会自动处理两类常见的无头开发故障：如果触发 `inotify` watcher 上限，会自动回退到 Chokidar polling；如果既没有 `DISPLAY` 也没有 `WAYLAND_DISPLAY`，则保留 Vite 开发服务并跳过 Electron 启动。只有在你已经准备好 Xvfb、VNC 或其他显示服务时，才建议额外设置 `XCLAW_FORCE_ELECTRON_DEV=1` 强制拉起 Electron。
 
+Windows 打包现在会在 `after-pack` 阶段裁掉非目标平台的 `node-llama-cpp` 加速变体，并只保留目标架构的 CPU 预编译包，在不移除 CPU 本地 memory 路径的前提下显著降低安装包体积。
+
 ### 首次启动
 
 第一次打开 XClaw 时，**设置向导** 会依次带你完成：

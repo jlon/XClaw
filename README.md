@@ -148,6 +148,8 @@ pnpm dev
 
 On Linux, `pnpm dev` now handles two common headless-host failures automatically: it retries with Chokidar polling if the `inotify` watcher limit is exhausted, and if neither `DISPLAY` nor `WAYLAND_DISPLAY` is present it keeps Vite running but skips Electron startup. Set `XCLAW_FORCE_ELECTRON_DEV=1` if you have already prepared Xvfb, VNC, or another display server and still want Electron launched.
 
+Windows packaging now trims non-target `node-llama-cpp` accelerator variants during `after-pack` and keeps only the CPU prebuilt for the target architecture. This cuts installer payload significantly without removing the CPU local-memory path.
+
 ### First Launch
 
 On the first run, the **Setup Wizard** walks you through:
