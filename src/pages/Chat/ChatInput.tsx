@@ -877,7 +877,7 @@ export function ChatInput({
         )}
 
         {/* Input Row */}
-        <div className={cn('app-chat-composer-dock relative rounded-lg px-3 py-2 transition-colors', dragOver ? 'border-primary/30 ring-2 ring-primary/12' : '')}>
+        <div className={cn('app-chat-composer-dock relative rounded-[16px] px-4 py-2.5 transition-all', dragOver ? 'border-primary/30 ring-2 ring-primary/12' : '')}>
           <div className="app-chat-composer-editor">
             <textarea
               ref={textareaRef}
@@ -899,7 +899,7 @@ export function ChatInput({
               placeholder={resolvedPlaceholder}
               disabled={disabled}
               className={cn(
-                'w-full max-h-[180px] resize-none border-0 bg-transparent px-0 py-0 text-[14px] leading-relaxed text-foreground outline-none caret-foreground placeholder:text-muted-foreground/70',
+                'w-full max-h-[180px] resize-none border-0 bg-transparent px-0 py-0 text-[15px] leading-[1.6] text-foreground outline-none caret-foreground placeholder:text-[#c8c8c8] dark:text-black dark:caret-black dark:placeholder:text-[hsl(var(--foreground)/0.32)]',
                 isEmpty ? 'min-h-[74px]' : 'min-h-[60px]',
               )}
               style={!input ? { height: `${composerTextareaMinHeight}px` } : undefined}
@@ -908,7 +908,7 @@ export function ChatInput({
           </div>
 
           {slashMenuOpen && (
-            <div className="pointer-events-auto absolute bottom-full left-4 z-20 mb-3 w-[min(100%-2rem,24rem)] overflow-hidden rounded-lg border border-border/70 bg-popover shadow-lg">
+            <div className="pointer-events-auto absolute bottom-full left-4 z-20 mb-3 w-[min(100%-2rem,24rem)] overflow-hidden rounded-[16px] border border-[hsl(var(--border-subtle)/0.9)] bg-[hsl(var(--surface-elevated)/0.98)] shadow-[0_20px_48px_hsl(var(--foreground)/0.12)] backdrop-blur-xl">
               {slashMenuMode === 'args' && slashMenuCommand && slashMenuArgItems.length > 0 ? (
                 <div className="p-2">
                   <div className="px-3 py-2 text-[11px] font-medium text-muted-foreground/80">
@@ -1174,20 +1174,20 @@ export function ChatInput({
               </div>
             </div>
 
-              <Button
-                onClick={sending ? handleStop : handleSend}
-                disabled={sending ? !canStop : !canSend}
-                size="icon"
-                className={`pointer-events-auto h-7 w-7 shrink-0 rounded-[6px] transition-colors ${
-                  sending
-                    ? 'border border-border/70 bg-[hsl(var(--surface-elevated))] text-foreground hover:bg-[hsl(var(--surface-hover))]'
-                    : canSend
-                      ? 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90'
-                      : 'bg-transparent text-muted-foreground/45 hover:bg-transparent'
-                }`}
-                variant="ghost"
-                title={sending ? t('composer.stop') : t('composer.send')}
-              >
+            <Button
+              onClick={sending ? handleStop : handleSend}
+              disabled={sending ? !canStop : !canSend}
+              size="icon"
+              className={`pointer-events-auto h-8 w-8 shrink-0 rounded-[12px] transition-[background-color,color,box-shadow] ${
+                sending
+                  ? 'border border-[hsl(var(--border-subtle)/0.62)] bg-[hsl(var(--surface-elevated)/0.96)] text-foreground hover:bg-[hsl(var(--foreground)/0.04)]'
+                  : canSend
+                    ? 'bg-[hsl(var(--foreground)/0.9)] text-[hsl(var(--background))] shadow-[0_10px_18px_hsl(var(--foreground)/0.14)] hover:bg-[hsl(var(--foreground)/0.96)]'
+                    : 'bg-transparent text-muted-foreground/45 hover:bg-transparent'
+              }`}
+              variant="ghost"
+              title={sending ? t('composer.stop') : t('composer.send')}
+            >
               {sending ? (
                 <Square className="h-4 w-4" fill="currentColor" />
               ) : (
