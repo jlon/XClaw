@@ -371,12 +371,7 @@
 }
 
 .app-chat-shell {
-  background:
-    linear-gradient(0deg, hsl(var(--surface-elevated) / 0.92), hsl(var(--surface-elevated) / 0.92)),
-    linear-gradient(0deg, hsl(var(--primary) / 0.016), hsl(var(--primary) / 0.016)),
-    radial-gradient(circle at top center, hsl(var(--primary) / 0.03) 0%, transparent 26%),
-    radial-gradient(circle at bottom center, hsl(var(--surface-elevated) / 0.54) 0%, transparent 42%),
-    linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--surface-panel) / 0.28) 100%);
+  background: hsl(var(--background));
 }
 
 .app-chat-shell-header {
@@ -463,42 +458,7 @@
 
 .app-chat-openclaw-stars,
 .app-chat-openclaw-nebula {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: clamp(9.75rem, 19vw, 13.5rem);
-  height: clamp(7.25rem, 14vw, 9.5rem);
-  transform: translate(-50%, -50%);
-  border-radius: 999px;
-  pointer-events: none;
-}
-
-.app-chat-openclaw-stars {
-  background-image:
-    radial-gradient(2px 2px at 20px 30px, rgb(255 255 255 / 0.8), transparent),
-    radial-gradient(2px 2px at 40px 70px, rgb(255 255 255 / 0.5), transparent),
-    radial-gradient(1px 1px at 90px 40px, rgb(255 255 255 / 0.6), transparent),
-    radial-gradient(2px 2px at 130px 80px, rgb(255 255 255 / 0.4), transparent),
-    radial-gradient(1px 1px at 160px 120px, rgb(255 255 255 / 0.7), transparent),
-    radial-gradient(2px 2px at 200px 60px, rgb(0 229 204 / 0.6), transparent),
-    radial-gradient(1px 1px at 250px 150px, rgb(255 255 255 / 0.5), transparent),
-    radial-gradient(2px 2px at 300px 40px, rgb(255 77 77 / 0.4), transparent);
-  background-size: 240px 140px;
-  opacity: 0.46;
-  mask-image: radial-gradient(circle at center, rgb(0 0 0 / 0.95) 0%, rgb(0 0 0 / 0.95) 44%, transparent 88%);
-  animation: app-chat-openclaw-twinkle 8s ease-in-out infinite alternate;
-  z-index: 0;
-}
-
-.app-chat-openclaw-nebula {
-  background:
-    radial-gradient(ellipse 60% 46% at 50% 50%, rgb(255 77 77 / 0.12), transparent 62%),
-    radial-gradient(ellipse 42% 36% at 58% 40%, rgb(0 229 204 / 0.06), transparent 64%),
-    radial-gradient(ellipse 82% 60% at 50% 58%, hsl(var(--background) / 0.28), transparent 80%);
-  filter: blur(10px);
-  opacity: 0.68;
-  mask-image: radial-gradient(circle at center, rgb(0 0 0 / 0.96) 0%, rgb(0 0 0 / 0.96) 48%, transparent 90%);
-  z-index: 0;
+  display: none;
 }
 
 .dark .app-chat-openclaw-atmosphere::before {
@@ -674,10 +634,7 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background:
-    radial-gradient(circle at 50% 120%, color-mix(in srgb, var(--welcome-card-accent-soft) 54%, white) 0%, transparent 58%),
-    linear-gradient(180deg, rgb(255 255 255 / 0.3) 0%, transparent 28%);
-  opacity: 0.72;
+  background: transparent;
   pointer-events: none;
 }
 
@@ -1441,53 +1398,31 @@
 }
 
 .app-chat-toolbar-button--studio {
-  background:
-    radial-gradient(circle at 14% 16%, hsl(var(--primary) / 0.08) 0%, transparent 44%),
-    linear-gradient(180deg, hsl(var(--surface-elevated) / 0.996) 0%, hsl(var(--surface-base) / 0.988) 100%);
-  border-color: hsl(var(--primary) / 0.16);
-  box-shadow:
-    inset 0 1px 0 hsl(var(--surface-elevated) / 0.94),
-    inset 0 0 0 1px hsl(var(--primary) / 0.035),
-    0 8px 18px hsl(var(--foreground) / 0.04);
+  background: hsl(var(--surface-elevated));
+  border-color: hsl(var(--border-subtle));
+  box-shadow: var(--shadow-sm);
   color: hsl(var(--foreground) / 0.86);
-  transition:
-    background 180ms ease,
-    border-color 180ms ease,
-    box-shadow 180ms ease,
-    color 180ms ease,
-    transform 180ms ease;
+  transition: all 100ms ease-out;
 }
 
 .app-chat-toolbar-button--studio:hover {
-  background:
-    radial-gradient(circle at 14% 16%, hsl(var(--primary) / 0.12) 0%, transparent 46%),
-    linear-gradient(180deg, hsl(var(--surface-elevated) / 1) 0%, hsl(var(--surface-base) / 1) 100%);
-  border-color: hsl(var(--primary) / 0.24);
-  box-shadow:
-    inset 0 1px 0 hsl(var(--surface-elevated) / 0.96),
-    inset 0 0 0 1px hsl(var(--primary) / 0.055),
-    0 10px 22px hsl(var(--foreground) / 0.05);
+  background: hsl(var(--surface-hover));
+  border-color: hsl(var(--border-subtle));
+  box-shadow: var(--shadow-sm);
   color: hsl(var(--foreground) / 0.96);
   transform: translateY(-1px);
 }
 
 .app-chat-toolbar-button--studio-current {
-  background:
-    radial-gradient(circle at 14% 16%, hsl(var(--primary) / 0.15) 0%, transparent 48%),
-    linear-gradient(180deg, hsl(var(--primary) / 0.16) 0%, hsl(var(--primary) / 0.1) 100%);
+  background: hsl(var(--primary) / 0.1);
   border-color: hsl(var(--primary) / 0.3);
-  box-shadow:
-    inset 0 1px 0 hsl(var(--background) / 0.62),
-    inset 0 0 0 1px hsl(var(--primary) / 0.09),
-    0 10px 24px hsl(var(--primary) / 0.08);
+  box-shadow: none;
   color: hsl(var(--primary));
 }
 
 .app-chat-toolbar-button--studio-current:hover {
-  background:
-    radial-gradient(circle at 14% 16%, hsl(var(--primary) / 0.18) 0%, transparent 50%),
-    linear-gradient(180deg, hsl(var(--primary) / 0.18) 0%, hsl(var(--primary) / 0.12) 100%);
-  border-color: hsl(var(--primary) / 0.34);
+  background: hsl(var(--primary) / 0.15);
+  border-color: hsl(var(--primary) / 0.4);
   color: hsl(var(--primary));
 }
 

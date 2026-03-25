@@ -72,7 +72,7 @@ interface AgentMarketCatalogResponse {
 const fieldInputClasses =
   'appearance-none h-[44px] rounded-xl text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus:outline-none focus-visible:outline-none focus-visible:border-primary focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
 const modalSurfaceClasses =
-  'app-modal-surface w-full rounded-[20px]';
+  'app-modal-surface w-full rounded-xl';
 const badgeClasses =
   'h-5 rounded-[10px] border border-border/70 bg-[hsl(var(--surface-panel)/0.9)] px-2 text-[10px] font-medium text-foreground/70 shadow-none dark:bg-[hsl(var(--surface-elevated)/0.82)]';
 const modalTitleClasses =
@@ -84,9 +84,9 @@ const dialogIconButtonClasses =
 const dialogActionButtonClasses =
   'h-9 rounded-[12px] px-4 text-[13px] font-medium shadow-none border-border/70 bg-transparent text-foreground/80 transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
 const browsePaneClasses =
-  'app-pane-surface min-h-[600px] rounded-[24px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.992)] p-4 shadow-[0_10px_24px_rgba(15,23,42,0.04),inset_0_1px_0_rgba(255,255,255,0.74)]';
+  'app-pane-surface min-h-[600px] rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated))] p-4 shadow-sm';
 const detailWorkbenchClasses =
-  'app-pane-surface min-h-[600px] rounded-[24px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.995)] p-4 shadow-[0_14px_32px_rgba(15,23,42,0.05),inset_0_1px_0_rgba(255,255,255,0.78)]';
+  'app-pane-surface min-h-[600px] rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated))] p-4 shadow-sm';
 const pageHeaderClasses =
   'mb-3 flex items-center justify-between gap-4';
 const pageTitleClasses =

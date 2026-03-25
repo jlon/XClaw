@@ -100,7 +100,7 @@ function NavItem({ to, icon, label, collapsed, tone }: NavItemProps) {
         aria-label={collapsed ? label : undefined}
         className={({ isActive }) =>
           cn(
-            'app-sidebar-nav-link workbench-motion-nav flex w-full items-center rounded-[10px] border border-transparent px-2.5 py-2 text-[13px] font-normal tracking-[0.01em]',
+            'app-sidebar-nav-link workbench-motion-nav flex w-full items-center rounded-md border border-transparent px-2.5 py-1.5 text-[13px] font-normal tracking-wide select-none',
             'text-foreground/72',
             collapsed
               ? 'mx-auto h-8 w-8 justify-center gap-0 px-0 hover:border-border/55 hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground hover:shadow-none'
@@ -135,7 +135,7 @@ function NavItem({ to, icon, label, collapsed, tone }: NavItemProps) {
 
 function UtilityItem({ label, icon, collapsed, tone, to, onClick, trailing }: UtilityItemProps) {
   const baseClass = cn(
-    'app-sidebar-nav-link app-sidebar-utility-link workbench-motion-nav flex w-full items-center rounded-[12px] border border-transparent px-2.5 py-2 text-[13px] font-normal tracking-[0.01em]',
+    'app-sidebar-nav-link app-sidebar-utility-link workbench-motion-nav flex w-full items-center rounded-md border border-transparent px-2.5 py-1.5 text-[13px] font-normal tracking-wide select-none',
     'text-foreground/70',
     collapsed
       ? 'mx-auto h-8 w-8 justify-center gap-0 px-0 hover:border-border/55 hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground hover:shadow-none'
