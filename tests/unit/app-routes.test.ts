@@ -16,6 +16,7 @@ const setSettingMock = vi.fn();
 const sendJsonMock = vi.fn();
 const sendNoContentMock = vi.fn();
 const studioServiceStartMock = vi.fn();
+const getOpenClawStatusMock = vi.fn();
 
 vi.mock('@electron/utils/openclaw-doctor', () => ({
   runOpenClawDoctor: (...args: unknown[]) => runOpenClawDoctorMock(...args),
@@ -44,6 +45,10 @@ vi.mock('@electron/utils/store', () => ({
   setSetting: (...args: unknown[]) => setSettingMock(...args),
 }));
 
+vi.mock('@electron/utils/paths', () => ({
+  getOpenClawStatus: (...args: unknown[]) => getOpenClawStatusMock(...args),
+}));
+
 vi.mock('@electron/api/route-utils', () => ({
   setCorsHeaders: vi.fn(),
   parseJsonBody: vi.fn().mockResolvedValue({}),
@@ -64,6 +69,12 @@ describe('handleAppRoutes', () => {
     replaceAllSettingsMock.mockResolvedValue(undefined);
     setSettingMock.mockResolvedValue(undefined);
     studioServiceStartMock.mockResolvedValue(undefined);
+    getOpenClawStatusMock.mockReturnValue({
+      packageExists: true,
+      isBuilt: true,
+      dir: '/tmp/openclaw',
+      version: '1.2.3',
+    });
   });
 
   it('runs openclaw doctor through the host api', async () => {
@@ -80,6 +91,26 @@ describe('handleAppRoutes', () => {
     expect(handled).toBe(true);
     expect(runOpenClawDoctorMock).toHaveBeenCalledTimes(1);
     expect(sendJsonMock).toHaveBeenCalledWith(expect.anything(), 200, { success: true, exitCode: 0 });
+  });
+
+  it('returns openclaw package status through the host api', async () => {
+    const { handleAppRoutes } = await import('@electron/api/routes/app');
+
+    const handled = await handleAppRoutes(
+      { method: 'GET' } as IncomingMessage,
+      {} as ServerResponse,
+      new URL('http://127.0.0.1:3210/api/app/openclaw-status'),
+      {} as never,
+    );
+
+    expect(handled).toBe(true);
+    expect(getOpenClawStatusMock).toHaveBeenCalledTimes(1);
+    expect(sendJsonMock).toHaveBeenCalledWith(expect.anything(), 200, {
+      packageExists: true,
+      isBuilt: true,
+      dir: '/tmp/openclaw',
+      version: '1.2.3',
+    });
   });
 
   it('runs openclaw doctor fix when requested', async () => {

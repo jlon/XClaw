@@ -13,6 +13,7 @@ import {
 import { getTakeoverImportStatus, resetTakeoverImportStatus, runTakeoverImport } from '../../main/takeover-import';
 import { runSetupActivationSideEffects } from '../../main/setup-activation';
 import { getAllSettings, getSetting, replaceAllSettings, setSetting } from '../../utils/store';
+import { getOpenClawStatus } from '../../utils/paths';
 
 const hasTakeoverFingerprint = async (): Promise<boolean> => {
   const fingerprint = await getSetting('takeoverFingerprint');
@@ -44,6 +45,11 @@ export async function handleAppRoutes(
     const body = await parseJsonBody<{ mode?: 'diagnose' | 'fix' }>(req);
     const mode = body.mode === 'fix' ? 'fix' : 'diagnose';
     sendJson(res, 200, mode === 'fix' ? await runOpenClawDoctorFix() : await runOpenClawDoctor());
+    return true;
+  }
+
+  if (url.pathname === '/api/app/openclaw-status' && req.method === 'GET') {
+    sendJson(res, 200, getOpenClawStatus());
     return true;
   }
 

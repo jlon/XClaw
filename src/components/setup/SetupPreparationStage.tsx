@@ -263,12 +263,12 @@ function RuntimePreparationContent({
     }));
 
     try {
-      const openclawStatus = await invokeIpc('openclaw:status') as {
+      const openclawStatus = await hostApiFetch<{
         packageExists: boolean;
         isBuilt: boolean;
         dir: string;
         version?: string;
-      };
+      }>('/api/app/openclaw-status');
 
       setOpenclawDir(openclawStatus.dir);
 

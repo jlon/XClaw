@@ -96,13 +96,24 @@ describe('Setup preparation stage', () => {
     vi.clearAllMocks();
     gatewayState.status = { state: 'stopped', port: 18789 };
     gatewayState.start = vi.fn();
-    invokeIpcMock.mockResolvedValue({
-      packageExists: true,
-      isBuilt: true,
-      dir: '/tmp/openclaw',
-      version: '1.2.3',
+    invokeIpcMock.mockResolvedValue(undefined);
+    hostApiFetchMock.mockImplementation((path: string) => {
+      if (path === '/api/app/openclaw-status') {
+        return Promise.resolve({
+          packageExists: true,
+          isBuilt: true,
+          dir: '/tmp/openclaw',
+          version: '1.2.3',
+        });
+      }
+      if (path === '/api/logs?tailLines=100') {
+        return Promise.resolve({ content: 'tail' });
+      }
+      if (path === '/api/logs/dir') {
+        return Promise.resolve({ dir: '/tmp/logs' });
+      }
+      return Promise.resolve({});
     });
-    hostApiFetchMock.mockResolvedValue({ content: 'tail' });
   });
 
   afterEach(() => {
@@ -150,7 +161,7 @@ describe('Setup preparation stage', () => {
       await Promise.resolve();
     });
 
-    expect(invokeIpcMock).toHaveBeenCalledWith('openclaw:status');
+    expect(hostApiFetchMock).toHaveBeenCalledWith('/api/app/openclaw-status');
 
     expect(screen.queryByRole('button', { name: 'View logs' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Re-check' })).not.toBeInTheDocument();
@@ -167,6 +178,14 @@ describe('Setup preparation stage', () => {
     let resolveLogs: ((value: { content: string }) => void) | null = null;
 
     hostApiFetchMock.mockImplementation((path: string) => {
+      if (path === '/api/app/openclaw-status') {
+        return Promise.resolve({
+          packageExists: true,
+          isBuilt: true,
+          dir: '/tmp/openclaw',
+          version: '1.2.3',
+        });
+      }
       if (path === '/api/logs?tailLines=100') {
         return new Promise((resolve) => {
           resolveLogs = resolve;
@@ -231,17 +250,31 @@ describe('Setup preparation stage', () => {
 
   it('shows loading feedback while diagnostics are being re-checked', async () => {
     let resolveRecheck: ((value: { packageExists: boolean; isBuilt: boolean; dir: string; version: string }) => void) | null = null;
+    let openclawCheckCalls = 0;
 
-    invokeIpcMock
-      .mockResolvedValueOnce({
-        packageExists: true,
-        isBuilt: true,
-        dir: '/tmp/openclaw',
-        version: '1.2.3',
-      })
-      .mockImplementationOnce(() => new Promise((resolve) => {
-        resolveRecheck = resolve;
-      }));
+    hostApiFetchMock.mockImplementation((path: string) => {
+      if (path === '/api/app/openclaw-status') {
+        openclawCheckCalls += 1;
+        if (openclawCheckCalls === 1) {
+          return Promise.resolve({
+            packageExists: true,
+            isBuilt: true,
+            dir: '/tmp/openclaw',
+            version: '1.2.3',
+          });
+        }
+        return new Promise((resolve) => {
+          resolveRecheck = resolve as (value: { packageExists: boolean; isBuilt: boolean; dir: string; version: string }) => void;
+        });
+      }
+      if (path === '/api/logs?tailLines=100') {
+        return Promise.resolve({ content: 'tail' });
+      }
+      if (path === '/api/logs/dir') {
+        return Promise.resolve({ dir: '/tmp/logs' });
+      }
+      return Promise.resolve({});
+    });
 
     render(
       <SetupPreparationStage
