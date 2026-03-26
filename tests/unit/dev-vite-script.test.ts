@@ -3,6 +3,8 @@ import packageJson from '../../package.json';
 
 import {
   buildViteDevEnv,
+  normalizeViteDevArgs,
+  shouldPreferPollingFirst,
   shouldRetryWithPolling,
 } from '../../scripts/dev-vite.mjs';
 
@@ -40,5 +42,44 @@ describe('dev-vite script', () => {
       CHOKIDAR_USEPOLLING: '1',
       CHOKIDAR_INTERVAL: '250',
     });
+  });
+
+  it('strips pnpm’s leading standalone double-dash before forwarding args to vite', () => {
+    expect(normalizeViteDevArgs(['--', '--host', '0.0.0.0', '--port', '5175'])).toEqual([
+      '--host',
+      '0.0.0.0',
+      '--port',
+      '5175',
+    ]);
+
+    expect(normalizeViteDevArgs(['--host', '0.0.0.0'])).toEqual(['--host', '0.0.0.0']);
+  });
+
+  it('prefers polling first on Linux when watcher limit is already at the low default ceiling', () => {
+    expect(shouldPreferPollingFirst({
+      platform: 'linux',
+      env: {},
+      watcherLimitRaw: '65536',
+    })).toBe(true);
+
+    expect(shouldPreferPollingFirst({
+      platform: 'linux',
+      env: {},
+      watcherLimitRaw: '1048576',
+    })).toBe(false);
+  });
+
+  it('does not force polling first outside Linux unless polling is already requested', () => {
+    expect(shouldPreferPollingFirst({
+      platform: 'darwin',
+      env: {},
+      watcherLimitRaw: '65536',
+    })).toBe(false);
+
+    expect(shouldPreferPollingFirst({
+      platform: 'linux',
+      env: { CHOKIDAR_USEPOLLING: '1' },
+      watcherLimitRaw: null,
+    })).toBe(true);
   });
 });

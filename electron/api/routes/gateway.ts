@@ -77,6 +77,25 @@ export async function handleGatewayRoutes(
     return true;
   }
 
+  if (url.pathname === '/api/gateway/rpc' && req.method === 'POST') {
+    try {
+      const body = await parseJsonBody<{
+        method?: string;
+        params?: unknown;
+        timeoutMs?: number;
+      }>(req);
+      if (typeof body.method !== 'string' || body.method.trim().length === 0) {
+        sendJson(res, 400, { success: false, error: 'Gateway RPC method is required' });
+        return true;
+      }
+      const result = await ctx.gatewayManager.rpc(body.method, body.params, body.timeoutMs);
+      sendJson(res, 200, { success: true, result });
+    } catch (error) {
+      sendJson(res, 500, { success: false, error: String(error) });
+    }
+    return true;
+  }
+
   if (url.pathname === '/api/chat/send-with-media' && req.method === 'POST') {
     try {
       const body = await parseJsonBody<{

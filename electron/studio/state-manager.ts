@@ -6,6 +6,7 @@ import { listAgentsSnapshot } from '../utils/agent-config';
 import { logger } from '../utils/logger';
 import { getStudioLastKnownGoodPaths, getStudioSnapshotPaths } from './paths';
 import { commitStudioSnapshot, readStudioSnapshot } from './state-store';
+import { parseStudioIdentityName } from './identity-name';
 import { STUDIO_AGENT_STATUSES } from './types';
 import type { StudioAgentSnapshot, StudioAgentStatus, StudioCommittedSnapshot } from './types';
 
@@ -202,6 +203,8 @@ const normalizeDisplayName = (value: string | null | undefined): string | null =
   return normalized.length > 0 ? normalized : null;
 };
 
+const isAsciiText = (value: string): boolean => [...value].every((char) => char.charCodeAt(0) <= 0x7f);
+
 const humanizeAgentId = (agentId: string): string => {
   const normalized = normalizeDisplayName(agentId);
   if (!normalized) {
@@ -215,21 +218,6 @@ const humanizeAgentId = (agentId: string): string => {
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
-};
-
-const parseIdentityName = (content: string): string | null => {
-  for (const line of content.split(/\r?\n/)) {
-    const match = line.match(/^\s*-?\s*\*\*(?:Name|名字)\s*[:：]\*\*\s*(.*?)\s*$/);
-    if (!match) {
-      continue;
-    }
-    const candidate = normalizeDisplayName(match[1]);
-    if (!candidate || /^[_(*-]/.test(candidate)) {
-      continue;
-    }
-    return candidate;
-  }
-  return null;
 };
 
 const resolveAgentDisplayName = (
@@ -247,7 +235,7 @@ const normalizeSceneName = (value: string | null | undefined): string | null => 
     .replace(/\s*[（(][^）)]*[）)]\s*$/u, '')
     .trim();
   const compact = withoutParenthetical || normalized;
-  if (/^[\x00-\x7F]+$/.test(compact)) {
+  if (isAsciiText(compact)) {
     const words = compact.split(/\s+/).filter(Boolean);
     if (words.length > 1 && compact.length > 10) {
       return words[0];
@@ -282,7 +270,7 @@ const readStudioDetailFile = async (workspacePath: string): Promise<string | nul
 const readStudioIdentityName = async (workspacePath: string): Promise<string | null> => {
   try {
     const content = await readFile(join(workspacePath, 'IDENTITY.md'), 'utf8');
-    return parseIdentityName(content);
+    return parseStudioIdentityName(content);
   } catch {
     return null;
   }

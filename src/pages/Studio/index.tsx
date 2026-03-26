@@ -31,6 +31,31 @@ type StudioWebViewElement = HTMLElement & {
   }) => void;
 };
 
+const STUDIO_FRAME_PROXY_PREFIX = '/api/studio/frame';
+
+function resolveBrowserStudioFrameUrl(resolvedUrl: string, focusedAgentId: string): string {
+  const trimmedUrl = resolvedUrl.trim();
+  if (!trimmedUrl) {
+    return '';
+  }
+
+  try {
+    const runtimeUrl = new URL(trimmedUrl);
+    const proxyUrl = new URL(`${STUDIO_FRAME_PROXY_PREFIX}${runtimeUrl.pathname}`, window.location.origin);
+    runtimeUrl.searchParams.forEach((value, key) => {
+      proxyUrl.searchParams.set(key, value);
+    });
+    if (focusedAgentId) {
+      proxyUrl.searchParams.set('focusAgentId', focusedAgentId);
+    } else {
+      proxyUrl.searchParams.delete('focusAgentId');
+    }
+    return `${proxyUrl.pathname}${proxyUrl.search}`;
+  } catch {
+    return trimmedUrl;
+  }
+}
+
 export function Studio() {
   const { t } = useTranslation('studio');
   const currentAgentId = useChatStore((s) => s.currentAgentId);
@@ -90,7 +115,11 @@ export function Studio() {
   const runtimeInstanceKey = runtime?.runtimeInstanceId != null
     ? String(runtime.runtimeInstanceId)
     : resolvedUrl || 'studio-runtime';
-  const canRenderWebview = runtimeStatus === 'ready' && resolvedUrl.length > 0;
+  const hasElectronRenderer = Boolean(window.electron?.ipcRenderer);
+  const browserFrameUrl = resolveBrowserStudioFrameUrl(resolvedUrl, focusedAgentId);
+  const canRenderRuntimeSurface = runtimeStatus === 'ready' && resolvedUrl.length > 0;
+  const canRenderWebview = canRenderRuntimeSurface && hasElectronRenderer;
+  const canRenderBrowserFrame = canRenderRuntimeSurface && !hasElectronRenderer;
   const showInitializingMask = retrying || runtimeStatus === 'starting' || runtimeStatus === 'restarting';
 
   const statusLabel = (() => {
@@ -247,6 +276,14 @@ export function Studio() {
                 height: '100%',
                 flex: '1 1 auto',
               }}
+            />
+          ) : canRenderBrowserFrame ? (
+            <iframe
+              key={`${runtimeInstanceKey}:${browserFrameUrl}`}
+              title={t('runtime.frameTitle', 'studio.runtimeFrame')}
+              src={browserFrameUrl}
+              className="h-full w-full border-0"
+              data-testid="studio-runtime-frame"
             />
           ) : (
             <div data-testid="studio-empty-state" className="grid h-full min-h-[520px] w-full place-items-center px-6 py-8">

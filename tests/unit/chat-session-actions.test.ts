@@ -1,9 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const invokeIpcMock = vi.fn();
+const gatewayRpcMock = vi.fn();
 
 vi.mock('@/lib/api-client', () => ({
   invokeIpc: (...args: unknown[]) => invokeIpcMock(...args),
+}));
+
+vi.mock('@/stores/gateway', () => ({
+  useGatewayStore: {
+    getState: () => ({
+      rpc: (...args: unknown[]) => gatewayRpcMock(...args),
+    }),
+  },
 }));
 
 type ChatLikeState = {
@@ -55,6 +64,7 @@ describe('chat session actions', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     invokeIpcMock.mockResolvedValue({ success: true });
+    gatewayRpcMock.mockResolvedValue({ sessions: [] });
   });
 
   it('switchSession preserves non-main session that has activity history', async () => {
@@ -191,27 +201,24 @@ describe('chat session actions', () => {
     });
     const actions = createSessionActions(h.set as never, h.get as never);
 
-    invokeIpcMock.mockResolvedValueOnce({
-      success: true,
-      result: {
-        sessions: [
-          {
-            key: 'agent:main:main',
-            displayName: 'Main',
-            updatedAt: 1773281700000,
-          },
-          {
-            key: 'agent:main:telegram:direct:12345',
-            label: 'Telegram direct',
-            updatedAt: 1773281710000,
-          },
-          {
-            key: 'agent:main:cron:job-1',
-            label: 'Cron: Drink water',
-            updatedAt: 1773281731621,
-          },
-        ],
-      },
+    gatewayRpcMock.mockResolvedValueOnce({
+      sessions: [
+        {
+          key: 'agent:main:main',
+          displayName: 'Main',
+          updatedAt: 1773281700000,
+        },
+        {
+          key: 'agent:main:telegram:direct:12345',
+          label: 'Telegram direct',
+          updatedAt: 1773281710000,
+        },
+        {
+          key: 'agent:main:cron:job-1',
+          label: 'Cron: Drink water',
+          updatedAt: 1773281731621,
+        },
+      ],
     });
 
     await actions.loadSessions();
@@ -231,17 +238,14 @@ describe('chat session actions', () => {
     });
     const actions = createSessionActions(h.set as never, h.get as never);
 
-    invokeIpcMock.mockResolvedValueOnce({
-      success: true,
-      result: {
-        sessions: [
-          {
-            key: 'agent:main:main',
-            displayName: 'Main',
-            updatedAt: 1773281700000,
-          },
-        ],
-      },
+    gatewayRpcMock.mockResolvedValueOnce({
+      sessions: [
+        {
+          key: 'agent:main:main',
+          displayName: 'Main',
+          updatedAt: 1773281700000,
+        },
+      ],
     });
 
     await actions.loadSessions();
@@ -258,42 +262,36 @@ describe('chat session actions', () => {
     });
     const actions = createSessionActions(h.set as never, h.get as never);
 
-    invokeIpcMock.mockImplementation(async (_channel: string, method: string, params?: Record<string, unknown>) => {
+    gatewayRpcMock.mockImplementation(async (method: string, params?: Record<string, unknown>) => {
       if (method === 'sessions.list') {
         return {
-          success: true,
-          result: {
-            sessions: [
-              {
-                key: 'agent:main:main',
-                displayName: 'XClaw',
-                updatedAt: 1773281700000,
-              },
-            ],
-          },
+          sessions: [
+            {
+              key: 'agent:main:main',
+              displayName: 'XClaw',
+              updatedAt: 1773281700000,
+            },
+          ],
         };
       }
       if (method === 'chat.history') {
         expect(params).toEqual({ sessionKey: 'agent:main:main', limit: 1000 });
         return {
-          success: true,
-          result: {
-            messages: [
-              {
-                role: 'user',
-                content: '[WhatsApp 2026-03-22 10:00] 你好',
-                timestamp: 1773281700000,
-              },
-              {
-                role: 'assistant',
-                content: '我在。',
-                timestamp: 1773281710000,
-              },
-            ],
-          },
+          messages: [
+            {
+              role: 'user',
+              content: '[WhatsApp 2026-03-22 10:00] 你好',
+              timestamp: 1773281700000,
+            },
+            {
+              role: 'assistant',
+              content: '我在。',
+              timestamp: 1773281710000,
+            },
+          ],
         };
       }
-      return { success: true };
+      return {};
     });
 
     await actions.loadSessions();
@@ -302,5 +300,25 @@ describe('chat session actions', () => {
 
     expect(h.read().sessionLabels['agent:main:main']).toBe('你好');
     expect(h.read().sessionLastActivity['agent:main:main']).toBe(1773281710000);
+  });
+
+  it('loads sessions through the gateway store rpc facade', async () => {
+    const { createSessionActions } = await import('@/stores/chat/session-actions');
+    const h = makeHarness();
+    const actions = createSessionActions(h.set as never, h.get as never);
+
+    gatewayRpcMock.mockResolvedValueOnce({
+      sessions: [
+        {
+          key: 'agent:main:main',
+          displayName: 'Main',
+          updatedAt: 1773281700000,
+        },
+      ],
+    });
+
+    await actions.loadSessions();
+
+    expect(gatewayRpcMock).toHaveBeenCalledWith('sessions.list', {});
   });
 });

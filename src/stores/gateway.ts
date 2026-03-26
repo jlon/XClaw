@@ -4,7 +4,6 @@
  */
 import { create } from 'zustand';
 import { hostApiFetch } from '@/lib/host-api';
-import { invokeIpc } from '@/lib/api-client';
 import { subscribeHostEvent } from '@/lib/host-events';
 import {
   addExecApproval,
@@ -391,11 +390,14 @@ export const useGatewayStore = create<GatewayState>((set, get) => ({
   },
 
   rpc: async <T>(method: string, params?: unknown, timeoutMs?: number): Promise<T> => {
-    const response = await invokeIpc<{
+    const response = await hostApiFetch<{
       success: boolean;
       result?: T;
       error?: string;
-    }>('gateway:rpc', method, params, timeoutMs);
+    }>('/api/gateway/rpc', {
+      method: 'POST',
+      body: JSON.stringify({ method, params, timeoutMs }),
+    });
     if (!response.success) {
       throw new Error(response.error || `Gateway RPC failed: ${method}`);
     }

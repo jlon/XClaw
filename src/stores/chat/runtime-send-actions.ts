@@ -1,6 +1,7 @@
-import { invokeIpc } from '@/lib/api-client';
+import { hostApiFetch } from '@/lib/host-api';
 import { generateUuid } from '@/lib/uuid';
 import { useAgentsStore } from '@/stores/agents';
+import { useGatewayStore } from '@/stores/gateway';
 import {
   clearErrorRecoveryTimer,
   clearHistoryPoll,
@@ -185,23 +186,25 @@ async function sendGatewayRuntimeMessage(
     const CHAT_SEND_TIMEOUT_MS = 120_000;
 
     if (hasMedia) {
-      result = await invokeIpc(
-        'chat:sendWithMedia',
+      result = await hostApiFetch<{ success: boolean; result?: { runId?: string }; error?: string }>(
+        '/api/chat/send-with-media',
         {
-          sessionKey: currentSessionKey,
-          message: trimmed || 'Process the attached file(s).',
-          deliver: false,
-          idempotencyKey,
-          media: attachments!.map((attachment) => ({
-            filePath: attachment.stagedPath,
-            mimeType: attachment.mimeType,
-            fileName: attachment.fileName,
-          })),
+          method: 'POST',
+          body: JSON.stringify({
+            sessionKey: currentSessionKey,
+            message: trimmed || 'Process the attached file(s).',
+            deliver: false,
+            idempotencyKey,
+            media: attachments!.map((attachment) => ({
+              filePath: attachment.stagedPath,
+              mimeType: attachment.mimeType,
+              fileName: attachment.fileName,
+            })),
+          }),
         },
-      ) as { success: boolean; result?: { runId?: string }; error?: string };
+      );
     } else {
-      result = await invokeIpc(
-        'gateway:rpc',
+      const rpcResult = await useGatewayStore.getState().rpc<{ runId?: string }>(
         'chat.send',
         {
           sessionKey: currentSessionKey,
@@ -210,7 +213,8 @@ async function sendGatewayRuntimeMessage(
           idempotencyKey,
         },
         CHAT_SEND_TIMEOUT_MS,
-      ) as { success: boolean; result?: { runId?: string }; error?: string };
+      );
+      result = { success: true, result: rpcResult };
     }
 
     console.log(`[sendMessage] RPC result: success=${result.success}, runId=${result.result?.runId || 'none'}`);
@@ -284,8 +288,7 @@ export function createRuntimeSendActions(set: ChatSet, get: ChatGet): Pick<Runti
       set({ streamingTools: [] });
 
       try {
-        await invokeIpc(
-          'gateway:rpc',
+        await useGatewayStore.getState().rpc(
           'chat.abort',
           { sessionKey: currentSessionKey },
         );

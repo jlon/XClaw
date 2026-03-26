@@ -128,6 +128,29 @@ describe('studio page', () => {
     });
   });
 
+  it('renders a browser iframe fallback with the focused agent encoded in the URL when Electron is unavailable', async () => {
+    const previousElectron = window.electron;
+    // @ts-expect-error test explicitly simulates browser-only studio mode
+    window.electron = undefined;
+
+    try {
+      render(<Studio />);
+
+      await waitFor(() => {
+        expect(screen.getByTitle('runtime.frameTitle')).toBeInTheDocument();
+      });
+
+      const frame = screen.getByTitle('runtime.frameTitle');
+      expect(frame.tagName.toLowerCase()).toBe('iframe');
+      expect(frame).toHaveAttribute('src', expect.stringContaining('/api/studio/frame/electron-standalone?'));
+      expect(frame).toHaveAttribute('src', expect.stringContaining('focusAgentId=planner'));
+      expect(frame).not.toHaveAttribute('src', expect.stringContaining('127.0.0.1:3211'));
+      expect(document.querySelector('webview')).toBeNull();
+    } finally {
+      window.electron = previousElectron;
+    }
+  });
+
   it('surfaces startup errors when studio is idle and explicit start fails', async () => {
     studioRuntimeState.status = 'idle';
     studioRuntimeState.resolvedUrl = null;

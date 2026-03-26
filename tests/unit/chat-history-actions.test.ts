@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const invokeIpcMock = vi.fn();
 const hostApiFetchMock = vi.fn();
+const gatewayRpcMock = vi.fn();
 const clearHistoryPoll = vi.fn();
 const enrichWithCachedImages = vi.fn((messages) => messages);
 const enrichWithToolResultFiles = vi.fn((messages) => messages);
@@ -15,8 +15,12 @@ const isToolResultRole = vi.fn((role: unknown) => role === 'toolresult' || role 
 const loadMissingPreviews = vi.fn(async () => false);
 const toMs = vi.fn((ts: number) => ts < 1e12 ? ts * 1000 : ts);
 
-vi.mock('@/lib/api-client', () => ({
-  invokeIpc: (...args: unknown[]) => invokeIpcMock(...args),
+vi.mock('@/stores/gateway', () => ({
+  useGatewayStore: {
+    getState: () => ({
+      rpc: (...args: unknown[]) => gatewayRpcMock(...args),
+    }),
+  },
 }));
 
 vi.mock('@/lib/host-api', () => ({
@@ -76,7 +80,7 @@ function makeHarness(initial?: Partial<ChatLikeState>) {
 describe('chat history actions', () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    invokeIpcMock.mockResolvedValue({ success: true, result: { messages: [] } });
+    gatewayRpcMock.mockResolvedValue({ messages: [] });
     hostApiFetchMock.mockResolvedValue({ messages: [] });
   });
 
@@ -138,24 +142,21 @@ describe('chat history actions', () => {
     });
     const actions = createHistoryActions(h.set as never, h.get as never);
 
-    invokeIpcMock.mockResolvedValueOnce({
-      success: true,
-      result: {
-        messages: [
-          {
-            id: 'user-1',
-            role: 'user',
-            content: '帮我把桌面文件整理一下',
-            timestamp: 1773281731495,
-          },
-          {
-            id: 'assistant-1',
-            role: 'assistant',
-            content: '先从下载目录开始。',
-            timestamp: 1773281732751,
-          },
-        ],
-      },
+    gatewayRpcMock.mockResolvedValueOnce({
+      messages: [
+        {
+          id: 'user-1',
+          role: 'user',
+          content: '帮我把桌面文件整理一下',
+          timestamp: 1773281731495,
+        },
+        {
+          id: 'assistant-1',
+          role: 'assistant',
+          content: '先从下载目录开始。',
+          timestamp: 1773281732751,
+        },
+      ],
     });
 
     await actions.loadHistory();
@@ -174,28 +175,51 @@ describe('chat history actions', () => {
     getSessionLabelText.mockImplementationOnce((content: unknown) =>
       typeof content === 'string' ? content.replace(/^\[WhatsApp 2026-03-22 10:00\]\s*/, '') : '',
     );
-    invokeIpcMock.mockResolvedValueOnce({
-      success: true,
-      result: {
-        messages: [
-          {
-            id: 'user-1',
-            role: 'user',
-            content: '[WhatsApp 2026-03-22 10:00] 你好',
-            timestamp: 1773281731495,
-          },
-          {
-            id: 'assistant-1',
-            role: 'assistant',
-            content: '收到',
-            timestamp: 1773281732751,
-          },
-        ],
-      },
+    gatewayRpcMock.mockResolvedValueOnce({
+      messages: [
+        {
+          id: 'user-1',
+          role: 'user',
+          content: '[WhatsApp 2026-03-22 10:00] 你好',
+          timestamp: 1773281731495,
+        },
+        {
+          id: 'assistant-1',
+          role: 'assistant',
+          content: '收到',
+          timestamp: 1773281732751,
+        },
+      ],
     });
 
     await actions.loadHistory();
 
     expect(h.read().sessionLabels['agent:main:session-older']).toBe('你好');
+  });
+
+  it('loads normal session history through the gateway store rpc facade', async () => {
+    const { createHistoryActions } = await import('@/stores/chat/history-actions');
+    const h = makeHarness({
+      currentSessionKey: 'agent:main:main',
+    });
+    const actions = createHistoryActions(h.set as never, h.get as never);
+
+    gatewayRpcMock.mockResolvedValueOnce({
+      messages: [
+        {
+          id: 'assistant-1',
+          role: 'assistant',
+          content: 'ok',
+          timestamp: 1773281732751,
+        },
+      ],
+    });
+
+    await actions.loadHistory();
+
+    expect(gatewayRpcMock).toHaveBeenCalledWith('chat.history', {
+      sessionKey: 'agent:main:main',
+      limit: 200,
+    });
   });
 });

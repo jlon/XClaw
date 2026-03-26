@@ -1,5 +1,5 @@
-import { invokeIpc } from '@/lib/api-client';
 import { hostApiFetch } from '@/lib/host-api';
+import { useGatewayStore } from '@/stores/gateway';
 import {
   clearHistoryPoll,
   enrichWithCachedImages,
@@ -137,19 +137,17 @@ export function createHistoryActions(
       };
 
       try {
-        const result = await invokeIpc(
-          'gateway:rpc',
+        const data = await useGatewayStore.getState().rpc<Record<string, unknown>>(
           'chat.history',
-          { sessionKey: currentSessionKey, limit: 200 }
-        ) as { success: boolean; result?: Record<string, unknown>; error?: string };
+          { sessionKey: currentSessionKey, limit: 200 },
+        );
 
-        if (result.success && result.result) {
-          const data = result.result;
-          let rawMessages = Array.isArray(data.messages) ? data.messages as RawMessage[] : [];
-          const thinkingLevel = data.thinkingLevel ? String(data.thinkingLevel) : null;
-          if (rawMessages.length === 0 && isCronSessionKey(currentSessionKey)) {
-            rawMessages = await loadCronFallbackMessages(currentSessionKey, 200);
-          }
+        let rawMessages = Array.isArray(data?.messages) ? data.messages as RawMessage[] : [];
+        const thinkingLevel = data?.thinkingLevel ? String(data.thinkingLevel) : null;
+        if (rawMessages.length === 0 && isCronSessionKey(currentSessionKey)) {
+          rawMessages = await loadCronFallbackMessages(currentSessionKey, 200);
+        }
+        if (rawMessages.length > 0 || thinkingLevel) {
           applyLoadedMessages(rawMessages, thinkingLevel);
         } else {
           const fallbackMessages = await loadCronFallbackMessages(currentSessionKey, 200);

@@ -1,4 +1,5 @@
 import { invokeIpc } from '@/lib/api-client';
+import { useGatewayStore } from '@/stores/gateway';
 import { getCanonicalPrefixFromSessions, getSessionLabelText, toMs } from './helpers';
 import { normalizeLoadedSessions } from './session-list-normalization';
 import { DEFAULT_CANONICAL_PREFIX, DEFAULT_SESSION_KEY, type ChatSession, type RawMessage } from './types';
@@ -52,84 +53,77 @@ export function createSessionActions(
   return {
     loadSessions: async () => {
       try {
-        const result = await invokeIpc(
-          'gateway:rpc',
+        const data = await useGatewayStore.getState().rpc<Record<string, unknown>>(
           'sessions.list',
-          {}
-        ) as { success: boolean; result?: Record<string, unknown>; error?: string };
+          {},
+        );
+        const rawSessions = Array.isArray(data?.sessions) ? data.sessions : [];
+        const sessions: ChatSession[] = rawSessions.map((s: Record<string, unknown>) => ({
+          key: String(s.key || ''),
+          label: s.label ? String(s.label) : undefined,
+          displayName: s.displayName ? String(s.displayName) : undefined,
+          thinkingLevel: s.thinkingLevel ? String(s.thinkingLevel) : undefined,
+          model: s.model ? String(s.model) : undefined,
+          updatedAt: parseSessionUpdatedAtMs(s.updatedAt),
+        }));
 
-        if (result.success && result.result) {
-          const data = result.result;
-          const rawSessions = Array.isArray(data.sessions) ? data.sessions : [];
-          const sessions: ChatSession[] = rawSessions.map((s: Record<string, unknown>) => ({
-            key: String(s.key || ''),
-            label: s.label ? String(s.label) : undefined,
-            displayName: s.displayName ? String(s.displayName) : undefined,
-            thinkingLevel: s.thinkingLevel ? String(s.thinkingLevel) : undefined,
-            model: s.model ? String(s.model) : undefined,
-            updatedAt: parseSessionUpdatedAtMs(s.updatedAt),
-          }));
+        const { currentSessionKey, sessions: localSessions } = get();
+        const {
+          sessions: sessionsWithCurrent,
+          nextSessionKey,
+          discoveredActivity,
+        } = normalizeLoadedSessions({
+          sessions,
+          currentSessionKey,
+          localSessions,
+          defaultSessionKey: DEFAULT_SESSION_KEY,
+        });
 
-          const { currentSessionKey, sessions: localSessions } = get();
-          const {
-            sessions: sessionsWithCurrent,
-            nextSessionKey,
-            discoveredActivity,
-          } = normalizeLoadedSessions({
-            sessions,
-            currentSessionKey,
-            localSessions,
-            defaultSessionKey: DEFAULT_SESSION_KEY,
-          });
+        set((state) => ({
+          sessions: sessionsWithCurrent,
+          currentSessionKey: nextSessionKey,
+          currentAgentId: getAgentIdFromSessionKey(nextSessionKey),
+          sessionLastActivity: {
+            ...state.sessionLastActivity,
+            ...discoveredActivity,
+          },
+        }));
 
-          set((state) => ({
-            sessions: sessionsWithCurrent,
-            currentSessionKey: nextSessionKey,
-            currentAgentId: getAgentIdFromSessionKey(nextSessionKey),
-            sessionLastActivity: {
-              ...state.sessionLastActivity,
-              ...discoveredActivity,
-            },
-          }));
+        if (currentSessionKey !== nextSessionKey) {
+          get().loadHistory();
+        }
 
-          if (currentSessionKey !== nextSessionKey) {
-            get().loadHistory();
-          }
-
-          // Background: fetch first user message for every visible session to populate labels upfront.
-          // Uses a small limit so it's cheap; runs in parallel and doesn't block anything.
-          const sessionsToLabel = sessionsWithCurrent;
-          if (sessionsToLabel.length > 0) {
-            void Promise.all(
-              sessionsToLabel.map(async (session) => {
-                try {
-                  const r = await invokeIpc(
-                    'gateway:rpc',
-                    'chat.history',
-                    { sessionKey: session.key, limit: 1000 },
-                  ) as { success: boolean; result?: Record<string, unknown> };
-                  if (!r.success || !r.result) return;
-                  const msgs = Array.isArray(r.result.messages) ? r.result.messages as RawMessage[] : [];
-                  const firstUser = msgs.find((m) => m.role === 'user');
-                  const lastMsg = msgs[msgs.length - 1];
-                  set((s) => {
-                    const next: Partial<typeof s> = {};
-                    if (firstUser) {
-                      const labelText = getSessionLabelText(firstUser.content);
-                      if (labelText) {
-                        const truncated = labelText.length > 50 ? `${labelText.slice(0, 50)}…` : labelText;
-                        next.sessionLabels = { ...s.sessionLabels, [session.key]: truncated };
-                      }
+        const sessionsToLabel = sessionsWithCurrent;
+        if (sessionsToLabel.length > 0) {
+          void Promise.all(
+            sessionsToLabel.map(async (session) => {
+              try {
+                const result = await useGatewayStore.getState().rpc<Record<string, unknown>>(
+                  'chat.history',
+                  { sessionKey: session.key, limit: 1000 },
+                );
+                const msgs = Array.isArray(result?.messages) ? result.messages as RawMessage[] : [];
+                const firstUser = msgs.find((m) => m.role === 'user');
+                const lastMsg = msgs[msgs.length - 1];
+                set((s) => {
+                  const next: Partial<typeof s> = {};
+                  if (firstUser) {
+                    const labelText = getSessionLabelText(firstUser.content);
+                    if (labelText) {
+                      const truncated = labelText.length > 50 ? `${labelText.slice(0, 50)}…` : labelText;
+                      next.sessionLabels = { ...s.sessionLabels, [session.key]: truncated };
                     }
-                    if (lastMsg?.timestamp) {
-                      next.sessionLastActivity = { ...s.sessionLastActivity, [session.key]: toMs(lastMsg.timestamp) };
-                    }
-                    return next;
-                  });
-                } catch { /* ignore per-session errors */ }
-              }),
-            );
-          }
+                  }
+                  if (lastMsg?.timestamp) {
+                    next.sessionLastActivity = { ...s.sessionLastActivity, [session.key]: toMs(lastMsg.timestamp) };
+                  }
+                  return next;
+                });
+              } catch {
+                return;
+              }
+            }),
+          );
         }
       } catch (err) {
         console.warn('Failed to load sessions:', err);
