@@ -185,6 +185,14 @@ describe('registerIpcHandlers setup environment channels', () => {
   });
 
   it('cancels an in-flight setup environment preparation task', async () => {
+    inspectStudioPythonEnvMock.mockResolvedValue({
+      uvInstalled: true,
+      interpreterReady: false,
+      dependenciesReady: false,
+      pythonPath: null,
+      venvPythonPath: null,
+      error: 'Managed Python 3.12 is not ready',
+    });
     setupManagedPythonMock.mockImplementation(async ({ signal, onLog }: {
       signal?: AbortSignal;
       onLog?: (entry: { level: string; message: string }) => void;

@@ -4,6 +4,12 @@ import { parseJsonBody } from '../route-utils';
 import { setCorsHeaders, sendJson, sendNoContent } from '../route-utils';
 import { runOpenClawDoctor, runOpenClawDoctorFix } from '../../utils/openclaw-doctor';
 import { buildSetupPlan, inspectLocalOpenClawSetup } from '../../main/setup-inspection';
+import {
+  cancelSetupEnvironmentTask,
+  getSetupEnvironmentTaskSnapshot,
+  resolveSetupEnvironmentStatus,
+  startSetupEnvironmentTask,
+} from '../../main/setup-environment-service';
 import { getTakeoverImportStatus, resetTakeoverImportStatus, runTakeoverImport } from '../../main/takeover-import';
 import { runSetupActivationSideEffects } from '../../main/setup-activation';
 import { getAllSettings, getSetting, replaceAllSettings, setSetting } from '../../utils/store';
@@ -57,6 +63,26 @@ export async function handleAppRoutes(
       requestedWorkspacePath: body.workspacePath,
     });
     sendJson(res, 200, buildSetupPlan(inspection, body));
+    return true;
+  }
+
+  if (url.pathname === '/api/app/setup-environment-status' && req.method === 'GET') {
+    sendJson(res, 200, await resolveSetupEnvironmentStatus());
+    return true;
+  }
+
+  if (url.pathname === '/api/app/setup-environment-task' && req.method === 'GET') {
+    sendJson(res, 200, getSetupEnvironmentTaskSnapshot());
+    return true;
+  }
+
+  if (url.pathname === '/api/app/setup-environment-prepare' && req.method === 'POST') {
+    sendJson(res, 200, await startSetupEnvironmentTask());
+    return true;
+  }
+
+  if (url.pathname === '/api/app/setup-environment-cancel' && req.method === 'POST') {
+    sendJson(res, 200, await cancelSetupEnvironmentTask());
     return true;
   }
 
@@ -115,10 +141,8 @@ export async function handleAppRoutes(
       await replaceAllSettings(settings);
       resetTakeoverImportStatus();
     }
+    await ctx.studioService.start();
     await setSetting('setupComplete', true);
-    void ctx.studioService.start().catch((error) => {
-      console.warn('[studio] Failed to start after setup activation:', error);
-    });
     sendJson(res, 200, { success: true });
     return true;
   }

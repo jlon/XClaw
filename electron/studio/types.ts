@@ -18,6 +18,7 @@ export const STUDIO_DETAIL_SOURCES = [
 ] as const;
 
 export const STUDIO_RUNTIME_STATUSES = [
+  'idle',
   'starting',
   'restarting',
   'stopping',

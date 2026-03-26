@@ -1,4 +1,5 @@
 import { hostApiFetch } from '@/lib/host-api';
+import { generateUuid } from '@/lib/uuid';
 import type {
   ProviderAccount,
   ProviderType,
@@ -71,7 +72,7 @@ export function buildProviderAccountId(
   }
 
   const vendor = vendors.find((candidate) => candidate.id === vendorId);
-  return vendor?.supportsMultipleAccounts ? `${vendorId}-${crypto.randomUUID()}` : vendorId;
+  return vendor?.supportsMultipleAccounts ? `${vendorId}-${generateUuid()}` : vendorId;
 }
 
 export function getProviderAccountRuntimeKey(

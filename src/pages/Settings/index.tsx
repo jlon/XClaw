@@ -653,7 +653,7 @@ export function Settings() {
           className="space-y-6"
           platform={isWindows ? 'win32' : 'darwin'}
         >
-          <div className="mx-auto max-w-[840px] space-y-4 xl:max-w-[860px]">
+          <div className="space-y-4">
             <Tabs
               value={activeSection}
               onValueChange={(value) => setActiveSection(value as SettingsSectionId)}

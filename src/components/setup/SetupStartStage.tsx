@@ -2,9 +2,7 @@ import { motion } from 'framer-motion';
 import { AlertTriangle, Bot, CheckCircle2, FolderOpen, Loader2, PlugZap, Puzzle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import XClawIcon from '@/assets/logo.svg';
-import { SUPPORTED_LANGUAGES } from '@/i18n';
 import { cn } from '@/lib/utils';
-import { useSettingsStore } from '@/stores/settings';
 import type { SetupInspectionSummary, SetupMode, SetupPlanSummary, TakeoverImportSummary } from '@/lib/setup-takeover';
 import { setupStageContainerVariants, setupStageItemVariants } from './setup-motion';
 
@@ -269,10 +267,6 @@ function TakeoverStartContent({
 
 function WelcomeStartContent() {
   const { t } = useTranslation(['setup', 'settings']);
-  const { language, setLanguage } = useSettingsStore();
-  const orderedLanguages = ['zh', 'en', 'ja']
-    .map((code) => SUPPORTED_LANGUAGES.find((lang) => lang.code === code))
-    .filter((lang): lang is (typeof SUPPORTED_LANGUAGES)[number] => Boolean(lang));
   const features = [
     t('welcome.features.noCommand'),
     t('welcome.features.modernUI'),
@@ -301,24 +295,6 @@ function WelcomeStartContent() {
         <p className="max-w-3xl text-left text-sm leading-7 text-muted-foreground xl:text-[15px]">
           {t('welcome.description')}
         </p>
-
-        <div className="flex flex-wrap gap-2">
-          {orderedLanguages.map((lang) => (
-            <button
-              key={lang.code}
-              type="button"
-              onClick={() => setLanguage(lang.code)}
-              className={cn(
-                'inline-flex h-8 items-center rounded-md border px-3 text-xs transition-colors',
-                language === lang.code
-                  ? 'border-primary/25 bg-primary text-primary-foreground shadow-sm'
-                  : 'border-border/70 bg-[hsl(var(--surface-elevated)/0.66)] text-muted-foreground hover:bg-[hsl(var(--surface-elevated)/0.82)] hover:text-foreground',
-              )}
-            >
-              {lang.label}
-            </button>
-          ))}
-        </div>
       </motion.div>
 
       <motion.div variants={setupStageItemVariants} className="rounded-[1.5rem] border border-border/70 app-insight-surface p-5">

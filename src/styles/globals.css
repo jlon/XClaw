@@ -1666,8 +1666,6 @@
 }
 
 .app-skills-card-switch {
-  height: 1.65rem;
-  width: 2.95rem;
   border: 1px solid var(--skills-accent-border);
   background: var(--skills-switch-off);
   box-shadow:
@@ -1691,17 +1689,15 @@
 
 .app-skills-card-switch:focus-visible {
   box-shadow:
-    0 0 0 3px hsl(var(--ring) / 0.14),
+    0 0 0 2px hsl(var(--ring) / 0.14),
     inset 0 1px 0 rgb(255 255 255 / 0.72);
 }
 
 .app-skills-card-switch > span {
-  height: 1.3rem;
-  width: 1.3rem;
   background: rgb(255 255 255 / 0.98);
   box-shadow:
     0 1px 2px rgb(18 24 33 / 0.14),
-    0 4px 10px rgb(18 24 33 / 0.08);
+    0 1px 3px rgb(18 24 33 / 0.08);
 }
 
 .dark .app-skills-card {
@@ -3322,20 +3318,22 @@
 .app-workbench-header-title {
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(1.625rem, 2vw, 1.875rem);
+  font-size: 1.25rem;
   font-weight: 600;
-  line-height: 1.06;
-  letter-spacing: -0.03em;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
   color: hsl(var(--foreground));
+  user-select: none;
 }
 
 .app-workbench-header-subtitle {
-  margin-top: 0.18rem;
+  margin-top: 0.25rem;
   max-width: 46rem;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 500;
-  line-height: 1.45;
+  line-height: 1.5;
   color: hsl(var(--foreground) / 0.62);
+  user-select: none;
 }
 
 .app-workbench-summary-strip {
@@ -3396,20 +3394,6 @@
   gap: 0.9rem;
 }
 
-.app-cron-page-title {
-  font-size: clamp(1.74rem, 1.98vw, 1.96rem);
-  line-height: 1.02;
-  letter-spacing: -0.04em;
-  font-weight: 600;
-  color: hsl(var(--foreground));
-}
-
-.app-cron-page-subtitle {
-  max-width: 19rem;
-  font-size: 0.82rem;
-  line-height: 1.28;
-  color: hsl(var(--foreground) / 0.54);
-}
 
 .app-cron-toolbar {
   display: flex;
@@ -3437,17 +3421,7 @@
 }
 
 .app-channels-shell {
-  max-width: 1480px;
-}
-
-.app-channels-header .app-workbench-header-main {
-  gap: 0.12rem;
-}
-
-.app-channels-header .app-workbench-header-leading {
-  align-items: flex-start;
-  gap: 0;
-  max-width: 25rem;
+  /* Let it expand natively */
 }
 
 .app-channels-header-toolbar {
@@ -3470,19 +3444,6 @@
   gap: 0.38rem;
 }
 
-.app-channels-header-copy .app-workbench-header-title {
-  font-size: clamp(1.48rem, 1.78vw, 1.74rem);
-  line-height: 1.04;
-  letter-spacing: -0.036em;
-}
-
-.app-channels-header-copy .app-workbench-header-subtitle {
-  margin-top: 0.06rem;
-  max-width: 20rem;
-  font-size: 0.76rem;
-  line-height: 1.24;
-  color: hsl(var(--foreground) / 0.46);
-}
 
 .app-channels-header-actions {
   gap: 0.38rem;
@@ -3740,8 +3701,6 @@
 }
 
 .app-cron-card-switch {
-  height: 1.72rem;
-  width: 2.84rem;
   border-width: 1.5px;
   border-color: hsl(var(--border-subtle) / 0.92);
   background: linear-gradient(180deg, rgb(243 243 245 / 0.96) 0%, rgb(233 234 238 / 0.96) 100%);
@@ -3753,8 +3712,7 @@
 }
 
 .app-cron-card-switch > span {
-  height: 1.32rem;
-  width: 1.32rem;
+  /* Let it inherit from primitive */
 }
 
 .app-cron-card-switch[data-state='checked'] > span {
@@ -3881,9 +3839,6 @@
     0 12px 30px rgb(0 0 0 / 0.22);
 }
 
-.dark .app-cron-page-subtitle {
-  color: hsl(var(--foreground) / 0.54);
-}
 
 .dark .app-cron-summary-pill {
   border-color: hsl(var(--border-subtle) / 0.9);

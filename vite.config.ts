@@ -5,6 +5,7 @@ import electron from 'vite-plugin-electron';
 import renderer from 'vite-plugin-electron-renderer';
 import { resolve } from 'path';
 import {
+  getElectronDevBackendMessage,
   getElectronDevRuntime,
   getElectronDevSkipMessage,
   shouldReloadElectronDev,
@@ -12,6 +13,7 @@ import {
 
 const electronDevRuntime = getElectronDevRuntime();
 let hasWarnedElectronDevSkip = false;
+let hasWarnedElectronDevBackend = false;
 
 const warnElectronDevSkip = () => {
   if (hasWarnedElectronDevSkip) {
@@ -20,6 +22,15 @@ const warnElectronDevSkip = () => {
 
   hasWarnedElectronDevSkip = true;
   console.warn(getElectronDevSkipMessage());
+};
+
+const warnElectronDevBackend = () => {
+  if (hasWarnedElectronDevBackend) {
+    return;
+  }
+
+  hasWarnedElectronDevBackend = true;
+  console.warn(getElectronDevBackendMessage());
 };
 
 const hasElectronApp = () => Boolean(Reflect.get(process, 'electronApp'));
@@ -38,11 +49,14 @@ export default defineConfig({
         // Main process entry file
         entry: 'electron/main/index.ts',
         onstart(options) {
-          if (!electronDevRuntime.shouldLaunch) {
-            warnElectronDevSkip();
+          if (electronDevRuntime.mode === 'backend') {
+            process.env.XCLAW_HEADLESS_DEV_BACKEND = '1';
+            warnElectronDevBackend();
+            options.startup();
             return;
           }
 
+          delete process.env.XCLAW_HEADLESS_DEV_BACKEND;
           options.startup();
         },
         vite: {
@@ -59,7 +73,11 @@ export default defineConfig({
         entry: 'electron/preload/index.ts',
         onstart(options) {
           if (!shouldReloadElectronDev({ ...electronDevRuntime, hasElectronApp: hasElectronApp() })) {
-            warnElectronDevSkip();
+            if (electronDevRuntime.mode === 'backend') {
+              warnElectronDevBackend();
+            } else {
+              warnElectronDevSkip();
+            }
             return;
           }
 
@@ -85,6 +103,12 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:3210',
+        changeOrigin: false,
+      },
+    },
   },
   build: {
     outDir: 'dist',

@@ -84,6 +84,7 @@ export interface SkillCatalogItem {
   slug: string;
   name: string;
   description: string;
+  icon?: string;
   version?: string;
   author?: string;
   downloads?: number;

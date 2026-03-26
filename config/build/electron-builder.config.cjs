@@ -4,26 +4,22 @@ module.exports = {
   appId: branding.appId,
   productName: branding.productName,
   copyright: `Copyright © 2026 ${branding.copyrightOwner}`,
-  compression: 'maximum',
+  compression: 'normal',
   artifactName: '${productName}-${version}-${os}-${arch}.${ext}',
   directories: {
     output: 'release',
     buildResources: 'resources',
   },
-  files: ['dist', 'dist-electron', 'package.json'],
+  files: [
+    'dist',
+    'dist-electron',
+    'package.json'
+  ],
   extraResources: [
     {
       from: 'resources/',
       to: 'resources/',
       filter: ['**/*', '!icons/*.md', '!icons/*.svg', '!bin/**', '!screenshot/**'],
-    },
-    {
-      from: 'build/openclaw/',
-      to: 'openclaw/',
-    },
-    {
-      from: 'build/preinstalled-skills/',
-      to: 'resources/preinstalled-skills/',
     },
   ],
   afterPack: './scripts/after-pack.cjs',
@@ -80,7 +76,7 @@ module.exports = {
     warningsAsErrors: false,
     allowToChangeInstallationDirectory: true,
     deleteAppDataOnUninstall: false,
-    differentialPackage: true,
+    differentialPackage: false,
     createDesktopShortcut: true,
     createStartMenuShortcut: true,
     shortcutName: branding.productName,

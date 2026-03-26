@@ -3,6 +3,7 @@ import { AlertCircle, Loader2, RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   fetchStudioRuntime,
+  startStudioRuntime,
   retryStudioRuntime,
   subscribeStudioRuntimeChanged,
 } from '@/lib/studio';
@@ -46,7 +47,17 @@ export function Studio() {
     setLoading(true);
     setError(null);
     try {
-      setRuntime(await fetchStudioRuntime());
+      const snapshot = await fetchStudioRuntime();
+      if (snapshot.status === 'idle') {
+        setRuntime({
+          ...snapshot,
+          status: 'starting',
+          lastError: null,
+        });
+        setRuntime(await startStudioRuntime());
+      } else {
+        setRuntime(snapshot);
+      }
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : String(caughtError));
       setRuntime(null);

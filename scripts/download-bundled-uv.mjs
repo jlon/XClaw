@@ -4,7 +4,10 @@ import 'zx/globals';
 
 const ROOT_DIR = path.resolve(__dirname, '..');
 const UV_VERSION = '0.10.0';
-const BASE_URL = `https://github.com/astral-sh/uv/releases/download/${UV_VERSION}`;
+const BASE_URLS = [
+  `https://releases.astral.sh/github/uv/releases/download/${UV_VERSION}`,
+  `https://github.com/astral-sh/uv/releases/download/${UV_VERSION}`,
+];
 const OUTPUT_BASE = path.join(ROOT_DIR, 'resources', 'bin');
 
 // Mapping Node platforms/archs to uv release naming
@@ -52,7 +55,7 @@ async function setupTarget(id) {
   const targetDir = path.join(OUTPUT_BASE, id);
   const tempDir = path.join(ROOT_DIR, 'temp_uv_extract');
   const archivePath = path.join(ROOT_DIR, target.filename);
-  const downloadUrl = `${BASE_URL}/${target.filename}`;
+  const downloadUrls = BASE_URLS.map((baseUrl) => `${baseUrl}/${target.filename}`);
 
   echo(chalk.blue`\n📦 Setting up uv for ${id}...`);
 
@@ -64,11 +67,7 @@ async function setupTarget(id) {
 
   try {
     // Download
-    echo`⬇️ Downloading: ${downloadUrl}`;
-    const response = await fetch(downloadUrl);
-    if (!response.ok) throw new Error(`Failed to download: ${response.statusText}`);
-    const buffer = await response.arrayBuffer();
-    await fs.writeFile(archivePath, Buffer.from(buffer));
+    await downloadArchive(downloadUrls, archivePath);
 
     // Extract
     echo`📂 Extracting...`;
@@ -113,6 +112,26 @@ async function setupTarget(id) {
     await fs.remove(archivePath);
     await fs.remove(tempDir);
   }
+}
+
+async function downloadArchive(downloadUrls, archivePath) {
+  let lastError = null;
+  for (const downloadUrl of downloadUrls) {
+    try {
+      echo`⬇️ Downloading: ${downloadUrl}`;
+      const response = await fetch(downloadUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to download: ${response.status} ${response.statusText}`);
+      }
+      const buffer = await response.arrayBuffer();
+      await fs.writeFile(archivePath, Buffer.from(buffer));
+      return;
+    } catch (error) {
+      lastError = error;
+      echo(chalk.yellow`⚠️ Download failed, trying next source: ${downloadUrl}`);
+    }
+  }
+  throw lastError ?? new Error('Failed to download uv archive.');
 }
 
 // Main logic

@@ -15,6 +15,7 @@ const getSettingMock = vi.fn();
 const setSettingMock = vi.fn();
 const sendJsonMock = vi.fn();
 const sendNoContentMock = vi.fn();
+const studioServiceStartMock = vi.fn();
 
 vi.mock('@electron/utils/openclaw-doctor', () => ({
   runOpenClawDoctor: (...args: unknown[]) => runOpenClawDoctorMock(...args),
@@ -62,6 +63,7 @@ describe('handleAppRoutes', () => {
     getSettingMock.mockResolvedValue(undefined);
     replaceAllSettingsMock.mockResolvedValue(undefined);
     setSettingMock.mockResolvedValue(undefined);
+    studioServiceStartMock.mockResolvedValue(undefined);
   });
 
   it('runs openclaw doctor through the host api', async () => {
@@ -200,6 +202,7 @@ describe('handleAppRoutes', () => {
         gatewayManager: { id: 'gateway' },
         gatewayRuntimeController: { id: 'runtime' },
         mainWindow: { id: 'mainWindow' },
+        studioService: { start: studioServiceStartMock },
       } as never,
     );
 
@@ -217,6 +220,7 @@ describe('handleAppRoutes', () => {
     });
     expect(replaceAllSettingsMock).toHaveBeenCalledWith({});
     expect(resetTakeoverImportStatusMock).toHaveBeenCalledTimes(1);
+    expect(studioServiceStartMock).toHaveBeenCalledTimes(1);
     expect(setSettingMock).toHaveBeenCalledWith('setupComplete', true);
     expect(sendJsonMock).toHaveBeenCalledWith(expect.anything(), 200, { success: true });
   });
@@ -246,6 +250,7 @@ describe('handleAppRoutes', () => {
         gatewayManager: { id: 'gateway' },
         gatewayRuntimeController: { id: 'runtime' },
         mainWindow: { id: 'mainWindow' },
+        studioService: { start: studioServiceStartMock },
       } as never,
     )).rejects.toThrow('网关自动启动失败：plugin not found: skillhub');
 
@@ -278,10 +283,38 @@ describe('handleAppRoutes', () => {
         gatewayManager: { id: 'gateway' },
         gatewayRuntimeController: { id: 'runtime' },
         mainWindow: { id: 'mainWindow' },
+        studioService: { start: studioServiceStartMock },
       } as never,
     )).rejects.toThrow('接管导入尚未完成，不能提前完成安装');
 
     expect(runSetupActivationSideEffectsMock).not.toHaveBeenCalled();
     expect(setSettingMock).not.toHaveBeenCalled();
+  });
+
+  it('waits for studio runtime to become ready before marking setup complete', async () => {
+    runSetupActivationSideEffectsMock.mockResolvedValueOnce(undefined);
+    studioServiceStartMock.mockRejectedValueOnce(new Error('studio runtime failed to start'));
+    const { parseJsonBody } = await import('@electron/api/route-utils');
+    vi.mocked(parseJsonBody).mockResolvedValueOnce({
+      mode: 'fresh',
+      gatewayPort: 19001,
+      workspacePath: '/Users/test/custom-workspace',
+    });
+    const { handleAppRoutes } = await import('@electron/api/routes/app');
+
+    await expect(handleAppRoutes(
+      { method: 'POST' } as IncomingMessage,
+      {} as ServerResponse,
+      new URL('http://127.0.0.1:3210/api/app/setup-activation'),
+      {
+        gatewayManager: { id: 'gateway' },
+        gatewayRuntimeController: { id: 'runtime' },
+        mainWindow: { id: 'mainWindow' },
+        studioService: { start: studioServiceStartMock },
+      } as never,
+    )).rejects.toThrow('studio runtime failed to start');
+
+    expect(setSettingMock).not.toHaveBeenCalled();
+    expect(sendJsonMock).not.toHaveBeenCalled();
   });
 });

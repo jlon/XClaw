@@ -95,6 +95,18 @@ type SetupEnvironmentTaskSnapshot = {
   }>;
 };
 
+const fetchSetupEnvironmentStatus = async (): Promise<SetupEnvironmentStatus> =>
+  await hostApiFetch<SetupEnvironmentStatus>('/api/app/setup-environment-status');
+
+const fetchSetupEnvironmentTask = async (): Promise<SetupEnvironmentTaskSnapshot> =>
+  await hostApiFetch<SetupEnvironmentTaskSnapshot>('/api/app/setup-environment-task');
+
+const startSetupEnvironmentPreparation = async (): Promise<SetupEnvironmentTaskSnapshot> =>
+  await hostApiFetch<SetupEnvironmentTaskSnapshot>('/api/app/setup-environment-prepare', { method: 'POST' });
+
+const cancelSetupEnvironmentPreparation = async (): Promise<{ success: boolean }> =>
+  await hostApiFetch<{ success: boolean }>('/api/app/setup-environment-cancel', { method: 'POST' });
+
 const createIdleSetupEnvironmentTask = (): SetupEnvironmentTaskSnapshot => ({
   state: 'idle',
   step: 'idle',
@@ -204,7 +216,7 @@ export function Setup() {
 
   const resolveCompletionPhase = useCallback(async (): Promise<SetupCompletePhase> => {
     try {
-      const status = await invokeIpc('setup:environment-status') as SetupEnvironmentStatus;
+      const status = await fetchSetupEnvironmentStatus();
       const shouldShowEnhancements = !(status.uvInstalled && status.pythonReady && status.studioDependenciesReady);
       setEnhancementStepRequired(shouldShowEnhancements);
       return shouldShowEnhancements ? 'enhancements' : 'summary';
@@ -933,7 +945,7 @@ function ProviderContent({
 
       pendingOAuthRef.current = null;
       onConfiguredChange(true);
-      toast.success(t('provider.valid'));
+      // Removed duplicate toast: toast.success(t('provider.valid'));
     };
 
     const handleError = (data: unknown) => {
@@ -1231,7 +1243,7 @@ function ProviderContent({
 
       setSelectedAccountId(accountIdForSave);
       onConfiguredChange(true);
-      toast.success(t('provider.valid'));
+      // Removed duplicate toast: toast.success(t('provider.valid'));
       return true;
     } catch (error) {
       setKeyValid(false);
@@ -1730,7 +1742,7 @@ function OptionalEnhancementPanel({ onPrepared }: { onPrepared: () => void }) {
       error: null,
     }));
     try {
-      const next = await invokeIpc('setup:environment-status') as SetupEnvironmentStatus;
+      const next = await fetchSetupEnvironmentStatus();
       setStatus((current) => ({
         ...current,
         loading: false,
@@ -1754,7 +1766,7 @@ function OptionalEnhancementPanel({ onPrepared }: { onPrepared: () => void }) {
 
   const refreshPrepareTask = useCallback(async (): Promise<SetupEnvironmentTaskSnapshot | null> => {
     try {
-      const next = await invokeIpc('setup:prepare-environment-status') as SetupEnvironmentTaskSnapshot;
+      const next = await fetchSetupEnvironmentTask();
       setPrepareTask(next);
       return next;
     } catch (error) {
@@ -1843,7 +1855,7 @@ function OptionalEnhancementPanel({ onPrepared }: { onPrepared: () => void }) {
       notice: null,
     }));
     try {
-      const nextTask = await invokeIpc('setup:prepare-environment') as SetupEnvironmentTaskSnapshot;
+      const nextTask = await startSetupEnvironmentPreparation();
       handledTaskRef.current = null;
       setPrepareTask(nextTask);
       setLogsExpanded(true);
@@ -1859,7 +1871,7 @@ function OptionalEnhancementPanel({ onPrepared }: { onPrepared: () => void }) {
 
   const handleCancel = useCallback(async () => {
     try {
-      await invokeIpc('setup:prepare-environment-cancel');
+      await cancelSetupEnvironmentPreparation();
       await refreshPrepareTask();
     } catch (error) {
       setStatus((current) => ({

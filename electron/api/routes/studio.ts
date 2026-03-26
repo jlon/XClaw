@@ -13,6 +13,11 @@ export async function handleStudioRoutes(
     return true;
   }
 
+  if (url.pathname === '/api/studio/runtime/start' && req.method === 'POST') {
+    sendJson(res, 200, await ctx.studioService.start());
+    return true;
+  }
+
   if (url.pathname === '/api/studio/runtime/retry' && req.method === 'POST') {
     const body = await parseJsonBody<{ repairEnvironment?: boolean }>(req);
     sendJson(res, 200, await ctx.studioService.retryRuntime({

@@ -12,6 +12,8 @@ import {
   X,
   AlertCircle,
   CheckCircle2,
+  CircleOff,
+  Activity,
   Loader2,
   Timer,
 } from 'lucide-react';
@@ -22,6 +24,10 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { WorkbenchHeader } from '@/components/layout/WorkbenchHeader';
+import { WorkbenchHeaderTitleBlock } from '@/components/layout/WorkbenchHeaderTitleBlock';
+import { WorkbenchHeaderActions } from '@/components/layout/WorkbenchHeaderActions';
+import { WorkbenchSummaryStrip } from '@/components/layout/WorkbenchSummaryStrip';
 import { WorkspacePageFrame, WorkspacePageLoading, WorkspacePageScrollArea, WorkspacePageShell } from '@/components/layout/WorkspacePage';
 import {
   workbenchPrimaryToolbarButtonClasses,
@@ -857,10 +863,10 @@ export function Cron() {
   const failedJobs = safeJobs.filter((j) => j.lastRun && !j.lastRun.success);
   const agentNameMap = Object.fromEntries(agents.map((agent) => [agent.id, agent.name]));
   const summaryItems = [
-    { id: 'total', label: t('stats.total'), value: safeJobs.length, tone: 'neutral' as const },
-    { id: 'active', label: t('stats.active'), value: activeJobs.length, tone: 'success' as const },
-    { id: 'paused', label: t('stats.paused'), value: pausedJobs.length, tone: 'warning' as const },
-    { id: 'failed', label: t('stats.failed'), value: failedJobs.length, tone: 'danger' as const },
+    { id: 'total', icon: <Activity className="h-3.5 w-3.5" />, label: t('stats.total'), value: safeJobs.length, tone: 'neutral' as const },
+    { id: 'active', icon: <CheckCircle2 className="h-3.5 w-3.5" />, label: t('stats.active'), value: activeJobs.length, tone: 'success' as const },
+    { id: 'paused', icon: <CircleOff className="h-3.5 w-3.5" />, label: t('stats.paused'), value: pausedJobs.length, tone: 'warning' as const },
+    { id: 'failed', icon: <AlertCircle className="h-3.5 w-3.5" />, label: t('stats.failed'), value: failedJobs.length, tone: 'danger' as const },
   ];
 
   const handleSave = useCallback(async (input: CronJobCreateInput) => {
@@ -889,46 +895,42 @@ export function Cron() {
   return (
     <WorkspacePageFrame>
       <WorkspacePageShell className="app-cron-shell">
-        <div className="app-cron-workbench-top">
-          <div className="space-y-1.5">
-            <h1 className="app-cron-page-title">{t('title')}</h1>
-            <p className="app-cron-page-subtitle">{t('subtitle')}</p>
-          </div>
+        <WorkbenchHeader
+          titleBlock={
+            <WorkbenchHeaderTitleBlock
+              title={t('title')}
+              subtitle={t('subtitle')}
+            />
+          }
+          summary={
+            <div className="app-cron-toolbar">
+              <WorkbenchSummaryStrip items={summaryItems} className="app-cron-summary-line" />
 
-          <div className="app-cron-toolbar">
-            <div className="app-cron-summary-line">
-              {summaryItems.map((item) => (
-                <span key={item.id} className={cn('app-cron-summary-pill', `app-cron-summary-pill--${item.tone}`)}>
-                  <span className="app-cron-summary-pill-value">{item.value}</span>
-                  <span className="app-cron-summary-pill-label">{item.label}</span>
-                </span>
-              ))}
+              <WorkbenchHeaderActions className="app-cron-toolbar-actions">
+                <Button
+                  variant="outline"
+                  onClick={fetchJobs}
+                  disabled={!isGatewayRunning}
+                  className={workbenchToolbarButtonClasses}
+                >
+                  <RefreshCw className="mr-2 h-3.5 w-3.5" />
+                  {t('refresh')}
+                </Button>
+                <Button
+                  onClick={() => {
+                    setEditingJob(undefined);
+                    setShowDialog(true);
+                  }}
+                  disabled={!isGatewayRunning}
+                  className={workbenchPrimaryToolbarButtonClasses}
+                >
+                  <Plus className="mr-2 h-3.5 w-3.5" />
+                  {t('newTask')}
+                </Button>
+              </WorkbenchHeaderActions>
             </div>
-
-            <div className="app-cron-toolbar-actions">
-              <Button
-                variant="outline"
-                onClick={fetchJobs}
-                disabled={!isGatewayRunning}
-                className={workbenchToolbarButtonClasses}
-              >
-                <RefreshCw className="mr-2 h-3.5 w-3.5" />
-                {t('refresh')}
-              </Button>
-              <Button
-                onClick={() => {
-                  setEditingJob(undefined);
-                  setShowDialog(true);
-                }}
-                disabled={!isGatewayRunning}
-                className={workbenchPrimaryToolbarButtonClasses}
-              >
-                <Plus className="mr-2 h-3.5 w-3.5" />
-                {t('newTask')}
-              </Button>
-            </div>
-          </div>
-        </div>
+          }
+        />
 
         <WorkspacePageScrollArea>
           {!isGatewayRunning && (

@@ -232,7 +232,7 @@ export function ProviderAccountFormSections({
 
       await onSave(payload);
       setNewKey('');
-      toast.success(t('aiProviders.toast.updated'));
+      // Removed duplicate toast: toast.success(t('aiProviders.toast.updated'));
     } catch (error) {
       toast.error(`${t('aiProviders.toast.failedUpdate')}: ${error}`);
     } finally {

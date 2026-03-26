@@ -72,7 +72,12 @@ import {
 import { validateApiKeyWithProvider } from '../services/providers/provider-validation';
 import { appUpdater } from './updater';
 import { PORTS } from '../utils/config';
-import { createSetupEnvironmentTaskController } from './setup-environment-task';
+import {
+  cancelSetupEnvironmentTask,
+  getSetupEnvironmentTaskSnapshot,
+  resolveSetupEnvironmentStatus,
+  startSetupEnvironmentTask,
+} from './setup-environment-service';
 
 type AppRequest = {
   id?: string;
@@ -1142,36 +1147,6 @@ function registerCronHandlers(gatewayManager: GatewayManager): void {
  * UV-related IPC handlers
  */
 function registerUvHandlers(): void {
-  const setupEnvironmentTask = createSetupEnvironmentTaskController();
-
-  const resolveSetupEnvironmentStatus = async () => {
-    const uvInstalled = await checkUvInstalled();
-    const studio = uvInstalled
-      ? await inspectStudioPythonEnv().catch((error) => ({
-        uvInstalled,
-        interpreterReady: false,
-        dependenciesReady: false,
-        pythonPath: null,
-        venvPythonPath: null,
-        error: error instanceof Error ? error.message : String(error),
-      }))
-      : {
-        uvInstalled: false,
-        interpreterReady: false,
-        dependenciesReady: false,
-        pythonPath: null,
-        venvPythonPath: null,
-        error: null,
-      };
-    return {
-      uvInstalled,
-      pythonReady: studio.interpreterReady,
-      studioDependenciesReady: studio.dependenciesReady,
-      studioInterpreterReady: studio.interpreterReady,
-      studioError: studio.error,
-    };
-  };
-
   // Check if uv is installed
   ipcMain.handle('uv:check', async () => {
     return await checkUvInstalled();
@@ -1207,15 +1182,15 @@ function registerUvHandlers(): void {
   });
 
   ipcMain.handle('setup:prepare-environment', async () => {
-    return await setupEnvironmentTask.start();
+    return await startSetupEnvironmentTask();
   });
 
   ipcMain.handle('setup:prepare-environment-status', async () => {
-    return setupEnvironmentTask.getSnapshot();
+    return getSetupEnvironmentTaskSnapshot();
   });
 
   ipcMain.handle('setup:prepare-environment-cancel', async () => {
-    return await setupEnvironmentTask.cancel();
+    return await cancelSetupEnvironmentTask();
   });
 }
 

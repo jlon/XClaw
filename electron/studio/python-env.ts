@@ -52,6 +52,18 @@ const runCommand = async (
 const getPipMirrorEnv = (uvEnv: Record<string, string | undefined>): Record<string, string> =>
   uvEnv.UV_INDEX_URL ? { PIP_INDEX_URL: uvEnv.UV_INDEX_URL } : {};
 
+const normalizeDependencyProbeError = (stderr: string, stdout: string): string => {
+  const detail = (stderr || stdout).trim();
+  if (!detail) {
+    return 'Studio dependencies are missing';
+  }
+  const normalized = detail.toLowerCase();
+  if (normalized.includes('modulenotfounderror') || normalized.includes('no module named')) {
+    return 'Studio dependencies are missing';
+  }
+  return detail;
+};
+
 const probeStudioDependencies = async (venvPythonPath: string): Promise<{ code: number; stdout: string; stderr: string }> =>
   await runCommand(
     venvPythonPath,
@@ -144,7 +156,7 @@ export async function inspectStudioPythonEnv(): Promise<StudioPythonReadiness> {
     dependenciesReady: dependencyProbe.code === 0,
     pythonPath,
     venvPythonPath,
-    error: dependencyProbe.code === 0 ? null : dependencyProbe.stderr || dependencyProbe.stdout || 'Studio dependencies are missing',
+    error: dependencyProbe.code === 0 ? null : normalizeDependencyProbeError(dependencyProbe.stderr, dependencyProbe.stdout),
   };
 }
 
@@ -255,6 +267,6 @@ export async function ensureStudioPythonEnv(
     dependenciesReady: dependencyProbe.code === 0,
     pythonPath,
     venvPythonPath,
-    error: dependencyProbe.code === 0 ? null : dependencyProbe.stderr || dependencyProbe.stdout || 'Studio dependencies are missing',
+    error: dependencyProbe.code === 0 ? null : normalizeDependencyProbeError(dependencyProbe.stderr, dependencyProbe.stdout),
   };
 }

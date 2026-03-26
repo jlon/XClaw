@@ -1,4 +1,5 @@
 import { invokeIpc } from '@/lib/api-client';
+import { generateUuid } from '@/lib/uuid';
 import { useAgentsStore } from '@/stores/agents';
 import {
   clearErrorRecoveryTimer,
@@ -95,7 +96,7 @@ async function sendGatewayRuntimeMessage(
     role: 'user',
     content: trimmed || (attachments?.length ? '(file attached)' : ''),
     timestamp: nowMs / 1000,
-    id: crypto.randomUUID(),
+    id: generateUuid(),
     _attachedFiles: attachments?.map((attachment) => ({
       fileName: attachment.fileName,
       mimeType: attachment.mimeType,
@@ -166,7 +167,7 @@ async function sendGatewayRuntimeMessage(
   setTimeout(checkStuck, 30_000);
 
   try {
-    const idempotencyKey = crypto.randomUUID();
+    const idempotencyKey = generateUuid();
     const hasMedia = Boolean(attachments && attachments.length > 0);
     if (hasMedia) {
       console.log('[sendMessage] Media paths:', attachments!.map((attachment) => attachment.stagedPath));

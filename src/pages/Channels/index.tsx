@@ -25,6 +25,7 @@ import { ChannelAccountList } from '@/components/channels/ChannelAccountList';
 import { ChannelConfigEditor } from '@/components/channels/ChannelConfigEditor';
 import { getChannelBoardColumnCount, getChannelCenterLayoutMode } from '@/lib/channel-center-layout';
 import { CHANNEL_FIELD_REGISTRY, V1_CHANNEL_REGISTRY_ORDER } from '@/lib/channel-registry';
+import { generateUuid } from '@/lib/uuid';
 import { cn } from '@/lib/utils';
 import { evaluateWeixinGuardian, type WeixinGuardianEvaluation } from '../../../shared/weixin-guardian';
 import {
@@ -1052,9 +1053,9 @@ export function Channels() {
   };
 
   const createNewAccountId = (channelType: string, existingAccounts: string[]): string => {
-    let nextAccountId = `${channelType}-${crypto.randomUUID().slice(0, 8)}`;
+    let nextAccountId = `${channelType}-${generateUuid().slice(0, 8)}`;
     while (existingAccounts.includes(nextAccountId)) {
-      nextAccountId = `${channelType}-${crypto.randomUUID().slice(0, 8)}`;
+      nextAccountId = `${channelType}-${generateUuid().slice(0, 8)}`;
     }
     return nextAccountId;
   };
@@ -1191,7 +1192,7 @@ export function Channels() {
     <WorkspacePageFrame>
       <WorkspacePageShell
         data-testid="channels-shell"
-        className="max-w-[1680px] app-channels-shell"
+        className="app-channels-shell"
       >
         <WorkbenchHeader
           className="app-channels-header"

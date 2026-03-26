@@ -17,6 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { invokeIpc } from '@/lib/api-client';
 import { hostApiFetch } from '@/lib/host-api';
 import { subscribeHostEvent } from '@/lib/host-events';
+import { generateUuid } from '@/lib/uuid';
 import {
   PROVIDER_TYPE_INFO,
   getProviderIconClass,
@@ -154,7 +155,7 @@ export function AddProviderDialog({
       setOauthData(null);
       setManualCodeInput('');
       setValidationError(null);
-      const { onClose: close, t: translate } = latestRef.current;
+      const { onClose: close } = latestRef.current;
       const payload = (data as { accountId?: string } | undefined) || undefined;
       const accountId = payload?.accountId || pendingOAuthRef.current?.accountId;
 
@@ -170,7 +171,7 @@ export function AddProviderDialog({
 
       pendingOAuthRef.current = null;
       close();
-      toast.success(translate('aiProviders.toast.added'));
+      // Removed duplicate toast: toast.success(translate('aiProviders.toast.added'));
     };
 
     const handleError = (data: unknown) => {
@@ -249,7 +250,7 @@ export function AddProviderDialog({
     try {
       const vendor = vendorMap.get(selectedType);
       const supportsMultipleAccounts = vendor?.supportsMultipleAccounts ?? selectedType === 'custom';
-      const accountId = supportsMultipleAccounts ? `${selectedType}-${crypto.randomUUID()}` : selectedType;
+      const accountId = supportsMultipleAccounts ? `${selectedType}-${generateUuid()}` : selectedType;
       const label = name || (typeInfo?.id === 'custom' ? t('aiProviders.custom') : typeInfo?.name) || selectedType;
       pendingOAuthRef.current = { accountId, label };
       await hostApiFetch('/api/providers/oauth/start', {

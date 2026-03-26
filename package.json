@@ -1,6 +1,6 @@
 {
     "name": "XClaw",
-    "version": "2026.3.23",
+    "version": "2026.3.26",
     "pnpm": {
         "onlyBuiltDependencies": [
             "@discordjs/opus",
@@ -27,7 +27,7 @@
         "dev": "node scripts/dev-vite.mjs",
         "website:dev": "vite --open /website/",
         "website:preview": "vite preview --open /website/",
-        "build": "vite build && zx scripts/bundle-openclaw.mjs && zx scripts/bundle-openclaw-plugins.mjs && zx scripts/bundle-preinstalled-skills.mjs && electron-builder -c config/build/electron-builder.config.cjs",
+        "build": "node scripts/version-date.mjs && vite build && zx scripts/bundle-openclaw.mjs && zx scripts/bundle-openclaw-plugins.mjs && zx scripts/bundle-preinstalled-skills.mjs && electron-builder -c config/build/electron-builder.config.cjs",
         "build:vite": "vite build",
         "bundle:openclaw-plugins": "zx scripts/bundle-openclaw-plugins.mjs",
         "bundle:preinstalled-skills": "zx scripts/bundle-preinstalled-skills.mjs",
@@ -46,7 +46,7 @@
         "uv:download:linux": "zx scripts/download-bundled-uv.mjs --platform=linux",
         "uv:download:all": "zx scripts/download-bundled-uv.mjs --all",
         "icons": "zx scripts/generate-icons.mjs",
-        "package": "vite build && zx scripts/bundle-openclaw.mjs && zx scripts/bundle-openclaw-plugins.mjs && zx scripts/bundle-preinstalled-skills.mjs",
+        "package": "node scripts/version-date.mjs && vite build && zx scripts/bundle-openclaw.mjs && zx scripts/bundle-openclaw-plugins.mjs && zx scripts/bundle-preinstalled-skills.mjs",
         "package:mac": "pnpm run package && electron-builder -c config/build/electron-builder.config.cjs --mac --publish never",
         "package:mac:adhoc": "node scripts/package-mac-adhoc.mjs",
         "package:mac:local": "node scripts/package-mac-local.mjs",

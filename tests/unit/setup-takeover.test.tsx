@@ -249,6 +249,80 @@ describe('Setup takeover flow', () => {
   let prepareTaskStatusCalls: number;
   let prepareTaskMode: 'instant-success' | 'manual';
 
+  const handleSetupEnvironmentHostApi = async (path: string, init?: RequestInit) => {
+    if (path === '/api/app/setup-environment-status') {
+      return environmentState;
+    }
+    if (path === '/api/app/setup-environment-task') {
+      prepareTaskStatusCalls += 1;
+      if (prepareTaskMode === 'instant-success' && prepareTaskState.state === 'running') {
+        environmentState = {
+          uvInstalled: true,
+          pythonReady: true,
+          studioDependenciesReady: true,
+          studioInterpreterReady: true,
+          studioError: null,
+        };
+        prepareTaskState = {
+          state: 'succeeded',
+          step: 'verify',
+          canCancel: false,
+          error: null,
+          startedAt: null,
+          finishedAt: Date.now(),
+          logs: [
+            ...prepareTaskState.logs,
+            { id: prepareTaskState.logs.length + 1, level: 'info', message: '核心环境已准备完成' },
+          ],
+        } as typeof prepareTaskState;
+      }
+      if (prepareTaskMode === 'manual' && prepareTaskState.state === 'running' && prepareTaskStatusCalls >= 2 && prepareTaskState.logs.length === 1) {
+        prepareTaskState = {
+          ...prepareTaskState,
+          step: 'studio',
+          logs: [
+            ...prepareTaskState.logs,
+            { id: 2, level: 'info', message: '正在安装工作室依赖' },
+          ],
+        };
+      }
+      return prepareTaskState;
+    }
+    if (path === '/api/app/setup-environment-prepare' && init?.method === 'POST') {
+      prepareTaskStatusCalls = 0;
+      prepareTaskState = {
+        state: 'running',
+        step: prepareTaskMode === 'manual' ? 'python' : 'uv',
+        canCancel: true,
+        error: null,
+        startedAt: Date.now(),
+        finishedAt: null,
+        logs: [
+          {
+            id: 1,
+            level: 'info',
+            message: prepareTaskMode === 'manual' ? '正在安装 Python 运行时' : '正在检查 uv 环境',
+          },
+        ],
+      } as typeof prepareTaskState;
+      return prepareTaskState;
+    }
+    if (path === '/api/app/setup-environment-cancel' && init?.method === 'POST') {
+      prepareTaskState = {
+        state: 'cancelled',
+        step: 'idle',
+        canCancel: false,
+        error: null,
+        logs: [
+          ...prepareTaskState.logs,
+          { id: prepareTaskState.logs.length + 1, level: 'info', message: '已取消核心环境准备' },
+        ],
+      };
+      return { success: true };
+    }
+    throw new Error(`Unexpected host API path: ${path}`);
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useRealTimers();
@@ -275,6 +349,7 @@ describe('Setup takeover flow', () => {
     };
     prepareTaskStatusCalls = 0;
     prepareTaskMode = 'instant-success';
+    hostApiFetchMock.mockImplementation(handleSetupEnvironmentHostApi);
     invokeIpcMock.mockImplementation(async (channel: string) => {
       if (channel === 'setup:environment-status') {
         return environmentState;
@@ -384,7 +459,7 @@ describe('Setup takeover flow', () => {
         };
       }
 
-      throw new Error(`Unexpected host API path: ${path}`);
+      return handleSetupEnvironmentHostApi(path, init);
     });
 
     render(<Setup />);
@@ -445,7 +520,7 @@ describe('Setup takeover flow', () => {
         };
       }
 
-      throw new Error(`Unexpected host API path: ${path}`);
+      return handleSetupEnvironmentHostApi(path, init);
     });
 
     render(<Setup />);
@@ -510,7 +585,7 @@ describe('Setup takeover flow', () => {
         };
       }
 
-      throw new Error(`Unexpected host API path: ${path}`);
+      return handleSetupEnvironmentHostApi(path, init);
     });
 
     render(<Setup />);
@@ -574,7 +649,7 @@ describe('Setup takeover flow', () => {
         return Promise.resolve({ success: true });
       }
 
-      return Promise.reject(new Error(`Unexpected host API path: ${path}`));
+      return handleSetupEnvironmentHostApi(path, init);
     });
 
     render(<Setup />);
@@ -649,7 +724,7 @@ describe('Setup takeover flow', () => {
         return { success: true };
       }
 
-      throw new Error(`Unexpected host API path: ${path}`);
+      return handleSetupEnvironmentHostApi(path, init);
     });
 
     render(<Setup />);
@@ -759,7 +834,7 @@ describe('Setup takeover flow', () => {
         return { success: true };
       }
 
-      throw new Error(`Unexpected host API path: ${path}`);
+      return handleSetupEnvironmentHostApi(path, init);
     });
 
     render(<Setup />);
@@ -869,7 +944,7 @@ describe('Setup takeover flow', () => {
         });
       }
 
-      return Promise.reject(new Error(`Unexpected host API path: ${path}`));
+      return handleSetupEnvironmentHostApi(path, init);
     });
 
     render(<Setup />);
@@ -968,7 +1043,7 @@ describe('Setup takeover flow', () => {
         });
       }
 
-      return Promise.reject(new Error(`Unexpected host API path: ${path}`));
+      return handleSetupEnvironmentHostApi(path, init);
     });
 
     render(<Setup />);
@@ -1040,7 +1115,7 @@ describe('Setup takeover flow', () => {
         });
       }
 
-      return Promise.reject(new Error(`Unexpected host API path: ${path}`));
+      return handleSetupEnvironmentHostApi(path, init);
     });
 
     render(<Setup />);
@@ -1082,7 +1157,10 @@ describe('Setup takeover flow', () => {
     });
 
     expect(screen.queryByRole('button', { name: '取消准备' })).not.toBeInTheDocument();
-    expect(invokeIpcMock).toHaveBeenCalledWith('setup:prepare-environment-cancel');
+    expect(hostApiFetchMock).toHaveBeenCalledWith(
+      '/api/app/setup-environment-cancel',
+      expect.objectContaining({ method: 'POST' }),
+    );
   });
 
   it('renders the live enhancement status below the action row so log text does not shove footer actions around', async () => {
@@ -1135,7 +1213,7 @@ describe('Setup takeover flow', () => {
         });
       }
 
-      return Promise.reject(new Error(`Unexpected host API path: ${path}`));
+      return handleSetupEnvironmentHostApi(path, init);
     });
 
     render(<Setup />);
@@ -1224,7 +1302,7 @@ describe('Setup takeover flow', () => {
         return Promise.resolve({ success: true });
       }
 
-      return Promise.reject(new Error(`Unexpected host API path: ${path}`));
+      return handleSetupEnvironmentHostApi(path, init);
     });
 
     render(<Setup />);
@@ -1340,7 +1418,7 @@ describe('Setup takeover flow', () => {
         return Promise.resolve({ success: true });
       }
 
-      return Promise.reject(new Error(`Unexpected host API path: ${path}`));
+      return handleSetupEnvironmentHostApi(path, init);
     });
 
     render(<Setup />);
@@ -1427,7 +1505,7 @@ describe('Setup takeover flow', () => {
         return Promise.resolve({ success: true });
       }
 
-      return Promise.reject(new Error(`Unexpected host API path: ${path}`));
+      return handleSetupEnvironmentHostApi(path, init);
     });
 
     render(<Setup />);
@@ -1528,7 +1606,7 @@ describe('Setup takeover flow', () => {
         return Promise.resolve({ success: true });
       }
 
-      return Promise.reject(new Error(`Unexpected host API path: ${path}`));
+      return handleSetupEnvironmentHostApi(path, init);
     });
 
     render(<Setup />);
@@ -1639,7 +1717,7 @@ describe('Setup takeover flow', () => {
         return Promise.resolve({ success: true });
       }
 
-      return Promise.reject(new Error(`Unexpected host API path: ${path}`));
+      return handleSetupEnvironmentHostApi(path, init);
     });
 
     render(<Setup />);

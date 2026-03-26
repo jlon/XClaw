@@ -47,11 +47,24 @@ function cleanupUnnecessaryFiles(dir) {
 
   const REMOVE_DIRS = new Set([
     'test', 'tests', '__tests__', '.github', 'examples', 'example',
+    '.nyc_output', 'coverage', 'typings', '.vscode', '.idea',
+    'benchmark', 'benchmarks', 'fixtures',
   ]);
-  const REMOVE_FILE_EXTS = ['.d.ts', '.d.ts.map', '.js.map', '.mjs.map', '.ts.map', '.markdown'];
+  const REMOVE_FILE_EXTS = [
+    '.d.ts', '.d.ts.map', '.d.mts', '.d.cts',
+    '.ts', '.mts', '.cts',
+    '.js.map', '.mjs.map', '.cjs.map', '.ts.map', '.css.map',
+    '.markdown', '.scss', '.sass', '.less',
+  ];
   const REMOVE_FILE_NAMES = new Set([
     '.DS_Store', 'README.md', 'CHANGELOG.md', 'LICENSE.md', 'CONTRIBUTING.md',
-    'tsconfig.json', '.npmignore', '.eslintrc', '.prettierrc', '.editorconfig',
+    'tsconfig.json', 'tsconfig.build.json', 'tsconfig.base.json',
+    '.npmignore', '.eslintrc', '.prettierrc', '.editorconfig',
+    '.eslintrc.json', '.eslintrc.js', '.eslintrc.cjs',
+    'jest.config.js', 'jest.config.ts', 'vitest.config.ts',
+    'Makefile', 'binding.gyp', '.travis.yml', '.gitattributes',
+    'LICENSE', 'LICENSE.txt', 'LICENCE', 'LICENCE.txt', 'COPYING',
+    'NOTICE', 'NOTICE.txt', 'AUTHORS', 'AUTHORS.txt',
   ]);
 
   function walk(currentDir) {
@@ -359,6 +372,22 @@ function bundlePlugin(nodeModulesRoot, npmName, destDir) {
   return true;
 }
 
+// ── File counter ────────────────────────────────────────────────────────────
+function countFiles(dir) {
+  let count = 0;
+  const walk = (d) => {
+    let entries;
+    try { entries = readdirSync(d, { withFileTypes: true }); } catch { return; }
+    for (const e of entries) {
+      const p = join(d, e.name);
+      if (e.isDirectory()) walk(p);
+      else count++;
+    }
+  };
+  walk(dir);
+  return count;
+}
+
 // ── Main hook ────────────────────────────────────────────────────────────────
 
 exports.default = async function afterPack(context) {
@@ -366,6 +395,7 @@ exports.default = async function afterPack(context) {
   const platform = context.electronPlatformName; // 'win32' | 'darwin' | 'linux'
   const arch = resolveArch(context.arch);
   const { pruneNodeLlamaCppPackages } = await import('./openclaw-bundle-pruning.mjs');
+  const { execSync } = require('child_process');
 
   console.log(`[after-pack] Target: ${platform}/${arch}`);
 
@@ -383,30 +413,24 @@ exports.default = async function afterPack(context) {
   const dest = join(openclawRoot, 'node_modules');
   const nodeModulesRoot = join(__dirname, '..', 'node_modules');
   const pluginsDestRoot = join(resourcesDir, 'openclaw-plugins');
+  const preinstalledSkillsRoot = join(resourcesDir, 'preinstalled-skills');
 
   if (!existsSync(src)) {
     console.warn('[after-pack] ⚠️  build/openclaw/node_modules not found. Run bundle-openclaw first.');
     return;
   }
 
-  // 1. Copy node_modules (electron-builder skips it due to .gitignore)
-  const depCount = readdirSync(src, { withFileTypes: true })
-    .filter(d => d.isDirectory() && d.name !== '.bin')
-    .length;
-
-  console.log(`[after-pack] Copying ${depCount} openclaw dependencies to ${dest} ...`);
-  cpSync(src, dest, { recursive: true });
-  console.log('[after-pack] ✅ openclaw node_modules copied.');
+  // First, copy the openclaw codebase since it's completely missing from resources/ now
+  // (we removed it from electron-builder.config.cjs files array)
+  console.log(`[after-pack] Copying full openclaw build to ${openclawRoot} ...`);
+  mkdirSync(openclawRoot, { recursive: true });
+  cpSync(join(__dirname, '..', 'build', 'openclaw'), openclawRoot, { recursive: true });
 
   // Patch broken modules whose CJS transpiled output sets module.exports = undefined,
   // causing TypeError in Node.js 22+ ESM interop.
   patchBrokenModules(dest);
 
   // 1.1 Bundle OpenClaw plugins directly from node_modules into packaged resources.
-  //     This is intentionally done in afterPack (not extraResources) because:
-  //     - electron-builder silently skips extraResources entries whose source
-  //       directory doesn't exist (build/openclaw-plugins/ may not be pre-generated)
-  //     - node_modules/ is excluded by .gitignore so the deps copy must be manual
   const BUNDLED_PLUGINS = [
     { npmName: '@soimy/dingtalk', pluginId: 'dingtalk' },
     { npmName: '@openclaw-china/wecom', pluginId: 'wecom' },
@@ -432,10 +456,26 @@ exports.default = async function afterPack(context) {
     }
   }
 
+  // Also copy preinstalled-skills
+  console.log(`[after-pack] Copying preinstalled skills to ${preinstalledSkillsRoot} ...`);
+  const buildSkillsPath = join(__dirname, '..', 'build', 'preinstalled-skills');
+  if (existsSync(buildSkillsPath)) {
+    mkdirSync(preinstalledSkillsRoot, { recursive: true });
+    cpSync(buildSkillsPath, preinstalledSkillsRoot, { recursive: true });
+  }
+
   // 2. General cleanup on the full openclaw directory (not just node_modules)
   console.log('[after-pack] 🧹 Cleaning up unnecessary files ...');
   const removedRoot = cleanupUnnecessaryFiles(openclawRoot);
   console.log(`[after-pack] ✅ Removed ${removedRoot} unnecessary files/directories.`);
+
+  // 2b. Remove @types/* packages — pure TypeScript declarations, never needed at runtime
+  const typesDir = join(dest, '@types');
+  if (existsSync(typesDir)) {
+    const typesBefore = countFiles(typesDir);
+    rmSync(typesDir, { recursive: true, force: true });
+    console.log(`[after-pack] ✅ Removed @types/ (${typesBefore} files) — not needed at runtime.`);
+  }
 
   // 3. Platform-specific: strip koffi non-target platform binaries
   const koffiRemoved = cleanupKoffi(dest, platform, arch);
@@ -453,4 +493,34 @@ exports.default = async function afterPack(context) {
   if (llamaRemoved.length > 0) {
     console.log(`[after-pack] ✅ node-llama-cpp: removed ${llamaRemoved.length} non-target or accelerator variants.`);
   }
+
+  // 5. Pack read-only resources into ASAR for installer speed.
+  //    openclaw and openclaw-plugins MUST stay unpacked because:
+  //    - Gateway process needs a real cwd (OS chdir can't enter .asar)
+  //    - Handoff launcher runs with ELECTRON_RUN_AS_NODE=1 (no ASAR support)
+  //    Only preinstalled-skills is safe to pack (pure read-only data via Electron fs).
+  if (existsSync(preinstalledSkillsRoot)) {
+    const skillsAsar = join(resourcesDir, 'preinstalled-skills.asar');
+    console.log(`[after-pack] 📦 Packing preinstalled-skills into ASAR ...`);
+    execSync(`npx asar pack "${preinstalledSkillsRoot}" "${skillsAsar}"`, { stdio: 'inherit' });
+    rmSync(preinstalledSkillsRoot, { recursive: true, force: true });
+    console.log(`[after-pack] ✅ preinstalled-skills.asar created.`);
+  }
+
+  // 6. Windows-only: pack openclaw/node_modules into a single tar to slash
+  //    NSIS file-write count from ~15k to ~3k.  The Electron main process
+  //    extracts it on first launch (Windows 10+ ships tar.exe).
+  if (platform === 'win32' && existsSync(dest)) {
+    const tarName = 'openclaw-nm.tar';
+    const tarPath = join(resourcesDir, tarName);
+    const nmCount = countFiles(dest);
+    console.log(`[after-pack] 📦 Win32: packing openclaw/node_modules (${nmCount} files) into ${tarName} ...`);
+    execSync(`tar -cf "${tarPath}" -C "${openclawRoot}" node_modules`, { stdio: 'inherit' });
+    rmSync(dest, { recursive: true, force: true });
+    const tarSize = statSync(tarPath).size;
+    console.log(`[after-pack] ✅ ${tarName} created (${(tarSize / 1024 / 1024).toFixed(1)} MB), node_modules removed.`);
+  }
+
+  const finalFileCount = countFiles(resourcesDir);
+  console.log(`[after-pack] 📊 Final resources file count: ${finalFileCount}`);
 };

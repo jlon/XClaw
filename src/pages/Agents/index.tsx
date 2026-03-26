@@ -17,6 +17,9 @@ import {
   workbenchPrimaryToolbarButtonClasses,
   workbenchToolbarButtonClasses,
 } from '@/components/layout/workbench-button-styles';
+import { WorkbenchHeader } from '@/components/layout/WorkbenchHeader';
+import { WorkbenchHeaderTitleBlock } from '@/components/layout/WorkbenchHeaderTitleBlock';
+import { WorkbenchHeaderActions } from '@/components/layout/WorkbenchHeaderActions';
 import { WorkspacePageFrame, WorkspacePageLoading, WorkspacePageScrollArea, WorkspacePageShell } from '@/components/layout/WorkspacePage';
 import { useAgentsStore } from '@/stores/agents';
 import { useGatewayStore } from '@/stores/gateway';
@@ -87,10 +90,6 @@ const browsePaneClasses =
   'app-pane-surface min-h-[600px] rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated))] p-4 shadow-sm';
 const detailWorkbenchClasses =
   'app-pane-surface min-h-[600px] rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated))] p-4 shadow-sm';
-const pageHeaderClasses =
-  'mb-3 flex items-center justify-between gap-4';
-const pageTitleClasses =
-  'text-[19px] md:text-[20px] font-semibold leading-[1.05] tracking-tight text-foreground';
 type DetailTab = 'persona' | 'binding';
 type PickerPlacement = 'top' | 'bottom';
 
@@ -729,14 +728,19 @@ export function Agents() {
   return (
       <WorkspacePageFrame>
       <WorkspacePageShell style={{ paddingTop: '0.75rem', paddingBottom: '1rem' }}>
-        <div className={pageHeaderClasses}>
-          <div className="min-w-0 flex-1">
-            <h1 className={pageTitleClasses}>{t('workbench.title')}</h1>
-          </div>
-          <div className="flex shrink-0 items-center justify-end">
-            <AgentModeSwitch value={browseMode} onChange={handleBrowseModeChange} />
-          </div>
-        </div>
+        <WorkbenchHeader
+          titleBlock={
+            <WorkbenchHeaderTitleBlock
+              title={t('title')}
+              subtitle={t('subtitle')}
+            />
+          }
+          actions={
+            <WorkbenchHeaderActions>
+              <AgentModeSwitch value={browseMode} onChange={handleBrowseModeChange} />
+            </WorkbenchHeaderActions>
+          }
+        />
 
         <WorkspacePageScrollArea>
           {gatewayStatus.state !== 'running' && (

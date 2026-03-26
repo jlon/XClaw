@@ -1,4 +1,5 @@
 import type { SkillCatalogItem, SkillChatDraft, SkillChatDraftContext } from '@/types/skill';
+import { generateUuid } from '@/lib/uuid';
 
 const SKILLHUB_INSTALL_GUIDE_URL = 'https://skillhub-1388575217.cos.ap-guangzhou.myqcloud.com/install/skillhub.md';
 
@@ -9,9 +10,7 @@ type GitHubImportDraftParams = {
 };
 
 const createDraftId = (prefix: string): string =>
-  typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-    ? `${prefix}-${crypto.randomUUID()}`
-    : `${prefix}-${Date.now()}`;
+  `${prefix}-${generateUuid()}`;
 
 const normalizeReturnContext = (context?: SkillChatDraftContext): SkillChatDraftContext | undefined => {
   if (!context) return undefined;

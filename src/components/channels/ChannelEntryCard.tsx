@@ -76,7 +76,7 @@ export function ChannelEntryCard({
               event.stopPropagation();
               onSelect();
             }}
-            className="h-8 rounded-[999px] px-3.5 text-[11.5px] font-semibold"
+            className="h-7 rounded-md px-3.5 text-[11.5px] font-medium"
           >
             {primaryActionLabel}
           </Button>

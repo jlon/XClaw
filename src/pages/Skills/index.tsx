@@ -34,6 +34,8 @@ import {
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { useSkillsStore } from '@/stores/skills';
 import { useGatewayStore } from '@/stores/gateway';
+import { WorkbenchHeader } from '@/components/layout/WorkbenchHeader';
+import { WorkbenchHeaderTitleBlock } from '@/components/layout/WorkbenchHeaderTitleBlock';
 import { WorkspacePageFrame, WorkspacePageLoading, WorkspacePageScrollArea, WorkspacePageShell } from '@/components/layout/WorkspacePage';
 import {
   workbenchPrimaryToolbarButtonClasses,
@@ -156,9 +158,11 @@ function resolveSkillVisualTone(skill: Pick<Skill, 'provenance' | 'providerId'>)
 function SkillCardGlyph({
   skillId,
   tone,
+  icon,
 }: {
   skillId: string;
   tone: SkillVisualTone;
+  icon?: string;
 }) {
   const toneClasses = skillVisualToneClasses[tone];
 
@@ -171,7 +175,11 @@ function SkillCardGlyph({
       )}
     >
       <span className={cn('absolute inset-x-2 bottom-1.5 h-3 rounded-full blur-md', toneClasses.halo)} />
-      <Puzzle className={cn('relative h-[19px] w-[19px]', toneClasses.accent)} strokeWidth={2.1} />
+      {icon ? (
+        <span className={cn('relative flex items-center justify-center text-[20px] leading-none', toneClasses.accent)}>{icon}</span>
+      ) : (
+        <Puzzle className={cn('relative h-[19px] w-[19px]', toneClasses.accent)} strokeWidth={2.1} />
+      )}
     </div>
   );
 }
@@ -556,7 +564,7 @@ function SkillCard({
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-start gap-4">
-          <SkillCardGlyph skillId={skill.id} tone={tone} />
+          <SkillCardGlyph skillId={skill.id} tone={tone} icon={skill.icon} />
           <div className="min-w-0 pt-0.5">
             <div className="flex min-w-0 items-center gap-2">
               <h3 className="truncate text-[15px] font-semibold tracking-tight text-foreground">{skill.name}</h3>
@@ -760,7 +768,7 @@ function ProviderSearchDialog({
                   const description = resolveLocalizedSkillDescription(item, t);
                   return (
                     <div key={item.id} className={providerResultClasses}>
-                      <SkillCardGlyph skillId={item.id} tone={resolveSkillVisualTone({ providerId: item.providerId })} />
+                      <SkillCardGlyph skillId={item.id} tone={resolveSkillVisualTone({ providerId: item.providerId })} icon={item.icon} />
                       <div className="min-w-0 flex-1">
                         <div className="min-w-0">
                           <div className="flex min-w-0 items-start gap-2">
@@ -1203,68 +1211,69 @@ export function Skills() {
   return (
     <WorkspacePageFrame>
       <WorkspacePageShell className="app-skills-page-shell">
-        <div className="mb-6 shrink-0 space-y-5">
-          <div className="space-y-1.5">
-            <h1 className="text-[28px] font-semibold tracking-tight text-foreground md:text-[31px]">
-              {t('title', { defaultValue: '技能管理' })}
-            </h1>
-            <p className="max-w-2xl text-[13px] font-medium leading-[1.55] text-foreground/62 md:text-[14px]">
-              {t('subtitle', { defaultValue: '为你的智能体提供预封装且可重复的最佳实践与工具' })}
-            </p>
-          </div>
+        <WorkbenchHeader
+          titleBlock={(
+            <WorkbenchHeaderTitleBlock
+              title={t('title', { defaultValue: '技能管理' })}
+              subtitle={t('subtitle', { defaultValue: '为你的智能体提供预封装且可重复的最佳实践与工具' })}
+            />
+          )}
+          summary={(
+            <div className="space-y-4">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center">
+                <div className={cn(searchFieldClasses, 'h-9 flex-1 rounded-md px-3 py-0')}>
+                  <Puzzle className="h-4.5 w-4.5 shrink-0 text-muted-foreground" />
+                  <input
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    placeholder={t('search', { defaultValue: '搜索已经安装的技能' })}
+                    className="ml-3 flex-1 bg-transparent p-0 text-[14px] font-medium text-foreground outline-none placeholder:text-foreground/42"
+                  />
+                  {searchQuery ? (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      className="shrink-0 rounded-sm px-1.5 py-1 text-foreground/42 transition-colors hover:bg-[hsl(var(--surface-hover)/0.52)] hover:text-foreground"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  ) : null}
+                </div>
 
-          <div className="flex flex-col gap-3 md:flex-row md:items-center">
-            <div className={cn(searchFieldClasses, 'h-9 flex-1 rounded-md px-3 py-0')}>
-              <Puzzle className="h-4.5 w-4.5 shrink-0 text-muted-foreground" />
-              <input
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder={t('search', { defaultValue: '搜索已经安装的技能' })}
-                className="ml-3 flex-1 bg-transparent p-0 text-[14px] font-medium text-foreground outline-none placeholder:text-foreground/42"
-              />
-              {searchQuery ? (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="shrink-0 rounded-sm px-1.5 py-1 text-foreground/42 transition-colors hover:bg-[hsl(var(--surface-hover)/0.52)] hover:text-foreground"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              ) : null}
+                <DropdownMenu open={showAddMenu} onOpenChange={setShowAddMenu}>
+                  <DropdownMenuTrigger asChild>
+                    <Button type="button" className={cn(workbenchPrimaryToolbarButtonClasses, 'min-w-[148px] justify-center gap-2')}>
+                      <Plus className="h-4 w-4" />
+                      {t('addSkill', { defaultValue: '添加技能' })}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-[248px] p-1.5">
+                    <DropdownMenuItem onSelect={() => setGithubImportOpen(true)} className="gap-2">
+                      <Github className="h-4 w-4 text-foreground/72" />
+                      {t('addMenu.importGithub', { defaultValue: '从 GitHub 导入' })}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => openProviderSearch('clawhub')} className="gap-2">
+                      <Globe className="h-4 w-4 text-[#d85d45]" />
+                      {t('addMenu.searchClawHub', { defaultValue: '从 ClawHub 搜索' })}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => openProviderSearch('skillhub')} className="gap-2">
+                      <Puzzle className="h-4 w-4 text-[#b37b5d]" />
+                      {t('addMenu.searchSkillHub', { defaultValue: '从 SkillHub 搜索' })}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 text-[12px] font-medium text-foreground/48">
+                <span>{t('summary.total', { defaultValue: '{{count}} 个技能', count: installedSummary.total })}</span>
+                <span>·</span>
+                <span>{t('summary.enabled', { defaultValue: '{{count}} 个已启用', count: installedSummary.enabled })}</span>
+                <span>·</span>
+                <span>{t('summary.preinstalled', { defaultValue: '{{count}} 个内置技能', count: installedSummary.preinstalled })}</span>
+              </div>
             </div>
-
-            <DropdownMenu open={showAddMenu} onOpenChange={setShowAddMenu}>
-              <DropdownMenuTrigger asChild>
-                <Button type="button" className={cn(workbenchPrimaryToolbarButtonClasses, 'min-w-[148px] justify-center gap-2')}>
-                  <Plus className="h-4 w-4" />
-                  {t('addSkill', { defaultValue: '添加技能' })}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[248px] p-1.5">
-                <DropdownMenuItem onSelect={() => setGithubImportOpen(true)} className="gap-2">
-                  <Github className="h-4 w-4 text-foreground/72" />
-                  {t('addMenu.importGithub', { defaultValue: '从 GitHub 导入' })}
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => openProviderSearch('clawhub')} className="gap-2">
-                  <Globe className="h-4 w-4 text-[#d85d45]" />
-                  {t('addMenu.searchClawHub', { defaultValue: '从 ClawHub 搜索' })}
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => openProviderSearch('skillhub')} className="gap-2">
-                  <Puzzle className="h-4 w-4 text-[#b37b5d]" />
-                  {t('addMenu.searchSkillHub', { defaultValue: '从 SkillHub 搜索' })}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 text-[12px] font-medium text-foreground/48">
-            <span>{t('summary.total', { defaultValue: '{{count}} 个技能', count: installedSummary.total })}</span>
-            <span>·</span>
-            <span>{t('summary.enabled', { defaultValue: '{{count}} 个已启用', count: installedSummary.enabled })}</span>
-            <span>·</span>
-            <span>{t('summary.preinstalled', { defaultValue: '{{count}} 个内置技能', count: installedSummary.preinstalled })}</span>
-          </div>
-        </div>
+          )}
+        />
 
         <WorkspacePageScrollArea id="skills-page-scroll-area">
           {showGatewayWarning ? (

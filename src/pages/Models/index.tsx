@@ -21,7 +21,9 @@ import {
   createProviderAccountFromDialog,
   type AddProviderDialogOptions,
 } from '@/components/settings/providers/provider-account-create';
-import { ModelsWorkbenchHeader } from './components/ModelsWorkbenchHeader';
+import { WorkbenchHeader } from '@/components/layout/WorkbenchHeader';
+import { WorkbenchHeaderTitleBlock } from '@/components/layout/WorkbenchHeaderTitleBlock';
+import { WorkbenchHeaderActions } from '@/components/layout/WorkbenchHeaderActions';
 import { ProviderBoard } from './components/ProviderBoard';
 import { ProviderInspector } from './components/ProviderInspector';
 import { UsageBreakdownChart } from './components/UsageBreakdownChart';
@@ -409,7 +411,7 @@ export function Models() {
       setShowAddProviderDialog(false);
       setSelectedProviderAccountId(accountId);
       setEditingProviderAccountId(null);
-      toast.success(t('settings:aiProviders.toast.added', '已添加 Provider'));
+      // Removed duplicate toast: toast.success(t('settings:aiProviders.toast.added', '已添加 Provider'));
     } catch (error) {
       toast.error(`${t('settings:aiProviders.toast.failedAdd', '添加 Provider 失败')}: ${error}`);
     }
@@ -578,19 +580,25 @@ export function Models() {
 
   return (
     <WorkspacePageFrame>
-      <WorkspacePageShell className="max-w-[1720px]" data-testid="models-page-root" data-workbench-mode={workbenchMode}>
-        <ModelsWorkbenchHeader
-          title={t('dashboard:models.title')}
-          subtitle={t('dashboard:models.subtitle')}
-          actions={(
-            <Button
-              type="button"
-              className={workbenchPrimaryToolbarButtonClasses}
-              onClick={() => setShowAddProviderDialog(true)}
-            >
-              {t('settings:aiProviders.add', '添加提供商')}
-            </Button>
-          )}
+      <WorkspacePageShell data-testid="models-page-root" data-workbench-mode={workbenchMode}>
+        <WorkbenchHeader
+          titleBlock={
+            <WorkbenchHeaderTitleBlock
+              title={t('dashboard:models.title')}
+              subtitle={t('dashboard:models.subtitle')}
+            />
+          }
+          actions={
+            <WorkbenchHeaderActions>
+              <Button
+                type="button"
+                className={workbenchPrimaryToolbarButtonClasses}
+                onClick={() => setShowAddProviderDialog(true)}
+              >
+                {t('settings:aiProviders.add', '添加提供商')}
+              </Button>
+            </WorkbenchHeaderActions>
+          }
         />
         <div ref={contentRef} className="min-h-0 flex flex-1 flex-col">
           <WorkspacePageScrollArea className="space-y-6 pt-2">

@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { hostApiFetch } from '@/lib/host-api';
+import { generateUuid } from '@/lib/uuid';
 import { invokeIpc } from '@/lib/api-client';
 import { getModelOptionHint, getModelOptionLabel, normalizeModelOption, type ModelOption } from '@/lib/model-options';
 import { cn } from '@/lib/utils';
@@ -443,7 +444,7 @@ export function ChatInput({
       // Add placeholder entries immediately
       const tempIds: string[] = [];
       for (const filePath of result.filePaths) {
-        const tempId = crypto.randomUUID();
+        const tempId = generateUuid();
         tempIds.push(tempId);
         // Handle both Unix (/) and Windows (\) path separators
         const fileName = filePath.split(/[\\/]/).pop() || 'file';
@@ -512,7 +513,7 @@ export function ChatInput({
 
   const stageBufferFiles = useCallback(async (files: globalThis.File[]) => {
     for (const file of files) {
-      const tempId = crypto.randomUUID();
+      const tempId = generateUuid();
       setAttachments(prev => [...prev, {
         id: tempId,
         fileName: file.name,

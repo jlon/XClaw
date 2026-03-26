@@ -143,26 +143,38 @@ export const createSetupEnvironmentTaskController = (
         pushLog('info', 'uv is already available');
       }
 
+      const initialStudioStatus = uvInstalled
+        ? await dependencies.inspectStudioPythonEnv().catch(() => null)
+        : null;
+
       setSnapshot({ step: 'python' });
-      pushLog('info', 'Preparing managed Python 3.12');
-      await dependencies.setupManagedPython({
-        signal,
-        onLog: (entry) => {
-          pushLog(entry.level === 'error' ? 'error' : 'info', entry.message);
-        },
-      });
+      if (initialStudioStatus?.interpreterReady) {
+        pushLog('info', 'Managed Python 3.12 is already available');
+      } else {
+        pushLog('info', 'Preparing managed Python 3.12');
+        await dependencies.setupManagedPython({
+          signal,
+          onLog: (entry) => {
+            pushLog(entry.level === 'error' ? 'error' : 'info', entry.message);
+          },
+        });
+      }
 
       setSnapshot({ step: 'studio' });
-      pushLog('info', 'Preparing Studio Python dependencies');
-      const studio = await dependencies.ensureStudioPythonEnv({
-        signal,
-        onLog: (entry) => {
-          pushLog(entry.level === 'error' ? 'error' : 'info', entry.message);
-        },
-      });
+      if (initialStudioStatus?.dependenciesReady) {
+        pushLog('info', 'Studio Python dependencies already available');
+      } else {
+        pushLog('info', 'Preparing Studio Python dependencies');
+        const studio = await dependencies.ensureStudioPythonEnv({
+          signal,
+          onLog: (entry) => {
+            pushLog(entry.level === 'error' ? 'error' : 'info', entry.message);
+          },
+        });
 
-      if (!studio.dependenciesReady) {
-        throw new Error(studio.error || 'Studio dependencies are not ready');
+        if (!studio.dependenciesReady) {
+          throw new Error(studio.error || 'Studio dependencies are not ready');
+        }
       }
 
       setSnapshot({ step: 'verify' });
