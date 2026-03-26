@@ -2,7 +2,8 @@
  * Settings State Store
  * Manages application settings
  */
-import { create } from 'zustand';
+import { createWithEqualityFn } from 'zustand/traditional';
+import { shallow } from 'zustand/shallow';
 import { persist } from 'zustand/middleware';
 import i18n from '@/i18n';
 import { hostApiFetch } from '@/lib/host-api';
@@ -118,7 +119,7 @@ const defaultSettings = {
   initialized: false,
 };
 
-export const useSettingsStore = create<SettingsState>()(
+export const useSettingsStore = createWithEqualityFn<SettingsState>()(
   persist(
     (set) => ({
       ...defaultSettings,
@@ -248,5 +249,6 @@ export const useSettingsStore = create<SettingsState>()(
         return nextState;
       },
     }
-  )
+  ),
+  shallow,
 );
