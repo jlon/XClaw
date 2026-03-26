@@ -11,6 +11,7 @@ import { buildCronSessionHistoryPath, isCronSessionKey } from './chat/cron-sessi
 import { executeLocalChatCommand } from './chat/local-command-router';
 import { enqueueLocalChatCommand, flushQueuedLocalChatCommands } from './chat/local-command-queue';
 import { normalizeLoadedSessions } from './chat/session-list-normalization';
+import { generateUuid } from '@/lib/uuid';
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -953,7 +954,7 @@ async function sendGatewayChatMessage(
     role: 'user',
     content: trimmed || (attachments?.length ? '(file attached)' : ''),
     timestamp: nowMs / 1000,
-    id: crypto.randomUUID(),
+    id: generateUuid(),
     _attachedFiles: attachments?.map((attachment) => ({
       fileName: attachment.fileName,
       mimeType: attachment.mimeType,
@@ -1032,7 +1033,7 @@ async function sendGatewayChatMessage(
   setTimeout(checkStuck, 30_000);
 
   try {
-    const idempotencyKey = crypto.randomUUID();
+    const idempotencyKey = generateUuid();
     const hasMedia = Boolean(attachments && attachments.length > 0);
     if (hasMedia) {
       console.log('[sendMessage] Media paths:', attachments!.map((attachment) => attachment.stagedPath));

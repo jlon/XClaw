@@ -15,7 +15,7 @@ interface UsageBreakdownChartProps {
 
 const formatTokenCount = (value: number): string => Intl.NumberFormat().format(value);
 const formatUsageCost = (value: number): string => `$${value.toFixed(2)}`;
-const surfaceClass = 'app-insight-surface rounded-[14px] border border-[hsl(var(--border-subtle)/0.78)] px-3 py-2.5';
+const surfaceClass = 'app-insight-surface rounded-lg border border-[hsl(var(--border-subtle)/0.78)] px-3 py-2.5';
 const rowBaseClass = 'border-t border-[hsl(var(--border-subtle)/0.62)] py-2 first:border-t-0 first:pt-0 last:pb-0';
 
 const hasIncompleteCost = (groups: UsageGroup[]): boolean =>
@@ -99,7 +99,7 @@ export function UsageBreakdownChart({
             <button
               key={group.label}
               type="button"
-              className={cn('w-full rounded-[10px] px-1.5 -mx-1.5 text-left transition-colors hover:bg-[hsl(var(--surface-hover)/0.56)] hover:text-foreground', rowBaseClass)}
+              className={cn('w-full rounded-sm px-1.5 -mx-1.5 text-left transition-colors hover:bg-[hsl(var(--surface-hover)/0.56)] hover:text-foreground', rowBaseClass)}
               data-testid="usage-breakdown-row"
               onClick={() => onSelect(group.label)}
             >

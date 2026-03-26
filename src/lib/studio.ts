@@ -144,6 +144,13 @@ export async function fetchStudioRuntime(): Promise<StudioRuntimeSnapshot> {
   return normalizeRuntimeResponse(response);
 }
 
+export async function startStudioRuntime(): Promise<StudioRuntimeSnapshot> {
+  const response = await hostApiFetch<unknown>('/api/studio/runtime/start', {
+    method: 'POST',
+  });
+  return normalizeRuntimeResponse(response);
+}
+
 export async function retryStudioRuntime(
   options: { repairEnvironment?: boolean } = {},
 ): Promise<StudioRuntimeSnapshot> {

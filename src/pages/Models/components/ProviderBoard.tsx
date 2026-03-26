@@ -37,7 +37,7 @@ const gridClassMap = {
 } as const;
 
 const railListClass = 'space-y-2';
-const railRowClass = 'w-full rounded-[14px] border border-[hsl(var(--border-subtle)/0.78)] bg-[hsl(var(--surface-elevated)/0.98)] px-3 py-2.5 text-left transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)]';
+const railRowClass = 'w-full rounded-md border border-[hsl(var(--border-subtle)/0.78)] bg-[hsl(var(--surface-elevated)/0.98)] px-3 py-2.5 text-left transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)]';
 const railRowActiveClass = 'border-[hsl(var(--border-strong)/0.34)] bg-[hsl(var(--surface-elevated)/1)]';
 
 const resolvePrimaryAccountId = (
@@ -102,7 +102,7 @@ export const ProviderBoard = ({
         data-overflow-mode="clamp"
       >
         <div
-          className="rounded-[16px] border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.985)] px-4 py-3"
+          className="rounded-lg border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.985)] px-4 py-3"
           data-testid="models-provider-focus-header"
         >
           <div className="flex items-start justify-between gap-3">
@@ -202,13 +202,13 @@ export const ProviderBoard = ({
       data-overflow-mode="clamp"
     >
       {loading && summaries.length === 0 ? (
-        <div className="rounded-[16px] border border-[hsl(var(--border-subtle)/0.72)] bg-[hsl(var(--surface-elevated)/0.72)] px-4 py-6">
+        <div className="rounded-lg border border-[hsl(var(--border-subtle)/0.72)] bg-[hsl(var(--surface-elevated)/0.72)] px-4 py-6">
           <p className="text-[14px] font-semibold text-foreground">{boardTitle}</p>
           <p className="mt-1 text-[12px] text-muted-foreground">{boardHint}</p>
         </div>
       ) : null}
       {!loading && summaries.length === 0 ? (
-        <div className="rounded-[16px] border border-dashed border-[hsl(var(--border-subtle)/0.76)] bg-[hsl(var(--surface-elevated)/0.72)] px-4 py-5">
+        <div className="rounded-lg border border-dashed border-[hsl(var(--border-subtle)/0.76)] bg-[hsl(var(--surface-elevated)/0.72)] px-4 py-5">
           <p className="text-[14px] font-semibold text-foreground">{emptyTitle}</p>
           <p className="mt-1 text-[12px] text-muted-foreground">{emptyHint}</p>
         </div>

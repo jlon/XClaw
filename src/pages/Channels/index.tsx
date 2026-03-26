@@ -25,6 +25,7 @@ import { ChannelAccountList } from '@/components/channels/ChannelAccountList';
 import { ChannelConfigEditor } from '@/components/channels/ChannelConfigEditor';
 import { getChannelBoardColumnCount, getChannelCenterLayoutMode } from '@/lib/channel-center-layout';
 import { CHANNEL_FIELD_REGISTRY, V1_CHANNEL_REGISTRY_ORDER } from '@/lib/channel-registry';
+import { generateUuid } from '@/lib/uuid';
 import { cn } from '@/lib/utils';
 import { evaluateWeixinGuardian, type WeixinGuardianEvaluation } from '../../../shared/weixin-guardian';
 import {
@@ -85,14 +86,14 @@ type RegistryChannelType = keyof typeof CHANNEL_FIELD_REGISTRY;
 type EditorValue = string | boolean | number | string[];
 const FALLBACK_ACCOUNT_ID = 'default';
 
-const paneSurfaceClass = 'app-pane-surface min-w-0 rounded-[14px] border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] shadow-none';
-const searchFieldClass = 'workbench-motion-control h-8.5 rounded-[12px] border border-[hsl(var(--border-subtle)/0.48)] bg-[hsl(var(--surface-panel)/0.86)] pl-9 text-[12.5px] shadow-none placeholder:text-muted-foreground/52 hover:border-[hsl(var(--border-subtle)/0.72)] hover:bg-[hsl(var(--surface-elevated)/0.98)] focus-visible:border-[hsl(var(--border-strong)/0.52)] focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
-const railRowClass = 'workbench-motion-card group w-full rounded-[14px] border border-transparent px-2.5 py-2 text-left';
-const selectedRailCardClass = 'translate-y-[-1px] border-[hsl(var(--border-strong)/0.36)] bg-[hsl(var(--surface-elevated)/0.98)] text-foreground shadow-[0_6px_16px_hsl(var(--foreground)/0.035)]';
-const idleRailCardClass = 'bg-[hsl(var(--surface-panel)/0.58)] hover:border-[hsl(var(--border-subtle)/0.82)] hover:bg-[hsl(var(--surface-hover)/0.58)]';
-const railIconClass = 'flex h-9.5 w-9.5 shrink-0 items-center justify-center rounded-[13px] border border-[hsl(var(--border-subtle)/0.72)] bg-[hsl(var(--surface-elevated)/0.98)] shadow-none';
-const railMetaBadgeClass = 'inline-flex shrink-0 items-center rounded-full border border-[hsl(var(--border-subtle)/0.6)] bg-[hsl(var(--foreground)/0.035)] px-1.75 py-0.5 text-[10px] font-medium leading-none text-foreground/62';
-const railStateBadgeClass = 'inline-flex shrink-0 items-center rounded-full border border-[hsl(var(--border-subtle)/0.54)] bg-[hsl(var(--surface-elevated)/0.98)] px-2 py-0.5 text-[10px] font-medium leading-none text-foreground/68';
+const paneSurfaceClass = 'app-pane-surface min-w-0 rounded-xl border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] shadow-none';
+const searchFieldClass = 'workbench-motion-control h-8 rounded-md border border-[hsl(var(--border-subtle)/0.48)] bg-[hsl(var(--surface-panel)/0.86)] pl-9 text-[12.5px] shadow-sm placeholder:text-muted-foreground/52 hover:border-[hsl(var(--border-subtle)/0.72)] hover:bg-[hsl(var(--surface-elevated)/0.98)] focus-visible:border-[hsl(var(--border-strong)/0.52)] focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
+const railRowClass = 'workbench-motion-card group w-full rounded-md border border-transparent px-2.5 py-1.5 text-left select-none';
+const selectedRailCardClass = 'border-transparent bg-[hsl(var(--surface-active))] text-foreground shadow-none font-medium';
+const idleRailCardClass = 'bg-transparent hover:bg-[hsl(var(--surface-hover))]';
+const railIconClass = 'flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-transparent bg-transparent shadow-none';
+const railMetaBadgeClass = 'inline-flex shrink-0 items-center rounded-sm border border-transparent bg-[hsl(var(--foreground)/0.035)] px-1.5 py-0.5 text-[10px] font-medium leading-none text-foreground/62 select-none';
+const railStateBadgeClass = 'inline-flex shrink-0 items-center rounded-sm border border-transparent bg-[hsl(var(--surface-elevated)/0.98)] px-2 py-0.5 text-[10px] font-medium leading-none text-foreground/68 select-none';
 const sectionLabelClass = 'px-0.5 text-[10px] font-semibold uppercase tracking-[0.09em] text-muted-foreground/52';
 function isRegistryChannelType(channelType: string): channelType is RegistryChannelType {
   return channelType in CHANNEL_FIELD_REGISTRY;
@@ -1052,9 +1053,9 @@ export function Channels() {
   };
 
   const createNewAccountId = (channelType: string, existingAccounts: string[]): string => {
-    let nextAccountId = `${channelType}-${crypto.randomUUID().slice(0, 8)}`;
+    let nextAccountId = `${channelType}-${generateUuid().slice(0, 8)}`;
     while (existingAccounts.includes(nextAccountId)) {
-      nextAccountId = `${channelType}-${crypto.randomUUID().slice(0, 8)}`;
+      nextAccountId = `${channelType}-${generateUuid().slice(0, 8)}`;
     }
     return nextAccountId;
   };
@@ -1191,7 +1192,7 @@ export function Channels() {
     <WorkspacePageFrame>
       <WorkspacePageShell
         data-testid="channels-shell"
-        className="max-w-[1680px] app-channels-shell"
+        className="app-channels-shell"
       >
         <WorkbenchHeader
           className="app-channels-header"
@@ -1214,7 +1215,7 @@ export function Channels() {
                       value={activeQuery}
                       onChange={(event) => setActiveQuery(event.target.value)}
                       placeholder={t('searchPlaceholder')}
-                      className={cn(searchFieldClass, 'h-8 rounded-[12px]')}
+                      className={cn(searchFieldClass, 'h-8 rounded-md')}
                     />
                   </div>
 
@@ -1237,7 +1238,7 @@ export function Channels() {
 
         <WorkspacePageScrollArea data-testid="channels-scroll-area">
           {showGatewayStoppedBanner && (
-            <div className="app-insight-surface mb-6 flex items-center gap-3 rounded-[11px] border border-[hsl(var(--warning))/0.14] px-3.5 py-2.5 text-[hsl(var(--warning))]">
+            <div className="app-insight-surface mb-6 flex items-center gap-3 rounded-md border border-[hsl(var(--warning))/0.14] px-3.5 py-2.5 text-[hsl(var(--warning))]">
               <AlertCircle className="h-5 w-5" />
               <span className="text-sm font-medium">
                 {t('gatewayWarning')}
@@ -1246,7 +1247,7 @@ export function Channels() {
           )}
 
           {error && (
-            <div className="app-insight-surface mb-6 flex items-center gap-3 rounded-[11px] border border-destructive/16 px-3.5 py-2.5">
+            <div className="app-insight-surface mb-6 flex items-center gap-3 rounded-md border border-destructive/16 px-3.5 py-2.5">
               <AlertCircle className="h-5 w-5 text-destructive" />
               <span className="text-destructive text-sm font-medium">
                 {error}
@@ -1255,7 +1256,7 @@ export function Channels() {
           )}
 
           {showRuntimeWaitingBanner && (
-            <div className="app-insight-surface mb-6 rounded-[11px] border border-[hsl(var(--warning))/0.14] px-3.5 py-2.5 text-sm text-[hsl(var(--warning))]">
+            <div className="app-insight-surface mb-6 rounded-md border border-[hsl(var(--warning))/0.14] px-3.5 py-2.5 text-sm text-[hsl(var(--warning))]">
               {t('gatewayRuntimeUnavailable', { state: effectiveGatewayState })}
             </div>
           )}
@@ -1306,7 +1307,7 @@ export function Channels() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-7.5 rounded-[10px] px-2.25 text-[11.5px] font-medium text-foreground/64 shadow-none transition-colors hover:bg-[hsl(var(--surface-hover)/0.42)] hover:text-foreground"
+                        className="h-8 rounded-md px-2.5 text-[11.5px] font-medium text-foreground/64 shadow-sm transition-colors hover:bg-[hsl(var(--surface-hover)/0.42)] hover:text-foreground"
                         onClick={() => {
                           const nextChannel = unsupportedGroups[0] || allChannelTypes[0];
                           if (nextChannel) {
@@ -1360,7 +1361,7 @@ export function Channels() {
                                     </span>
                                     <div
                                       data-testid={`channel-rail-indicator-${channelType}`}
-                                      className={cn('h-2.5 w-2.5 shrink-0 rounded-[999px]', getConfiguredChannelRailTone(group.enabled))}
+                                      className={cn('h-2.5 w-2.5 shrink-0 rounded-full', getConfiguredChannelRailTone(group.enabled))}
                                     />
                                   </div>
                                 </div>
@@ -1403,7 +1404,7 @@ export function Channels() {
                                     <span className={railStateBadgeClass}>{t('available')}</span>
                                     <div
                                       data-testid={`channel-rail-indicator-${channelType}`}
-                                      className="status-indicator status-indicator-idle h-2.5 w-2.5 shrink-0 rounded-[999px]"
+                                      className="status-indicator status-indicator-idle h-2.5 w-2.5 shrink-0 rounded-full"
                                     />
                                   </div>
                                 </div>
@@ -1414,7 +1415,7 @@ export function Channels() {
                       )}
 
                       {filteredChannelTypes.length === 0 && (
-                        <div className="app-empty-surface rounded-[14px] px-3 py-4 text-xs text-muted-foreground">
+                        <div className="app-empty-surface rounded-md px-3 py-4 text-xs text-muted-foreground">
                           {t('emptySearch')}
                         </div>
                       )}

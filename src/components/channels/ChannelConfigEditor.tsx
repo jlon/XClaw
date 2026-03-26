@@ -71,10 +71,10 @@ interface ChannelConfigEditorProps {
 }
 
 const paneSurfaceClass =
-  'app-pane-surface min-w-0 rounded-[14px] border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] shadow-none';
-const sectionCardClass = 'rounded-[10px] border border-[hsl(var(--border-subtle)/0.5)] bg-[hsl(var(--surface-base)/0.42)] px-2.75 py-2.5 shadow-none';
-const fieldCardClass = 'rounded-[9px] border border-[hsl(var(--border-subtle)/0.44)] bg-[hsl(var(--surface-base)/0.56)] shadow-none';
-const compactFieldCardClass = 'rounded-[8px] border border-transparent bg-transparent shadow-none';
+  'app-pane-surface min-w-0 rounded-xl border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] shadow-none';
+const sectionCardClass = 'rounded-lg border border-[hsl(var(--border-subtle)/0.5)] bg-[hsl(var(--surface-base)/0.42)] px-2.75 py-2.5 shadow-none';
+const fieldCardClass = 'rounded-md border border-[hsl(var(--border-subtle)/0.44)] bg-[hsl(var(--surface-base)/0.56)] shadow-sm';
+const compactFieldCardClass = 'rounded-md border border-transparent bg-transparent shadow-none';
 const inspectorTitleClass = 'text-[14px] font-semibold tracking-tight text-foreground md:text-[15px]';
 const inspectorSubtitleClass = 'mt-0.5 text-[11px] leading-5 text-muted-foreground/72';
 
@@ -256,7 +256,7 @@ export function ChannelConfigEditor({
   if (!title || !channelType) {
     return (
       <section className={cn(paneSurfaceClass, 'p-3.5')}>
-        <div className="app-empty-surface rounded-[14px] p-5 text-sm text-muted-foreground">
+        <div className="app-empty-surface rounded-md p-5 text-sm text-muted-foreground">
           {t('availableDesc')}
         </div>
       </section>
@@ -273,7 +273,7 @@ export function ChannelConfigEditor({
               <p className={inspectorSubtitleClass}>{description}</p>
             </div>
           </div>
-          <Button onClick={onOpenModal} className="h-8 rounded-[10px] px-3 text-[11.5px]">
+          <Button onClick={onOpenModal} className="h-8 rounded-md px-3 text-[11.5px]">
             {t('account.addByQr')}
           </Button>
         </div>
@@ -291,7 +291,7 @@ export function ChannelConfigEditor({
               <p className={inspectorSubtitleClass}>{description}</p>
             </div>
           </div>
-          <Button onClick={onOpenModal} className="h-8 rounded-[10px] px-3 text-[11.5px]">
+          <Button onClick={onOpenModal} className="h-8 rounded-md px-3 text-[11.5px]">
             {t('dialog.generateQRCode')}
           </Button>
         </div>
@@ -309,7 +309,7 @@ export function ChannelConfigEditor({
               <p className={inspectorSubtitleClass}>{description}</p>
             </div>
           </div>
-          <Button onClick={onOpenModal} className="h-8 rounded-[10px] px-3 text-[11.5px]">
+          <Button onClick={onOpenModal} className="h-8 rounded-md px-3 text-[11.5px]">
             {selectedGroup ? t('account.edit') : t('dialog.saveAndConnect')}
           </Button>
         </div>
@@ -331,7 +331,7 @@ export function ChannelConfigEditor({
             <Button
               size="sm"
               variant="outline"
-              className="h-7 rounded-[10px] px-3 text-[11.5px]"
+              className="h-7 rounded-md px-3 text-[11.5px]"
               onClick={onOpenModal}
             >
               {selectedIsWeixin ? t(selectedAccountId ? 'account.relogin' : 'account.addByQr') : t('account.edit')}
@@ -355,7 +355,7 @@ export function ChannelConfigEditor({
                   {selectedAccount?.isDefault && (
                     <Badge
                       variant="secondary"
-                      className="h-5 rounded-[9px] border border-border/55 bg-[hsl(var(--foreground)/0.04)] px-1.5 text-[10px] font-medium text-foreground/72 shadow-none hover:bg-[hsl(var(--foreground)/0.04)]"
+                      className="h-5 rounded-sm border border-border/55 bg-[hsl(var(--foreground)/0.04)] px-1.5 text-[10px] font-medium text-foreground/72 shadow-none hover:bg-[hsl(var(--foreground)/0.04)]"
                     >
                       {t('account.default')}
                     </Badge>
@@ -372,7 +372,7 @@ export function ChannelConfigEditor({
                     }
                   }}
                   placeholder={selectedIsWeixin ? '' : t('account.customIdPlaceholder')}
-                  className="app-field-surface mt-1.5 h-8 rounded-[10px] border-[hsl(var(--border-subtle)/0.72)] bg-[hsl(var(--surface-elevated)/0.98)] text-[12.5px] shadow-none"
+                  className="app-field-surface mt-1.5 h-8 rounded-md border-[hsl(var(--border-subtle)/0.72)] bg-[hsl(var(--surface-elevated)/0.98)] text-[12.5px] shadow-sm"
                 />
               </div>
               {basicFields.map((field) => (
@@ -427,7 +427,7 @@ export function ChannelConfigEditor({
                       label: agent.name,
                     })),
                   ]}
-                  className="app-field-surface h-8 w-full max-w-full rounded-[10px] text-[12.5px] shadow-none"
+                  className="app-field-surface h-8 w-full max-w-full rounded-md text-[12.5px] shadow-sm"
                 />
               </div>
             </div>
@@ -457,7 +457,7 @@ export function ChannelConfigEditor({
                     type="button"
                     size="sm"
                     variant="outline"
-                    className="h-7 rounded-[10px] px-2.5 text-[10.5px]"
+                    className="h-7 rounded-md px-2.5 text-[10.5px]"
                     onClick={onOpenModal}
                   >
                     {t('account.relogin')}
@@ -528,7 +528,7 @@ export function ChannelConfigEditor({
           {editorValidation && (
             <div
               className={cn(
-                'rounded-[12px] border px-4 py-3 text-sm',
+                'rounded-md border px-4 py-3 text-sm',
                 editorValidation.valid
                   ? 'border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300'
                   : 'border-destructive/30 bg-destructive/10 text-destructive',
@@ -556,7 +556,7 @@ export function ChannelConfigEditor({
           <Button
             type="button"
             variant="outline"
-            className="h-7 rounded-[10px] px-3 text-[11.5px]"
+            className="h-7 rounded-md px-3 text-[11.5px]"
             disabled={editorLoading || editorValidating || editorSaving}
             onClick={onValidate}
           >
@@ -564,7 +564,7 @@ export function ChannelConfigEditor({
           </Button>
           <Button
             type="button"
-            className="h-7 rounded-[10px] px-3 text-[11.5px]"
+            className="h-7 rounded-md px-3 text-[11.5px]"
             disabled={editorLoading || editorSaving}
             onClick={onSave}
           >
@@ -600,9 +600,9 @@ function ChannelEditorSection({
       data-testid={sectionId ? `channel-editor-section-${sectionId}` : undefined}
       open={open}
       onToggle={(event) => setOpen(event.currentTarget.open)}
-      className="rounded-[10px] border border-[hsl(var(--border-subtle)/0.48)] bg-[hsl(var(--surface-base)/0.4)] px-2.75 py-2.25 shadow-none"
+      className="rounded-md border border-[hsl(var(--border-subtle)/0.48)] bg-[hsl(var(--surface-base)/0.4)] px-2.75 py-2.25 shadow-sm"
     >
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+      <summary className="flex cursor-default list-none items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-foreground/58">{title}</p>
           <p className="line-clamp-1 text-[10.5px] leading-5 text-muted-foreground/68" title={subtitle}>
@@ -612,7 +612,7 @@ function ChannelEditorSection({
         {badge && (
           <Badge
             variant="secondary"
-            className="h-5 rounded-[9px] border border-border/55 bg-[hsl(var(--foreground)/0.04)] px-1.5 text-[10px] font-medium text-foreground/72 shadow-none hover:bg-[hsl(var(--foreground)/0.04)]"
+            className="h-5 rounded-sm border border-border/55 bg-[hsl(var(--foreground)/0.04)] px-1.5 text-[10px] font-medium text-foreground/72 shadow-none hover:bg-[hsl(var(--foreground)/0.04)]"
           >
             {badge}
           </Badge>
@@ -670,7 +670,7 @@ function ChannelFieldEditor({
           </div>
           {defaultBadgeLabel && (
             <span
-              className="max-w-[11rem] truncate rounded-[9px] border border-border/55 bg-[hsl(var(--foreground)/0.035)] px-2 py-1 text-[10px] font-medium text-muted-foreground"
+              className="max-w-[11rem] truncate rounded-sm border border-border/55 bg-[hsl(var(--foreground)/0.035)] px-2 py-1 text-[10px] font-medium text-muted-foreground"
               title={t('editor.defaultValueLabel', { value: defaultValueLabel })}
             >
               {defaultBadgeLabel}
@@ -696,7 +696,7 @@ function ChannelFieldEditor({
             <Label htmlFor={inputId} className="min-w-0 flex-1 text-[11px] font-medium text-foreground/78">{label}</Label>
             {defaultBadgeLabel && (
               <span
-                className="max-w-[11rem] truncate rounded-[9px] border border-border/55 bg-[hsl(var(--foreground)/0.035)] px-2 py-1 text-[10px] font-medium text-muted-foreground"
+                className="max-w-[11rem] truncate rounded-sm border border-border/55 bg-[hsl(var(--foreground)/0.035)] px-2 py-1 text-[10px] font-medium text-muted-foreground"
                 title={t('editor.defaultValueLabel', { value: defaultValueLabel })}
               >
                 {defaultBadgeLabel}
@@ -717,7 +717,7 @@ function ChannelFieldEditor({
             label: resolveTranslationText(t, option.label),
           }))}
           className={cn(
-            'app-field-surface rounded-[10px] border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] text-[12.5px] shadow-none',
+            'app-field-surface rounded-md border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] text-[12.5px] shadow-sm',
             compact ? 'h-7.5' : 'h-8.5',
           )}
         />
@@ -831,7 +831,7 @@ function ChannelTextField({
           <Label htmlFor={inputId} className="min-w-0 flex-1 text-[11px] font-medium text-foreground/78">{label}</Label>
           {defaultBadgeLabel && (
             <span
-              className="max-w-[11rem] truncate rounded-[9px] border border-border/55 bg-[hsl(var(--foreground)/0.035)] px-2 py-1 text-[10px] font-medium text-muted-foreground"
+              className="max-w-[11rem] truncate rounded-sm border border-border/55 bg-[hsl(var(--foreground)/0.035)] px-2 py-1 text-[10px] font-medium text-muted-foreground"
               title={t('editor.defaultValueLabel', { value: defaultValueLabel })}
             >
               {defaultBadgeLabel}
@@ -849,7 +849,7 @@ function ChannelTextField({
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         className={cn(
-          'app-field-surface rounded-[10px] border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] text-[12.5px] shadow-none',
+          'app-field-surface rounded-md border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] text-[12.5px] shadow-none',
           compact ? 'h-7.5' : 'h-8.5',
         )}
       />

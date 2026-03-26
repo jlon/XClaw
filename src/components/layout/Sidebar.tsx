@@ -84,7 +84,7 @@ function RailTooltip({
         aria-hidden="true"
         className="pointer-events-none absolute left-full top-1/2 z-20 ml-2 -translate-y-1/2 translate-x-1 opacity-0 transition-[opacity,transform] duration-150 group-hover/sidebar-item:translate-x-0 group-hover/sidebar-item:opacity-100 group-focus-within/sidebar-item:translate-x-0 group-focus-within/sidebar-item:opacity-100"
       >
-        <span className="block max-w-[160px] overflow-hidden text-ellipsis whitespace-nowrap rounded-[10px] border border-border/80 bg-[hsl(var(--surface-elevated)/0.995)] px-2.5 py-1.5 text-[12px] font-medium text-popover-foreground shadow-[0_6px_18px_rgba(15,23,42,0.06)]">
+        <span className="block max-w-[160px] overflow-hidden text-ellipsis whitespace-nowrap rounded-md border border-border/80 bg-[hsl(var(--surface-elevated)/0.995)] px-2.5 py-1.5 text-[12px] font-medium text-popover-foreground shadow-[0_6px_18px_rgba(15,23,42,0.06)]">
           {label}
         </span>
       </div>
@@ -100,7 +100,7 @@ function NavItem({ to, icon, label, collapsed, tone }: NavItemProps) {
         aria-label={collapsed ? label : undefined}
         className={({ isActive }) =>
           cn(
-            'app-sidebar-nav-link workbench-motion-nav flex w-full items-center rounded-[10px] border border-transparent px-2.5 py-2 text-[13px] font-normal tracking-[0.01em]',
+            'app-sidebar-nav-link workbench-motion-nav flex w-full items-center rounded-md border border-transparent px-2.5 py-1.5 text-[13px] font-normal tracking-wide select-none',
             'text-foreground/72',
             collapsed
               ? 'mx-auto h-8 w-8 justify-center gap-0 px-0 hover:border-border/55 hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground hover:shadow-none'
@@ -135,7 +135,7 @@ function NavItem({ to, icon, label, collapsed, tone }: NavItemProps) {
 
 function UtilityItem({ label, icon, collapsed, tone, to, onClick, trailing }: UtilityItemProps) {
   const baseClass = cn(
-    'app-sidebar-nav-link app-sidebar-utility-link workbench-motion-nav flex w-full items-center rounded-[12px] border border-transparent px-2.5 py-2 text-[13px] font-normal tracking-[0.01em]',
+    'app-sidebar-nav-link app-sidebar-utility-link workbench-motion-nav flex w-full items-center rounded-md border border-transparent px-2.5 py-1.5 text-[13px] font-normal tracking-wide select-none',
     'text-foreground/70',
     collapsed
       ? 'mx-auto h-8 w-8 justify-center gap-0 px-0 hover:border-border/55 hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground hover:shadow-none'

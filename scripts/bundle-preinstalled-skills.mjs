@@ -1,7 +1,7 @@
 #!/usr/bin/env zx
 
 import 'zx/globals';
-import { readFileSync, existsSync, mkdirSync, rmSync, cpSync, writeFileSync } from 'node:fs';
+import { readFileSync, existsSync, mkdirSync, rmSync, cpSync, writeFileSync, readdirSync } from 'node:fs';
 import { join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -114,6 +114,92 @@ async function extractArchive(archiveFileName, cwd) {
   }
 }
 
+async function extractCompressedArchive(archiveFileName, cwd) {
+  const prevCwd = $.cwd;
+  $.cwd = cwd;
+  try {
+    try {
+      await $`tar -xzf ${archiveFileName}`;
+      return;
+    } catch (tarError) {
+      if (process.platform === 'win32') {
+        await $`bsdtar -xzf ${archiveFileName}`;
+        return;
+      }
+      throw tarError;
+    }
+  } finally {
+    $.cwd = prevCwd;
+  }
+}
+
+async function downloadFile(url, targetPath) {
+  const response = await fetch(url, {
+    headers: {
+      'user-agent': 'XClaw build script',
+      accept: 'application/octet-stream',
+    },
+    redirect: 'follow',
+  });
+  if (!response.ok) {
+    throw new Error(`Download failed: ${response.status} ${response.statusText}`);
+  }
+  const buffer = Buffer.from(await response.arrayBuffer());
+  writeFileSync(targetPath, buffer);
+}
+
+async function resolveGithubCommit(repo, ref) {
+  try {
+    const response = await fetch(`https://api.github.com/repos/${repo}/commits/${encodeURIComponent(ref)}`, {
+      headers: {
+        'user-agent': 'XClaw build script',
+        accept: 'application/vnd.github+json',
+      },
+      redirect: 'follow',
+    });
+    if (!response.ok) return ref;
+    const payload = await response.json();
+    return typeof payload?.sha === 'string' && payload.sha.trim() ? payload.sha.trim() : ref;
+  } catch {
+    return ref;
+  }
+}
+
+async function fetchGithubArchive(repo, ref, checkoutDir) {
+  const archivePath = join(checkoutDir, '.repo.tar.gz');
+  const extractedDir = join(checkoutDir, '.archive-extract');
+  const archiveUrls = [
+    `https://codeload.github.com/${repo}/tar.gz/refs/heads/${encodeURIComponent(ref)}`,
+    `https://codeload.github.com/${repo}/tar.gz/refs/tags/${encodeURIComponent(ref)}`,
+    `https://api.github.com/repos/${repo}/tarball/${encodeURIComponent(ref)}`,
+  ];
+  let lastError = null;
+  for (const url of archiveUrls) {
+    try {
+      await downloadFile(url, archivePath);
+      rmSync(extractedDir, { recursive: true, force: true });
+      mkdirSync(extractedDir, { recursive: true });
+      await extractCompressedArchive(basename(archivePath), extractedDir);
+      const rootDir = readdirSync(extractedDir, { withFileTypes: true }).find((entry) => entry.isDirectory());
+      if (!rootDir) {
+        throw new Error(`Archive root missing for ${repo}@${ref}`);
+      }
+      const sourceRoot = join(extractedDir, rootDir.name);
+      for (const entry of readdirSync(sourceRoot)) {
+        cpSync(join(sourceRoot, entry), join(checkoutDir, entry), { recursive: true, dereference: true });
+      }
+      rmSync(archivePath, { force: true });
+      rmSync(extractedDir, { recursive: true, force: true });
+      return await resolveGithubCommit(repo, ref);
+    } catch (error) {
+      lastError = error;
+      rmSync(archivePath, { force: true });
+      rmSync(extractedDir, { recursive: true, force: true });
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error(`Failed to download GitHub archive for ${repo}@${ref}`);
+}
+
 async function fetchSparseRepo(repo, ref, paths, checkoutDir) {
   const remote = `https://github.com/${repo}.git`;
   mkdirSync(checkoutDir, { recursive: true });
@@ -124,7 +210,16 @@ async function fetchSparseRepo(repo, ref, paths, checkoutDir) {
 
   await $`git init ${gitCheckoutDir}`;
   await $`git -C ${gitCheckoutDir} remote add origin ${remote}`;
-  await $`git -C ${gitCheckoutDir} fetch --depth 1 origin ${ref}`;
+  try {
+    await $`git -C ${gitCheckoutDir} fetch --depth 1 origin ${ref}`;
+  } catch (error) {
+    if (!repo.includes('/')) {
+      throw error;
+    }
+    echo`   git fetch failed for ${repo} @ ${ref}, falling back to GitHub archive`;
+    rmSync(join(checkoutDir, '.git'), { recursive: true, force: true });
+    return await fetchGithubArchive(repo, ref, checkoutDir);
+  }
   // Do not checkout working tree on Windows: upstream repos may contain
   // Windows-invalid paths. Export only requested directories via git archive.
   await $`git -C ${gitCheckoutDir} archive --format=tar --output ${archiveFileName} FETCH_HEAD ${archivePaths}`;

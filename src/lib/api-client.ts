@@ -1,4 +1,5 @@
 import { trackUiEvent } from './telemetry';
+import { generateUuid } from './uuid';
 import {
   AppError,
   type AppErrorCode,
@@ -880,7 +881,7 @@ export function createGatewayWsTransportInvoker(options: GatewayWsTransportOptio
         : timeoutMs;
 
     const ws = await ensureConnection();
-    const requestId = crypto.randomUUID();
+    const requestId = generateUuid();
     ws.send(JSON.stringify({
       type: 'req',
       id: requestId,
@@ -950,7 +951,7 @@ export function toUserMessage(error: unknown): string {
 }
 
 export async function invokeApi<T>(channel: string, ...args: unknown[]): Promise<T> {
-  const requestId = crypto.randomUUID();
+  const requestId = generateUuid();
   const order = resolveTransportOrder(channel);
   let lastError: unknown;
 

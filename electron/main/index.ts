@@ -48,6 +48,7 @@ import { createBeforeQuitHandler } from './quit-handoff';
 import { StudioService } from '../studio/service';
 
 const WINDOWS_APP_USER_MODEL_ID = 'app.XClaw.desktop';
+const isHeadlessDevBackend = process.env.XCLAW_HEADLESS_DEV_BACKEND === '1' && Boolean(process.env.VITE_DEV_SERVER_URL);
 
 // Disable GPU hardware acceleration globally for maximum stability across
 // all GPU configurations (no GPU, integrated, discrete).
@@ -64,6 +65,11 @@ const WINDOWS_APP_USER_MODEL_ID = 'app.XClaw.desktop';
 // Users who want GPU acceleration can pass `--enable-gpu` on the CLI or
 // set `"disable-hardware-acceleration": false` in the app config (future).
 app.disableHardwareAcceleration();
+
+if (isHeadlessDevBackend) {
+  app.commandLine.appendSwitch('headless');
+  app.commandLine.appendSwitch('ozone-platform', 'headless');
+}
 
 // On Linux, set CHROME_DESKTOP so Chromium can find the correct .desktop file.
 // On Wayland this maps the running window to XClaw.desktop (→ icon + app grouping);
@@ -306,16 +312,20 @@ async function initialize(): Promise<void> {
     `Setup bootstrap resolved: source=${setupBootstrapState.source}, readonly=${setupBootstrapState.readonly}, startupSideEffects=${setupBootstrapState.shouldRunStartupSideEffects}`
   );
 
-  // Set application menu
-  createMenu();
+  const window = isHeadlessDevBackend
+    ? null
+    : (
+      mainWindow && !mainWindow.isDestroyed()
+        ? mainWindow
+        : createMainWindow()
+    );
 
-  // Create the main window
-  const window = mainWindow && !mainWindow.isDestroyed()
-    ? mainWindow
-    : createMainWindow();
-
-  // Create system tray
-  createTray(window);
+  if (!isHeadlessDevBackend) {
+    createMenu();
+    createTray(window);
+  } else {
+    logger.info('Headless dev backend mode enabled; skipping BrowserWindow, tray, and renderer IPC startup');
+  }
 
   // Override security headers ONLY for the OpenClaw Gateway Control UI.
   // The URL filter ensures this callback only fires for gateway requests,
@@ -352,9 +362,6 @@ async function initialize(): Promise<void> {
     },
   );
 
-  // Register IPC handlers
-  registerIpcHandlers(gatewayManager, gatewayRuntimeController, clawHubService, window);
-
   const hostApiContext = {
     gatewayManager,
     gatewayRuntimeController,
@@ -367,8 +374,10 @@ async function initialize(): Promise<void> {
   hostApiServer = startHostApiServer(hostApiContext);
   weixinGuardianService.start(hostApiContext);
 
-  // Register update handlers
-  registerUpdateHandlers(appUpdater, window);
+  if (window) {
+    registerIpcHandlers(gatewayManager, gatewayRuntimeController, clawHubService, window);
+    registerUpdateHandlers(appUpdater, window);
+  }
 
   // Note: Auto-check for updates is driven by the renderer (update store init)
   // so it respects the user's "Auto-check for updates" setting.
@@ -543,6 +552,10 @@ if (gotTheLock) {
     // Register activate handler AFTER app is ready to prevent
     // "Cannot create BrowserWindow before app is ready" on macOS.
     app.on('activate', () => {
+      if (isHeadlessDevBackend) {
+        return;
+      }
+
       if (initializationState === 'running') {
         logger.debug('Ignoring activate while initialization is still running');
         return;

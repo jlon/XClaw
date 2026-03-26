@@ -64,7 +64,7 @@ describe('host-api', () => {
 
     expect(result.fallback).toBe(true);
     expect(fetchMock).toHaveBeenCalledWith(
-      'http://127.0.0.1:3210/api/test',
+      '/api/test',
       expect.objectContaining({ headers: expect.any(Object) }),
     );
   });
@@ -97,7 +97,7 @@ describe('host-api', () => {
 
     expect(result.fallback).toBe(true);
     expect(fetchMock).toHaveBeenCalledWith(
-      'http://127.0.0.1:3210/api/test',
+      '/api/test',
       expect.objectContaining({ headers: expect.any(Object) }),
     );
   });
@@ -133,9 +133,40 @@ describe('host-api', () => {
 
     expect(result.fallback).toBe(true);
     expect(fetchMock).toHaveBeenCalledWith(
-      'http://127.0.0.1:3210/api/test',
+      '/api/test',
       expect.objectContaining({ headers: expect.any(Object) }),
     );
+  });
+
+  it('falls back to browser fetch in dev when Electron bridge exists but invoke still reports unavailable', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ fallback: true }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const previousElectron = window.electron;
+    window.electron = {
+      ...previousElectron,
+      ipcRenderer: {
+        ...previousElectron.ipcRenderer,
+        invoke: vi.fn(),
+      },
+    };
+    invokeIpcMock.mockRejectedValueOnce(new Error('Electron IPC renderer is unavailable'));
+
+    try {
+      const { hostApiFetch } = await import('@/lib/host-api');
+      const result = await hostApiFetch<{ fallback: boolean }>('/api/test');
+
+      expect(result.fallback).toBe(true);
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/test',
+        expect.objectContaining({ headers: expect.any(Object) }),
+      );
+    } finally {
+      window.electron = previousElectron;
+    }
   });
 
   it('allows localhost fallback in browser-only dev even without the policy flag', async () => {
@@ -156,7 +187,7 @@ describe('host-api', () => {
 
       expect(result.fallback).toBe(true);
       expect(fetchMock).toHaveBeenCalledWith(
-        'http://127.0.0.1:3210/api/test',
+        '/api/test',
         expect.objectContaining({ headers: expect.any(Object) }),
       );
     } finally {

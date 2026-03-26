@@ -76,11 +76,11 @@ interface ProviderAccountFormSectionsProps {
   onValidateKey: ProviderAccountValidateFn;
 }
 
-const inputClasses = 'appearance-none app-field-surface h-9 rounded-[10px] border border-[hsl(var(--border-subtle)/0.82)] text-[13px] text-foreground placeholder:text-muted-foreground/55 shadow-none transition-colors focus:outline-none focus-visible:outline-none focus-visible:border-primary focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
+const inputClasses = 'appearance-none app-field-surface h-8 rounded-md border border-[hsl(var(--border-subtle)/0.82)] text-[13px] text-foreground placeholder:text-muted-foreground/55 shadow-sm transition-colors focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0';
 const tokenInputClasses = `${inputClasses} font-mono tracking-[0.01em]`;
 const sectionTitleClass = 'text-[13px] font-semibold text-foreground';
 const labelClasses = 'text-[13px] font-semibold text-foreground/80';
-const segmentedTrackClass = 'app-field-surface grid grid-cols-3 gap-1 rounded-[10px] border border-[hsl(var(--border-subtle)/0.82)] p-1';
+const segmentedTrackClass = 'app-field-surface grid grid-cols-3 gap-1 rounded-md border border-[hsl(var(--border-subtle)/0.82)] p-1';
 const segmentedActiveClass = 'border border-[hsl(var(--primary)/0.18)] bg-[hsl(var(--primary)/0.08)] text-primary shadow-none outline-none focus-visible:outline-none focus-visible:ring-0';
 const segmentedIdleClass = 'border border-transparent text-muted-foreground/82 outline-none hover:bg-[hsl(var(--foreground)/0.035)] hover:text-foreground focus-visible:outline-none focus-visible:ring-0';
 
@@ -131,7 +131,7 @@ export function ProviderAccountFormSections({
     ? 'app-insight-surface rounded-[12px] border border-[hsl(var(--border-subtle)/0.78)] px-3 py-2.5'
     : '';
   const setupSectionClass = compact
-    ? 'app-insight-surface space-y-2.5 rounded-[12px] border border-[hsl(var(--border-subtle)/0.78)] px-3 py-2.5 md:col-span-2'
+    ? 'app-insight-surface space-y-2.5 rounded-lg border border-[hsl(var(--border-subtle)/0.78)] px-3 py-2.5 md:col-span-2'
     : '';
 
   useEffect(() => {
@@ -232,7 +232,7 @@ export function ProviderAccountFormSections({
 
       await onSave(payload);
       setNewKey('');
-      toast.success(t('aiProviders.toast.updated'));
+      // Removed duplicate toast: toast.success(t('aiProviders.toast.updated'));
     } catch (error) {
       toast.error(`${t('aiProviders.toast.failedUpdate')}: ${error}`);
     } finally {
@@ -282,7 +282,7 @@ export function ProviderAccountFormSections({
             ) : (
               <div className="space-y-1.5">
                 <Label htmlFor={`provider-display-name-${account.id}-meta`} className={labelClasses}>{t('aiProviders.sections.connection', '接入配置')}</Label>
-                <div id={`provider-display-name-${account.id}-meta`} className="app-field-surface flex h-9 items-center rounded-[10px] px-3 text-[12px] text-muted-foreground">
+                <div id={`provider-display-name-${account.id}-meta`} className="app-field-surface flex h-8 items-center rounded-md px-3 text-[12px] text-muted-foreground">
                   {t('aiProviders.overview.noModelSelected', '未选择模型')}
                 </div>
               </div>
@@ -306,21 +306,21 @@ export function ProviderAccountFormSections({
                   <button
                     type="button"
                     onClick={() => setApiProtocol('openai-completions')}
-                    className={cn('min-w-0 rounded-[8px] px-3 py-2 text-center leading-[1.25] transition-colors', apiProtocol === 'openai-completions' ? segmentedActiveClass : segmentedIdleClass)}
+                    className={cn('min-w-0 rounded-sm px-3 py-2 text-center leading-[1.25] transition-colors', apiProtocol === 'openai-completions' ? segmentedActiveClass : segmentedIdleClass)}
                   >
                     {t('aiProviders.protocols.openaiCompletions', 'OpenAI Completions')}
                   </button>
                   <button
                     type="button"
                     onClick={() => setApiProtocol('openai-responses')}
-                    className={cn('min-w-0 rounded-[8px] px-3 py-2 text-center leading-[1.25] transition-colors', apiProtocol === 'openai-responses' ? segmentedActiveClass : segmentedIdleClass)}
+                    className={cn('min-w-0 rounded-sm px-3 py-2 text-center leading-[1.25] transition-colors', apiProtocol === 'openai-responses' ? segmentedActiveClass : segmentedIdleClass)}
                   >
                     {t('aiProviders.protocols.openaiResponses', 'OpenAI Responses')}
                   </button>
                   <button
                     type="button"
                     onClick={() => setApiProtocol('anthropic-messages')}
-                    className={cn('min-w-0 rounded-[8px] px-3 py-2 text-center leading-[1.25] transition-colors', apiProtocol === 'anthropic-messages' ? segmentedActiveClass : segmentedIdleClass)}
+                    className={cn('min-w-0 rounded-sm px-3 py-2 text-center leading-[1.25] transition-colors', apiProtocol === 'anthropic-messages' ? segmentedActiveClass : segmentedIdleClass)}
                   >
                     {t('aiProviders.protocols.anthropic', 'Anthropic')}
                   </button>
@@ -380,21 +380,21 @@ export function ProviderAccountFormSections({
                       <button
                         type="button"
                         onClick={() => setApiProtocol('openai-completions')}
-                        className={cn('min-w-0 rounded-[8px] px-3 py-2 text-center leading-[1.25] transition-colors', apiProtocol === 'openai-completions' ? segmentedActiveClass : segmentedIdleClass)}
+                        className={cn('min-w-0 rounded-sm px-3 py-2 text-center leading-[1.25] transition-colors', apiProtocol === 'openai-completions' ? segmentedActiveClass : segmentedIdleClass)}
                       >
                         {t('aiProviders.protocols.openaiCompletions', 'OpenAI Completions')}
                       </button>
                       <button
                         type="button"
                         onClick={() => setApiProtocol('openai-responses')}
-                        className={cn('min-w-0 rounded-[8px] px-3 py-2 text-center leading-[1.25] transition-colors', apiProtocol === 'openai-responses' ? segmentedActiveClass : segmentedIdleClass)}
+                        className={cn('min-w-0 rounded-sm px-3 py-2 text-center leading-[1.25] transition-colors', apiProtocol === 'openai-responses' ? segmentedActiveClass : segmentedIdleClass)}
                       >
                         {t('aiProviders.protocols.openaiResponses', 'OpenAI Responses')}
                       </button>
                       <button
                         type="button"
                         onClick={() => setApiProtocol('anthropic-messages')}
-                        className={cn('min-w-0 rounded-[8px] px-3 py-2 text-center leading-[1.25] transition-colors', apiProtocol === 'anthropic-messages' ? segmentedActiveClass : segmentedIdleClass)}
+                        className={cn('min-w-0 rounded-sm px-3 py-2 text-center leading-[1.25] transition-colors', apiProtocol === 'anthropic-messages' ? segmentedActiveClass : segmentedIdleClass)}
                       >
                         {t('aiProviders.protocols.anthropic', 'Anthropic')}
                       </button>
@@ -419,13 +419,13 @@ export function ProviderAccountFormSections({
         <button
           type="button"
           onClick={() => setShowFallback((current) => !current)}
-          className="flex w-full items-center justify-between gap-3 rounded-[10px] text-left transition-colors hover:text-foreground"
+          className="flex w-full items-center justify-between gap-3 rounded-md text-left transition-colors hover:text-foreground"
         >
           <div className="min-w-0 space-y-0.5">
             <h3 className={sectionTitleClass}>{t('aiProviders.sections.fallbackStrategy', '回退策略')}</h3>
             <p className="truncate text-[12px] text-muted-foreground">{fallbackSummary}</p>
           </div>
-          <span className="app-field-surface flex h-7 w-7 shrink-0 items-center justify-center rounded-[9px]">
+          <span className="app-field-surface flex h-7 w-7 shrink-0 items-center justify-center rounded-md">
             <ChevronDown className={cn('h-4 w-4 text-muted-foreground transition-transform', showFallback && 'rotate-180')} />
           </span>
         </button>
@@ -439,7 +439,7 @@ export function ProviderAccountFormSections({
                 onChange={(event) => setFallbackModelsText(event.target.value)}
                 placeholder={t('aiProviders.dialog.fallbackModelIdsPlaceholder')}
                 className={cn(
-                  'app-field-surface rounded-[12px] border-[hsl(var(--border-subtle)/0.82)] text-[13px] font-mono text-foreground shadow-none',
+                  'app-field-surface rounded-md border-[hsl(var(--border-subtle)/0.82)] text-[13px] font-mono text-foreground shadow-sm',
                   compact ? 'min-h-[104px]' : 'min-h-24',
                 )}
               />
@@ -452,14 +452,14 @@ export function ProviderAccountFormSections({
               {fallbackOptions.length === 0 ? (
                 <p className="text-[13px] text-muted-foreground">{t('aiProviders.dialog.noFallbackOptions')}</p>
               ) : (
-                <div className="app-field-surface space-y-1 rounded-[11px] border border-[hsl(var(--border-subtle)/0.82)] p-1.5">
+                <div className="app-field-surface space-y-1 rounded-md border border-[hsl(var(--border-subtle)/0.82)] p-1.5 shadow-sm">
                   {fallbackOptions.map((candidate) => (
                     <button
                       key={candidate.account.id}
                       type="button"
                       onClick={() => toggleFallbackProvider(candidate.account.id)}
                       className={cn(
-                        'flex w-full items-center gap-3 rounded-[9px] px-2.5 py-2 text-left text-[12px] transition-colors',
+                        'flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left text-[12px] transition-colors',
                         fallbackProviderIds.includes(candidate.account.id)
                           ? 'bg-[hsl(var(--foreground)/0.055)] text-foreground'
                           : 'text-foreground/88 hover:bg-[hsl(var(--foreground)/0.035)]',
@@ -467,7 +467,7 @@ export function ProviderAccountFormSections({
                     >
                       <span
                         className={cn(
-                          'flex h-4 w-4 shrink-0 items-center justify-center rounded-[5px] border text-transparent transition-colors',
+                          'flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border text-transparent transition-colors',
                           fallbackProviderIds.includes(candidate.account.id)
                             ? 'border-foreground/20 bg-[hsl(var(--foreground)/0.08)] text-foreground'
                             : 'border-border/70 bg-transparent',
@@ -499,8 +499,8 @@ export function ProviderAccountFormSections({
             </p>
           </div>
           {hasConfiguredCredentials(account, status) ? (
-            <div className="flex items-center gap-1.5 rounded-[9px] border border-[hsl(var(--success))/0.18] bg-[hsl(var(--success))/0.08] px-2 py-1 text-[11px] font-medium text-[hsl(var(--success))]">
-              <div className="h-1.5 w-1.5 rounded-[4px] bg-current" />
+            <div className="flex items-center gap-1.5 rounded-md border border-[hsl(var(--success))/0.18] bg-[hsl(var(--success))/0.08] px-2 py-1 text-[11px] font-medium text-[hsl(var(--success))]">
+              <div className="h-1.5 w-1.5 rounded-sm bg-current" />
               {t('aiProviders.card.configured')}
             </div>
           ) : null}
@@ -546,7 +546,7 @@ export function ProviderAccountFormSections({
               onClick={handleSave}
               data-testid="provider-account-form-save"
               className={cn(
-                'rounded-[10px] border-border/70 px-4 shadow-none hover:bg-[hsl(var(--surface-hover)/0.9)]',
+                'rounded-md border-border/70 px-4 shadow-sm hover:bg-[hsl(var(--surface-hover)/0.9)]',
                 compact ? 'h-9' : 'h-[40px]',
               )}
               disabled={
@@ -571,7 +571,7 @@ export function ProviderAccountFormSections({
               onClick={onCancel}
               data-testid="provider-account-form-cancel"
               className={cn(
-                'rounded-[10px] border border-border/70 p-0 text-muted-foreground shadow-none hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground',
+                'rounded-md border border-border/70 p-0 text-muted-foreground shadow-sm hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground',
                 compact ? 'h-9 w-9' : 'h-[40px] w-[40px]',
               )}
             >

@@ -1,9 +1,20 @@
 import { describe, expect, it } from 'vitest';
 
-import { shouldLaunchElectronDev, shouldReloadElectronDev } from '../../scripts/dev-runtime.mjs';
+import {
+  resolveElectronDevMode,
+  shouldLaunchElectronDev,
+  shouldReloadElectronDev,
+} from '../../scripts/dev-runtime.mjs';
 
 describe('dev runtime', () => {
-  it('skips electron startup on headless linux hosts by default', () => {
+  it('uses backend-only electron mode on headless linux hosts by default', () => {
+    expect(resolveElectronDevMode({
+      platform: 'linux',
+      display: '',
+      waylandDisplay: '',
+      forceElectronDev: false,
+    })).toBe('backend');
+
     expect(shouldLaunchElectronDev({
       platform: 'linux',
       display: '',
@@ -13,6 +24,13 @@ describe('dev runtime', () => {
   });
 
   it('keeps electron startup enabled when a display server is available', () => {
+    expect(resolveElectronDevMode({
+      platform: 'linux',
+      display: ':1',
+      waylandDisplay: '',
+      forceElectronDev: false,
+    })).toBe('window');
+
     expect(shouldLaunchElectronDev({
       platform: 'linux',
       display: ':1',
@@ -29,6 +47,13 @@ describe('dev runtime', () => {
   });
 
   it('allows forcing electron startup in headless environments', () => {
+    expect(resolveElectronDevMode({
+      platform: 'linux',
+      display: '',
+      waylandDisplay: '',
+      forceElectronDev: true,
+    })).toBe('window');
+
     expect(shouldLaunchElectronDev({
       platform: 'linux',
       display: '',
@@ -37,7 +62,7 @@ describe('dev runtime', () => {
     })).toBe(true);
   });
 
-  it('skips preload-triggered startup on headless linux hosts until an electron app exists', () => {
+  it('keeps preload-triggered startup disabled for backend-only mode until an electron app exists', () => {
     expect(shouldReloadElectronDev({
       platform: 'linux',
       display: '',

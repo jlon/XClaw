@@ -82,7 +82,7 @@ export class StudioRuntimeManager extends EventEmitter {
   private startPromise: Promise<StudioRuntimeSnapshot> | null = null;
   private stopPromise: Promise<void> | null = null;
   private snapshot: StudioRuntimeSnapshot = {
-    status: 'starting',
+    status: 'idle',
     resolvedUrl: null,
     runtimeInstanceId: null,
     lastError: null,
@@ -144,6 +144,12 @@ export class StudioRuntimeManager extends EventEmitter {
     if (!options.repairEnvironment && this.process && this.snapshot.status === 'ready') {
       return this.getSnapshot();
     }
+    this.updateSnapshot({
+      status: 'starting',
+      resolvedUrl: null,
+      runtimeInstanceId: null,
+      lastError: null,
+    });
     this.startPromise = this.startInternal(options).finally(() => {
       this.startPromise = null;
     });

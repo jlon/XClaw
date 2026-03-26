@@ -50,36 +50,36 @@ type ControlUiInfo = {
 };
 
 const settingsPaneClass =
-  'space-y-3 rounded-[18px] border border-border/65 bg-[hsl(var(--surface-elevated)/0.98)] p-4';
-const settingsLabelClass = 'text-[13px] font-medium text-foreground/84';
+  'space-y-3 rounded-xl border border-border/65 bg-[hsl(var(--surface-elevated))] p-4';
+const settingsLabelClass = 'text-[13px] font-medium text-foreground/84 select-none';
 const settingsChoiceButtonBaseClass =
-  'workbench-motion-button workbench-motion-button--lift h-9 flex-1 items-center justify-center gap-1.5 rounded-[13px] border px-3.5 text-[13px] font-semibold shadow-none md:flex-none';
+  'workbench-motion-button h-8 flex-1 items-center justify-center gap-1.5 rounded-md border px-3 text-[13px] font-semibold shadow-sm md:flex-none select-none';
 const settingsChoiceButtonActiveClass =
-  'border-[hsl(var(--primary)/0.18)] bg-[hsl(var(--primary)/0.12)] text-primary shadow-none hover:bg-[hsl(var(--primary)/0.16)] hover:text-primary';
+  'border-[hsl(var(--primary)/0.18)] bg-[hsl(var(--primary)/0.12)] text-primary shadow-sm hover:bg-[hsl(var(--primary)/0.16)] hover:text-primary';
 const settingsChoiceButtonIdleClass =
-  'border-border/65 bg-[hsl(var(--surface-elevated)/0.94)] text-foreground/74 hover:bg-[hsl(var(--surface-hover)/0.42)] hover:text-foreground';
+  'border-border/65 bg-[hsl(var(--surface-elevated))] text-foreground/74 hover:bg-[hsl(var(--surface-hover))] hover:text-foreground';
 const settingsInputClass =
-  'h-9 rounded-[11px] border-border/70 bg-[hsl(var(--surface-panel)/0.98)] text-[13px] text-foreground shadow-none placeholder:text-muted-foreground';
+  'h-8 rounded-md border-border/70 bg-[hsl(var(--surface-panel))] text-[13px] text-foreground shadow-sm placeholder:text-muted-foreground';
 const settingsCodeInputClass =
-  'h-9 rounded-[11px] border-border/70 bg-[hsl(var(--surface-panel)/0.98)] font-mono text-[13px] text-foreground shadow-none placeholder:text-muted-foreground';
+  'h-8 rounded-md border-border/70 bg-[hsl(var(--surface-panel))] font-mono text-[13px] text-foreground shadow-sm placeholder:text-muted-foreground';
 const settingsSegmentedShellClass =
-  'inline-flex w-full flex-wrap gap-2 md:w-fit';
+  'inline-flex w-full flex-wrap gap-1.5 md:w-fit';
 const settingsCompactControlRowClass =
   'grid gap-3 py-1.5 md:grid-cols-[minmax(0,160px)_minmax(0,1fr)] md:items-center';
-const settingsCompactRowTextClass = 'min-w-0 max-w-[220px] space-y-0 md:pr-2';
-const settingsCompactRowLabelClass = 'text-[13px] font-medium text-foreground/86';
+const settingsCompactRowTextClass = 'min-w-0 max-w-[220px] space-y-0 md:pr-2 select-none';
+const settingsCompactRowLabelClass = 'text-[13px] font-medium text-foreground/86 select-none';
 const settingsCompactToggleRowClass =
   'grid gap-3 py-1.5 md:grid-cols-[minmax(0,160px)_minmax(0,1fr)] md:items-center';
 const settingsGhostButtonClass =
-  'workbench-motion-button workbench-motion-button--lift rounded-[13px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.98)] text-[13px] font-semibold text-foreground/78 shadow-none hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
+  'workbench-motion-button h-8 rounded-md border border-border/70 bg-[hsl(var(--surface-elevated))] text-[13px] font-semibold text-foreground/78 shadow-sm hover:bg-[hsl(var(--surface-hover))] hover:text-foreground select-none';
 const settingsFactsStripClass =
-  'border-[hsl(var(--border-subtle)/0.74)] bg-[hsl(var(--surface-panel)/0.82)]';
+  'border-[hsl(var(--border-subtle)/0.74)] bg-[hsl(var(--surface-panel)/0.82)] select-none';
 const settingsTabsSurfaceClass =
-  'border-b border-border/50 pb-2.5';
+  'border-b border-border/50 pb-2.5 select-none';
 const settingsTabsListClass =
-  'h-auto w-full flex-wrap justify-start gap-2 bg-transparent p-0 md:w-auto';
+  'h-auto w-full flex-wrap justify-start gap-2 bg-transparent p-0 md:w-auto select-none';
 const settingsTabsTriggerClass =
-  'workbench-motion-button workbench-motion-button--lift h-9 rounded-[13px] border border-border/65 bg-[hsl(var(--surface-elevated)/0.94)] px-4 text-[13px] font-semibold text-foreground/72 shadow-none hover:bg-[hsl(var(--surface-hover)/0.42)] hover:text-foreground data-[state=active]:border-[hsl(var(--primary)/0.18)] data-[state=active]:bg-[hsl(var(--primary)/0.12)] data-[state=active]:text-primary data-[state=active]:shadow-none';
+  'workbench-motion-button h-8 rounded-md border border-border/65 bg-[hsl(var(--surface-elevated))] px-3 text-[13px] font-semibold text-foreground/72 shadow-sm hover:bg-[hsl(var(--surface-hover))] hover:text-foreground data-[state=active]:border-[hsl(var(--primary)/0.18)] data-[state=active]:bg-[hsl(var(--primary)/0.12)] data-[state=active]:text-primary data-[state=active]:shadow-sm select-none';
 const settingsPaneDividerClass = 'border-t border-border/55 pt-4';
 const settingsControlDockClass = 'flex w-full items-center justify-start md:justify-end';
 const settingsControlTrackClass = 'w-full md:max-w-[320px]';
@@ -653,7 +653,7 @@ export function Settings() {
           className="space-y-6"
           platform={isWindows ? 'win32' : 'darwin'}
         >
-          <div className="mx-auto max-w-[840px] space-y-4 xl:max-w-[860px]">
+          <div className="space-y-4">
             <Tabs
               value={activeSection}
               onValueChange={(value) => setActiveSection(value as SettingsSectionId)}
@@ -826,7 +826,7 @@ export function Settings() {
 
                   <div className={settingsPaneDividerClass}>
                     <div className="space-y-3">
-                      <div className="space-y-3 rounded-[16px] border border-border/60 bg-[hsl(var(--surface-panel)/0.72)] px-4 py-3">
+                      <div className="space-y-3 rounded-lg border border-border/60 bg-[hsl(var(--surface-panel)/0.72)] px-4 py-3">
                         <div className="flex items-center justify-between gap-4">
                           <div className="min-w-0">
                             <Label className={settingsCompactRowLabelClass}>{t('gateway.proxyTitle')}</Label>
@@ -870,7 +870,7 @@ export function Settings() {
                       </div>
 
                       {showAdvancedProxyFields && (
-                        <div className="grid grid-cols-1 gap-4 rounded-[12px] border border-border/60 bg-[hsl(var(--surface-base)/0.88)] p-4 sm:grid-cols-2">
+                        <div className="grid grid-cols-1 gap-4 rounded-md border border-border/60 bg-[hsl(var(--surface-base)/0.88)] p-4 sm:grid-cols-2">
                           <div className="space-y-2">
                             <Label htmlFor="proxy-http-server" className={settingsLabelClass}>{t('gateway.proxyHttpServer')}</Label>
                             <Input
@@ -1052,7 +1052,7 @@ export function Settings() {
                       </div>
 
                       {doctorResult && (
-                        <div className="mt-4 space-y-3 rounded-[12px] border border-border/60 bg-[hsl(var(--surface-base)/0.92)] p-4">
+                        <div className="mt-4 space-y-3 rounded-md border border-border/60 bg-[hsl(var(--surface-base)/0.92)] p-4">
                         <WorkbenchSummaryStrip
                           items={doctorSummaryItems}
                           className={settingsFactsStripClass}
@@ -1077,13 +1077,13 @@ export function Settings() {
                           <div className="grid gap-3 md:grid-cols-2">
                             <div className="space-y-2">
                               <p className="text-[12px] font-semibold text-foreground/85">{t('developer.doctorStdout')}</p>
-                              <pre className="max-h-72 overflow-auto rounded-[10px] border border-border/60 bg-[hsl(var(--surface-panel)/0.94)] p-3 text-[11px] font-mono whitespace-pre-wrap break-words text-foreground">
+                              <pre className="max-h-72 overflow-auto rounded-md border border-border/60 bg-[hsl(var(--surface-panel)/0.94)] p-3 text-[11px] font-mono whitespace-pre-wrap break-words text-foreground">
                                 {doctorResult.stdout.trim() || t('developer.doctorOutputEmpty')}
                               </pre>
                             </div>
                             <div className="space-y-2">
                               <p className="text-[12px] font-semibold text-foreground/85">{t('developer.doctorStderr')}</p>
-                              <pre className="max-h-72 overflow-auto rounded-[10px] border border-border/60 bg-[hsl(var(--surface-panel)/0.94)] p-3 text-[11px] font-mono whitespace-pre-wrap break-words text-foreground">
+                              <pre className="max-h-72 overflow-auto rounded-md border border-border/60 bg-[hsl(var(--surface-panel)/0.94)] p-3 text-[11px] font-mono whitespace-pre-wrap break-words text-foreground">
                                 {doctorResult.stderr.trim() || t('developer.doctorOutputEmpty')}
                               </pre>
                             </div>
@@ -1127,7 +1127,7 @@ export function Settings() {
                       </div>
 
                       {showTelemetryViewer && (
-                        <div className="mt-4 space-y-4 rounded-[12px] border border-border/60 bg-[hsl(var(--surface-base)/0.92)] p-4">
+                        <div className="mt-4 space-y-4 rounded-md border border-border/60 bg-[hsl(var(--surface-base)/0.92)] p-4">
                           <div className="flex flex-col gap-3">
                             <div className="flex justify-end gap-2">
                               <Button type="button" variant="outline" size="sm" onClick={handleCopyTelemetry} className={cn('h-8 px-4', settingsGhostButtonClass)}>
@@ -1217,7 +1217,7 @@ export function Settings() {
             </Tabs>
 
           <Dialog open={showLogs} onOpenChange={setShowLogs}>
-            <DialogContent className="flex h-[min(74vh,700px)] max-h-[min(74vh,700px)] max-w-[920px] flex-col gap-0 overflow-hidden rounded-[24px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.995)] p-0 shadow-[0_20px_48px_rgba(15,23,42,0.12)]">
+            <DialogContent className="flex h-[min(74vh,700px)] max-h-[min(74vh,700px)] max-w-[920px] flex-col gap-0 overflow-hidden rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated))] p-0 shadow-lg">
               <DialogHeader className="border-b border-border/60 px-5 py-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <DialogTitle className="text-[18px] font-semibold tracking-tight text-foreground">
@@ -1236,7 +1236,7 @@ export function Settings() {
                 </div>
               </DialogHeader>
               <div className="min-h-0 flex-1 p-5">
-                <pre className="h-full overflow-auto rounded-[14px] border border-border/60 bg-[hsl(var(--surface-base)/0.92)] px-4 py-3 font-mono text-[12px] whitespace-pre-wrap text-muted-foreground shadow-none">
+                <pre className="h-full overflow-auto rounded-md border border-border/60 bg-[hsl(var(--surface-base))] px-4 py-3 font-mono text-[12px] whitespace-pre-wrap text-muted-foreground shadow-inner">
                   {logContent || t('chat:noLogs')}
                 </pre>
               </div>

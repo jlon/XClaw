@@ -49,7 +49,6 @@
 
   ${if} $R0 == 0
     ${if} ${isUpdated}
-      # allow app to exit without explicit kill
       Sleep 1000
       Goto doStopProcess
     ${endIf}
@@ -58,25 +57,17 @@
 
     doStopProcess:
     DetailPrint `Closing running "${PRODUCT_NAME}"...`
-
-    # Silently kill the process using nsProcess instead of taskkill / cmd.exe
     ${nsProcess::KillProcess} "${APP_EXECUTABLE_FILENAME}" $R0
-    
-    # to ensure that files are not "in-use"
     Sleep 300
-
-    # Retry counter
     StrCpy $R1 0
 
     loop:
       IntOp $R1 $R1 + 1
-
       ${nsProcess::FindProcess} "${APP_EXECUTABLE_FILENAME}" $R0
       ${if} $R0 == 0
-        # wait to give a chance to exit gracefully
         Sleep 1000
         ${nsProcess::KillProcess} "${APP_EXECUTABLE_FILENAME}" $R0
-        
+
         ${nsProcess::FindProcess} "${APP_EXECUTABLE_FILENAME}" $R0
         ${If} $R0 == 0
           DetailPrint `Waiting for "${PRODUCT_NAME}" to close.`
@@ -88,8 +79,6 @@
         Goto not_running
       ${endIf}
 
-      # App likely running with elevated permissions.
-      # Ask user to close it manually
       ${if} $R1 > 1
         MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "$(appCannotBeClosed)" /SD IDCANCEL IDRETRY loop
         Quit
@@ -102,6 +91,17 @@
 !macroend
 
 !macro customInstall
+  ; Extract openclaw/node_modules from bundled tar (written by after-pack.cjs).
+  ; This runs AFTER NSIS finishes copying all files, so the tar is on disk.
+  ; Using Windows' built-in tar.exe (available since Win10 1803) is faster than
+  ; having NSIS write 12,000 individual files through LZMA decompression.
+  IfFileExists "$INSTDIR\resources\openclaw-nm.tar" 0 _ci_skip_tar
+    nsExec::ExecToStack 'cmd.exe /c "tar -xf "$INSTDIR\resources\openclaw-nm.tar" -C "$INSTDIR\resources\openclaw""'
+    Pop $0
+    Pop $1
+    Delete "$INSTDIR\resources\openclaw-nm.tar"
+  _ci_skip_tar:
+
   ; Enable Windows long path support (Windows 10 1607+ / Windows 11).
   ; pnpm virtual store paths can exceed the default MAX_PATH limit of 260 chars.
   ; Writing to HKLM requires admin privileges; on per-user installs without

@@ -297,7 +297,7 @@ function ToolStatusBar({
             key={tool.toolCallId || tool.id || tool.name}
             data-state={tool.status}
             className={cn(
-              'app-chat-process-node app-chat-tool-status flex items-center gap-1.5 rounded-[12px] px-2 py-1 text-xs transition-colors',
+              'app-chat-process-node app-chat-tool-status flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors',
               isRunning && 'text-foreground',
               !isRunning && !isError && 'text-muted-foreground',
               isError && 'text-destructive',
@@ -334,7 +334,7 @@ function MessageMetaBar({ text, timestamp, align }: { text: string; timestamp?: 
   return (
     <div
       className={cn(
-        'app-chat-hoverbar app-chat-hoverbar--floating pointer-events-none relative z-[1] mt-1.5 inline-flex w-fit items-center gap-1.5 rounded-full px-2 py-1 opacity-0 transition-[opacity,transform] duration-200 translate-y-1 select-none group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:translate-y-0 group-focus-within:opacity-100',
+        'app-chat-hoverbar app-chat-hoverbar--floating pointer-events-none relative z-[1] mt-1.5 inline-flex w-fit items-center gap-1.5 rounded-sm px-2 py-1 opacity-0 transition-opacity duration-150 select-none group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100',
         align === 'end' ? 'self-end' : 'self-start',
       )}
     >
@@ -371,8 +371,8 @@ function MessageBubble({
       className={cn(
         'relative max-w-full text-[14px] leading-[1.6]',
         isUser
-          ? 'app-chat-bubble-user rounded-[12px] rounded-br-[4px] border px-4 py-3'
-          : 'app-chat-bubble-assistant rounded-[12px] rounded-bl-[4px] px-0 py-0 text-foreground',
+          ? 'app-chat-bubble-user rounded-md rounded-br-[2px] border px-4 py-3'
+          : 'app-chat-bubble-assistant rounded-md rounded-bl-[2px] px-0 py-0 text-foreground',
       )}
       data-testid={isUser ? 'chat-user-bubble' : 'chat-assistant-bubble'}
     >
@@ -391,13 +391,13 @@ function MessageBubble({
                 const isInline = !match && !className;
                 if (isInline) {
                   return (
-                    <code className="app-chat-inline-code rounded-[8px] px-1.5 py-0.5 text-[13px] font-mono break-words" {...props}>
+                    <code className="app-chat-inline-code rounded px-1.5 py-0.5 text-[13px] font-mono break-words" {...props}>
                       {children}
                     </code>
                   );
                 }
                 return (
-                  <pre className="app-chat-code-block overflow-x-auto rounded-[14px] px-3.5 py-2.5">
+                  <pre className="app-chat-code-block overflow-x-auto rounded-md px-3.5 py-2.5">
                     <code className={cn('text-[13px] font-mono leading-6', className)} {...props}>
                       {children}
                     </code>
@@ -574,8 +574,8 @@ function FileCard({ file }: { file: AttachedFileMeta }) {
   return (
     <div
       className={cn(
-        'app-chat-file-card flex max-w-[220px] items-center gap-2 rounded-[11px] px-3 py-2',
-        file.filePath && 'cursor-pointer transition-colors hover:bg-[hsl(var(--foreground)/0.045)]'
+        'app-chat-file-card flex max-w-[220px] items-center gap-2 rounded-md px-3 py-2',
+        file.filePath && 'cursor-default transition-colors hover:bg-[hsl(var(--foreground)/0.045)]'
       )}
       onClick={handleOpen}
       title={file.filePath ? t('message.openFile') : undefined}
@@ -611,7 +611,7 @@ function ImageThumbnail({
   void filePath; void base64; void mimeType;
   return (
     <div
-      className="group/img app-chat-media-card relative max-h-[200px] max-w-[200px] cursor-zoom-in overflow-hidden rounded-[8px]"
+      className="group/img app-chat-media-card relative max-h-[200px] max-w-[200px] cursor-zoom-in overflow-hidden rounded-md"
       onClick={onPreview}
     >
       <img
@@ -645,7 +645,7 @@ function ImagePreviewCard({
   void filePath; void base64; void mimeType;
   return (
     <div
-      className="group/img app-chat-media-card relative max-h-[200px] max-w-[200px] cursor-zoom-in overflow-hidden rounded-[8px]"
+      className="group/img app-chat-media-card relative max-h-[200px] max-w-[200px] cursor-zoom-in overflow-hidden rounded-md"
       onClick={onPreview}
     >
       <img src={src} alt={fileName} loading="lazy" decoding="async" className="block max-h-[200px] max-w-[200px] object-cover" />
@@ -699,7 +699,7 @@ function ImageLightbox({
         <img
           src={src}
           alt={fileName}
-          className="max-h-[85vh] max-w-[90vw] rounded-[18px] border border-border/60 bg-background/96 object-contain shadow-2xl"
+          className="max-h-[85vh] max-w-[90vw] rounded-xl border border-border/60 bg-background/96 object-contain shadow-2xl"
         />
         <div className="absolute right-3 top-3 flex items-center gap-1.5">
           {filePath && (

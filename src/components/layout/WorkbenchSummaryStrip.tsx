@@ -5,7 +5,7 @@ type WorkbenchSummaryTone = 'neutral' | 'success' | 'warning' | 'danger';
 
 interface WorkbenchSummaryItemData {
   id: string;
-  icon: ReactNode;
+  icon?: ReactNode;
   label: string;
   value: string | number;
   tone?: WorkbenchSummaryTone;
@@ -44,9 +44,11 @@ export function WorkbenchSummaryStrip({
           className="app-workbench-summary-item"
           aria-label={`${item.label} ${item.value}`}
         >
-          <span className={cn('app-workbench-summary-item-icon', toneClasses[item.tone ?? 'neutral'])}>
-            {item.icon}
-          </span>
+          {item.icon ? (
+            <span className={cn('app-workbench-summary-item-icon', toneClasses[item.tone ?? 'neutral'])}>
+              {item.icon}
+            </span>
+          ) : null}
           <span className="app-workbench-summary-item-value">{item.value}</span>
           <span className="app-workbench-summary-item-label">{item.label}</span>
         </div>

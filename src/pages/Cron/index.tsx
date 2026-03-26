@@ -12,6 +12,8 @@ import {
   X,
   AlertCircle,
   CheckCircle2,
+  CircleOff,
+  Activity,
   Loader2,
   Timer,
 } from 'lucide-react';
@@ -22,6 +24,10 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { WorkbenchHeader } from '@/components/layout/WorkbenchHeader';
+import { WorkbenchHeaderTitleBlock } from '@/components/layout/WorkbenchHeaderTitleBlock';
+import { WorkbenchHeaderActions } from '@/components/layout/WorkbenchHeaderActions';
+import { WorkbenchSummaryStrip } from '@/components/layout/WorkbenchSummaryStrip';
 import { WorkspacePageFrame, WorkspacePageLoading, WorkspacePageScrollArea, WorkspacePageShell } from '@/components/layout/WorkspacePage';
 import {
   workbenchPrimaryToolbarButtonClasses,
@@ -52,17 +58,17 @@ const schedulePresets: { key: string; value: string; type: ScheduleType }[] = [
 ];
 
 const inputClasses =
-  'appearance-none h-[44px] rounded-xl text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus:outline-none focus-visible:outline-none focus-visible:border-primary focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
+  'appearance-none h-8 rounded-md text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-sm transition-all focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0';
 const tokenInputClasses =
-  'appearance-none h-[44px] rounded-xl font-mono text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus:outline-none focus-visible:outline-none focus-visible:border-primary focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
+  'appearance-none h-8 rounded-md font-mono text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-sm transition-all focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0';
 const textareaClasses =
-  'appearance-none rounded-xl text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus:outline-none focus-visible:outline-none focus-visible:border-primary focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0 resize-none';
+  'appearance-none rounded-md text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-sm transition-all focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 resize-none';
 const modalSurfaceClasses =
-  'app-modal-surface w-full rounded-[20px]';
+  'app-modal-surface w-full rounded-xl';
 const cardSurfaceClasses =
-  'app-cron-task-card workbench-motion-card group relative flex min-h-[212px] flex-col overflow-hidden rounded-[24px] border border-border/70 px-[18px] py-[17px] motion-safe:hover:-translate-y-[1px] cursor-pointer sm:px-5 sm:py-[18px]';
+  'app-cron-task-card workbench-motion-card group relative flex min-h-[160px] flex-col overflow-hidden rounded-lg border border-border/70 px-4 py-4 motion-safe:hover:-translate-y-[1px] cursor-default';
 const scheduleButtonBaseClasses =
-  'workbench-motion-control justify-start h-[38px] rounded-[12px] font-medium text-[13px]';
+  'workbench-motion-control justify-start h-8 rounded-md font-medium text-[13px]';
 
 interface ChannelAccountItem {
   accountId: string;
@@ -484,7 +490,7 @@ function TaskDialog({ job, agents, channelGroups, defaultAgentId, onClose, onSav
                     placeholder={t('dialog.taskNamePlaceholder')}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className={cn(inputClasses, 'h-10')}
+                    className={cn(inputClasses, 'h-8')}
                   />
                 </div>
               </section>
@@ -499,7 +505,7 @@ function TaskDialog({ job, agents, channelGroups, defaultAgentId, onClose, onSav
                     options={agentOptions}
                     placeholder={t('dialog.agentPlaceholder')}
                     onValueChange={setAgentId}
-                    className="h-10 rounded-xl text-[13px]"
+                    className="h-8 rounded-md text-[13px]"
                   />
                 </div>
               </section>
@@ -531,7 +537,7 @@ function TaskDialog({ job, agents, channelGroups, defaultAgentId, onClose, onSav
                     placeholder={boundTargetOptions.length > 0 ? t('dialog.targetChannel') : t('dialog.noChannels')}
                     disabled={boundTargetOptions.length === 0}
                     onValueChange={handleTargetValueChange}
-                    className="h-10 rounded-xl text-[13px]"
+                    className="h-8 rounded-md text-[13px]"
                   />
                   {boundTargetOptions.length === 0 ? (
                     <p className="text-[12px] leading-[1.5] text-amber-700 dark:text-amber-300">
@@ -580,7 +586,7 @@ function TaskDialog({ job, agents, channelGroups, defaultAgentId, onClose, onSav
                     variant="ghost"
                     size="sm"
                     onClick={() => setUseCustom(!useCustom)}
-                    className="h-7 rounded-[12px] px-2.5 text-[12px] text-foreground/60 hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground"
+                    className="h-7 rounded-md px-2.5 text-[12px] text-foreground/60 hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground"
                   >
                     {useCustom ? t('dialog.usePresets') : t('dialog.useCustomCron')}
                   </Button>
@@ -635,10 +641,10 @@ function TaskDialog({ job, agents, channelGroups, defaultAgentId, onClose, onSav
         </div>
         <div className="shrink-0 border-t border-border/70 px-6 py-4">
           <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={onClose} className="h-[38px] rounded-[12px] border-border/70 bg-transparent px-4.5 text-[12.75px] font-semibold text-foreground/80 shadow-none hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground">
+            <Button variant="outline" onClick={onClose} className="h-8 rounded-md border-border/70 bg-transparent px-4 text-[12.75px] font-semibold text-foreground/80 shadow-none hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground">
               {t('common:actions.cancel', 'Cancel')}
             </Button>
-            <Button onClick={handleSubmit} disabled={saving || boundTargetOptions.length === 0} className="workbench-motion-button workbench-motion-button--lift h-[38px] rounded-[12px] border border-transparent px-4.5 text-[12.75px] font-semibold shadow-none">
+            <Button onClick={handleSubmit} disabled={saving || boundTargetOptions.length === 0} className="workbench-motion-button workbench-motion-button--lift h-8 rounded-md border border-transparent px-4 text-[12.75px] font-semibold shadow-sm">
               {saving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -787,7 +793,7 @@ function CronJobCard({ job, agentLabel, onToggle, onEdit, onDelete, onTrigger }:
               size="sm"
               onClick={handleTrigger}
               disabled={triggering || !hasDeliveryTarget}
-              className="h-7.5 w-7.5 rounded-[10px] p-0 text-foreground/56 transition-colors hover:bg-[hsl(var(--surface-hover)/0.52)] hover:text-foreground"
+              className="h-7 w-7 rounded-md p-0 text-foreground/56 transition-colors hover:bg-[hsl(var(--surface-hover)/0.52)] hover:text-foreground"
               title={hasDeliveryTarget ? t('card.runNow') : t('card.configureDelivery')}
             >
               {triggering ? (
@@ -800,7 +806,7 @@ function CronJobCard({ job, agentLabel, onToggle, onEdit, onDelete, onTrigger }:
               variant="ghost"
               size="sm"
               onClick={handleDelete}
-              className="h-7.5 w-7.5 rounded-[10px] p-0 text-destructive/54 transition-colors hover:bg-destructive/10 hover:text-destructive"
+              className="h-7 w-7 rounded-md p-0 text-destructive/54 transition-colors hover:bg-destructive/10 hover:text-destructive"
               title={t('common:actions.delete', 'Delete')}
             >
               <Trash2 className="h-3.5 w-3.5" />
@@ -857,10 +863,10 @@ export function Cron() {
   const failedJobs = safeJobs.filter((j) => j.lastRun && !j.lastRun.success);
   const agentNameMap = Object.fromEntries(agents.map((agent) => [agent.id, agent.name]));
   const summaryItems = [
-    { id: 'total', label: t('stats.total'), value: safeJobs.length, tone: 'neutral' as const },
-    { id: 'active', label: t('stats.active'), value: activeJobs.length, tone: 'success' as const },
-    { id: 'paused', label: t('stats.paused'), value: pausedJobs.length, tone: 'warning' as const },
-    { id: 'failed', label: t('stats.failed'), value: failedJobs.length, tone: 'danger' as const },
+    { id: 'total', icon: <Activity className="h-3.5 w-3.5" />, label: t('stats.total'), value: safeJobs.length, tone: 'neutral' as const },
+    { id: 'active', icon: <CheckCircle2 className="h-3.5 w-3.5" />, label: t('stats.active'), value: activeJobs.length, tone: 'success' as const },
+    { id: 'paused', icon: <CircleOff className="h-3.5 w-3.5" />, label: t('stats.paused'), value: pausedJobs.length, tone: 'warning' as const },
+    { id: 'failed', icon: <AlertCircle className="h-3.5 w-3.5" />, label: t('stats.failed'), value: failedJobs.length, tone: 'danger' as const },
   ];
 
   const handleSave = useCallback(async (input: CronJobCreateInput) => {
@@ -889,50 +895,46 @@ export function Cron() {
   return (
     <WorkspacePageFrame>
       <WorkspacePageShell className="app-cron-shell">
-        <div className="app-cron-workbench-top">
-          <div className="space-y-1.5">
-            <h1 className="app-cron-page-title">{t('title')}</h1>
-            <p className="app-cron-page-subtitle">{t('subtitle')}</p>
-          </div>
+        <WorkbenchHeader
+          titleBlock={
+            <WorkbenchHeaderTitleBlock
+              title={t('title')}
+              subtitle={t('subtitle')}
+            />
+          }
+          summary={
+            <div className="app-cron-toolbar">
+              <WorkbenchSummaryStrip items={summaryItems} className="app-cron-summary-line" />
 
-          <div className="app-cron-toolbar">
-            <div className="app-cron-summary-line">
-              {summaryItems.map((item) => (
-                <span key={item.id} className={cn('app-cron-summary-pill', `app-cron-summary-pill--${item.tone}`)}>
-                  <span className="app-cron-summary-pill-value">{item.value}</span>
-                  <span className="app-cron-summary-pill-label">{item.label}</span>
-                </span>
-              ))}
+              <WorkbenchHeaderActions className="app-cron-toolbar-actions">
+                <Button
+                  variant="outline"
+                  onClick={fetchJobs}
+                  disabled={!isGatewayRunning}
+                  className={workbenchToolbarButtonClasses}
+                >
+                  <RefreshCw className="mr-2 h-3.5 w-3.5" />
+                  {t('refresh')}
+                </Button>
+                <Button
+                  onClick={() => {
+                    setEditingJob(undefined);
+                    setShowDialog(true);
+                  }}
+                  disabled={!isGatewayRunning}
+                  className={workbenchPrimaryToolbarButtonClasses}
+                >
+                  <Plus className="mr-2 h-3.5 w-3.5" />
+                  {t('newTask')}
+                </Button>
+              </WorkbenchHeaderActions>
             </div>
-
-            <div className="app-cron-toolbar-actions">
-              <Button
-                variant="outline"
-                onClick={fetchJobs}
-                disabled={!isGatewayRunning}
-                className={workbenchToolbarButtonClasses}
-              >
-                <RefreshCw className="mr-2 h-3.5 w-3.5" />
-                {t('refresh')}
-              </Button>
-              <Button
-                onClick={() => {
-                  setEditingJob(undefined);
-                  setShowDialog(true);
-                }}
-                disabled={!isGatewayRunning}
-                className={workbenchPrimaryToolbarButtonClasses}
-              >
-                <Plus className="mr-2 h-3.5 w-3.5" />
-                {t('newTask')}
-              </Button>
-            </div>
-          </div>
-        </div>
+          }
+        />
 
         <WorkspacePageScrollArea>
           {!isGatewayRunning && (
-            <div className="app-cron-notice mb-5 flex items-center gap-2.5 rounded-[14px] border border-amber-500/15 bg-amber-500/6 px-3.5 py-2.5 app-insight-surface">
+            <div className="app-cron-notice mb-5 flex items-center gap-2.5 rounded-lg border border-amber-500/15 bg-amber-500/6 px-3.5 py-2.5 app-insight-surface">
               <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               <span className="text-sm font-medium text-amber-900 dark:text-amber-100">
                 {t('gatewayWarning')}
@@ -941,7 +943,7 @@ export function Cron() {
           )}
 
           {error && (
-            <div className="app-cron-notice mb-5 flex items-center gap-2.5 rounded-[14px] border border-destructive/16 bg-[hsl(var(--danger))/0.06] px-3.5 py-2.5 app-insight-surface">
+            <div className="app-cron-notice mb-5 flex items-center gap-2.5 rounded-lg border border-destructive/16 bg-[hsl(var(--danger))/0.06] px-3.5 py-2.5 app-insight-surface">
               <AlertCircle className="h-5 w-5 text-destructive" />
               <span className="text-sm font-medium text-destructive">
                 {error}
@@ -950,7 +952,7 @@ export function Cron() {
           )}
 
           {safeJobs.length === 0 ? (
-            <div className="app-cron-empty-state app-empty-surface flex flex-col items-center justify-center rounded-[16px] border border-dashed border-border/60 px-6 py-14 text-muted-foreground">
+            <div className="app-cron-empty-state app-empty-surface flex flex-col items-center justify-center rounded-xl border border-dashed border-border/60 px-6 py-14 text-muted-foreground">
               <Clock className="mb-3 h-8 w-8 opacity-40" />
               <h3 className="mb-1.5 text-[17px] font-medium tracking-[-0.02em] text-foreground">{t('empty.title')}</h3>
               <p className="max-w-md text-center text-[12.8px] leading-[1.55]">

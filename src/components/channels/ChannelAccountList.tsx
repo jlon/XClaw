@@ -37,7 +37,7 @@ interface ChannelAccountListProps {
 
 const paneSurfaceClass =
   'app-pane-surface min-w-0 rounded-[14px] border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] shadow-none';
-const selectedItemClass = 'border-[hsl(var(--border-strong)/0.18)] bg-[hsl(var(--foreground)/0.04)] text-foreground shadow-[0_4px_12px_hsl(var(--foreground)/0.028)]';
+const selectedItemClass = 'border-[hsl(var(--border-strong)/0.18)] bg-[hsl(var(--foreground)/0.04)] text-foreground shadow-sm';
 const idleItemClass = 'border-[hsl(var(--border-subtle)/0.68)] bg-[hsl(var(--surface-elevated)/0.72)] hover:border-[hsl(var(--border-strong)/0.16)] hover:bg-[hsl(var(--foreground)/0.024)]';
 
 export function ChannelAccountList({

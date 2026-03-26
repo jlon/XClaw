@@ -95,6 +95,18 @@ type SetupEnvironmentTaskSnapshot = {
   }>;
 };
 
+const fetchSetupEnvironmentStatus = async (): Promise<SetupEnvironmentStatus> =>
+  await hostApiFetch<SetupEnvironmentStatus>('/api/app/setup-environment-status');
+
+const fetchSetupEnvironmentTask = async (): Promise<SetupEnvironmentTaskSnapshot> =>
+  await hostApiFetch<SetupEnvironmentTaskSnapshot>('/api/app/setup-environment-task');
+
+const startSetupEnvironmentPreparation = async (): Promise<SetupEnvironmentTaskSnapshot> =>
+  await hostApiFetch<SetupEnvironmentTaskSnapshot>('/api/app/setup-environment-prepare', { method: 'POST' });
+
+const cancelSetupEnvironmentPreparation = async (): Promise<{ success: boolean }> =>
+  await hostApiFetch<{ success: boolean }>('/api/app/setup-environment-cancel', { method: 'POST' });
+
 const createIdleSetupEnvironmentTask = (): SetupEnvironmentTaskSnapshot => ({
   state: 'idle',
   step: 'idle',
@@ -204,7 +216,7 @@ export function Setup() {
 
   const resolveCompletionPhase = useCallback(async (): Promise<SetupCompletePhase> => {
     try {
-      const status = await invokeIpc('setup:environment-status') as SetupEnvironmentStatus;
+      const status = await fetchSetupEnvironmentStatus();
       const shouldShowEnhancements = !(status.uvInstalled && status.pythonReady && status.studioDependenciesReady);
       setEnhancementStepRequired(shouldShowEnhancements);
       return shouldShowEnhancements ? 'enhancements' : 'summary';
@@ -933,7 +945,7 @@ function ProviderContent({
 
       pendingOAuthRef.current = null;
       onConfiguredChange(true);
-      toast.success(t('provider.valid'));
+      // Removed duplicate toast: toast.success(t('provider.valid'));
     };
 
     const handleError = (data: unknown) => {
@@ -1231,7 +1243,7 @@ function ProviderContent({
 
       setSelectedAccountId(accountIdForSave);
       onConfiguredChange(true);
-      toast.success(t('provider.valid'));
+      // Removed duplicate toast: toast.success(t('provider.valid'));
       return true;
     } catch (error) {
       setKeyValid(false);
@@ -1312,13 +1324,13 @@ function ProviderContent({
                   type="button"
                   onClick={() => handleSelectProvider(provider.id)}
                   className={cn(
-                    'flex min-h-[74px] items-start gap-3 rounded-[14px] border px-3 py-3 text-left transition-[border-color,background-color,box-shadow,transform] duration-200 focus:outline-none focus-visible:outline-none focus-visible:border-[hsl(var(--border-strong)/0.42)] focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0',
+                    'flex min-h-[74px] items-start gap-3 rounded-lg border px-3 py-3 text-left transition-[border-color,background-color,box-shadow,transform] duration-200 focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 focus-visible:border-transparent',
                     isSelected
                       ? 'border-[hsl(var(--border-strong)/0.42)] bg-[hsl(var(--surface-elevated)/1)] shadow-[0_10px_20px_rgba(15,23,42,0.045)]'
                       : 'border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.985)] hover:-translate-y-px hover:border-[hsl(var(--border-strong)/0.28)] hover:bg-[hsl(var(--surface-elevated)/1)] hover:shadow-[0_8px_18px_rgba(15,23,42,0.035)]',
                   )}
                 >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-[10px] border border-[hsl(var(--border-subtle)/0.76)] bg-[hsl(var(--surface-base)/0.92)]">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md border border-[hsl(var(--border-subtle)/0.76)] bg-[hsl(var(--surface-base)/0.92)]">
                     {iconUrl ? (
                       <img
                         src={iconUrl}
@@ -1372,12 +1384,12 @@ function ProviderContent({
               {isOAuth && supportsApiKey ? (
                 <div className="space-y-2">
                   <Label>{t('provider.authModeLabel')}</Label>
-                  <div className="grid grid-cols-2 overflow-hidden rounded-[14px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.75)] p-1 text-sm">
+                  <div className="grid grid-cols-2 overflow-hidden rounded-md border border-border/70 bg-[hsl(var(--surface-elevated)/0.75)] p-1 text-sm">
                     <button
                       type="button"
                       onClick={() => setAuthMode('oauth')}
                       className={cn(
-                        'min-w-0 whitespace-nowrap rounded-[10px] px-3 py-2.5 text-center transition-colors',
+                        'min-w-0 whitespace-nowrap rounded-sm px-3 py-2.5 text-center transition-colors',
                         authMode === 'oauth'
                           ? 'bg-background text-foreground shadow-sm'
                           : 'text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground',
@@ -1389,7 +1401,7 @@ function ProviderContent({
                       type="button"
                       onClick={() => setAuthMode('apikey')}
                       className={cn(
-                        'min-w-0 whitespace-nowrap rounded-[10px] px-3 py-2.5 text-center transition-colors',
+                        'min-w-0 whitespace-nowrap rounded-sm px-3 py-2.5 text-center transition-colors',
                         authMode === 'apikey'
                           ? 'bg-background text-foreground shadow-sm'
                           : 'text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground',
@@ -1461,7 +1473,7 @@ function ProviderContent({
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        <div className="flex items-center justify-center gap-2 rounded-[12px] border border-border/65 app-field-surface p-3">
+                        <div className="flex items-center justify-center gap-2 rounded-md border border-border/65 app-field-surface p-3">
                           <code className="text-2xl font-mono font-bold tracking-widest text-primary">
                             {oauthData.userCode}
                           </code>
@@ -1541,7 +1553,7 @@ function ProviderContent({
                   {selectedProvider === 'custom' ? (
                     <div className="space-y-2">
                       <Label>{t('provider.protocol')}</Label>
-                      <div className="grid gap-2 rounded-[14px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.75)] p-1 sm:grid-cols-3">
+                      <div className="grid gap-2 rounded-md border border-border/70 bg-[hsl(var(--surface-elevated)/0.75)] p-1 sm:grid-cols-3">
                         <button
                           type="button"
                           onClick={() => {
@@ -1549,7 +1561,7 @@ function ProviderContent({
                             onConfiguredChange(false);
                           }}
                           className={cn(
-                            'rounded-[10px] px-3 py-2 transition-colors',
+                            'rounded-sm px-3 py-2 transition-colors',
                             apiProtocol === 'openai-completions'
                               ? 'bg-background font-medium text-foreground shadow-sm'
                               : 'bg-transparent text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground',
@@ -1564,7 +1576,7 @@ function ProviderContent({
                             onConfiguredChange(false);
                           }}
                           className={cn(
-                            'rounded-[10px] px-3 py-2 transition-colors',
+                            'rounded-sm px-3 py-2 transition-colors',
                             apiProtocol === 'openai-responses'
                               ? 'bg-background font-medium text-foreground shadow-sm'
                               : 'bg-transparent text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground',
@@ -1579,7 +1591,7 @@ function ProviderContent({
                             onConfiguredChange(false);
                           }}
                           className={cn(
-                            'rounded-[10px] px-3 py-2 transition-colors',
+                            'rounded-sm px-3 py-2 transition-colors',
                             apiProtocol === 'anthropic-messages'
                               ? 'bg-background font-medium text-foreground shadow-sm'
                               : 'bg-transparent text-muted-foreground hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground',
@@ -1730,7 +1742,7 @@ function OptionalEnhancementPanel({ onPrepared }: { onPrepared: () => void }) {
       error: null,
     }));
     try {
-      const next = await invokeIpc('setup:environment-status') as SetupEnvironmentStatus;
+      const next = await fetchSetupEnvironmentStatus();
       setStatus((current) => ({
         ...current,
         loading: false,
@@ -1754,7 +1766,7 @@ function OptionalEnhancementPanel({ onPrepared }: { onPrepared: () => void }) {
 
   const refreshPrepareTask = useCallback(async (): Promise<SetupEnvironmentTaskSnapshot | null> => {
     try {
-      const next = await invokeIpc('setup:prepare-environment-status') as SetupEnvironmentTaskSnapshot;
+      const next = await fetchSetupEnvironmentTask();
       setPrepareTask(next);
       return next;
     } catch (error) {
@@ -1843,7 +1855,7 @@ function OptionalEnhancementPanel({ onPrepared }: { onPrepared: () => void }) {
       notice: null,
     }));
     try {
-      const nextTask = await invokeIpc('setup:prepare-environment') as SetupEnvironmentTaskSnapshot;
+      const nextTask = await startSetupEnvironmentPreparation();
       handledTaskRef.current = null;
       setPrepareTask(nextTask);
       setLogsExpanded(true);
@@ -1859,7 +1871,7 @@ function OptionalEnhancementPanel({ onPrepared }: { onPrepared: () => void }) {
 
   const handleCancel = useCallback(async () => {
     try {
-      await invokeIpc('setup:prepare-environment-cancel');
+      await cancelSetupEnvironmentPreparation();
       await refreshPrepareTask();
     } catch (error) {
       setStatus((current) => ({
@@ -1995,7 +2007,7 @@ function OptionalEnhancementPanel({ onPrepared }: { onPrepared: () => void }) {
       </div>
 
       {logsExpanded && prepareTask.logs.length > 0 ? (
-        <div className="mt-4 rounded-[18px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.82)]">
+        <div className="mt-4 rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated)/0.82)]">
           <div className="border-b border-border/60 px-4 py-3 text-sm font-medium text-foreground">
             {t('complete.enhancements.logsTitle')}
           </div>
@@ -2016,13 +2028,13 @@ function OptionalEnhancementPanel({ onPrepared }: { onPrepared: () => void }) {
       ) : null}
 
       {status.notice ? (
-        <div className="mt-4 rounded-[18px] border border-amber-500/20 bg-[hsl(var(--warning)/0.08)] px-4 py-3 text-sm leading-6 text-amber-700 dark:text-amber-300">
+        <div className="mt-4 rounded-xl border border-amber-500/20 bg-[hsl(var(--warning)/0.08)] px-4 py-3 text-sm leading-6 text-amber-700 dark:text-amber-300">
           {status.notice}
         </div>
       ) : null}
 
       {status.error ? (
-        <div className="mt-4 rounded-[18px] border border-red-500/20 bg-[hsl(var(--danger)/0.08)] px-4 py-3 text-sm leading-6 text-destructive">
+        <div className="mt-4 rounded-xl border border-red-500/20 bg-[hsl(var(--danger)/0.08)] px-4 py-3 text-sm leading-6 text-destructive">
           {status.error}
         </div>
       ) : null}

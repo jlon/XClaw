@@ -24,7 +24,7 @@ interface UsageRecentRequestsProps {
   onSelectProvider?: (provider: string) => void;
 }
 
-const sectionClass = 'app-insight-surface rounded-[14px] border border-[hsl(var(--border-subtle)/0.78)] px-3.5 py-3';
+const sectionClass = 'app-insight-surface rounded-lg border border-[hsl(var(--border-subtle)/0.78)] px-3.5 py-3';
 const rowClass = 'border-t border-[hsl(var(--border-subtle)/0.62)] py-2.5 first:border-t-0 first:pt-0 last:pb-0 transition-colors';
 const formatTokenCount = (value: number): string => Intl.NumberFormat().format(value);
 
@@ -73,7 +73,7 @@ export function UsageRecentRequests({
             size="sm"
             onClick={onPrevPage}
             disabled={currentPage <= 1}
-            className="app-field-surface h-7 rounded-[9px] px-2.5 shadow-none"
+            className="app-field-surface h-7 rounded-md px-2.5 shadow-none"
             aria-label={prevLabel}
             title={prevLabel}
           >
@@ -84,7 +84,7 @@ export function UsageRecentRequests({
             size="sm"
             onClick={onNextPage}
             disabled={currentPage >= totalPages}
-            className="app-field-surface h-7 rounded-[9px] px-2.5 shadow-none"
+            className="app-field-surface h-7 rounded-md px-2.5 shadow-none"
             aria-label={nextLabel}
             title={nextLabel}
           >
@@ -140,7 +140,7 @@ export function UsageRecentRequests({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="ml-auto h-6 rounded-[8px] px-2 text-[11px] shadow-none"
+                  className="ml-auto h-6 rounded-sm px-2 text-[11px] shadow-none"
                   onClick={() => onViewContent(entry)}
                 >
                   {viewContentLabel}

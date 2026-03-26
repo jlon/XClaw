@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { SUPPORTED_LANGUAGES } from '@/i18n';
+import { useSettingsStore } from '@/stores/settings';
 import { cn } from '@/lib/utils';
 import type { SetupStageStatus } from './types';
 import { setupRailItemVariants, setupStageContainerVariants } from './setup-motion';
@@ -28,6 +30,10 @@ const statusClasses: Record<SetupStageStatus, string> = {
 
 export function SetupStepRail({ stages, className }: SetupStepRailProps) {
   const { t } = useTranslation('setup');
+  const { language, setLanguage } = useSettingsStore();
+  const orderedLanguages = ['zh', 'en', 'ja']
+    .map((code) => SUPPORTED_LANGUAGES.find((lang) => lang.code === code))
+    .filter((lang): lang is (typeof SUPPORTED_LANGUAGES)[number] => Boolean(lang));
 
   return (
     <nav aria-label={t('wizard.rail.aria')} className={cn('flex h-full min-h-0 flex-col px-4 py-5 lg:px-5 lg:py-6', className)}>
@@ -39,6 +45,23 @@ export function SetupStepRail({ stages, className }: SetupStepRailProps) {
           <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-primary/75">{t('wizard.rail.title')}</div>
           <div className="mt-0.5 text-sm font-medium text-foreground">XClaw</div>
         </div>
+      </div>
+      <div className="mt-4 flex flex-wrap gap-2 px-2">
+        {orderedLanguages.map((lang) => (
+          <button
+            key={lang.code}
+            type="button"
+            onClick={() => setLanguage(lang.code)}
+            className={cn(
+              'inline-flex h-7 items-center rounded-md border px-2.5 text-[11px] font-medium transition-colors',
+              language === lang.code
+                ? 'border-primary/25 bg-primary text-primary-foreground shadow-sm'
+                : 'border-border/70 bg-[hsl(var(--surface-elevated)/0.66)] text-muted-foreground hover:bg-[hsl(var(--surface-elevated)/0.82)] hover:text-foreground',
+            )}
+          >
+            {lang.label}
+          </button>
+        ))}
       </div>
       <motion.ol
         initial="hidden"

@@ -17,6 +17,9 @@ import {
   workbenchPrimaryToolbarButtonClasses,
   workbenchToolbarButtonClasses,
 } from '@/components/layout/workbench-button-styles';
+import { WorkbenchHeader } from '@/components/layout/WorkbenchHeader';
+import { WorkbenchHeaderTitleBlock } from '@/components/layout/WorkbenchHeaderTitleBlock';
+import { WorkbenchHeaderActions } from '@/components/layout/WorkbenchHeaderActions';
 import { WorkspacePageFrame, WorkspacePageLoading, WorkspacePageScrollArea, WorkspacePageShell } from '@/components/layout/WorkspacePage';
 import { useAgentsStore } from '@/stores/agents';
 import { useGatewayStore } from '@/stores/gateway';
@@ -72,25 +75,21 @@ interface AgentMarketCatalogResponse {
 const fieldInputClasses =
   'appearance-none h-[44px] rounded-xl text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus:outline-none focus-visible:outline-none focus-visible:border-primary focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
 const modalSurfaceClasses =
-  'app-modal-surface w-full rounded-[20px]';
+  'app-modal-surface w-full rounded-xl';
 const badgeClasses =
-  'h-5 rounded-[10px] border border-border/70 bg-[hsl(var(--surface-panel)/0.9)] px-2 text-[10px] font-medium text-foreground/70 shadow-none dark:bg-[hsl(var(--surface-elevated)/0.82)]';
+  'h-5 rounded-sm border border-border/70 bg-[hsl(var(--surface-panel)/0.9)] px-2 text-[10px] font-medium text-foreground/70 shadow-none dark:bg-[hsl(var(--surface-elevated)/0.82)]';
 const modalTitleClasses =
   'text-[20px] md:text-[22px] font-semibold tracking-tight text-foreground';
 const modalDescriptionClasses =
   'mt-1 text-[13px] font-medium leading-[1.6] text-foreground/68';
 const dialogIconButtonClasses =
-  'h-8 w-8 rounded-[12px] border border-border/70 bg-transparent shadow-none text-muted-foreground transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
+  'h-8 w-8 rounded-md border border-border/70 bg-transparent shadow-none text-muted-foreground transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
 const dialogActionButtonClasses =
-  'h-9 rounded-[12px] px-4 text-[13px] font-medium shadow-none border-border/70 bg-transparent text-foreground/80 transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
+  'h-8 rounded-md px-3 text-[13px] font-medium shadow-none border-border/70 bg-transparent text-foreground/80 transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
 const browsePaneClasses =
-  'app-pane-surface min-h-[600px] rounded-[24px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.992)] p-4 shadow-[0_10px_24px_rgba(15,23,42,0.04),inset_0_1px_0_rgba(255,255,255,0.74)]';
+  'app-pane-surface min-h-[600px] rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated))] p-4 shadow-sm';
 const detailWorkbenchClasses =
-  'app-pane-surface min-h-[600px] rounded-[24px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.995)] p-4 shadow-[0_14px_32px_rgba(15,23,42,0.05),inset_0_1px_0_rgba(255,255,255,0.78)]';
-const pageHeaderClasses =
-  'mb-3 flex items-center justify-between gap-4';
-const pageTitleClasses =
-  'text-[19px] md:text-[20px] font-semibold leading-[1.05] tracking-tight text-foreground';
+  'app-pane-surface min-h-[600px] rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated))] p-4 shadow-sm';
 type DetailTab = 'persona' | 'binding';
 type PickerPlacement = 'top' | 'bottom';
 
@@ -729,18 +728,23 @@ export function Agents() {
   return (
       <WorkspacePageFrame>
       <WorkspacePageShell style={{ paddingTop: '0.75rem', paddingBottom: '1rem' }}>
-        <div className={pageHeaderClasses}>
-          <div className="min-w-0 flex-1">
-            <h1 className={pageTitleClasses}>{t('workbench.title')}</h1>
-          </div>
-          <div className="flex shrink-0 items-center justify-end">
-            <AgentModeSwitch value={browseMode} onChange={handleBrowseModeChange} />
-          </div>
-        </div>
+        <WorkbenchHeader
+          titleBlock={
+            <WorkbenchHeaderTitleBlock
+              title={t('title')}
+              subtitle={t('subtitle')}
+            />
+          }
+          actions={
+            <WorkbenchHeaderActions>
+              <AgentModeSwitch value={browseMode} onChange={handleBrowseModeChange} />
+            </WorkbenchHeaderActions>
+          }
+        />
 
         <WorkspacePageScrollArea>
           {gatewayStatus.state !== 'running' && (
-            <div className="mb-5 flex items-center gap-2.5 rounded-[14px] border border-[hsl(var(--warning))/0.15] bg-[hsl(var(--warning))/0.06] px-3.5 py-2.5 text-[hsl(var(--warning))] app-insight-surface">
+            <div className="mb-5 flex items-center gap-2.5 rounded-lg border border-[hsl(var(--warning))/0.15] bg-[hsl(var(--warning))/0.06] px-3.5 py-2.5 text-[hsl(var(--warning))] app-insight-surface">
               <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               <span className="text-sm font-medium text-amber-900 dark:text-amber-100">
                 {t('gatewayWarning')}
@@ -749,7 +753,7 @@ export function Agents() {
           )}
 
           {error && (
-            <div className="mb-5 flex items-center gap-2.5 rounded-[14px] border border-destructive/16 bg-[hsl(var(--danger))/0.06] px-3.5 py-2.5 app-insight-surface">
+            <div className="mb-5 flex items-center gap-2.5 rounded-lg border border-destructive/16 bg-[hsl(var(--danger))/0.06] px-3.5 py-2.5 app-insight-surface">
               <AlertCircle className="h-5 w-5 text-destructive" />
               <span className="text-sm font-medium text-destructive">
                 {error}
@@ -758,7 +762,7 @@ export function Agents() {
           )}
 
           {agentCreateWarning && (
-            <div className="mb-5 flex items-start gap-2.5 rounded-[14px] border border-[hsl(var(--warning))/0.15] bg-[hsl(var(--warning))/0.08] px-3.5 py-2.5 app-insight-surface">
+            <div className="mb-5 flex items-start gap-2.5 rounded-lg border border-[hsl(var(--warning))/0.15] bg-[hsl(var(--warning))/0.08] px-3.5 py-2.5 app-insight-surface">
               <AlertCircle className="mt-0.5 h-5 w-5 text-amber-600 dark:text-amber-400" />
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-medium text-amber-900 dark:text-amber-100">
@@ -769,7 +773,7 @@ export function Agents() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setAgentCreateWarning(null)}
-                className="h-8 w-8 rounded-[12px] border-0 text-amber-700/70 hover:bg-amber-500/10 hover:text-amber-900 dark:text-amber-200/80 dark:hover:text-amber-100"
+                className="h-8 w-8 rounded-md border-0 text-amber-700/70 hover:bg-amber-500/10 hover:text-amber-900 dark:text-amber-200/80 dark:hover:text-amber-100"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -837,9 +841,9 @@ export function Agents() {
                   />
                 ) : (
                   <div className="space-y-4">
-                    <section className="sticky top-0 z-[1] rounded-[20px] border border-border/60 bg-[hsl(var(--surface-panel)/0.99)] px-4 py-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.52),0_12px_24px_rgba(15,23,42,0.03)] backdrop-blur-sm">
+                    <section className="sticky top-0 z-[1] rounded-xl border border-border/60 bg-[hsl(var(--surface-panel)/0.99)] px-4 py-3.5 shadow-sm">
                       <div className="flex flex-wrap items-center gap-2.5">
-                        <div className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-[14px] border border-border/65 bg-[hsl(var(--surface-elevated)/0.98)] px-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition-colors focus-within:border-ring/50 focus-within:bg-[hsl(var(--surface-elevated)/1)]">
+                        <div className="flex h-8 min-w-0 flex-1 items-center gap-2 rounded-md border border-border/65 bg-[hsl(var(--surface-elevated)/0.98)] px-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition-colors focus-within:border-ring/50 focus-within:bg-[hsl(var(--surface-elevated)/1)]">
                           <Search className="h-4 w-4 shrink-0 text-foreground/34" />
                           <Input
                             value={marketSearchValue}
@@ -1090,11 +1094,11 @@ function CreateAgentLauncher({
         <ChevronDown className={cn('ml-2 h-3.5 w-3.5 transition-transform', open && 'rotate-180')} />
       </Button>
       {open ? (
-        <div className="absolute right-0 top-[calc(100%+8px)] z-20 min-w-[220px] rounded-[16px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.98)] p-2 shadow-[0_14px_40px_rgba(15,23,42,0.08)]">
+        <div className="absolute right-0 top-[calc(100%+8px)] z-20 min-w-[220px] rounded-lg border border-border/70 bg-[hsl(var(--surface-elevated)/0.98)] p-2 shadow-md">
           <button
             type="button"
             onClick={onCreateBlank}
-            className="flex w-full items-center gap-2.5 rounded-[12px] px-3 py-2.5 text-left text-[13px] font-medium text-foreground/84 transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)]"
+            className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-[13px] font-medium text-foreground/84 transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)]"
           >
             <Plus className="h-3.5 w-3.5 text-foreground/60" />
             {blankLabel}
@@ -1102,7 +1106,7 @@ function CreateAgentLauncher({
           <button
             type="button"
             onClick={onInstallFromMarket}
-            className="mt-1 flex w-full items-center gap-2.5 rounded-[12px] px-3 py-2.5 text-left text-[13px] font-medium text-foreground/84 transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)]"
+            className="mt-1 flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-[13px] font-medium text-foreground/84 transition-colors hover:bg-[hsl(var(--surface-hover)/0.46)]"
           >
             <FolderUp className="h-3.5 w-3.5 text-foreground/60" />
             {marketLabel}
@@ -1155,7 +1159,7 @@ function WorkspaceFileEditorDialog({
             value={value}
             onChange={(event) => onChange(event.target.value)}
             placeholder={t('workbench.persona.noContent')}
-            className="min-h-[420px] resize-none rounded-[16px] border-border/55 bg-[hsl(var(--surface-elevated)/0.995)] px-3.5 py-3 text-[12.5px] leading-[1.75] text-foreground/84 shadow-[inset_0_1px_0_rgba(255,255,255,0.76)]"
+            className="min-h-[420px] resize-none rounded-xl border-border/55 bg-[hsl(var(--surface-elevated)/0.995)] px-3.5 py-3 text-[12.5px] leading-[1.75] text-foreground/84 shadow-[inset_0_1px_0_rgba(255,255,255,0.76)]"
           />
           <div className="flex justify-end gap-2">
             <Button
@@ -1168,7 +1172,7 @@ function WorkspaceFileEditorDialog({
             <Button
               onClick={onSave}
               disabled={saving || !dirty}
-              className="h-9 rounded-[12px] px-4 text-[13px] font-medium shadow-none"
+              className="h-8 rounded-md px-4 text-[13px] font-medium shadow-sm"
             >
               {saving ? t('workbench.persona.saving') : t('workbench.persona.saveAction')}
             </Button>
@@ -1228,7 +1232,7 @@ function WorkspaceDiscardDialog({
           <Button
             onClick={onSaveAndContinue}
             disabled={saving}
-            className="h-9 rounded-[12px] px-4 text-[13px] font-medium shadow-none"
+            className="h-8 rounded-md px-4 text-[13px] font-medium shadow-sm"
           >
             {saving ? t('workbench.persona.saving') : t('workbench.persona.discardDialog.saveAndContinue')}
           </Button>
@@ -1384,7 +1388,7 @@ function AddAgentDialog({
                   return !open;
                 })}
                 disabled={saving}
-                className="h-10 w-full justify-between rounded-[12px] border-border/70 bg-[hsl(var(--surface-elevated)/0.96)] px-3 text-left text-[13px] font-medium text-foreground shadow-none transition-colors hover:bg-[hsl(var(--surface-hover)/0.42)]"
+                className="h-8 w-full justify-between rounded-md border-border/70 bg-[hsl(var(--surface-elevated)/0.96)] px-3 text-left text-[13px] font-medium text-foreground shadow-sm transition-colors hover:bg-[hsl(var(--surface-hover)/0.42)]"
               >
                 <span className="truncate">{currentModelLabel}</span>
                 <ChevronDown className="ml-2 h-3.5 w-3.5 shrink-0 text-foreground/48" />
@@ -1392,7 +1396,7 @@ function AddAgentDialog({
               {modelPickerOpen ? (
                 <div
                   className={cn(
-                    'absolute left-0 z-40 w-full overflow-hidden rounded-[14px] border border-border/70 bg-[hsl(var(--surface-elevated)/1)] p-1.5 shadow-[0_18px_42px_rgba(15,23,42,0.12)]',
+                    'absolute left-0 z-40 w-full overflow-hidden rounded-md border border-border/70 bg-[hsl(var(--surface-elevated)/1)] p-1.5 shadow-md',
                     createDialogPickerPlacement === 'top' ? 'bottom-full mb-2' : 'top-full mt-2',
                   )}
                 >
@@ -1404,7 +1408,7 @@ function AddAgentDialog({
                         value={modelSearchValue}
                         placeholder={t('createDialog.modelSearchPlaceholder')}
                         onChange={(event) => setModelSearchValue(event.target.value)}
-                        className="h-8 w-full rounded-[10px] border border-border/65 bg-[hsl(var(--surface-panel)/0.95)] pl-8.5 pr-3 text-[12px] text-foreground outline-none placeholder:text-foreground/36 focus:border-ring/55"
+                        className="h-8 w-full rounded-md border border-border/65 bg-[hsl(var(--surface-panel)/0.95)] pl-8.5 pr-3 text-[12px] text-foreground outline-none placeholder:text-foreground/36 focus:border-ring/55"
                       />
                     </div>
                   </div>
@@ -1417,7 +1421,7 @@ function AddAgentDialog({
                         setModelSearchValue('');
                       }}
                       className={cn(
-                        'flex w-full items-center justify-between rounded-[10px] px-3 py-2 text-left transition-[background-color,color] hover:bg-[hsl(var(--foreground)/0.032)]',
+                        'flex w-full items-center justify-between rounded-sm px-3 py-2 text-left transition-[background-color,color] hover:bg-[hsl(var(--foreground)/0.032)]',
                         useDefaultModel && 'bg-[hsl(var(--foreground)/0.032)]',
                       )}
                     >
@@ -1445,7 +1449,7 @@ function AddAgentDialog({
                               setModelSearchValue('');
                             }}
                             className={cn(
-                              'flex w-full flex-col items-start rounded-[10px] px-3 py-2 text-left transition-[background-color,color] hover:bg-[hsl(var(--foreground)/0.032)]',
+                              'flex w-full flex-col items-start rounded-sm px-3 py-2 text-left transition-[background-color,color] hover:bg-[hsl(var(--foreground)/0.032)]',
                               !useDefaultModel && model.ref === selectedModelRef && 'bg-[hsl(var(--foreground)/0.032)]',
                             )}
                           >
@@ -1482,7 +1486,7 @@ function AddAgentDialog({
             <Button
               onClick={() => void handleSubmit()}
               disabled={saving || !name.trim() || (!useDefaultModel && !selectedModelRef)}
-              className="h-9 rounded-[12px] px-4 text-[13px] font-medium shadow-none"
+              className="h-8 rounded-md px-4 text-[13px] font-medium shadow-sm"
             >
               {saving ? (
                 <>
@@ -1669,7 +1673,7 @@ function AgentSettingsModal({
                 <p className="text-[11px] font-medium text-muted-foreground/72">
                   {t('settingsDialog.agentIdLabel')}
                 </p>
-                <div className="flex h-10 items-center rounded-[12px] border border-border/60 bg-[hsl(var(--surface-panel)/0.6)] px-3 text-[12.5px] text-foreground/84">
+                <div className="flex h-8 items-center rounded-md border border-border/60 bg-[hsl(var(--surface-panel)/0.6)] px-3 text-[12.5px] text-foreground/84">
                   <span className="font-mono">{agent.id}</span>
                 </div>
               </div>
@@ -1683,7 +1687,7 @@ function AgentSettingsModal({
                     variant="outline"
                     onClick={() => setModelPickerOpen((open) => !open)}
                     disabled={savingSettings}
-                    className="h-10 w-full justify-between rounded-[12px] border-border/70 bg-[hsl(var(--surface-elevated)/0.96)] px-3 text-left text-[13px] font-medium text-foreground shadow-none transition-colors hover:bg-[hsl(var(--surface-hover)/0.42)]"
+                    className="h-8 w-full justify-between rounded-md border-border/70 bg-[hsl(var(--surface-elevated)/0.96)] px-3 text-left text-[13px] font-medium text-foreground shadow-sm transition-colors hover:bg-[hsl(var(--surface-hover)/0.42)]"
                   >
                     <span className="truncate">{currentModelLabel}</span>
                     <ChevronDown className="ml-2 h-3.5 w-3.5 shrink-0 text-foreground/48" />
@@ -1691,7 +1695,7 @@ function AgentSettingsModal({
                   {modelPickerOpen ? (
                     <div
                       className={cn(
-                        'absolute left-0 z-40 w-full overflow-hidden rounded-[14px] border border-border/70 bg-[hsl(var(--surface-elevated)/1)] p-1.5 shadow-[0_18px_42px_rgba(15,23,42,0.12)]',
+                        'absolute left-0 z-40 w-full overflow-hidden rounded-md border border-border/70 bg-[hsl(var(--surface-elevated)/1)] p-1.5 shadow-md',
                         settingsPickerPlacement === 'top' ? 'bottom-full mb-2' : 'top-full mt-2',
                       )}
                     >
@@ -1703,7 +1707,7 @@ function AgentSettingsModal({
                             value={modelSearchValue}
                             placeholder={t('settingsDialog.modelSearchPlaceholder')}
                             onChange={(event) => setModelSearchValue(event.target.value)}
-                            className="h-8 w-full rounded-[10px] border border-border/65 bg-[hsl(var(--surface-panel)/0.95)] pl-8.5 pr-3 text-[12px] text-foreground outline-none placeholder:text-foreground/36 focus:border-ring/55"
+                            className="h-8 w-full rounded-md border border-border/65 bg-[hsl(var(--surface-panel)/0.95)] pl-8.5 pr-3 text-[12px] text-foreground outline-none placeholder:text-foreground/36 focus:border-ring/55"
                           />
                         </div>
                       </div>
@@ -1715,7 +1719,7 @@ function AgentSettingsModal({
                             setModelPickerOpen(false);
                           }}
                           className={cn(
-                            'flex w-full items-center justify-between rounded-[10px] px-3 py-2 text-left transition-[background-color,color] hover:bg-[hsl(var(--foreground)/0.032)]',
+                            'flex w-full items-center justify-between rounded-sm px-3 py-2 text-left transition-[background-color,color] hover:bg-[hsl(var(--foreground)/0.032)]',
                             useDefaultModel && 'bg-[hsl(var(--foreground)/0.032)]',
                           )}
                         >
@@ -1742,7 +1746,7 @@ function AgentSettingsModal({
                                   setModelPickerOpen(false);
                                 }}
                                 className={cn(
-                                  'flex w-full flex-col items-start rounded-[10px] px-3 py-2 text-left transition-[background-color,color] hover:bg-[hsl(var(--foreground)/0.032)]',
+                                  'flex w-full flex-col items-start rounded-sm px-3 py-2 text-left transition-[background-color,color] hover:bg-[hsl(var(--foreground)/0.032)]',
                                   !useDefaultModel && model.ref === selectedModelRef && 'bg-[hsl(var(--foreground)/0.032)]',
                                 )}
                               >
@@ -1779,7 +1783,7 @@ function AgentSettingsModal({
           <Button
             onClick={() => void handleSaveSettings()}
             disabled={savingSettings || !trimmedName || !hasChanges || (!useDefaultModel && !nextModelRef)}
-            className="h-9 rounded-[12px] px-4 text-[13px] font-medium shadow-none"
+            className="h-8 rounded-md px-4 text-[13px] font-medium shadow-sm"
           >
             {savingSettings ? (
               <>

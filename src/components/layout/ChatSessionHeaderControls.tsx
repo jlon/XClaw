@@ -156,7 +156,7 @@ export function ChatSessionHeaderControls({
         </Tooltip>
 
         {newMenuOpen ? (
-          <div className="absolute right-0 top-[calc(100%+6px)] z-30 min-w-[168px] rounded-[12px] border border-border/80 bg-[hsl(var(--surface-elevated)/0.995)] p-1 shadow-[0_10px_28px_rgba(15,23,42,0.08)]">
+          <div className="absolute right-0 top-[calc(100%+6px)] z-30 min-w-[168px] rounded-lg border border-border/80 bg-[hsl(var(--surface-elevated)/0.995)] p-1 shadow-md">
             <div className="px-2 py-1 text-[10px] font-medium tracking-tight text-muted-foreground/56">
               {t('chat:sessionPane.newAgentTitle')}
             </div>

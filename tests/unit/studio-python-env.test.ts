@@ -236,4 +236,37 @@ describe('ensureStudioPythonEnv', () => {
     );
     expect(installCall).toBeDefined();
   });
+
+  it('returns a sanitized dependency error instead of raw traceback during inspection', async () => {
+    existsSyncMock.mockImplementation((target: string) => {
+      if (target === '/tmp/studio/backend/requirements.txt') {
+        return true;
+      }
+      if (target === '/tmp/studio/.venv/bin/python') {
+        return true;
+      }
+      return false;
+    });
+
+    runChildCommandMock.mockImplementation(async (command: string, args: string[]) => {
+      if (command === '/tmp/bin/uv' && args.join(' ') === 'python find 3.12') {
+        return { code: 0, stdout: '/tmp/python-3.12', stderr: '' };
+      }
+      if (command === '/tmp/studio/.venv/bin/python' && args.join(' ') === '-c import flask; from PIL import Image') {
+        return {
+          code: 1,
+          stdout: '',
+          stderr: 'Traceback (most recent call last):\n  File "<string>", line 1, in <module>\nModuleNotFoundError: No module named \'flask\'',
+        };
+      }
+      throw new Error(`Unexpected command: ${command} ${args.join(' ')}`);
+    });
+
+    const { inspectStudioPythonEnv } = await import('@electron/studio/python-env');
+
+    const readiness = await inspectStudioPythonEnv();
+
+    expect(readiness.dependenciesReady).toBe(false);
+    expect(readiness.error).toBe('Studio dependencies are missing');
+  });
 });

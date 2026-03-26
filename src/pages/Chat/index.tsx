@@ -19,6 +19,7 @@ import { ChatInput } from './ChatInput';
 import { extractImages, extractText, extractThinking, extractToolUse, isSystemRuntimeMessage } from './message-utils';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
+import { generateUuid } from '@/lib/uuid';
 import { useStickToBottomInstant } from '@/hooks/use-stick-to-bottom-instant';
 import { XClawWelcomeWordmark } from '@/components/common/XClawWelcomeWordmark';
 import { hostApiFetch } from '@/lib/host-api';
@@ -185,7 +186,7 @@ export function Chat() {
       role: 'user',
       content: text,
       timestamp: now / 1000,
-      id: crypto.randomUUID(),
+      id: generateUuid(),
     };
 
     useChatStore.setState((state) => ({
@@ -216,7 +217,7 @@ export function Chat() {
             role: 'assistant',
             content: `已提交 ${draft.name || slug} 的安装请求。安装完成后可以回到技能页继续管理。`,
             timestamp: Date.now() / 1000,
-            id: crypto.randomUUID(),
+            id: generateUuid(),
           },
         ],
         sessionLastActivity: { ...state.sessionLastActivity, [state.currentSessionKey]: Date.now() },
@@ -232,7 +233,7 @@ export function Chat() {
             role: 'assistant',
             content: `安装 ${draft.name || slug} 失败：${String(error)}`,
             timestamp: Date.now() / 1000,
-            id: crypto.randomUUID(),
+            id: generateUuid(),
           },
         ],
         sessionLastActivity: { ...state.sessionLastActivity, [state.currentSessionKey]: Date.now() },
@@ -597,7 +598,7 @@ export function Chat() {
       {/* Only block the thread on first-load history; background refresh uses toolbar feedback */}
       {isHistoryLoading && !sending && (
         <div className="absolute inset-0 z-50 flex items-center justify-center rounded-xl bg-background/18 pointer-events-auto">
-          <div className="rounded-[12px] border border-border/65 bg-[hsl(var(--surface-elevated)/0.98)] p-2.5 shadow-none">
+          <div className="rounded-md border border-border/65 bg-[hsl(var(--surface-elevated)/0.98)] p-2.5 shadow-sm">
             <LoadingSpinner size="md" />
           </div>
         </div>

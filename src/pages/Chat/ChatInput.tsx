@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { hostApiFetch } from '@/lib/host-api';
+import { generateUuid } from '@/lib/uuid';
 import { invokeIpc } from '@/lib/api-client';
 import { getModelOptionHint, getModelOptionLabel, normalizeModelOption, type ModelOption } from '@/lib/model-options';
 import { cn } from '@/lib/utils';
@@ -443,7 +444,7 @@ export function ChatInput({
       // Add placeholder entries immediately
       const tempIds: string[] = [];
       for (const filePath of result.filePaths) {
-        const tempId = crypto.randomUUID();
+        const tempId = generateUuid();
         tempIds.push(tempId);
         // Handle both Unix (/) and Windows (\) path separators
         const fileName = filePath.split(/[\\/]/).pop() || 'file';
@@ -512,7 +513,7 @@ export function ChatInput({
 
   const stageBufferFiles = useCallback(async (files: globalThis.File[]) => {
     for (const file of files) {
-      const tempId = crypto.randomUUID();
+      const tempId = generateUuid();
       setAttachments(prev => [...prev, {
         id: tempId,
         fileName: file.name,
@@ -922,7 +923,7 @@ export function ChatInput({
                         onMouseEnter={() => setSlashMenuIndex(index)}
                         onClick={() => selectSlashArg(arg, true)}
                         className={cn(
-                          'flex w-full items-center justify-between gap-3 rounded-[12px] px-3 py-2.5 text-left transition-colors',
+                          'flex w-full items-center justify-between gap-3 rounded-md px-3 py-2.5 text-left transition-colors',
                           index === slashMenuIndex
                             ? 'bg-[hsl(var(--foreground)/0.06)] text-foreground'
                             : 'text-foreground/88 hover:bg-[hsl(var(--foreground)/0.032)]',
@@ -960,7 +961,7 @@ export function ChatInput({
                               onMouseEnter={() => setSlashMenuIndex(globalIndex)}
                               onClick={() => selectSlashCommand(command, true)}
                               className={cn(
-                                'flex w-full items-center justify-between gap-3 rounded-[12px] px-3 py-2.5 text-left transition-colors',
+                                'flex w-full items-center justify-between gap-3 rounded-md px-3 py-2.5 text-left transition-colors',
                                 globalIndex === slashMenuIndex
                                   ? 'bg-[hsl(var(--foreground)/0.06)] text-foreground'
                                   : 'text-foreground/88 hover:bg-[hsl(var(--foreground)/0.032)]',
@@ -1036,7 +1037,7 @@ export function ChatInput({
                     <AtSign className="h-[17px] w-[17px]" />
                   </Button>
                   {pickerOpen && (
-                    <div className="app-chat-picker-surface absolute left-0 bottom-full z-20 mb-2 w-72 overflow-hidden rounded-[14px] p-1.5">
+                    <div className="app-chat-picker-surface absolute left-0 bottom-full z-20 mb-2 w-72 overflow-hidden rounded-md p-1.5">
                       <div className="px-3 py-2 text-[11px] font-medium text-muted-foreground/80">
                         {t('composer.agentPickerTitle', { currentAgent: currentAgentName })}
                       </div>
@@ -1063,7 +1064,7 @@ export function ChatInput({
                 <button
                   type="button"
                   onClick={() => setTargetAgentId(null)}
-                  className="app-chat-composer-target-chip inline-flex h-6 items-center gap-1.5 rounded-[8px] px-1.5 text-[11px] font-medium text-foreground/74 transition-colors hover:text-foreground"
+                  className="app-chat-composer-target-chip inline-flex h-6 items-center gap-1.5 rounded-sm px-1.5 text-[11px] font-medium text-foreground/74 transition-colors hover:text-foreground"
                   title={t('composer.clearTarget')}
                 >
                   <span className="max-w-[180px] truncate">{t('composer.targetChip', { agent: selectedTarget.name })}</span>
@@ -1095,7 +1096,7 @@ export function ChatInput({
                   )}
                 </Button>
                 {modelPickerOpen && (
-                  <div className="app-chat-picker-surface absolute left-0 bottom-full z-20 mb-2 w-64 overflow-hidden rounded-[14px] p-1.5">
+                  <div className="app-chat-picker-surface absolute left-0 bottom-full z-20 mb-2 w-64 overflow-hidden rounded-md p-1.5">
                     <div className="px-3 py-2 text-[11px] font-medium text-muted-foreground/80">
                       {t('composer.modelPickerTitle')}
                     </div>
@@ -1131,7 +1132,7 @@ export function ChatInput({
                         onClick={() => {
                           void handleModelSelect(null);
                         }}
-                        className="flex w-full flex-col items-start rounded-[10px] px-3 py-2 text-left transition-[background-color,color] hover:bg-[hsl(var(--foreground)/0.032)]"
+                        className="flex w-full flex-col items-start rounded-sm px-3 py-2 text-left transition-[background-color,color] hover:bg-[hsl(var(--foreground)/0.032)]"
                       >
                         <span className="text-[12.5px] font-medium text-foreground/92">{t('composer.modelPickerDefault')}</span>
                         <span className="text-[10.5px] text-muted-foreground/72">{t('composer.modelPickerDefaultHint')}</span>
@@ -1174,20 +1175,20 @@ export function ChatInput({
               </div>
             </div>
 
-            <Button
-              onClick={sending ? handleStop : handleSend}
-              disabled={sending ? !canStop : !canSend}
-              size="icon"
-              className={`pointer-events-auto h-8 w-8 shrink-0 rounded-[12px] transition-[background-color,color,box-shadow] ${
-                sending
-                  ? 'border border-[hsl(var(--border-subtle)/0.62)] bg-[hsl(var(--surface-elevated)/0.96)] text-foreground hover:bg-[hsl(var(--foreground)/0.04)]'
-                  : canSend
-                    ? 'bg-[hsl(var(--foreground)/0.9)] text-[hsl(var(--background))] shadow-[0_10px_18px_hsl(var(--foreground)/0.14)] hover:bg-[hsl(var(--foreground)/0.96)]'
-                    : 'bg-transparent text-muted-foreground/45 hover:bg-transparent'
-              }`}
-              variant="ghost"
-              title={sending ? t('composer.stop') : t('composer.send')}
-            >
+              <Button
+                onClick={sending ? handleStop : handleSend}
+                disabled={sending ? !canStop : !canSend}
+                size="icon"
+                className={`pointer-events-auto h-7 w-7 shrink-0 rounded-md transition-colors ${
+                  sending
+                    ? 'border border-border/70 bg-[hsl(var(--surface-elevated))] text-foreground hover:bg-[hsl(var(--surface-hover))]'
+                    : canSend
+                      ? 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90'
+                      : 'bg-transparent text-muted-foreground/45 hover:bg-transparent'
+                }`}
+                variant="ghost"
+                title={sending ? t('composer.stop') : t('composer.send')}
+              >
               {sending ? (
                 <Square className="h-4 w-4" fill="currentColor" />
               ) : (
@@ -1229,7 +1230,7 @@ function AttachmentPreview({
   const isImage = attachment.mimeType.startsWith('image/') && attachment.preview;
 
   return (
-    <div className="group relative overflow-hidden rounded-[12px] border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.96)] shadow-[0_4px_12px_hsl(var(--foreground)/0.025)]">
+    <div className="group relative overflow-hidden rounded-lg border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.96)] shadow-sm">
       {isImage ? (
         // Image thumbnail
         <div className="w-16 h-16">
@@ -1241,7 +1242,7 @@ function AttachmentPreview({
         </div>
       ) : (
         // Generic file card
-        <div className="flex max-w-[200px] items-center gap-2 rounded-[11px] px-3 py-2.5">
+        <div className="flex max-w-[200px] items-center gap-2 rounded-md px-3 py-2.5">
           <FileIcon mimeType={attachment.mimeType} className="h-5 w-5 shrink-0 text-muted-foreground" />
           <div className="min-w-0 overflow-hidden">
             <p className="text-xs font-medium truncate">{attachment.fileName}</p>
@@ -1269,7 +1270,7 @@ function AttachmentPreview({
       {/* Remove button */}
       <button
         onClick={onRemove}
-        className="absolute -right-1 -top-1 rounded-[8px] border border-border/60 bg-[hsl(var(--surface-elevated)/0.98)] p-1 text-muted-foreground/78 opacity-0 transition-[opacity,background-color,color] group-hover:opacity-100 hover:bg-[hsl(var(--foreground)/0.05)] hover:text-foreground"
+        className="absolute -right-1 -top-1 rounded-sm border border-border/60 bg-[hsl(var(--surface-elevated)/0.98)] p-1 text-muted-foreground/78 opacity-0 transition-[opacity,background-color,color] group-hover:opacity-100 hover:bg-[hsl(var(--foreground)/0.05)] hover:text-foreground"
       >
         <X className="h-3 w-3" />
       </button>
@@ -1291,7 +1292,7 @@ function AgentPickerItem({
       type="button"
       onClick={onSelect}
       className={cn(
-        'flex w-full flex-col items-start rounded-[11px] border px-3 py-2.5 text-left transition-[background-color,border-color,box-shadow]',
+        'flex w-full flex-col items-start rounded-md border px-3 py-2.5 text-left transition-[background-color,border-color,box-shadow]',
         selected
           ? 'border-[hsl(var(--border-subtle)/1)] bg-[hsl(var(--surface-elevated)/1)] text-foreground shadow-[0_4px_12px_hsl(var(--foreground)/0.03)]'
           : 'border-transparent hover:border-[hsl(var(--border-subtle)/0.72)] hover:bg-[hsl(var(--foreground)/0.032)]'
@@ -1321,7 +1322,7 @@ function ModelPickerItem({
       type="button"
       onClick={onSelect}
       className={cn(
-        'flex w-full items-start justify-between gap-3 rounded-[11px] border px-3 py-2.5 text-left transition-[background-color,color,border-color,box-shadow]',
+        'flex w-full items-start justify-between gap-3 rounded-md border px-3 py-2.5 text-left transition-[background-color,color,border-color,box-shadow]',
         selected
           ? 'border-[hsl(var(--border-subtle)/1)] bg-[hsl(var(--surface-elevated)/1)] text-foreground shadow-[0_4px_12px_hsl(var(--foreground)/0.03)]'
           : 'border-transparent hover:border-[hsl(var(--border-subtle)/0.72)] hover:bg-[hsl(var(--foreground)/0.032)]'

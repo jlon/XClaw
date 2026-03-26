@@ -6,6 +6,7 @@ const {
   chatState,
   studioRuntimeState,
   executeJavaScriptMock,
+  startStudioRuntimeMock,
 } = vi.hoisted(() => ({
   chatState: {
     currentAgentId: 'planner',
@@ -17,6 +18,7 @@ const {
     lastError: null,
   },
   executeJavaScriptMock: vi.fn(() => Promise.resolve(undefined)),
+  startStudioRuntimeMock: vi.fn(async () => studioRuntimeState),
 }));
 
 vi.mock('@/stores/chat', () => ({
@@ -25,6 +27,7 @@ vi.mock('@/stores/chat', () => ({
 
 vi.mock('@/lib/studio', () => ({
   fetchStudioRuntime: vi.fn(async () => studioRuntimeState),
+  startStudioRuntime: (...args: unknown[]) => startStudioRuntimeMock(...args),
   retryStudioRuntime: vi.fn(),
   subscribeStudioSurfaceSuspend: vi.fn(() => () => {}),
   subscribeStudioRuntimeChanged: vi.fn(() => () => {}),
@@ -59,6 +62,8 @@ beforeAll(() => {
 describe('studio page', () => {
   beforeEach(() => {
     executeJavaScriptMock.mockClear();
+    startStudioRuntimeMock.mockReset();
+    startStudioRuntimeMock.mockImplementation(async () => studioRuntimeState);
     chatState.currentAgentId = 'planner';
     studioRuntimeState.status = 'ready';
     studioRuntimeState.resolvedUrl = 'http://127.0.0.1:3211/electron-standalone?embedded=1&readonly=1';
@@ -120,6 +125,19 @@ describe('studio page', () => {
         expect.stringContaining('__setFocusedAgentId("main")'),
         false,
       );
+    });
+  });
+
+  it('surfaces startup errors when studio is idle and explicit start fails', async () => {
+    studioRuntimeState.status = 'idle';
+    studioRuntimeState.resolvedUrl = null;
+    studioRuntimeState.lastError = null;
+    startStudioRuntimeMock.mockRejectedValueOnce(new Error('studio bootstrap failed'));
+
+    render(<Studio />);
+
+    await waitFor(() => {
+      expect(screen.getByText('studio bootstrap failed')).toBeInTheDocument();
     });
   });
 });

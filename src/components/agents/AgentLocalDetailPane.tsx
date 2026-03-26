@@ -45,15 +45,15 @@ export interface AgentLocalDetailPaneProps {
 }
 
 const shellCardClasses =
-  'rounded-[24px] border border-border/70 bg-[hsl(var(--surface-elevated)/0.995)] shadow-[0_10px_24px_rgba(15,23,42,0.04),inset_0_1px_0_rgba(255,255,255,0.76)]';
+  'rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated)/0.995)] shadow-md';
 const badgeClasses =
-  'h-5 rounded-[10px] border border-border/70 bg-background/75 px-2 text-[10px] font-medium text-foreground/68 shadow-none';
+  'h-5 rounded-sm border border-border/70 bg-background/75 px-2 text-[10px] font-medium text-foreground/68 shadow-none';
 const actionButtonClasses =
-  'workbench-motion-button workbench-motion-button--lift h-8 rounded-[12px] border-border/70 bg-transparent px-3.5 text-[12.5px] font-medium text-foreground/76 shadow-none hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
+  'workbench-motion-button workbench-motion-button--lift h-8 rounded-md border-border/70 bg-transparent px-3.5 text-[12.5px] font-medium text-foreground/76 shadow-sm hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
 const summaryLabelClasses = 'text-[11px] font-medium uppercase tracking-[0.08em] text-foreground/44';
-const tabButtonBaseClasses = 'workbench-motion-button h-8 rounded-[11px] px-3 text-[12.5px] font-medium';
+const tabButtonBaseClasses = 'workbench-motion-button h-8 rounded-md px-3 text-[12.5px] font-medium';
 const compactInsightSurfaceClasses =
-  'rounded-[16px] border border-border/55 bg-[hsl(var(--surface-panel)/0.95)] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.62)]';
+  'rounded-lg border border-border/55 bg-[hsl(var(--surface-panel)/0.95)] px-4 py-3 shadow-sm';
 
 const getPathLeaf = (value: string) => {
   const parts = value.split(/[/\\]/).filter(Boolean);
@@ -74,14 +74,14 @@ function EmptyLocalState({
   return (
     <div
       data-testid="agents-empty-state"
-      className="app-empty-surface flex h-full min-h-[520px] flex-col items-center justify-center rounded-[18px] border border-dashed border-border/55 px-6 py-10 text-center"
+      className="app-empty-surface flex h-full min-h-[520px] flex-col items-center justify-center rounded-xl border border-dashed border-border/55 px-6 py-10 text-center"
     >
       <h3 className="text-[20px] font-semibold tracking-tight text-foreground">{t('workbench.detail.emptyAgentTitle')}</h3>
       <p className="mt-2 max-w-[420px] text-[13px] leading-[1.65] text-foreground/58">
         {t('workbench.detail.emptyAgentDescription')}
       </p>
       <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-        <Button onClick={onCreateAgent} className="h-9 rounded-[12px] px-4 text-[13px] font-medium shadow-none">
+        <Button onClick={onCreateAgent} className="h-8 rounded-md px-4 text-[13px] font-medium shadow-sm">
           <Plus className="mr-2 h-3.5 w-3.5" />
           {t('workbench.actions.createAgent')}
         </Button>
@@ -140,7 +140,7 @@ export function AgentLocalDetailPane({
               </div>
             </div>
             <div className="flex items-center gap-2 min-[1080px]:justify-self-end">
-              <Button onClick={onStartChat} className="h-9 shrink-0 rounded-[13px] px-4 text-[13px] font-medium shadow-none">
+              <Button onClick={onStartChat} className="h-8 shrink-0 rounded-md px-4 text-[13px] font-medium shadow-sm">
                 <MessageSquarePlus className="mr-2 h-3.5 w-3.5" />
                 {t('workbench.actions.startChat')}
               </Button>
@@ -151,7 +151,7 @@ export function AgentLocalDetailPane({
                     variant="outline"
                     size="icon"
                     aria-label="更多操作"
-                    className="h-9 w-9 rounded-[13px] border-border/60 bg-[hsl(var(--surface-panel)/0.92)] text-foreground/72 shadow-none hover:bg-[hsl(var(--surface-hover)/0.42)] hover:text-foreground"
+                    className="h-8 w-8 rounded-md border-border/60 bg-[hsl(var(--surface-panel)/0.92)] text-foreground/72 shadow-sm hover:bg-[hsl(var(--surface-hover)/0.42)] hover:text-foreground"
                   >
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
@@ -192,14 +192,14 @@ export function AgentLocalDetailPane({
           </div>
         </div>
 
-        <div className="mt-4 flex h-10 items-center rounded-[15px] border border-border/60 bg-[hsl(var(--surface-panel)/0.92)] p-1">
+        <div className="mt-4 flex h-10 items-center rounded-md border border-border/60 bg-[hsl(var(--surface-panel)/0.92)] p-1">
           <button
             type="button"
             onClick={() => onTabChange('persona')}
             className={cn(
               tabButtonBaseClasses,
               activeTab === 'persona'
-                ? 'bg-[hsl(var(--surface-elevated)/0.98)] text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]'
+                ? 'bg-[hsl(var(--surface-elevated)/0.98)] text-foreground shadow-sm'
                 : 'text-foreground/58 hover:text-foreground',
             )}
           >
@@ -211,7 +211,7 @@ export function AgentLocalDetailPane({
             className={cn(
               tabButtonBaseClasses,
               activeTab === 'binding'
-                ? 'bg-[hsl(var(--surface-elevated)/0.98)] text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]'
+                ? 'bg-[hsl(var(--surface-elevated)/0.98)] text-foreground shadow-sm'
                 : 'text-foreground/58 hover:text-foreground',
             )}
           >
@@ -237,9 +237,9 @@ export function AgentLocalDetailPane({
                 {activeChannels.map((channel) => (
                   <div
                     key={`${channel.channelType}-${channel.accountId}`}
-                    className="flex items-start gap-3 rounded-[16px] border border-border/55 bg-[hsl(var(--surface-panel)/0.96)] px-4 py-3"
+                    className="flex items-start gap-3 rounded-md border border-border/55 bg-[hsl(var(--surface-panel)/0.96)] px-4 py-3 shadow-sm"
                   >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] border border-border/55 bg-[hsl(var(--surface-elevated)/0.96)] text-foreground/70">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border/55 bg-[hsl(var(--surface-elevated)/0.96)] text-foreground/70">
                       <ChannelLogo type={channel.channelType} />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -256,7 +256,7 @@ export function AgentLocalDetailPane({
                 ))}
               </div>
             ) : (
-              <div className="mt-4 rounded-[16px] border border-dashed border-border/55 bg-[hsl(var(--surface-panel)/0.82)] px-4 py-6 text-[12.5px] leading-[1.65] text-foreground/54">
+              <div className="mt-4 rounded-xl border border-dashed border-border/55 bg-[hsl(var(--surface-panel)/0.82)] px-4 py-6 text-[12.5px] leading-[1.65] text-foreground/54">
                 {t('workbench.overview.noChannels')}
               </div>
             )}
@@ -295,10 +295,10 @@ export function AgentLocalDetailPane({
                   <div
                     key={file.relativePath}
                     className={cn(
-                      'group flex items-center justify-between gap-3 rounded-[16px] border px-3.5 py-3 transition-[border-color,background-color,box-shadow,transform] motion-safe:duration-150 motion-safe:hover:-translate-y-[1px]',
+                      'group flex items-center justify-between gap-3 rounded-lg border px-3.5 py-3 transition-[border-color,background-color,box-shadow,transform] motion-safe:duration-150 motion-safe:hover:-translate-y-[1px]',
                       selected
-                        ? 'border-[hsl(var(--primary)/0.16)] bg-[hsl(var(--surface-elevated)/0.985)] shadow-[inset_0_1px_0_rgba(255,255,255,0.68),0_8px_18px_rgba(15,23,42,0.028)]'
-                        : 'border-border/55 bg-[hsl(var(--surface-panel)/0.92)] hover:border-border/70 hover:bg-[hsl(var(--surface-elevated)/0.965)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.62),0_8px_16px_rgba(15,23,42,0.025)]',
+                        ? 'border-[hsl(var(--primary)/0.16)] bg-[hsl(var(--surface-elevated)/0.985)] shadow-sm'
+                        : 'border-border/55 bg-[hsl(var(--surface-panel)/0.92)] hover:border-border/70 hover:bg-[hsl(var(--surface-elevated)/0.965)] hover:shadow-sm',
                     )}
                   >
                     <div className="min-w-0 flex-1">

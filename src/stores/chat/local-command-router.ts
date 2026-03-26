@@ -1,4 +1,5 @@
 import { useGatewayStore } from '@/stores/gateway';
+import { generateUuid } from '@/lib/uuid';
 import { parseApprovalCommand } from './approval-command';
 import { submitExecApprovalDecision } from './exec-approval-submit';
 import {
@@ -26,14 +27,14 @@ function buildLocalAssistantMessage(content: string): RawMessage {
     role: 'assistant',
     content,
     timestamp: Date.now() / 1000,
-    id: crypto.randomUUID(),
+    id: generateUuid(),
   };
 }
 
 function buildPendingSlashAction(kind: PendingSlashAction['kind']): PendingSlashAction {
   return {
     kind,
-    token: crypto.randomUUID(),
+    token: generateUuid(),
   };
 }
 

@@ -256,14 +256,16 @@ export async function readPreinstalledManifest(): Promise<PreinstalledSkillSpec[
 }
 
 function resolvePreinstalledSkillsSourceRoot(): string | null {
-    const candidates = [
+    const candidates = app.isPackaged ? [
+        join(process.resourcesPath, 'preinstalled-skills.asar'),
+        join(process.resourcesPath, 'preinstalled-skills'),
+    ] : [
         join(getResourcesDir(), 'preinstalled-skills'),
         join(process.cwd(), 'build', 'preinstalled-skills'),
         join(__dirname, '../../build/preinstalled-skills'),
     ];
 
-    const root = candidates.find((dir) => existsSync(dir));
-    return root || null;
+    return candidates.find((dir) => existsSync(dir)) || null;
 }
 
 async function readPreinstalledLockVersions(sourceRoot: string): Promise<Map<string, string>> {

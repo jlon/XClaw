@@ -2,6 +2,22 @@ import process from 'node:process';
 
 const truthyEnvPattern = /^(1|true|yes|on)$/i;
 
+export function resolveElectronDevMode({ platform, display, waylandDisplay, forceElectronDev }) {
+  if (forceElectronDev) {
+    return 'window';
+  }
+
+  if (platform !== 'linux') {
+    return 'window';
+  }
+
+  if (display || waylandDisplay) {
+    return 'window';
+  }
+
+  return 'backend';
+}
+
 export function isTruthyEnvFlag(value) {
   if (typeof value === 'boolean') {
     return value;
@@ -11,15 +27,7 @@ export function isTruthyEnvFlag(value) {
 }
 
 export function shouldLaunchElectronDev({ platform, display, waylandDisplay, forceElectronDev }) {
-  if (forceElectronDev) {
-    return true;
-  }
-
-  if (platform !== 'linux') {
-    return true;
-  }
-
-  return Boolean(display || waylandDisplay);
+  return resolveElectronDevMode({ platform, display, waylandDisplay, forceElectronDev }) === 'window';
 }
 
 export function shouldReloadElectronDev({ hasElectronApp, ...runtime }) {
@@ -36,8 +44,13 @@ export function getElectronDevRuntime(overrides = {}) {
 
   return {
     ...runtime,
+    mode: resolveElectronDevMode(runtime),
     shouldLaunch: shouldLaunchElectronDev(runtime),
   };
+}
+
+export function getElectronDevBackendMessage() {
+  return '[dev] Headless Linux detected with no DISPLAY/WAYLAND_DISPLAY. Starting Electron in backend-only mode so Host API, Gateway, and Studio services remain available to the Vite app. Set XCLAW_FORCE_ELECTRON_DEV=1 after preparing Xvfb, VNC, or another display server if you also want the desktop window.';
 }
 
 export function getElectronDevSkipMessage() {

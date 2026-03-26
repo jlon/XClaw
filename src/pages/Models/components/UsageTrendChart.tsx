@@ -12,7 +12,7 @@ interface UsageTrendChartProps {
   costLabel: string;
 }
 
-const surfaceClass = 'app-insight-surface rounded-[14px] border border-[hsl(var(--border-subtle)/0.78)] px-3.5 py-3';
+const surfaceClass = 'app-insight-surface rounded-lg border border-[hsl(var(--border-subtle)/0.78)] px-3.5 py-3';
 
 const getMaxMetricValue = (groups: UsageGroup[], metric: UsageMetric): number => {
   const values = groups.map((group) => metric === 'cost' ? group.totalCostUsd : group.totalTokens);

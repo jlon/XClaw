@@ -5,6 +5,13 @@ import { normalizeAppError } from './error-model';
 const HOST_API_PORT = 3210;
 const HOST_API_BASE = `http://127.0.0.1:${HOST_API_PORT}`;
 
+function resolveBrowserHostApiBase(): string {
+  if (import.meta.env.DEV && typeof window !== 'undefined' && /^https?:$/.test(window.location.protocol)) {
+    return '';
+  }
+  return HOST_API_BASE;
+}
+
 type HostApiProxyResponse = {
   ok?: boolean;
   data?: {
@@ -130,9 +137,18 @@ function shouldFallbackToBrowser(message: string): boolean {
     || normalized.includes('window is not defined');
 }
 
-function allowLocalhostFallback(): boolean {
-  if (!window.electron?.ipcRenderer && import.meta.env.DEV) {
-    return true;
+function allowLocalhostFallback(message: string): boolean {
+  if (import.meta.env.DEV || window.electron?.isDev) {
+    if (!window.electron?.ipcRenderer) {
+      return true;
+    }
+    const normalized = message.toLowerCase();
+    if (
+      normalized.includes('electron ipc renderer is unavailable')
+      || normalized.includes('window is not defined')
+    ) {
+      return true;
+    }
   }
   try {
     return window.localStorage.getItem('XClaw:allow-localhost-fallback') === '1';
@@ -172,7 +188,7 @@ export async function hostApiFetch<T>(path: string, init?: RequestInit): Promise
     if (!shouldFallbackToBrowser(message)) {
       throw normalized;
     }
-    if (!allowLocalhostFallback()) {
+    if (!allowLocalhostFallback(message)) {
       trackUiEvent('hostapi.fetch_error', {
         path,
         method,
@@ -186,7 +202,7 @@ export async function hostApiFetch<T>(path: string, init?: RequestInit): Promise
   }
 
   // Browser-only fallback (non-Electron environments).
-  const response = await fetch(`${HOST_API_BASE}${path}`, {
+  const response = await fetch(`${resolveBrowserHostApiBase()}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
@@ -208,7 +224,7 @@ export async function hostApiFetch<T>(path: string, init?: RequestInit): Promise
 }
 
 export function createHostEventSource(path = '/api/events'): EventSource {
-  return new EventSource(`${HOST_API_BASE}${path}`);
+  return new EventSource(`${resolveBrowserHostApiBase()}${path}`);
 }
 
 export function getHostApiBase(): string {

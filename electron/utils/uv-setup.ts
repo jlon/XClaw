@@ -10,6 +10,7 @@ import { createAbortError, isAbortError, runChildCommand } from './run-child-com
 let setupManagedPythonFlight: Promise<void> | null = null;
 const MANAGED_PYTHON_INSTALL_TIMEOUT_MS = 10 * 60_000;
 const MANAGED_PYTHON_FIND_TIMEOUT_MS = 15_000;
+const UV_DOWNLOAD_TIMEOUT_MS = 5 * 60_000;
 
 type SetupProgressEntry = {
   level: 'info' | 'error';
@@ -91,12 +92,47 @@ export async function checkUvInstalled(): Promise<boolean> {
  * Kept for API compatibility with frontend.
  */
 export async function installUv(): Promise<void> {
-  const isAvailable = await checkUvInstalled();
+  let isAvailable = await checkUvInstalled();
+  if (!isAvailable && !app.isPackaged) {
+    await downloadBundledUvForDev();
+    isAvailable = await checkUvInstalled();
+  }
   if (!isAvailable) {
     const bin = getBundledUvPath();
     throw new Error(`uv not found in system PATH and bundled binary missing at ${bin}`);
   }
   logger.info('uv is available and ready to use');
+}
+
+async function downloadBundledUvForDev(): Promise<void> {
+  const scriptPath = join(process.cwd(), 'scripts', 'download-bundled-uv.mjs');
+  if (!existsSync(scriptPath)) {
+    logger.warn(`Bundled uv download script not found at ${scriptPath}`);
+    return;
+  }
+  const zxBin = resolveDevZxBin();
+  const useShell = needsWinShell(zxBin);
+  const result = await runChildCommand(
+    useShell ? quoteForCmd(zxBin) : zxBin,
+    [scriptPath],
+    {
+      cwd: process.cwd(),
+      env: process.env,
+      shell: useShell,
+      timeoutMs: UV_DOWNLOAD_TIMEOUT_MS,
+      windowsHide: true,
+    },
+  );
+  if (result.code === 0) {
+    return;
+  }
+  const detail = result.stderr || result.stdout || 'download script failed without output';
+  throw new Error(`Failed to download bundled uv: ${detail}`);
+}
+
+function resolveDevZxBin(): string {
+  const localBin = join(process.cwd(), 'node_modules', '.bin', process.platform === 'win32' ? 'zx.cmd' : 'zx');
+  return existsSync(localBin) ? localBin : 'zx';
 }
 
 /**

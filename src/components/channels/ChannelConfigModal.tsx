@@ -88,13 +88,13 @@ type WeixinLoginPollResponse = {
 
 const WEIXIN_POLL_MS = 1500;
 
-const inputClasses = 'appearance-none h-11 rounded-[10px] border border-border/60 app-field-surface font-mono text-[13px] text-foreground shadow-none transition-colors placeholder:text-muted-foreground/55 focus:outline-none focus-visible:outline-none focus-visible:border-ring focus-visible:ring-0 focus-visible:ring-offset-0';
-const labelClasses = 'text-[12.5px] font-semibold tracking-[0.01em] text-foreground/78';
-const outlineButtonClasses = 'workbench-motion-button workbench-motion-button--lift h-9 rounded-[10px] border border-border/60 bg-[hsl(var(--surface-elevated)/0.96)] px-3 text-[12px] font-medium text-foreground/78 shadow-none hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground';
-const primaryButtonClasses = 'workbench-motion-button workbench-motion-button--lift h-9 rounded-[10px] bg-foreground px-4 text-[12px] font-medium text-background shadow-none hover:bg-foreground/90';
-const modalCardClasses = 'app-modal-surface flex max-h-[88vh] w-full max-w-[900px] flex-col overflow-hidden rounded-[16px] border-border/55 shadow-[0_10px_28px_rgba(15,23,42,0.06)]';
-const modalSurfaceClasses = 'app-pane-surface rounded-[12px] border border-border/55';
-const modalSubtleSurfaceClasses = 'app-pane-surface rounded-[12px] border border-border/50';
+const inputClasses = 'appearance-none h-8 rounded-md border border-border/60 app-field-surface font-mono text-[13px] text-foreground shadow-sm transition-colors placeholder:text-muted-foreground/55 focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0';
+const labelClasses = 'text-[12.5px] font-semibold tracking-[0.01em] text-foreground/78 select-none';
+const outlineButtonClasses = 'workbench-motion-button h-8 rounded-md border border-border/60 bg-[hsl(var(--surface-elevated)/0.96)] px-3 text-[12px] font-medium text-foreground/78 shadow-sm hover:bg-[hsl(var(--foreground)/0.04)] hover:text-foreground select-none';
+const primaryButtonClasses = 'workbench-motion-button h-8 rounded-md bg-foreground px-4 text-[12px] font-medium text-background shadow-sm hover:bg-foreground/90 select-none';
+const modalCardClasses = 'app-modal-surface flex max-h-[88vh] w-full max-w-[900px] flex-col overflow-hidden rounded-xl border-border/55 shadow-lg';
+const modalSurfaceClasses = 'app-pane-surface rounded-md border border-border/55';
+const modalSubtleSurfaceClasses = 'app-pane-surface rounded-md border border-border/50';
 
 export function ChannelConfigModal({
   initialSelectedType = null,
@@ -643,7 +643,7 @@ export function ChannelConfigModal({
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="h-9 w-9 rounded-[10px] border border-border/55 bg-[hsl(var(--foreground)/0.03)] text-foreground/55 shadow-none hover:bg-[hsl(var(--foreground)/0.055)] hover:text-foreground"
+            className="h-8 w-8 rounded-md border border-border/55 bg-[hsl(var(--foreground)/0.03)] text-foreground/55 shadow-sm hover:bg-[hsl(var(--foreground)/0.055)] hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </Button>
@@ -659,13 +659,13 @@ export function ChannelConfigModal({
                     key={type}
                     onClick={() => setSelectedType(type)}
                     className={cn(
-                      `group relative flex min-h-[92px] items-center gap-3 rounded-[12px] border border-border/55 p-3 text-left shadow-none transition-colors ${modalSubtleSurfaceClasses}`,
+                      `group relative flex min-h-[92px] items-center gap-3 rounded-md border border-border/55 p-3 text-left shadow-none transition-colors ${modalSubtleSurfaceClasses}`,
                       isConfigured
                         ? 'border-border/65 bg-[hsl(var(--foreground)/0.04)]'
                         : 'hover:border-border/60 hover:bg-[hsl(var(--foreground)/0.028)]'
                     )}
                   >
-                    <div className="app-pane-surface flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[12px] border border-border/55 text-foreground shadow-none">
+                    <div className="app-pane-surface flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border/55 text-foreground shadow-sm">
                       <ChannelLogo type={type} />
                     </div>
                     <div className="flex min-w-0 flex-1 flex-col">
@@ -674,7 +674,7 @@ export function ChannelConfigModal({
                         {channelMeta.isPlugin && (
                           <Badge
                             variant="secondary"
-                            className="rounded-[10px] border border-border/55 bg-[hsl(var(--foreground)/0.04)] px-2 py-0.5 font-mono text-[10px] font-medium text-foreground/64 shadow-none"
+                            className="rounded-sm border border-border/55 bg-[hsl(var(--foreground)/0.04)] px-2 py-0.5 font-mono text-[10px] font-medium text-foreground/64 shadow-none"
                           >
                             {t('pluginBadge')}
                           </Badge>
@@ -688,7 +688,7 @@ export function ChannelConfigModal({
                       </p>
                     </div>
                     {isConfigured && (
-                      <Badge className="absolute right-3 top-3 rounded-[10px] border border-border/55 bg-[hsl(var(--foreground)/0.045)] px-2 py-0.5 text-[10px] font-medium text-foreground/72 hover:bg-[hsl(var(--foreground)/0.045)]">
+                      <Badge className="absolute right-3 top-3 rounded-sm border border-border/55 bg-[hsl(var(--foreground)/0.045)] px-2 py-0.5 text-[10px] font-medium text-foreground/72 hover:bg-[hsl(var(--foreground)/0.045)]">
                         {t('configuredBadge')}
                       </Badge>
                     )}
@@ -700,9 +700,9 @@ export function ChannelConfigModal({
             <div className="space-y-5 pb-4 text-center">
               <div className={cn('inline-block p-3', modalSurfaceClasses)}>
                 {qrCode.startsWith('data:image') ? (
-                  <img src={qrCode} alt="Scan QR Code" className="h-60 w-60 rounded-[12px] object-contain" />
+                  <img src={qrCode} alt="Scan QR Code" className="h-60 w-60 rounded-md object-contain" />
                 ) : (
-                  <canvas ref={qrCanvasRef} className="h-60 w-60 rounded-[12px]" />
+                  <canvas ref={qrCanvasRef} className="h-60 w-60 rounded-md" />
                 )}
               </div>
               <p className="text-[13px] leading-5 text-muted-foreground/78">
@@ -729,7 +729,7 @@ export function ChannelConfigModal({
           ) : (
             <div className="space-y-4 pb-4">
               {isExistingConfig && (
-                <div className="flex items-center gap-2 rounded-[12px] border border-border/55 bg-[hsl(var(--foreground)/0.035)] p-3 text-[13px] text-foreground/78">
+                <div className="flex items-center gap-2 rounded-md border border-border/55 bg-[hsl(var(--foreground)/0.035)] p-3 text-[13px] text-foreground/78">
                   <CheckCircle className="h-4 w-4 shrink-0" />
                   <span>{t('dialog.existingHint')}</span>
                 </div>
@@ -795,7 +795,7 @@ export function ChannelConfigModal({
                         label: agent.name,
                       })),
                     ]}
-                    className="h-11 rounded-[10px] border border-border/60 app-field-surface text-[13px] shadow-none"
+                    className="h-8 rounded-md border border-border/60 app-field-surface text-[13px] shadow-sm"
                   />
                   <p className="text-[11.5px] leading-5 text-muted-foreground/68">{t('account.bindAgentHint')}</p>
                 </div>
@@ -817,7 +817,7 @@ export function ChannelConfigModal({
               {validationResult && (
                 <div
                   className={cn(
-                    'rounded-[12px] border p-3.5 text-sm shadow-none',
+                    'rounded-md border p-3.5 text-sm shadow-sm',
                     validationResult.valid
                       ? 'border-border/55 bg-[hsl(var(--foreground)/0.03)] text-foreground/78'
                       : 'border-destructive/20 bg-[hsl(var(--destructive)/0.055)] text-destructive'
@@ -864,7 +864,7 @@ export function ChannelConfigModal({
 
               <Separator className="bg-border/55" />
 
-              <div className="flex flex-col gap-3 rounded-[12px] border border-border/55 bg-[hsl(var(--surface-elevated)/0.72)] px-3.5 py-3 sm:flex-row sm:items-center sm:justify-end">
+              <div className="flex flex-col gap-3 rounded-md border border-border/55 bg-[hsl(var(--surface-elevated)/0.72)] px-3.5 py-3 sm:flex-row sm:items-center sm:justify-end">
                 <div className="flex flex-col gap-2 sm:flex-row">
                   {meta?.connectionType === 'token' && shouldUseCredentialValidation && (
                     <Button
@@ -954,7 +954,7 @@ function ConfigField({ field, value, onChange, showSecret, onToggleSecret }: Con
             variant="outline"
             size="icon"
             onClick={onToggleSecret}
-            className="h-11 w-11 shrink-0 rounded-[10px] border border-border/60 app-pane-surface text-muted-foreground/70 shadow-none hover:text-foreground"
+            className="h-8 w-8 shrink-0 rounded-md border border-border/60 app-pane-surface text-muted-foreground/70 shadow-sm hover:text-foreground"
           >
             {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </Button>
