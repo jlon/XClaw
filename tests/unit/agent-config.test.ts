@@ -1,4 +1,4 @@
-import { access, mkdir, readFile, rm, symlink, writeFile } from 'fs/promises';
+import { access, mkdir, readdir, readFile, rm, symlink, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -362,7 +362,7 @@ describe('agent config lifecycle', () => {
     infoSpy.mockRestore();
   });
 
-  it('hides inherited bootstrap files for non-main agents while keeping agent-specific SOUL visible', async () => {
+  it('hides non-empty bootstrap files that match main while keeping SOUL and empty placeholders visible', async () => {
     const mainWorkspaceDir = join(testHome, '.openclaw', 'workspace');
     const marketWorkspaceDir = join(testHome, '.openclaw', 'workspace-thumbnail-designer');
 
@@ -400,7 +400,91 @@ describe('agent config lifecycle', () => {
 
     const files = await listAgentWorkspaceFiles('thumbnail-designer');
 
-    expect(files.map((file) => file.relativePath)).toEqual(['SOUL.md']);
+    expect(files.map((file) => file.relativePath)).toEqual([
+      'SOUL.md',
+      'TOOLS.md',
+      'USER.md',
+      'HEARTBEAT.md',
+      'BOOT.md',
+    ]);
+  });
+
+  it('materializes missing bootstrap files and lists them when the workspace initially had only SOUL', async () => {
+    const mainWorkspaceDir = join(testHome, '.openclaw', 'workspace');
+    const onlySoulWorkspaceDir = join(testHome, '.openclaw', 'workspace-only-soul');
+
+    await writeOpenClawJson({
+      agents: {
+        list: [
+          {
+            id: 'main',
+            name: 'Main',
+            default: true,
+            workspace: '~/.openclaw/workspace',
+            agentDir: '~/.openclaw/agents/main/agent',
+          },
+          {
+            id: 'only-soul',
+            name: 'Only Soul',
+            workspace: '~/.openclaw/workspace-only-soul',
+            agentDir: '~/.openclaw/agents/only-soul/agent',
+          },
+        ],
+      },
+    });
+
+    await mkdir(mainWorkspaceDir, { recursive: true });
+    await mkdir(onlySoulWorkspaceDir, { recursive: true });
+    await writeFile(join(onlySoulWorkspaceDir, 'SOUL.md'), '# soul only', 'utf8');
+
+    const { listAgentWorkspaceFiles } = await import('@electron/utils/agent-config');
+    const files = await listAgentWorkspaceFiles('only-soul');
+
+    expect(files.map((file) => file.relativePath)).toEqual([
+      'AGENTS.md',
+      'SOUL.md',
+      'TOOLS.md',
+      'USER.md',
+      'IDENTITY.md',
+      'HEARTBEAT.md',
+      'BOOT.md',
+    ]);
+  });
+
+  it('writes empty bootstrap workspace files when creating an agent with bootstrapMode empty', async () => {
+    await writeOpenClawJson({
+      agents: {
+        list: [
+          {
+            id: 'main',
+            name: 'Main',
+            default: true,
+            workspace: '~/.openclaw/workspace',
+            agentDir: '~/.openclaw/agents/main/agent',
+          },
+        ],
+      },
+    });
+    await mkdir(join(testHome, '.openclaw', 'workspace'), { recursive: true });
+
+    const { createAgentWithId } = await import('@electron/utils/agent-config');
+    const { createdAgentId } = await createAgentWithId('Empty Bootstrap', { bootstrapMode: 'empty' });
+
+    const workspaceDir = join(testHome, '.openclaw', `workspace-${createdAgentId}`);
+    const names = await readdir(workspaceDir);
+    const expected = [
+      'AGENTS.md',
+      'SOUL.md',
+      'TOOLS.md',
+      'USER.md',
+      'IDENTITY.md',
+      'HEARTBEAT.md',
+      'BOOT.md',
+    ];
+    expect(names.sort()).toEqual(expected.sort());
+    for (const name of expected) {
+      await expect(readFile(join(workspaceDir, name), 'utf8')).resolves.toBe('');
+    }
   });
 
   it('does not delete a legacy-named account when it is owned by another agent', async () => {

@@ -18,7 +18,13 @@ function resolveAppliedTheme(theme: 'light' | 'dark' | 'system') {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
-export function GlobalTitleBarUtilities({ compact = false }: { compact?: boolean }) {
+export function GlobalTitleBarUtilities({
+  compact = false,
+  studioIconOnly = false,
+}: {
+  compact?: boolean;
+  studioIconOnly?: boolean;
+}) {
   const { t } = useTranslation('chat');
   const theme = useSettingsStore((state) => state.theme);
   const setTheme = useSettingsStore((state) => state.setTheme);
@@ -30,7 +36,7 @@ export function GlobalTitleBarUtilities({ compact = false }: { compact?: boolean
 
   return (
     <div className="flex items-center gap-1.5">
-      <StudioToggleButton compact={compact} />
+      <StudioToggleButton compact={compact} iconOnly={studioIconOnly} />
 
       <Tooltip>
         <TooltipTrigger asChild>

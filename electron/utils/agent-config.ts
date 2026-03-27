@@ -554,36 +554,42 @@ async function resolveAgentWorkspaceFile(agentId: string, relativePath: string):
 
 export async function listAgentWorkspaceFiles(agentId: string): Promise<AgentWorkspaceFileSummary[]> {
   const workspacePath = await resolveSafeAgentWorkspaceRoot(agentId);
+  if (agentId !== MAIN_AGENT_ID) {
+    await ensureMissingAgentBootstrapWorkspaceFiles(agentId);
+  }
+  const config = await readOpenClawConfig() as AgentConfigDocument;
+  const mainWorkspacePath = expandPath(getWorkspacePathForAgent(config, MAIN_AGENT_ID));
+  const shouldListBootstrapFile = async (fileName: string): Promise<boolean> => {
+    if (agentId === MAIN_AGENT_ID || fileName === 'SOUL.md' || !AGENT_BOOTSTRAP_FILES.includes(fileName)) {
+      return true;
+    }
+    const mainFile = join(mainWorkspacePath, fileName);
+    if (!(await fileExists(mainFile))) {
+      return true;
+    }
+    const currentFile = join(workspacePath, fileName);
+    const [currentContent, mainContent] = await Promise.all([
+      readFile(currentFile, 'utf8'),
+      readFile(mainFile, 'utf8'),
+    ]);
+    return !(currentContent === mainContent && currentContent !== '');
+  };
+  const orderedBootstrapNames: string[] = [];
+  for (const fileName of AGENT_BOOTSTRAP_FILES) {
+    if (!(await fileExists(join(workspacePath, fileName)))) {
+      continue;
+    }
+    if (await shouldListBootstrapFile(fileName)) {
+      orderedBootstrapNames.push(fileName);
+    }
+  }
   const entries = await readdir(workspacePath, { withFileTypes: true });
   const discoveredNames = entries
     .filter((entry) => entry.isFile())
     .map((entry) => entry.name)
     .filter(isAllowedWorkspaceRootFile);
-  const config = await readOpenClawConfig() as AgentConfigDocument;
-  const mainWorkspacePath = expandPath(getWorkspacePathForAgent(config, MAIN_AGENT_ID));
-  const visibleNames = await Promise.all(
-    discoveredNames.map(async (fileName) => {
-      if (agentId === MAIN_AGENT_ID || fileName === 'SOUL.md' || !AGENT_BOOTSTRAP_FILES.includes(fileName)) {
-        return fileName;
-      }
-      const mainFile = join(mainWorkspacePath, fileName);
-      if (!(await fileExists(mainFile))) {
-        return fileName;
-      }
-      const currentFile = join(workspacePath, fileName);
-      const [currentContent, mainContent] = await Promise.all([
-        readFile(currentFile, 'utf8'),
-        readFile(mainFile, 'utf8'),
-      ]);
-      return currentContent === mainContent ? null : fileName;
-    }),
-  );
-  const orderedNames = Array.from(
-    new Set([
-      ...AGENT_BOOTSTRAP_FILES.filter((fileName) => visibleNames.includes(fileName)),
-      ...visibleNames.filter((fileName): fileName is string => Boolean(fileName) && !AGENT_BOOTSTRAP_FILES.includes(fileName)),
-    ]),
-  );
+  const extraNames = discoveredNames.filter((name) => !AGENT_BOOTSTRAP_FILES.includes(name));
+  const orderedNames = Array.from(new Set([...orderedBootstrapNames, ...extraNames]));
 
   return orderedNames.map((fileName) => ({
     relativePath: fileName,
@@ -603,6 +609,18 @@ export async function writeAgentWorkspaceFileContent(agentId: string, relativePa
   const { absolutePath } = await resolveAgentWorkspaceFile(agentId, relativePath);
   await assertWorkspaceFileIsNotSymlink(absolutePath);
   await writeFile(absolutePath, content, 'utf8');
+}
+
+export async function ensureMissingAgentBootstrapWorkspaceFiles(agentId: string): Promise<void> {
+  const rootPath = await resolveSafeAgentWorkspaceRoot(agentId);
+  await ensureDir(rootPath);
+  for (const fileName of AGENT_BOOTSTRAP_FILES) {
+    const absolutePath = join(rootPath, fileName);
+    if (await fileExists(absolutePath)) {
+      continue;
+    }
+    await writeFile(absolutePath, '', 'utf8');
+  }
 }
 
 export async function createAgentWorkspaceFile(agentId: string, relativePath: string, content = ''): Promise<void> {
@@ -853,6 +871,7 @@ async function createAgentLocked(
 
   await provisionAgentFilesystem(config, createdAgent, options);
   await writeOpenClawConfig(config);
+  await ensureMissingAgentBootstrapWorkspaceFiles(createdAgent.id);
   logger.info('Created agent config entry', { agentId: nextId });
   return {
     snapshot: await buildSnapshotFromConfig(config),

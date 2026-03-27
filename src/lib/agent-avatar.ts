@@ -1,5 +1,5 @@
 import { createAvatar } from '@dicebear/core';
-import { botttsNeutral } from '@dicebear/collection';
+import { micah } from '@dicebear/collection';
 import type { AgentAvatarMood, AgentAvatarProfile, AgentAvatarTone } from '../../shared/agent-avatar-persona';
 import { stableHash } from '../../shared/agent-avatar-persona';
 
@@ -24,31 +24,16 @@ interface LegacyAvatarTheme {
 
 const AVATAR_GRID_SIZE = 5;
 const MIRROR_COLUMNS = 3;
-type BotttsNeutralEye =
-  | 'bulging'
-  | 'dizzy'
-  | 'eva'
-  | 'frame1'
-  | 'frame2'
-  | 'glow'
-  | 'happy'
-  | 'hearts'
-  | 'robocop'
-  | 'round'
-  | 'roundFrame01'
-  | 'roundFrame02'
-  | 'sensor'
-  | 'shade01';
-type BotttsNeutralMouth =
-  | 'bite'
-  | 'diagram'
-  | 'grill01'
-  | 'grill02'
-  | 'grill03'
-  | 'smile01'
-  | 'smile02'
-  | 'square01'
-  | 'square02';
+type MicahEye = 'eyes' | 'round' | 'eyesShadow' | 'smiling' | 'smilingShadow';
+type MicahMouth =
+  | 'surprised'
+  | 'laughing'
+  | 'nervous'
+  | 'smile'
+  | 'sad'
+  | 'pucker'
+  | 'frown'
+  | 'smirk';
 
 const TONE_MAP: Record<AgentAvatarTone, { background: string; border: string; dicebear: string[] }> = {
   slate: { background: 'hsl(216 18% 95%)', border: 'hsl(216 16% 88%)', dicebear: ['e6edf5', 'd9e2ec'] },
@@ -60,44 +45,93 @@ const TONE_MAP: Record<AgentAvatarTone, { background: string; border: string; di
   violet: { background: 'hsl(262 28% 95%)', border: 'hsl(262 18% 87%)', dicebear: ['ece2f9', 'dfd1f2'] },
 };
 
-const MOOD_OPTIONS: Record<AgentAvatarMood, { eyes: BotttsNeutralEye[]; mouth: BotttsNeutralMouth[] }> = {
+const MOOD_OPTIONS: Record<AgentAvatarMood, { eyes: MicahEye[]; mouth: MicahMouth[] }> = {
   calm: {
-    eyes: ['happy', 'round', 'roundFrame02', 'frame1'],
-    mouth: ['smile01', 'smile02'],
+    eyes: ['round', 'smiling', 'smilingShadow'],
+    mouth: ['smile', 'smirk'],
   },
   focused: {
-    eyes: ['happy', 'roundFrame01', 'round', 'glow'],
-    mouth: ['smile01', 'smile02'],
+    eyes: ['eyes', 'round', 'eyesShadow'],
+    mouth: ['smirk', 'smile', 'pucker'],
   },
   energetic: {
-    eyes: ['happy', 'glow', 'hearts', 'round'],
-    mouth: ['smile02', 'smile01'],
+    eyes: ['smiling', 'smilingShadow', 'round'],
+    mouth: ['laughing', 'smile', 'surprised'],
   },
   guarded: {
-    eyes: ['happy', 'roundFrame02', 'frame2', 'roundFrame01'],
-    mouth: ['smile01', 'smile02'],
+    eyes: ['eyesShadow', 'eyes', 'round'],
+    mouth: ['nervous', 'pucker', 'frown'],
   },
 };
 
-export function buildAgentAvatarSpec(input: { seed: string; profile?: AgentAvatarProfile | null }): AgentAvatarSpec {
+export function buildAgentAvatarSpec(input: {
+  seed: string;
+  profile?: AgentAvatarProfile | null;
+  locale?: string | null;
+}): AgentAvatarSpec {
   if (input.profile?.source === 'semantic') {
-    const semantic = buildSemanticAvatar(input.profile);
+    const semantic = buildSemanticAvatar(input.profile, input.locale);
     if (semantic) return semantic;
   }
   return buildFallbackAvatar(input.profile?.seed || input.seed);
 }
 
-function buildSemanticAvatar(profile: AgentAvatarProfile): AgentAvatarSpec | null {
+function isChineseUiLocale(locale: string | undefined | null): boolean {
+  if (!locale) {
+    return false;
+  }
+  return locale.toLowerCase().replace(/_/g, '-').startsWith('zh');
+}
+
+type MicahHairStyle =
+  | 'fonze'
+  | 'mrT'
+  | 'dougFunny'
+  | 'mrClean'
+  | 'dannyPhantom'
+  | 'full'
+  | 'turban'
+  | 'pixie';
+
+const MICAH_HAIR_WITH_VISIBLE_HAIR: MicahHairStyle[] = [
+  'fonze',
+  'mrT',
+  'dannyPhantom',
+  'full',
+  'turban',
+  'pixie',
+];
+
+function micahOptionsForChineseUi() {
+  const hair: MicahHairStyle[] = ['pixie', 'full', 'dannyPhantom', 'fonze', 'mrT'];
+  return {
+    baseColor: ['f9c9b6', 'ffdfbf', 'fde4d0', 'fad4c4'],
+    facialHairProbability: 0,
+    hair,
+    hairProbability: 100,
+  };
+}
+
+function micahOptionsNoBaldNonZh() {
+  return {
+    hair: [...MICAH_HAIR_WITH_VISIBLE_HAIR],
+    hairProbability: 100,
+  };
+}
+
+function buildSemanticAvatar(profile: AgentAvatarProfile, locale?: string | null): AgentAvatarSpec | null {
   try {
     const tone = TONE_MAP[profile.tone];
     const mood = MOOD_OPTIONS[profile.mood];
-    const dataUri = createAvatar(botttsNeutral, {
+    const localePresentation = isChineseUiLocale(locale) ? micahOptionsForChineseUi() : micahOptionsNoBaldNonZh();
+    const dataUri = createAvatar(micah, {
       seed: `${profile.seed}:${profile.archetype}`,
       backgroundColor: tone.dicebear,
       radius: 20,
       randomizeIds: false,
       eyes: mood.eyes,
       mouth: mood.mouth,
+      ...localePresentation,
     }).toDataUri();
 
     return {

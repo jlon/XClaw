@@ -6,7 +6,13 @@ import { cn } from '@/lib/utils';
 import { isStudioRoutePath, resolveLastChatRoute } from '@/lib/studio';
 import { useTranslation } from 'react-i18next';
 
-export function StudioToggleButton({ compact = false }: { compact?: boolean }) {
+export function StudioToggleButton({
+  compact = false,
+  iconOnly = false,
+}: {
+  compact?: boolean;
+  iconOnly?: boolean;
+}) {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation('chat');
@@ -29,14 +35,14 @@ export function StudioToggleButton({ compact = false }: { compact?: boolean }) {
           variant="ghost"
           className={cn(
             'app-chat-toolbar-button app-chat-toolbar-button--studio rounded-[10px] text-[12px] font-medium',
-            compact ? 'h-7 w-7 px-0' : 'h-8 min-w-[96px] px-2.5',
+            compact || iconOnly ? 'h-7 w-7 px-0' : 'h-8 min-w-[96px] px-2.5',
             onStudioRoute && 'app-chat-toolbar-button--studio-current',
           )}
           onClick={handleToggle}
           aria-label={buttonLabel}
         >
-          <Icon className={cn('shrink-0', compact ? 'h-3.5 w-3.5' : 'mr-1.5 h-4 w-4')} />
-          {!compact ? buttonLabel : null}
+          <Icon className={cn('shrink-0', compact || iconOnly ? 'h-3.5 w-3.5' : 'mr-1.5 h-4 w-4')} />
+          {!compact && !iconOnly ? buttonLabel : null}
         </Button>
       </TooltipTrigger>
       <TooltipContent>

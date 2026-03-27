@@ -313,7 +313,7 @@ function BrowserTitleBar({
         ) : null}
         {!isSetupRoute ? (
           <div className="flex items-center h-full">
-            <GlobalTitleBarUtilities compact={false} />
+            <GlobalTitleBarUtilities compact={false} studioIconOnly />
           </div>
         ) : null}
       </div>

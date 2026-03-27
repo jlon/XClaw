@@ -1,5 +1,6 @@
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import '@/i18n';
 import { AgentAvatar } from '@/components/agents/AgentAvatar';
 import { buildAgentAvatarSpec } from '@/lib/agent-avatar';
 import { buildAgentAvatarProfile } from '../../shared/agent-avatar-persona';
@@ -55,6 +56,18 @@ describe('agent avatar', () => {
     const image = container.querySelector('img');
     expect(image).toBeInTheDocument();
     expect(image?.getAttribute('src')).toContain('data:image/svg+xml');
+  });
+
+  it('uses chinese micah palette when locale is zh', () => {
+    const profile = buildAgentAvatarProfile({
+      id: 'same-seed',
+      name: 'Same',
+      role: 'API developer',
+      source: 'local',
+    });
+    const enUri = buildAgentAvatarSpec({ seed: 'same-seed', profile, locale: 'en' }).dataUri;
+    const zhUri = buildAgentAvatarSpec({ seed: 'same-seed', profile, locale: 'zh' }).dataUri;
+    expect(enUri).not.toBe(zhUri);
   });
 
   it('keeps same-archetype semantic avatars visually distinct across seeds', () => {

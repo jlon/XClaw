@@ -5,12 +5,14 @@ const createAgentWithIdMock = vi.fn();
 const deleteAgentConfigMock = vi.fn();
 const removeAgentWorkspaceDirectoryMock = vi.fn();
 const writeAgentWorkspaceFileContentMock = vi.fn();
+const ensureMissingAgentBootstrapWorkspaceFilesMock = vi.fn();
 
 vi.mock('@electron/utils/agent-config', () => ({
   createAgentWithId: (...args: unknown[]) => createAgentWithIdMock(...args),
   deleteAgentConfig: (...args: unknown[]) => deleteAgentConfigMock(...args),
   removeAgentWorkspaceDirectory: (...args: unknown[]) => removeAgentWorkspaceDirectoryMock(...args),
   writeAgentWorkspaceFileContent: (...args: unknown[]) => writeAgentWorkspaceFileContentMock(...args),
+  ensureMissingAgentBootstrapWorkspaceFiles: (...args: unknown[]) => ensureMissingAgentBootstrapWorkspaceFilesMock(...args),
 }));
 
 describe('agent market install', () => {
@@ -27,6 +29,7 @@ describe('agent market install', () => {
     });
     removeAgentWorkspaceDirectoryMock.mockResolvedValue(undefined);
     writeAgentWorkspaceFileContentMock.mockResolvedValue(undefined);
+    ensureMissingAgentBootstrapWorkspaceFilesMock.mockResolvedValue(undefined);
   });
 
   it('installs a catalog agent and writes SOUL.md into the new workspace', async () => {
@@ -35,6 +38,7 @@ describe('agent market install', () => {
 
     expect(createAgentWithIdMock).toHaveBeenCalledWith('Planner', { bootstrapMode: 'empty' });
     expect(writeAgentWorkspaceFileContentMock).toHaveBeenCalledWith('planner', 'SOUL.md', bundledTemplates['daily-standup']);
+    expect(ensureMissingAgentBootstrapWorkspaceFilesMock).toHaveBeenCalledWith('planner');
     expect(deleteAgentConfigMock).not.toHaveBeenCalled();
     expect(removeAgentWorkspaceDirectoryMock).not.toHaveBeenCalled();
     expect(result.createdAgentId).toBe('planner');
@@ -58,10 +62,21 @@ describe('agent market install', () => {
     const { installAgentFromCatalog } = await import('@electron/utils/agent-market');
 
     await expect(installAgentFromCatalog('daily-standup', 'Planner')).rejects.toThrow('disk full');
+    expect(ensureMissingAgentBootstrapWorkspaceFilesMock).not.toHaveBeenCalled();
     expect(deleteAgentConfigMock).toHaveBeenCalledWith('planner');
     expect(removeAgentWorkspaceDirectoryMock).toHaveBeenCalledWith({
       id: 'planner',
       workspace: '~/.openclaw/workspace-planner',
     });
+  });
+
+  it('rolls back the created agent when bootstrap placeholders fail', async () => {
+    ensureMissingAgentBootstrapWorkspaceFilesMock.mockRejectedValueOnce(new Error('mkdir failed'));
+
+    const { installAgentFromCatalog } = await import('@electron/utils/agent-market');
+
+    await expect(installAgentFromCatalog('daily-standup', 'Planner')).rejects.toThrow('mkdir failed');
+    expect(writeAgentWorkspaceFileContentMock).toHaveBeenCalledWith('planner', 'SOUL.md', bundledTemplates['daily-standup']);
+    expect(deleteAgentConfigMock).toHaveBeenCalledWith('planner');
   });
 });

@@ -5,8 +5,28 @@ import { normalizeAppError } from './error-model';
 const HOST_API_PORT = 3210;
 const HOST_API_BASE = `http://127.0.0.1:${HOST_API_PORT}`;
 
+function isLikelyLanOrLocalhost(hostname: string): boolean {
+  if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
+    return true;
+  }
+  if (/^10\./.test(hostname)) {
+    return true;
+  }
+  if (/^192\.168\./.test(hostname)) {
+    return true;
+  }
+  if (/^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname)) {
+    return true;
+  }
+  return false;
+}
+
 function resolveBrowserHostApiBase(): string {
-  if (import.meta.env.DEV && typeof window !== 'undefined' && /^https?:$/.test(window.location.protocol)) {
+  if (typeof window === 'undefined' || !/^https?:$/.test(window.location.protocol)) {
+    return HOST_API_BASE;
+  }
+  const host = window.location.hostname;
+  if (import.meta.env.DEV || isLikelyLanOrLocalhost(host)) {
     return '';
   }
   return HOST_API_BASE;
@@ -219,6 +239,15 @@ export async function hostApiFetch<T>(path: string, init?: RequestInit): Promise
   try {
     return await parseResponse<T>(response);
   } catch (error) {
+    const raw = error instanceof Error ? error.message : String(error);
+    if (raw === 'Failed to fetch' || raw.includes('Failed to fetch')) {
+      throw normalizeAppError(
+        new Error(
+          '无法连接 Host API：请确认已运行完整开发环境（pnpm dev，含 Electron），且本机 127.0.0.1:3210 可访问；从局域网访问时请通过同一台机器上的 Vite 页面使用同源 /api 代理。',
+        ),
+        { source: 'browser-fallback', path, method },
+      );
+    }
     throw normalizeAppError(error, { source: 'browser-fallback', path, method });
   }
 }

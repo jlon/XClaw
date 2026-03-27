@@ -4,6 +4,7 @@ import agentMarketTemplates from '../shared/agent-market-templates.json';
 import {
   createAgentWithId,
   deleteAgentConfig,
+  ensureMissingAgentBootstrapWorkspaceFiles,
   removeAgentWorkspaceDirectory,
   type AgentsSnapshot,
   writeAgentWorkspaceFileContent,
@@ -85,6 +86,7 @@ export async function installAgentFromCatalog(catalogItemId: string, name?: stri
   const { snapshot, createdAgentId } = await createAgentWithId(targetName, { bootstrapMode: 'empty' });
   try {
     await writeAgentWorkspaceFileContent(createdAgentId, 'SOUL.md', soulContent);
+    await ensureMissingAgentBootstrapWorkspaceFiles(createdAgentId);
     return {
       snapshot,
       createdAgentId,

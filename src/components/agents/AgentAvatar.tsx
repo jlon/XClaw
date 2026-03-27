@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { buildAgentAvatarSpec } from '@/lib/agent-avatar';
 import type { AgentAvatarProfile } from '../../../shared/agent-avatar-persona';
@@ -10,7 +11,8 @@ interface AgentAvatarProps {
 }
 
 export function AgentAvatar({ agentId, profile, size = 40, className }: AgentAvatarProps) {
-  const spec = buildAgentAvatarSpec({ seed: agentId, profile });
+  const { i18n } = useTranslation();
+  const spec = buildAgentAvatarSpec({ seed: agentId, profile, locale: i18n.language });
 
   return (
     <span

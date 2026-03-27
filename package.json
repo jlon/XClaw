@@ -1,6 +1,6 @@
 {
     "name": "XClaw",
-    "version": "2026.3.26",
+    "version": "2026.3.27",
     "pnpm": {
         "onlyBuiltDependencies": [
             "@discordjs/opus",
