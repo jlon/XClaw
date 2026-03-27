@@ -151,6 +151,17 @@ pnpm run init
 pnpm dev
 ```
 
+如果你在 macOS、Linux、WSL 或 Git Bash 里更习惯短命令，也可以使用新增的可选 `Makefile` 薄包装：
+
+```bash
+make package-win
+make package-mac-adhoc
+make package-linux
+make release
+```
+
+这个 `Makefile` 只是本地快捷入口，底层仍然会转调现有的 `pnpm run package:*`。如果你是在原生 Windows PowerShell / CMD 环境里使用，仍建议直接执行 `pnpm`，因为默认并没有 GNU Make。
+
 在 Linux 上，`pnpm dev` 现在会自动处理两类常见的无头开发故障：如果触发 `inotify` watcher 上限，会自动回退到 Chokidar polling；如果既没有 `DISPLAY` 也没有 `WAYLAND_DISPLAY`，则保留 Vite 开发服务并跳过 Electron 启动。只有在你已经准备好 Xvfb、VNC 或其他显示服务时，才建议额外设置 `XCLAW_FORCE_ELECTRON_DEV=1` 强制拉起 Electron。
 
 Windows 打包现在会在 `after-pack` 阶段裁掉非目标平台的 `node-llama-cpp` 加速变体，并只保留目标架构的 CPU 预编译包，在不移除 CPU 本地 memory 路径的前提下显著降低安装包体积。
