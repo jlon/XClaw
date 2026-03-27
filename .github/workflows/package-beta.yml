@@ -192,21 +192,21 @@ jobs:
       - name: Remove duplicate builder-debug files
         run: find release-artifacts/ -name "builder-debug.yml" -delete -print || true
 
+      - name: Collect release asset paths
+        id: release_assets
+        shell: bash
+        run: |
+          echo "files<<EOF" >> "$GITHUB_OUTPUT"
+          node scripts/collect-release-assets.mjs release-artifacts >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
       - name: Create GitHub beta prerelease
         uses: softprops/action-gh-release@v2
         with:
           repository: ${{ steps.branding.outputs.github_repository }}
           tag_name: v${{ needs.prepare.outputs.version }}
           target_commitish: ${{ needs.prepare.outputs.publish_target }}
-          files: |
-            release-artifacts/**/*.dmg
-            release-artifacts/**/*.zip
-            release-artifacts/**/*.blockmap
-            release-artifacts/**/*.exe
-            release-artifacts/**/*.AppImage
-            release-artifacts/**/*.deb
-            release-artifacts/**/*.rpm
-            release-artifacts/**/*.yml
+          files: ${{ steps.release_assets.outputs.files }}
           draft: false
           prerelease: true
           make_latest: false

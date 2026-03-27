@@ -25,4 +25,12 @@ describe('beta package workflow', () => {
 
     expect(builderConfig.win.target).toEqual([{ target: 'nsis', arch: ['x64'] }]);
   });
+
+  it('collects publish assets from actual downloaded files instead of hardcoding optional zip globs', () => {
+    const workflow = readFileSync(resolve(process.cwd(), '.github/workflows/package-beta.yml'), 'utf8');
+
+    expect(workflow).toContain('scripts/collect-release-assets.mjs');
+    expect(workflow).toContain('steps.release_assets.outputs.files');
+    expect(workflow).not.toContain('release-artifacts/**/*.zip');
+  });
 });

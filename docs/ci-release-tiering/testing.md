@@ -39,12 +39,14 @@ git diff --check
 ```bash
 node scripts/resolve-release-version.mjs --input-version 1.2.3 --channel stable
 node scripts/resolve-release-version.mjs --input-version 1.2.3-beta.1 --channel beta
+node scripts/collect-release-assets.mjs release-artifacts
 ```
 
 预期：
 
 - 输出版本号正确
 - workflow 中基于版本号的 beta 分流逻辑有事实基础
+- 当 `release-artifacts/` 下存在真实发布文件时，能输出稳定的待发布文件列表
 
 ## GitHub CI 场景矩阵
 
@@ -77,6 +79,7 @@ node scripts/resolve-release-version.mjs --input-version 1.2.3-beta.1 --channel 
 - 不要求签名 secrets
 - Windows 默认只产出 `win-x64.exe`
 - Windows `latest.yml` 只指向 `win-x64.exe`
+- 即使某次 Beta 产物不包含 `zip`，`publish` 也不能因为静态 glob 未命中而失败
 
 ## 风险回归点
 

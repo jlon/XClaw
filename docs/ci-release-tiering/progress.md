@@ -49,3 +49,11 @@
 - `package-beta.yml` 的 Windows 步骤已切换到 `package:win:x64`
 - 新增 `electron-builder.win-x64.config.cjs`，把 Beta Windows 目标锁定为 `nsis/x64`
 - 本地验证 `package:win:x64` 只生成 `win-x64.exe` 与单文件 `latest.yml`
+
+## 2026-03-27 补充
+
+- 已定位并修复 `package-beta.yml` 的 `publish` 问题
+- 根因不是构建失败，而是 `softprops/action-gh-release` 在 `fail_on_unmatched_files: true` 下把每条 glob 都当成必需项
+- 由于当前 Beta 产物不再稳定包含 `zip`，原来的 `release-artifacts/**/*.zip` 会直接导致 prerelease 发布失败
+- 新增 `scripts/collect-release-assets.mjs`，发布阶段改为从实际下载到的 artifact 中收集可发布文件列表
+- 这样即使某类可选产物不存在，也不会再因为静态 glob 未命中而让整条 `publish` 链失败
