@@ -20,6 +20,7 @@ describe('release branding source', () => {
 
     expect(builderConfig.appId).toBe(branding.appId);
     expect(builderConfig.productName).toBe(branding.productName);
+    expect(builderConfig.compression).toBe('maximum');
     expect(builderConfig.win.target).toBeDefined();
     expect(builderConfig.nsis.shortcutName).toBe(branding.productName);
     expect(builderConfig.nsis.uninstallDisplayName).toBe(branding.productName);

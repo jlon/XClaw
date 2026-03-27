@@ -5,7 +5,7 @@ module.exports = {
   appId: branding.appId,
   productName: branding.productName,
   copyright: `Copyright © 2026 ${branding.copyrightOwner}`,
-  compression: 'normal',
+  compression: 'maximum',
   artifactName: '${productName}-${version}-${os}-${arch}.${ext}',
   directories: {
     output: 'release',
