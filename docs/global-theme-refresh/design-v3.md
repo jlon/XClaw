@@ -211,7 +211,9 @@ XClaw V3 的目标不是“像网页那样高级”，也不是“像记事本�
   - `workspace-layout.tsx` 与 `runtime-page.css` 明确为 traffic lights 预留空间。
 - `XClaw 必须怎么做`：
   - 所有主题重构先从 `TitleBar`、`Sidebar`、`Workspace` 三个一级壳层开始。
-  - macOS 主进程中需增加类似 `vibrancy: 'sidebar'`, `transparent: true` 和 `visualEffectState: 'followWindow'` 的配置；同时，对应 HTML/Body 背景需为 `transparent` 以透出系统材质。
+  - macOS 主进程中需增加类似 `vibrancy: 'sidebar'`, `transparent: true` 和 `visualEffectState: 'followWindow'` 的配置；同时配置 `trafficLightPosition: { x: 18, y: 18 }` 规范红绿灯位置。
+  - 渲染层必须强制透明以透出系统材质：`html, body, #root { background: transparent !important; }`，否则网页背景会遮挡 vibrancy。
+  - macOS 侧栏顶部必须预留 `h-14` (约 56px) 的控制区避让空间；全局顶部拖拽区应从 `left: 100px` 开始，避免劫持红绿灯和侧栏折叠按钮的点击事件。
   - macOS、Windows、Linux 的顶部安全区必须有明确常量或平台分支。
   - 不允许只因为“在 Electron 里”就统一套同一套顶部 inset。
 - `禁止事项`：
@@ -294,15 +296,15 @@ XClaw V3 的目标不是“像网页那样高级”，也不是“像记事本�
 - `目标`：既去掉鹅卵石，又避免把大容器削得过硬。
 - `Nexu 证据`：
   - 主导航约 `6px`。
+  - 独立卡片（如 `.card`、`.runtime-card`）使用 `16px` 到 `20px`。
   - 主工作区壳体可到 `12px`。
-  - 某些 runtime 特区甚至更大，但不属于主侧栏语法。
 - `XClaw 必须怎么做`：
   - 输入框、按钮、选择器：`4px ~ 6px`。
-  - 列表项、菜单项、小面板：`6px`。
-  - Pane / Card：`8px`。
+  - 列表项、菜单项、小型面板：`6px`。
+  - 独立设置卡片 (Card) / 仪表盘模块：允许 `16px`。
   - 主工作区大壳、聊天主容器：允许 `10px ~ 12px`（如对齐 Nexu 的 `rounded-l-[12px]` 边界逻辑）。
 - `禁止事项`：
-  - 把主侧栏、会话列表、资源列表做成 `16px+` 圆角。
+  - 把主侧栏、会话列表等密集型列表也做成 `16px+` 圆角。
 
 ### 8. 标题栏必须分别服务 macOS 与 Windows
 
@@ -364,7 +366,7 @@ XClaw V3 的目标不是“像网页那样高级”，也不是“像记事本�
   - Input 使用 `focus:shadow-focus + border-brand-primary/30`。
   - 不是大面积泛白 ring。
 - `XClaw 必须怎么做`：
-  - 输入框与搜索框采用锐利边界聚焦（强制约束焦点样式为实色锐环，如 `--shadow-focus: 0 0 0 2px rgba(61,185,206,0.25)`）。
+  - 输入框与搜索框采用锐利边界聚焦（强制约束焦点样式为实色锐环，如 `--shadow-focus: 0 0 0 2px rgba(品牌色, 0.25)`，参考 Nexu 的 `rgba(61,185,206,0.25)`）。
   - 品牌色只做焦点强化，不染底色。
   - 搜索框高度压到 `28px ~ 32px`。
 - `禁止事项`：
@@ -384,19 +386,18 @@ XClaw V3 的目标不是“像网页那样高级”，也不是“像记事本�
 
 ### 14. Dialog / Dropdown / Popover 必须统一浮层语言
 
-- `目标`：桌面 App 的系统级浮层必须是同一个家族。
+- `目标`：桌面 App 的系统级浮层必须是同一个家族，不能有的像网页有的像手机。
 - `Nexu 证据`：
-  - Dialog、模型选择下拉、自定义菜单都存在，但实现分散，说明这块仍有统一空间。
+  - Modal (Dialog)：使用 `width: min(480px, calc(100vw - 32px))`、`rounded-2xl`、标题 `text-[14px] font-semibold`、描述 `text-[11px]`。遮罩层采用 `bg-black/40 backdrop-blur-sm`。内容区叠加 `shadow-2xl` 与 `border-[var(--color-border)]`。
 - `XClaw 必须怎么做`：
   - 所有浮层统一：
-    - 小浮层圆角 `6px ~ 8px`
-    - 大 Dialog 圆角 `8px ~ 10px`
-    - 阴影使用同一 token
-    - 内容 padding 使用同一密度系统
+    - 小浮层 (Dropdown/Tooltip)：圆角 `6px ~ 8px`，轻阴影。
+    - 大弹窗 (Dialog/Modal)：强制圆角 `16px` (2xl)，顶部 Header 与底部 Footer 使用明确的 `px-6 py-4` 和 `border` 分割线，中间 Body `px-6 py-5`，摒弃所有半屏大抽屉 (Sheet) 设计。
+    - 遮罩层 (Overlay)：统一使用 `bg-black/40 backdrop-blur-sm`，避免纯黑或纯透明。
   - 下拉列表要支持 `max-height + overflow-y-auto + overscroll contain`。
 - `禁止事项`：
   - 一个菜单 `rounded-md`，另一个 `rounded-2xl`。
-  - 一个是冷静桌面浮层，另一个像移动端抽屉。
+  - 一个是冷静桌面浮层，另一个像移动端抽屉（禁止使用右侧或底部划出的大面板，桌面应以中央 Modal 为主）。
 
 ### 15. 遮罩层与模态动画必须克制
 
@@ -411,28 +412,34 @@ XClaw V3 的目标不是“像网页那样高级”，也不是“像记事本�
   - 从屏幕底部、侧边长距离飞入。
   - 夸张弹性动画。
 
-### 16. 聊天区、输入区、消息气泡必须回到桌面容器语法
+### 16. 聊天区、消息气泡与 Markdown 回归高阶桌面 IM 语法
 
-- `目标`：让聊天区不再像网页 IM 页面。
+- `目标`：避免把聊天气泡做成粗糙的直角网页块，兼顾 IM 的气泡阅读性和桌面的克制感。
 - `Nexu 证据`：
-  - 会话页主消息区虽然仍偏产品化，但其滚动、层级、空状态、顶部控制都与主工作区同属一套容器逻辑。
+  - 气泡容器：`rounded-[20px] px-4 py-3 text-[13px] shadow-[0_10px_24px_rgba(15,23,42,0.04)]`。
+  - 气泡尾巴：使用 `rounded-tl-sm` (助手) 或 `rounded-tr-sm` (用户) 表示对话方向。
+  - Tool Call / Artifact：变成 `inline-flex rounded-full px-2.5 py-1.5` 的细巧 Chip，而非占满一行的粗壮卡片。
+  - Markdown：`pre` 背景为深色 `#1e1e2e` (无论亮暗色主题)，内联 `code` 使用 `bg-surface-3 px-1.5 py-0.5 rounded text-[0.9em]`。
 - `XClaw 必须怎么做`：
-  - `ChatInput` 外壳收敛，不再是巨大独立胶囊。
-  - 用户气泡与助手内容区的圆角、padding、边界统一降级。
-  - 输入区直接归属到工作区底座。
+  - `ChatInput` 外壳收敛，不再是巨大独立胶囊，直接归属到工作区底座。
+  - 消息气泡允许使用 `20px` 圆角和微弱的 `0.04` 透明度阴影，并通过 `rounded-tl-sm`/`rounded-tr-sm` 切平起始角。
+  - 工具调用卡片（Tool/Artifact）必须是轻量级 `inline-chip`（全圆角、小字号、无阴影，带主题色背景如 `rgba(0,163,101,0.06)`）。
+  - Markdown 代码块必须独立深色化，内联代码必须有明确但轻量的高亮底色。
 - `禁止事项`：
-  - `rounded-[16px]` 以上的超厚输入外壳。
-  - 大面积浮起的网页气泡。
+  - 阴影透明度不可超过 `0.05`，禁止大面积泛白发光气泡。
+  - 禁止把工具卡片做成沉重的实色大方块。
+  - `ChatInput` 禁止使用 `rounded-[16px]` 以上的超厚输入外壳。
 
 ### 17. Card / Pane / Empty State 必须纳入同一密度系统
 
 - `目标`：避免某些面板像桌面，某些空状态像营销页。
 - `Nexu 证据`：
-  - 它的空状态、Pane、Card 都有明确的圆角、文字尺寸和图标区尺寸。
+  - 空状态通常使用一个背景柔和的大图标（如 `w-12 h-12` 配合 `bg-red-500/10` 或 `bg-surface-3`），加上标题和辅助说明。
+  - 复杂面板 (Pane)：通常有明确的左右分栏 (如 `w-56` 的侧边导航配合 `flex-1` 的主区)，外壳使用 `border-border bg-surface-1`。
 - `XClaw 必须怎么做`：
-  - 空状态图标区不超过 `56px ~ 64px`。
-  - 空状态文字遵守主 UI 字级，不做大幅营销化放大。
-  - Pane / Card padding 统一落在 `p-3` 或 `p-4`。
+  - 空状态图标区不超过 `48px ~ 64px`，并且背景色必须是低透明度的 `surface-3` 或主题色 `10%` 透明度。
+  - 空状态文字遵守主 UI 字级 (标题 `14px-18px`，描述 `13px`)，不做大幅营销化放大。
+  - 设置页面、模型页面的左右分栏 Pane 结构，必须严格切分边界，不允许内容漂浮在无界面的背景上。
 - `禁止事项`：
   - 大量 `p-6`、巨型 icon、空状态像 landing page。
 
@@ -587,7 +594,8 @@ XClaw V3 的目标不是“像网页那样高级”，也不是“像记事本�
 - **允许**：
   - 标题栏背景轻微实色差
   - 侧栏基底极弱线性渐变
-  - macOS 下壳层级 vibrancy / blur
+  - macOS 下壳层级 vibrancy / blur（如 `backdrop-filter: saturate(180%) blur(20px)`）
+  - 大容器级阴影通过低透明度扩散建立层级（如 `0 18px 60px rgba(0, 0, 0, 0.08)`），不用深灰色。
   - Dialog / Popover 的轻阴影
 - **禁止**：
   - 列表项、按钮、Tab、侧栏激活项使用玻璃感
@@ -630,10 +638,12 @@ XClaw V3 的目标不是“像网页那样高级”，也不是“像记事本�
 ### 5. 圆角分层，不再一刀切
 
 - 输入框、按钮、选择器：`4px ~ 6px`
-- 列表项、菜单项、小型面板：`6px`
-- 卡片、工作区局部 Pane：`8px`
+- 列表项、菜单项、主导航项：`6px ~ 8px`
+- 侧边栏二级列表 (如具体的 Session 会话项)、小面板：允许 `10px`
+- 独立大弹窗 (Dialog Modal) / 独立卡片 (Card) / 仪表盘模块：允许 `16px ~ 20px`
+- 聊天气泡：`20px`，单角切平 (`rounded-tl-sm`/`rounded-tr-sm`)
 - 主工作区大壳、聊天主容器、嵌入式内容壳：允许 `10px ~ 12px`
-- 禁止在主侧栏与资源列表里出现 `16px+` 的圆角
+- 禁止在主侧栏与资源列表里无差别使用 `16px+` 的圆角
 
 ### 6. 平台分层策略
 
@@ -664,7 +674,9 @@ XClaw V3 的目标不是“像网页那样高级”，也不是“像记事本�
 ### 8. 排版规则
 
 - 主 UI 文字使用 `13px ~ 14px`。
+- 页面大标题（Page Title）约束在 `24px`，字重 `700`，行高 `1.2`；区块标题（Section Title）`14px`，字重 `500`。
 - 行高使用 `1.25 ~ 1.4`。
+- **数字必须使用表格等宽字体 (Tabular Digits)**：在 CSS 中单独定义 `@font-face`（如 `unicode-range: U+0030-0039...`，并设置 `size-adjust: 88%`），将其指向 `JetBrains Mono` 等等宽字体，保证列表、时间、状态数据对齐。
 - 侧栏、标题栏、菜单、表单优先系统字体体验。
 - 品牌展示区可保留独立展示字族，但不能污染系统交互区。
 - Windows 下禁止 `font-light`。
@@ -674,6 +686,11 @@ XClaw V3 的目标不是“像网页那样高级”，也不是“像记事本�
 - `--motion-fast: 75ms`
 - `--motion-base: 150ms`
 - 禁止 `transition-all`
+- 缓动曲线约束：
+  - **页面进入 (Page Enter)**：使用短距离轻滑入，如 `opacity 0 -> 1` 配合 `translateX(12px) -> 0`，时间 `0.3s`，曲线 `cubic-bezier(0.16, 1, 0.3, 1)`。
+  - **弹层/菜单入场 (Scale/Enter)**：必须带有轻微阻尼感，统一使用 `cubic-bezier(0.16, 1, 0.3, 1)`。
+  - **常规状态切换/Hover**：使用 `ease-out` 或 `cubic-bezier(0.4, 0, 0.2, 1)`。
+- 卡片悬停提升：允许极轻微的 `translateY(-1px)` 和扩散阴影 `0 10px 20px -5px rgba(0,0,0,0.06)`，取代粗暴的变色边框。
 - hover 仅允许背景色、文字色、边框色、透明度的短促变化
 - 侧栏折叠展开可允许 `180ms ~ 220ms`
 - 禁止弹窗和菜单从远距离滑入
@@ -690,6 +707,30 @@ XClaw V3 的目标不是“像网页那样高级”，也不是“像记事本�
 - 输入框、聊天内容、终端输出、代码块允许 `select-text`
 - 主导航、标题栏工具按钮、分段控制默认箭头指针
 - 真正超链接继续使用小手
+
+### 12. 状态指示与数据列表
+
+- **状态点 (Status Dot)**：拒绝网页大色块标签，采用类似 Nexu 的 `8px ~ 10px` 纯色点（如绿色、黄色、红色），可配合低透明度的 `ring` 扩散呼吸效果表示状态激活（如 `0 0 0 6px rgba(34, 197, 94, 0.12)`）。
+- **数据列表 (Data Table)**：
+  - 外壳：控制在 `12px` 圆角，`1px` 实线边框。
+  - 表头：必须比内容小一号且降低对比度（如 `11px uppercase tracking-wider text-muted-foreground`），并与正文使用 `1px` 底边框分割。
+  - 行悬停：仅允许极其微弱的底色加深（如 `rgba(0,0,0,0.015)`），不允许带阴影或粗边框。
+
+### 21. 筛选器与切换组件 (Segmented Controls & Pills)
+- **目标**：替代厚重的网页级 Tabs，建立桌面的细巧感。
+- **Nexu 证据**：
+  - Segment Control：外壳采用 `rounded-full p-1 bg-surface-2`，内部项使用 `px-4 py-1.5 text-[13px] font-medium`，激活项添加 `bg-white shadow-[var(--shadow-rest)]`。
+  - Filter Pills (如 Tag 选择)：高度仅为 `h-7`，内边距 `px-3`，字号 `11px`，带数字徽标 (`tabular-nums`)。
+  - **Switch (开关)**：极致还原 macOS 26 (Tahoe) 样式，包含白色/灰色状态点，精确的轨道缩放与阴影 (`shadow-[0_1px_3px_rgba(0,0,0,0.12),0_0_0_0.5px_rgba(0,0,0,0.04)]`)，焦点色强制使用原生蓝色等。
+  - **Badge (徽标)**：`px-2.5 py-0.5 text-xs font-semibold rounded-md`，避免过大，背景色区分 semantic (如 success 使用 `bg-[var(--color-success-subtle)] text-[var(--color-success)]`)。
+- **XClaw 必须怎么做**：
+  - 对于顶级页面切换，使用带有滑块阴影感的紧凑型 Segment Control，取代粗重下划线的网页 Tabs。
+  - 列表筛选器使用极致压缩的 Pill (药丸) 样式，高度不得超过 `28px`，圆角全角 `rounded-full`。
+  - Switch 组件必须放弃网页通用的圆角矩形粗略模拟，在 macOS 下要做到高保真还原系统 Switch，包含内部的小竖线（On）和小圆圈（Off）。
+  - Badge 标签必须降级为只读的极小号装饰元素，不能抢夺主要按钮的视觉重心。
+- **禁止事项**：
+  - 禁止使用带粗下划线的全屏宽 Tabs。
+  - 筛选器不要带粗边框或高饱和度色块。
 
 ---
 

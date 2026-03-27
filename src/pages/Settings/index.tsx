@@ -50,20 +50,20 @@ type ControlUiInfo = {
 };
 
 const settingsPaneClass =
-  'space-y-3 rounded-xl border border-border/65 bg-[hsl(var(--surface-elevated))] p-4';
+  'space-y-3 rounded-xl border border-[hsl(var(--chrome-divider))] bg-[hsl(var(--surface-base))] p-4 shadow-sm';
 const settingsLabelClass = 'text-[13px] font-medium text-foreground/84 select-none';
 const settingsChoiceButtonBaseClass =
-  'workbench-motion-button h-8 flex-1 items-center justify-center gap-1.5 rounded-md border px-3 text-[13px] font-semibold shadow-sm md:flex-none select-none';
+  'workbench-motion-button h-[32px] flex-1 items-center justify-center gap-1.5 rounded-[6px] border px-3 text-[13px] font-medium shadow-none transition-colors duration-[var(--motion-fast)] md:flex-none select-none cursor-default';
 const settingsChoiceButtonActiveClass =
-  'border-[hsl(var(--primary)/0.18)] bg-[hsl(var(--primary)/0.12)] text-primary shadow-sm hover:bg-[hsl(var(--primary)/0.16)] hover:text-primary';
+  'border-transparent bg-[hsl(var(--surface-active))] text-foreground shadow-none';
 const settingsChoiceButtonIdleClass =
-  'border-border/65 bg-[hsl(var(--surface-elevated))] text-foreground/74 hover:bg-[hsl(var(--surface-hover))] hover:text-foreground';
+  'border-transparent bg-transparent text-muted-foreground hover:bg-[hsl(var(--surface-hover))] hover:text-foreground';
 const settingsInputClass =
-  'h-8 rounded-md border-border/70 bg-[hsl(var(--surface-panel))] text-[13px] text-foreground shadow-sm placeholder:text-muted-foreground';
+  'h-[32px] rounded-[6px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] px-3 py-1 text-[13px] text-foreground shadow-none placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(var(--glow-brand),0.25)] focus-visible:border-[hsl(var(--border-subtle))] transition-[border-color,box-shadow,background-color] duration-[var(--motion-fast)] ease-out';
 const settingsCodeInputClass =
-  'h-8 rounded-md border-border/70 bg-[hsl(var(--surface-panel))] font-mono text-[13px] text-foreground shadow-sm placeholder:text-muted-foreground';
+  'h-[32px] rounded-[6px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] px-3 py-1 font-mono text-[13px] text-foreground shadow-none placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(var(--glow-brand),0.25)] focus-visible:border-[hsl(var(--border-subtle))] transition-[border-color,box-shadow,background-color] duration-[var(--motion-fast)] ease-out tabular-nums';
 const settingsSegmentedShellClass =
-  'inline-flex w-full flex-wrap gap-1.5 md:w-fit';
+  'inline-flex w-full flex-wrap gap-[2px] md:w-fit rounded-[8px] bg-[hsl(var(--surface-panel))] p-[2px] border border-[hsl(var(--border-subtle))]';
 const settingsCompactControlRowClass =
   'grid gap-3 py-1.5 md:grid-cols-[minmax(0,160px)_minmax(0,1fr)] md:items-center';
 const settingsCompactRowTextClass = 'min-w-0 max-w-[220px] space-y-0 md:pr-2 select-none';
@@ -71,16 +71,16 @@ const settingsCompactRowLabelClass = 'text-[13px] font-medium text-foreground/86
 const settingsCompactToggleRowClass =
   'grid gap-3 py-1.5 md:grid-cols-[minmax(0,160px)_minmax(0,1fr)] md:items-center';
 const settingsGhostButtonClass =
-  'workbench-motion-button h-8 rounded-md border border-border/70 bg-[hsl(var(--surface-elevated))] text-[13px] font-semibold text-foreground/78 shadow-sm hover:bg-[hsl(var(--surface-hover))] hover:text-foreground select-none';
+  'workbench-motion-button h-[32px] rounded-[6px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] px-4 text-[13px] font-medium text-foreground shadow-none hover:bg-[hsl(var(--surface-hover))] select-none cursor-default transition-colors duration-[var(--motion-fast)]';
 const settingsFactsStripClass =
-  'border-[hsl(var(--border-subtle)/0.74)] bg-[hsl(var(--surface-panel)/0.82)] select-none';
+  'border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-panel)/0.82)] select-none rounded-[6px]';
 const settingsTabsSurfaceClass =
-  'border-b border-border/50 pb-2.5 select-none';
+  'select-none';
 const settingsTabsListClass =
-  'h-auto w-full flex-wrap justify-start gap-2 bg-transparent p-0 md:w-auto select-none';
+  'inline-flex h-auto w-auto flex-wrap items-center rounded-[8px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-panel))] p-[2px] select-none';
 const settingsTabsTriggerClass =
-  'workbench-motion-button h-8 rounded-md border border-border/65 bg-[hsl(var(--surface-elevated))] px-3 text-[13px] font-semibold text-foreground/72 shadow-sm hover:bg-[hsl(var(--surface-hover))] hover:text-foreground data-[state=active]:border-[hsl(var(--primary)/0.18)] data-[state=active]:bg-[hsl(var(--primary)/0.12)] data-[state=active]:text-primary data-[state=active]:shadow-sm select-none';
-const settingsPaneDividerClass = 'border-t border-border/55 pt-4';
+  'workbench-motion-button h-[30px] rounded-[6px] border border-transparent bg-transparent px-4 text-[13px] font-semibold text-muted-foreground shadow-none hover:text-foreground data-[state=active]:border-transparent data-[state=active]:bg-[hsl(var(--surface-base))] data-[state=active]:text-foreground data-[state=active]:shadow-sm select-none cursor-default transition-[color,background-color,box-shadow,border-color] duration-[var(--motion-base)] ease-out';
+const settingsPaneDividerClass = 'border-t border-[hsl(var(--border-subtle))] pt-4';
 const settingsControlDockClass = 'flex w-full items-center justify-start md:justify-end';
 const settingsControlTrackClass = 'w-full md:max-w-[320px]';
 
@@ -133,7 +133,10 @@ export function Settings() {
   const [showTelemetryViewer, setShowTelemetryViewer] = useState(false);
   const [telemetryEntries, setTelemetryEntries] = useState<UiTelemetryEntry[]>([]);
 
-  const isWindows = window.electron.platform === 'win32';
+  const isWindows =
+    (window.electron?.platform ??
+      (navigator.userAgent.includes('Windows') ? 'win32' : navigator.platform.toLowerCase())) ===
+    'win32';
   const showCliTools = true;
   const [showLogs, setShowLogs] = useState(false);
   const [logContent, setLogContent] = useState('');

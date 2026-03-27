@@ -76,13 +76,13 @@ interface ProviderAccountFormSectionsProps {
   onValidateKey: ProviderAccountValidateFn;
 }
 
-const inputClasses = 'appearance-none app-field-surface h-8 rounded-md border border-[hsl(var(--border-subtle)/0.82)] text-[13px] text-foreground placeholder:text-muted-foreground/55 shadow-sm transition-colors focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0';
+const inputClasses = 'appearance-none h-8 rounded-[6px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] text-[13px] text-foreground placeholder:text-muted-foreground shadow-none transition-[border-color,box-shadow,background-color] duration-[var(--motion-fast)] ease-out focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(var(--glow-brand),0.25)] focus-visible:ring-offset-0';
 const tokenInputClasses = `${inputClasses} font-mono tracking-[0.01em]`;
 const sectionTitleClass = 'text-[13px] font-semibold text-foreground';
 const labelClasses = 'text-[13px] font-semibold text-foreground/80';
-const segmentedTrackClass = 'app-field-surface grid grid-cols-3 gap-1 rounded-md border border-[hsl(var(--border-subtle)/0.82)] p-1';
-const segmentedActiveClass = 'border border-[hsl(var(--primary)/0.18)] bg-[hsl(var(--primary)/0.08)] text-primary shadow-none outline-none focus-visible:outline-none focus-visible:ring-0';
-const segmentedIdleClass = 'border border-transparent text-muted-foreground/82 outline-none hover:bg-[hsl(var(--foreground)/0.035)] hover:text-foreground focus-visible:outline-none focus-visible:ring-0';
+const segmentedTrackClass = 'grid grid-cols-3 gap-[2px] rounded-[8px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-panel))] p-[2px]';
+const segmentedActiveClass = 'border-transparent rounded-[6px] bg-[hsl(var(--surface-base))] text-foreground shadow-sm outline-none focus-visible:outline-none focus-visible:ring-0';
+const segmentedIdleClass = 'border border-transparent rounded-[6px] text-muted-foreground outline-none hover:text-foreground focus-visible:outline-none focus-visible:ring-0';
 
 export function getProtocolBaseUrlPlaceholder(apiProtocol: ProviderAccount['apiProtocol']): string {
   if (apiProtocol === 'anthropic-messages') {

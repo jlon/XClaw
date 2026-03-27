@@ -80,7 +80,6 @@ export function Chat() {
   const clearError = useChatStore((s) => s.clearError);
   const pendingSlashAction = useChatStore((s) => ('pendingSlashAction' in s ? s.pendingSlashAction : null));
   const agents = useAgentsStore((s) => s.agents);
-  const fetchAgents = useAgentsStore((s) => s.fetchAgents);
   const chatFocusMode = useSettingsStore((s) => ('chatFocusMode' in s ? s.chatFocusMode : false));
   const setChatFocusMode = useSettingsStore((s) => ('setChatFocusMode' in s ? s.setChatFocusMode : (() => undefined)));
 
@@ -125,8 +124,8 @@ export function Chat() {
   }, [cleanupEmptySession]);
 
   useEffect(() => {
-    void fetchAgents();
-  }, [fetchAgents]);
+    void useAgentsStore.getState().fetchAgents();
+  }, []);
 
   useEffect(() => {
     if (!routeDraft) return;

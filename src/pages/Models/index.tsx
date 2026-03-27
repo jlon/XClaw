@@ -56,11 +56,11 @@ import {
 const DEFAULT_USAGE_FETCH_MAX_ATTEMPTS = 6;
 const WINDOWS_USAGE_FETCH_MAX_ATTEMPTS = 10;
 const USAGE_FETCH_RETRY_DELAY_MS = 1500;
-const toggleGroupClass = 'app-field-surface flex rounded-md border border-[hsl(var(--border-subtle)/0.82)] p-0.5 select-none';
-const toggleActiveClass = 'rounded-sm border border-[hsl(var(--primary)/0.16)] bg-[hsl(var(--surface-elevated)/0.98)] text-primary';
-const toggleIdleClass = 'rounded-sm text-muted-foreground hover:bg-[hsl(var(--surface-hover)/0.84)] hover:text-foreground';
-const emptyStateClass = 'app-empty-surface flex items-center justify-center rounded-xl py-10 text-muted-foreground';
-const usageSurfaceClass = 'app-pane-surface rounded-xl border border-[hsl(var(--border-subtle)/0.82)] px-4 py-3';
+const toggleGroupClass = 'flex rounded-[8px] bg-[hsl(var(--surface-panel))] p-[2px] border border-[hsl(var(--border-subtle))] select-none';
+const toggleActiveClass = 'rounded-[6px] border-transparent bg-[hsl(var(--surface-base))] text-foreground shadow-sm font-medium';
+const toggleIdleClass = 'rounded-[6px] text-muted-foreground hover:text-foreground border-transparent bg-transparent shadow-none';
+const emptyStateClass = 'flex items-center justify-center rounded-xl py-10 text-muted-foreground';
+const usageSurfaceClass = 'rounded-xl border border-[hsl(var(--chrome-divider))] bg-[hsl(var(--surface-base))] p-4 shadow-sm';
 
 function normalizeUsageProviderKey(provider: string | null | undefined): string {
   return provider?.trim().toLowerCase() || 'unknown';
@@ -760,9 +760,9 @@ function UsageContentPopup({
   unknownModelLabel: string;
 }) {
   return (
-    <div className="app-modal-overlay fixed inset-0 z-30 flex items-center justify-center px-4" role="dialog" aria-modal="true">
-      <div className="app-panel-surface-elevated w-full max-w-3xl rounded-xl shadow-lg">
-        <div className="flex items-start justify-between gap-3 border-b border-border/70 px-5 py-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/40 backdrop-blur-sm transition-all duration-[var(--motion-base)] ease-[cubic-bezier(0.16,1,0.3,1)]" role="dialog" aria-modal="true">
+      <div className="w-full max-w-3xl rounded-2xl shadow-[0_24px_54px_rgba(0,0,0,0.15)] bg-[hsl(var(--surface-elevated))] border border-[hsl(var(--border-subtle))] overflow-hidden">
+        <div className="flex items-start justify-between gap-3 border-b border-[hsl(var(--border-subtle))] px-6 py-4">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-foreground">{title}</p>
             <p className="text-xs text-muted-foreground truncate mt-0.5">
@@ -779,12 +779,12 @@ function UsageContentPopup({
             <X className="h-4 w-4" />
           </Button>
         </div>
-        <div className="max-h-[65vh] overflow-y-auto px-5 py-4">
-          <pre className="whitespace-pre-wrap break-words text-sm text-foreground font-mono">
+        <div className="max-h-[65vh] overflow-y-auto px-6 py-4">
+          <pre className="whitespace-pre-wrap break-words text-[13px] text-foreground font-mono tabular-nums">
             {entry.content}
           </pre>
         </div>
-        <div className="flex justify-end border-t border-border/70 px-5 py-3">
+        <div className="flex justify-end border-t border-[hsl(var(--border-subtle))] px-6 py-4 bg-[hsl(var(--surface-base))]">
           <Button variant="outline" onClick={onClose}>
             {closeLabel}
           </Button>

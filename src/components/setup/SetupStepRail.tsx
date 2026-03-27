@@ -30,7 +30,8 @@ const statusClasses: Record<SetupStageStatus, string> = {
 
 export function SetupStepRail({ stages, className }: SetupStepRailProps) {
   const { t } = useTranslation('setup');
-  const { language, setLanguage } = useSettingsStore();
+  const language = useSettingsStore((state) => state.language);
+  const setLanguage = useSettingsStore((state) => state.setLanguage);
   const orderedLanguages = ['zh', 'en', 'ja']
     .map((code) => SUPPORTED_LANGUAGES.find((lang) => lang.code === code))
     .filter((lang): lang is (typeof SUPPORTED_LANGUAGES)[number] => Boolean(lang));

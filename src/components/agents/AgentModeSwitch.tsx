@@ -18,7 +18,7 @@ export function AgentModeSwitch({ value, onChange, className }: AgentModeSwitchP
       data-testid="agents-mode-switch"
       aria-label={t('subtitle')}
       className={cn(
-        'inline-flex h-8 shrink-0 items-stretch rounded-md border border-border/70 bg-[hsl(var(--surface-elevated)/0.992)] p-1 shadow-sm',
+        'inline-flex h-auto w-auto flex-wrap items-center rounded-[8px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-panel))] p-[2px] select-none',
         className,
       )}
     >
@@ -27,10 +27,10 @@ export function AgentModeSwitch({ value, onChange, className }: AgentModeSwitchP
         onClick={() => onChange('agents')}
         aria-pressed={value === 'agents'}
         className={cn(
-          'workbench-motion-button flex h-8 min-w-[88px] items-center justify-center gap-2 whitespace-nowrap rounded-[12px] px-3 text-[12.5px] font-medium tracking-[-0.01em]',
+          'workbench-motion-button flex h-[30px] min-w-[88px] items-center justify-center gap-2 whitespace-nowrap rounded-[6px] px-3 text-[13px] font-semibold tracking-[-0.01em] cursor-default transition-[color,background-color,box-shadow,border-color] duration-200 ease-out border border-transparent shadow-none',
           value === 'agents'
-            ? 'bg-[hsl(var(--surface-panel)/0.72)] text-foreground shadow-sm'
-            : 'text-foreground/58 hover:text-foreground',
+            ? 'bg-[hsl(var(--surface-base))] text-foreground shadow-sm'
+            : 'text-muted-foreground hover:text-foreground bg-transparent',
         )}
       >
         <Grid2x2 className="h-3.5 w-3.5 shrink-0" />
@@ -41,10 +41,10 @@ export function AgentModeSwitch({ value, onChange, className }: AgentModeSwitchP
         onClick={() => onChange('market')}
         aria-pressed={value === 'market'}
         className={cn(
-          'workbench-motion-button flex h-8 min-w-[88px] items-center justify-center gap-2 whitespace-nowrap rounded-[12px] px-3 text-[12.5px] font-medium tracking-[-0.01em]',
+          'workbench-motion-button flex h-[30px] min-w-[88px] items-center justify-center gap-2 whitespace-nowrap rounded-[6px] px-3 text-[13px] font-semibold tracking-[-0.01em] cursor-default transition-[color,background-color,box-shadow,border-color] duration-200 ease-out border border-transparent shadow-none',
           value === 'market'
-            ? 'bg-[hsl(var(--surface-panel)/0.72)] text-foreground shadow-sm'
-            : 'text-foreground/58 hover:text-foreground',
+            ? 'bg-[hsl(var(--surface-base))] text-foreground shadow-sm'
+            : 'text-muted-foreground hover:text-foreground bg-transparent',
         )}
       >
         <Store className="h-3.5 w-3.5 shrink-0" />

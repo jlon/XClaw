@@ -73,7 +73,7 @@ interface AgentMarketCatalogResponse {
 }
 
 const fieldInputClasses =
-  'appearance-none h-[44px] rounded-xl text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-none transition-all focus:outline-none focus-visible:outline-none focus-visible:border-primary focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
+  'appearance-none h-[30px] rounded-[6px] text-[13px] bg-[hsl(var(--surface-base))] border border-[hsl(var(--border-subtle))] text-foreground placeholder:text-foreground/40 shadow-none transition-[border-color,box-shadow,background-color] duration-200 focus:outline-none focus-visible:outline-none focus-visible:border-[hsl(var(--border-strong))] focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-2 focus-visible:ring-[rgba(var(--glow-brand),0.25)] focus-visible:ring-offset-0 cursor-text';
 const modalSurfaceClasses =
   'app-modal-surface w-full rounded-xl';
 const badgeClasses =
@@ -1512,7 +1512,7 @@ function AgentSettingsModal({
   onClose: () => void;
 }) {
   const { t } = useTranslation('agents');
-  const { updateAgent } = useAgentsStore();
+  const updateAgent = useAgentsStore((state) => state.updateAgent);
   const [name, setName] = useState(agent.name);
   const [selectedModelRef, setSelectedModelRef] = useState<string | null>(getPersistedAgentModelRef(agent));
   const [useDefaultModel, setUseDefaultModel] = useState(getPersistedAgentModelRef(agent) === null);

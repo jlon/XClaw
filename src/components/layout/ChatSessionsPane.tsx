@@ -19,32 +19,6 @@ type SessionBucketKey =
   | 'withinMonth'
   | 'older';
 
-type SessionPaneTone =
-  | 'search'
-  | 'new'
-  | 'workspace'
-  | 'settings'
-  | 'models'
-  | 'agents'
-  | 'channels'
-  | 'skills'
-  | 'cron'
-  | 'terminal';
-
-function SessionPaneToneIcon({
-  tone,
-  children,
-}: {
-  tone: SessionPaneTone;
-  children: React.ReactElement;
-}) {
-  return (
-    <span className={cn('app-chat-session-toned-icon', `app-chat-session-toned-icon--${tone}`)}>
-      {children}
-    </span>
-  );
-}
-
 function getSessionBucket(activityMs: number, nowMs: number): SessionBucketKey {
   if (!activityMs || activityMs <= 0) return 'older';
 
@@ -75,7 +49,6 @@ export function ChatSessionsPane() {
   const loadHistory = useChatStore((s) => s.loadHistory);
   const gatewayStatus = useGatewayStore((s) => s.status);
   const agents = useAgentsStore((s) => s.agents);
-  const fetchAgents = useAgentsStore((s) => s.fetchAgents);
 
   const isGatewayRunning = gatewayStatus.state === 'running';
   const [sessionToDelete, setSessionToDelete] = useState<{ key: string; label: string } | null>(null);
@@ -120,8 +93,8 @@ export function ChatSessionsPane() {
   }, [workspaceMenuOpen]);
 
   useEffect(() => {
-    void fetchAgents();
-  }, [fetchAgents]);
+    void useAgentsStore.getState().fetchAgents();
+  }, []);
 
   useEffect(() => {
     if (!isGatewayRunning) return;
@@ -195,18 +168,20 @@ export function ChatSessionsPane() {
     }
   };
 
+  const isBrowserMode = typeof window !== 'undefined' && !window.electron?.ipcRenderer;
+
   return (
     <aside className="flex w-[250px] shrink-0 flex-col bg-transparent [font-family:var(--font-sidebar)]">
-      <div className="px-2 pb-2 pt-3">
-        <div className="pb-2">
-          <AppBrandLockup compact className="min-h-8" testIdPrefix="chat-sidebar-brand" />
-        </div>
-        <div className="flex min-h-9 items-center">
+      <div className="px-3 pb-2 pt-3">
+        {!isBrowserMode && (
+          <div className="pb-2">
+            <AppBrandLockup compact className="min-h-8" testIdPrefix="chat-sidebar-brand" />
+          </div>
+        )}
+        <div className="flex min-h-[32px] items-center">
           {searchOpen || searchQuery ? (
-            <div className="app-chat-session-control app-chat-session-control--search relative flex h-10 min-w-0 flex-1 items-center rounded-full px-4 transition-[background-color,border-color,box-shadow] duration-150">
-              <SessionPaneToneIcon tone="search">
-                <Search aria-hidden="true" className="pointer-events-none h-4 w-4 shrink-0" />
-              </SessionPaneToneIcon>
+            <div className="app-chat-session-control app-chat-session-control--search relative flex h-[28px] min-w-0 flex-1 items-center rounded-full px-3 transition-colors duration-[var(--motion-base)] ring-1 ring-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] focus-within:ring-2 focus-within:ring-[rgba(var(--brand-color),0.25)]">
+              <Search aria-hidden="true" className="pointer-events-none h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               <input
                 ref={searchInputRef}
                 aria-label={t('chat:sessionPane.searchLabel')}
@@ -223,19 +198,17 @@ export function ChatSessionsPane() {
                     setSearchOpen(false);
                   }
                 }}
-                className="h-full min-w-0 flex-1 bg-transparent pl-2 pr-0 text-[14px] font-normal leading-5 text-foreground outline-none placeholder:text-muted-foreground/58"
+                className="h-full min-w-0 flex-1 bg-transparent pl-2 pr-0 text-[13px] font-normal text-foreground outline-none placeholder:text-muted-foreground/58"
               />
             </div>
           ) : (
             <button
               type="button"
               aria-label={t('chat:sessionPane.searchLabel')}
-              className="app-chat-session-control app-chat-session-control--search flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full px-4 text-left text-[14px] font-normal leading-5 text-muted-foreground/62 transition-[background-color,color,border-color,box-shadow] duration-150 focus-visible:outline-none"
+              className="app-chat-session-control app-chat-session-control--search flex h-[28px] min-w-0 flex-1 items-center gap-2 rounded-[6px] px-2.5 text-left text-[13px] font-normal text-muted-foreground/62 transition-colors duration-[var(--motion-base)] hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground cursor-default focus-visible:outline-none border border-transparent shadow-none"
               onClick={() => setSearchOpen(true)}
             >
-              <SessionPaneToneIcon tone="search">
-                <Search aria-hidden="true" className="h-4 w-4 shrink-0" />
-              </SessionPaneToneIcon>
+              <Search aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate">{t('chat:sessionPane.searchPlaceholder')}</span>
             </button>
           )}
@@ -245,7 +218,7 @@ export function ChatSessionsPane() {
       <div
         data-testid="chat-sessions-scroll-area"
         className={cn(
-          'flex-1 overflow-y-auto overflow-x-hidden px-2 pb-4 pt-0',
+          'flex-1 overflow-y-auto overflow-x-hidden px-3 pb-4 pt-0',
           isWindows ? 'subtle-scrollbar-win' : 'subtle-scrollbar',
         )}
       >
@@ -256,7 +229,7 @@ export function ChatSessionsPane() {
                 <div className="px-3 pb-1 pt-1 text-[12px] font-normal leading-4 tracking-normal text-muted-foreground/58">
                   {bucket.label}
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   {bucket.sessions.map((session) => {
                     const agentId = getAgentIdFromSessionKey(session.key);
                     const agent = agentById[agentId];
@@ -281,10 +254,10 @@ export function ChatSessionsPane() {
                             navigate('/');
                           }}
                           className={cn(
-                            'app-chat-session-row flex h-10 w-full items-center gap-2.5 rounded-full px-3 pr-8 text-left transition-[background-color,color,border-color,box-shadow] duration-150 focus-visible:outline-none',
+                            'app-chat-session-row flex h-[32px] w-full items-center gap-2.5 rounded-[6px] px-[10px] pr-8 text-left transition-colors duration-[var(--motion-base)] ease-out cursor-default',
                             isCurrent
-                              ? 'app-chat-session-row--active text-foreground'
-                              : 'text-foreground/84',
+                              ? 'app-chat-session-row--active bg-[hsl(var(--surface-active)/0.8)] text-foreground font-medium border-transparent shadow-none'
+                              : 'text-foreground/84 hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground',
                           )}
                         >
                           <AgentAvatar
@@ -331,17 +304,15 @@ export function ChatSessionsPane() {
         )}
       </div>
 
-      <div className="border-t border-[hsl(var(--border-subtle)/0.72)] px-2 pb-1.5 pt-1.5">
-        <div className="flex min-h-9 items-center gap-1.5">
+      <div className="border-t border-[hsl(var(--border-subtle)/0.72)] px-3 pb-2 pt-2">
+        <div className="flex min-h-[32px] items-center gap-1.5">
           <div ref={workspaceMenuRef} className="relative min-w-0 flex-1">
             <button
               type="button"
-              className="app-chat-session-footer-action flex h-9 w-full items-center gap-2.5 rounded-[10px] px-3 text-left text-[13px] font-normal leading-5 text-foreground/68 transition-[background-color,color] duration-150 hover:text-foreground"
+              className="app-chat-session-footer-action flex h-[32px] w-full items-center gap-2.5 rounded-[6px] px-2.5 text-left text-[13px] font-normal leading-5 text-foreground/68 transition-colors duration-[var(--motion-base)] hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground cursor-default"
               onClick={() => setWorkspaceMenuOpen((open) => !open)}
             >
-              <SessionPaneToneIcon tone="workspace">
-                <LayoutGrid className="h-[14px] w-[14px] shrink-0" strokeWidth={1.9} />
-              </SessionPaneToneIcon>
+              <LayoutGrid className="h-[14px] w-[14px] shrink-0 text-muted-foreground" strokeWidth={1.9} />
               <span className="truncate">{t('chat:sessionPane.workspaceLauncher')}</span>
             </button>
             {workspaceMenuOpen ? (
@@ -353,15 +324,15 @@ export function ChatSessionsPane() {
                       <button
                         key={item.to}
                         type="button"
-                        className="app-chat-session-workspace-item flex h-8 w-full items-center gap-2.5 rounded-md px-2.5 text-left text-[12.5px] text-foreground/76 transition-[background-color,color] duration-150 hover:text-foreground"
+                        className="app-chat-session-workspace-item flex h-[32px] w-full items-center gap-2.5 rounded-[6px] px-2.5 text-left text-[12.5px] text-foreground/76 transition-colors duration-[var(--motion-base)] hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground cursor-default group"
                         onClick={() => {
                           setWorkspaceMenuOpen(false);
                           navigate(item.to);
                         }}
                       >
-                        <SessionPaneToneIcon tone={item.tone}>
-                          <Icon className="h-[14px] w-[14px] shrink-0" strokeWidth={1.9} />
-                        </SessionPaneToneIcon>
+                        <div className="flex h-[16px] w-[16px] items-center justify-center shrink-0 text-muted-foreground group-hover:text-foreground transition-colors duration-[var(--motion-base)]">
+                          <Icon className="h-[14px] w-[14px]" strokeWidth={1.9} />
+                        </div>
                         <span className="truncate">{item.label}</span>
                       </button>
                     );
@@ -369,15 +340,15 @@ export function ChatSessionsPane() {
                   <div className="my-1 border-t border-[hsl(var(--border-subtle)/0.78)]" />
                   <button
                     type="button"
-                    className="app-chat-session-workspace-item flex h-8 w-full items-center gap-2.5 rounded-md px-2.5 text-left text-[12.5px] text-foreground/68 transition-[background-color,color] duration-150 hover:text-foreground"
+                    className="app-chat-session-workspace-item flex h-[32px] w-full items-center gap-2.5 rounded-[6px] px-2.5 text-left text-[12.5px] text-foreground/68 transition-colors duration-[var(--motion-base)] hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground cursor-default group"
                     onClick={() => {
                       setWorkspaceMenuOpen(false);
                       void openDevConsole();
                     }}
                   >
-                    <SessionPaneToneIcon tone="terminal">
-                      <Terminal className="h-[14px] w-[14px] shrink-0" strokeWidth={1.9} />
-                    </SessionPaneToneIcon>
+                    <div className="flex h-[16px] w-[16px] items-center justify-center shrink-0 text-muted-foreground group-hover:text-foreground transition-colors duration-[var(--motion-base)]">
+                      <Terminal className="h-[14px] w-[14px]" strokeWidth={1.9} />
+                    </div>
                     <span className="truncate">{t('common:sidebar.openClawPage')}</span>
                   </button>
                 </div>
@@ -389,12 +360,10 @@ export function ChatSessionsPane() {
             type="button"
             aria-label={t('common:sidebar.settings')}
             title={t('common:sidebar.settings')}
-            className="app-chat-session-utility-button flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-foreground/62 transition-[background-color,color,border-color,box-shadow] duration-150 hover:text-foreground focus-visible:outline-none"
+            className="app-chat-session-utility-button flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-[6px] text-muted-foreground transition-colors duration-[var(--motion-base)] hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground cursor-default focus-visible:outline-none"
             onClick={() => navigate('/settings')}
           >
-            <SessionPaneToneIcon tone="settings">
-              <Settings className="h-[14px] w-[14px]" strokeWidth={1.9} />
-            </SessionPaneToneIcon>
+            <Settings className="h-[14px] w-[14px]" strokeWidth={1.9} />
           </button>
         </div>
       </div>

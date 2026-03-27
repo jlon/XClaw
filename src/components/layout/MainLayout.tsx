@@ -23,8 +23,8 @@ export function MainLayout() {
     }
   }, [isChatRoute, outlet]);
 
-  const showChatSessionsPane = isChatRoute && !chatFocusMode;
-  const showWorkspaceSidebar = !isChatRoute;
+  const showChatSessionsPane = isChatSurfaceRoute && !chatFocusMode;
+  const showWorkspaceSidebar = !isChatSurfaceRoute;
 
   useEffect(() => {
     if (isChatRoute) {
@@ -33,7 +33,7 @@ export function MainLayout() {
   }, [isChatRoute, location.pathname]);
 
   return (
-    <div className="desktop-app-shell flex h-screen flex-col overflow-hidden bg-background text-foreground">
+    <div className="desktop-app-shell flex h-screen flex-col overflow-hidden text-foreground mac-vibrancy-shell">
       <TitleBar />
       <div className="desktop-app-shell-body flex flex-1 min-h-0 overflow-hidden">
         {isChatSurfaceRoute ? (
@@ -62,7 +62,7 @@ export function MainLayout() {
             className="desktop-app-shell-sidebar"
           />
         )}
-        <main className={isChatSurfaceRoute ? 'desktop-app-workspace flex flex-1 min-w-0 flex-col overflow-hidden px-0 py-0' : 'desktop-app-workspace flex flex-1 min-w-0 flex-col overflow-hidden px-3 py-0 xl:px-4'}>
+        <main className={isChatSurfaceRoute ? 'desktop-app-workspace flex flex-1 min-w-0 flex-col overflow-hidden px-0 py-0 bg-background mac-workspace-main' : 'desktop-app-workspace flex flex-1 min-w-0 flex-col overflow-hidden px-3 py-0 xl:px-4 bg-background mac-workspace-main'}>
           {isChatSurfaceRoute ? (
             <div className="relative min-h-0 flex flex-1 flex-col">
               <div

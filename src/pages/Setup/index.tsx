@@ -132,7 +132,6 @@ function getProtocolBaseUrlPlaceholder(
 export function Setup() {
   const { t } = useTranslation(['setup', 'channels']);
   const navigate = useNavigate();
-  const initGateway = useGatewayStore((state) => state.init);
   const [currentStage, setCurrentStage] = useState<SetupStage>('start');
   const [completePhase, setCompletePhase] = useState<SetupCompletePhase>('summary');
   const [setupMode, setSetupMode] = useState<SetupMode>('fresh');
@@ -314,8 +313,8 @@ export function Setup() {
   }, [loadSetupState]);
 
   useEffect(() => {
-    void initGateway();
-  }, [initGateway]);
+    void useGatewayStore.getState().init();
+  }, []);
 
   useEffect(() => {
     if (!takeoverSubmitting) {

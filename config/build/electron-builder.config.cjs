@@ -1,4 +1,5 @@
 const branding = require('../release-branding.json');
+const updateFeeds = require('./update-feeds.json');
 
 module.exports = {
   appId: branding.appId,
@@ -26,6 +27,13 @@ module.exports = {
   asar: true,
   asarUnpack: ['**/*.node'],
   npmRebuild: false,
+  publish: [
+    {
+      provider: 'generic',
+      url: `${updateFeeds.baseUrl}/${updateFeeds.channels.beta}`,
+    },
+  ],
+  generateUpdatesFilesForAllChannels: true,
   mac: {
     extraResources: [
       { from: 'resources/bin/darwin-${arch}', to: 'bin' },

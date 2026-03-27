@@ -157,6 +157,10 @@ Windows 打包现在会在 `after-pack` 阶段裁掉非目标平台的 `node-lla
 
 Beta 发布工作流现在默认只发布面向主流 Windows 用户的 x64 安装器；如果你本地确实需要同时打出多个 Windows 架构，仍然可以继续使用 `pnpm run package:win`。
 
+现在打包版 Windows 已恢复 **Beta 通道** 的应用内更新，入口在 **设置 → 更新**。用户可以开启自动检查，并按需启用后台自动下载。macOS Beta 包因为没有 Apple 签名，当前只支持应用内检查新版本，再手动下载安装覆盖。Linux 这一轮仍然保持手动下载安装。
+
+如果你是自托管官网的维护者，不要把官网按钮下载清单和桌面自动更新 feed 混成一条链路。继续使用 `scripts/sync-release-downloads.sh` 同步官网 `latest.json`，再额外使用 `scripts/sync-update-feeds.sh` 同步 `/downloads/updates/beta`。
+
 ### 首次启动
 
 第一次打开 XClaw 时，**设置向导** 会依次带你完成：

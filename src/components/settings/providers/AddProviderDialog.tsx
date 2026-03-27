@@ -33,14 +33,14 @@ import { cn } from '@/lib/utils';
 import { getProtocolBaseUrlPlaceholder } from './ProviderAccountFormSections';
 import type { AddProviderDialogOptions } from './provider-account-create';
 
-const inputClasses = 'appearance-none h-8 rounded-md border border-border/70 bg-[hsl(var(--surface-panel)/0.96)] text-[13px] text-foreground placeholder:text-muted-foreground/55 shadow-sm transition-colors focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 focus-visible:border-transparent';
+const inputClasses = 'appearance-none h-8 rounded-[6px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] text-[13px] text-foreground placeholder:text-muted-foreground shadow-none transition-[border-color,box-shadow,background-color] duration-[var(--motion-fast)] ease-out focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(var(--glow-brand),0.25)] focus-visible:ring-offset-0';
 const tokenInputClasses = `${inputClasses} font-mono tracking-[0.01em]`;
 const labelClasses = 'text-[13px] font-semibold text-foreground/80';
 const modalSurfaceClasses = 'app-modal-surface flex max-h-[88vh] w-full flex-col rounded-xl border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.99)] shadow-lg';
 const primaryButtonClass = 'workbench-motion-button workbench-motion-button--lift rounded-md h-8 px-4 bg-primary text-primary-foreground shadow-sm hover:bg-primary/92';
-const segmentedTrackClass = 'flex rounded-md border border-border/60 bg-[hsl(var(--surface-base)/0.96)] p-0.5 gap-0.5';
-const segmentedActiveClass = 'border border-[hsl(var(--primary)/0.16)] bg-[hsl(var(--surface-elevated)/0.98)] text-primary shadow-none';
-const segmentedIdleClass = 'text-muted-foreground/82 hover:bg-[hsl(var(--foreground)/0.035)]';
+const segmentedTrackClass = 'flex rounded-[8px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-panel))] p-[2px] gap-[2px]';
+const segmentedActiveClass = 'border-transparent rounded-[6px] bg-[hsl(var(--surface-base))] text-foreground shadow-sm';
+const segmentedIdleClass = 'rounded-[6px] text-muted-foreground hover:text-foreground';
 const listRowClass = 'flex flex-col items-start gap-1.5 rounded-lg border border-[hsl(var(--border-subtle)/0.62)] px-2.5 py-2.5 text-left transition-colors hover:border-[hsl(var(--border-strong)/0.24)] hover:bg-[hsl(var(--surface-hover)/0.68)]';
 const panelSurfaceClass = 'app-insight-surface rounded-lg border border-[hsl(var(--border-subtle)/0.78)] bg-[hsl(var(--surface-elevated)/0.96)] shadow-sm';
 const setupGridClass = 'grid gap-3 md:grid-cols-2';

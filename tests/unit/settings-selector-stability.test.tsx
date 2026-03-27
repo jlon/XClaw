@@ -20,3 +20,4 @@ describe('settings selector stability', () => {
   it('renders a controlled settings switch without triggering recursive updates', () => {
     expect(() => render(<UnstableSettingsSelectorSwitch />)).not.toThrow();
   });
+});

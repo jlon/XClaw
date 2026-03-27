@@ -287,7 +287,7 @@ function ToolStatusBar({
   }>;
 }) {
   return (
-    <div className="app-chat-process-rail app-chat-secondary-block w-full">
+    <div className="app-chat-process-rail app-chat-secondary-block w-full flex flex-col gap-1.5">
       {tools.map((tool) => {
         const duration = formatDuration(tool.durationMs);
         const isRunning = tool.status === 'running';
@@ -297,17 +297,16 @@ function ToolStatusBar({
             key={tool.toolCallId || tool.id || tool.name}
             data-state={tool.status}
             className={cn(
-              'app-chat-process-node app-chat-tool-status flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors',
+              'app-chat-process-node app-chat-tool-status flex items-center gap-2 rounded-md px-3 h-7 bg-[hsl(var(--surface-hover))] transition-colors w-fit',
               isRunning && 'text-foreground',
               !isRunning && !isError && 'text-muted-foreground',
               isError && 'text-destructive',
             )}
           >
-            <span className="app-chat-process-dot shrink-0" aria-hidden="true" />
             {isRunning && <Loader2 className="h-3.5 w-3.5 animate-spin text-primary shrink-0" />}
             {!isRunning && !isError && <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[hsl(var(--success))]" />}
             {isError && <AlertCircle className="h-3.5 w-3.5 text-destructive shrink-0" />}
-            <span className="text-[11.5px] font-medium">{tool.name}</span>
+            <span className="text-[13px] font-medium">{tool.name}</span>
             {duration && <span className="text-[11px] opacity-55">{tool.summary ? `(${duration})` : duration}</span>}
             {tool.summary && (
               <span className="app-chat-process-summary truncate text-[11px] opacity-70">{tool.summary}</span>
@@ -371,8 +370,8 @@ function MessageBubble({
       className={cn(
         'relative max-w-full text-[14px] leading-[1.6]',
         isUser
-          ? 'app-chat-bubble-user rounded-md rounded-br-[2px] border px-4 py-3'
-          : 'app-chat-bubble-assistant rounded-md rounded-bl-[2px] px-0 py-0 text-foreground',
+          ? 'app-chat-bubble-user rounded-[20px] rounded-br-[4px] px-[16px] py-[10px] bg-[hsl(var(--surface-active)/0.6)] border border-transparent shadow-[inset_0_-1px_0_rgba(0,0,0,0.04)] dark:bg-[hsl(var(--surface-elevated))]'
+          : 'app-chat-bubble-assistant rounded-none px-0 py-0 bg-transparent border-transparent shadow-none text-foreground',
       )}
       data-testid={isUser ? 'chat-user-bubble' : 'chat-assistant-bubble'}
     >
@@ -391,14 +390,14 @@ function MessageBubble({
                 const isInline = !match && !className;
                 if (isInline) {
                   return (
-                    <code className="app-chat-inline-code rounded px-1.5 py-0.5 text-[13px] font-mono break-words" {...props}>
+                    <code className="app-chat-inline-code rounded-[4px] bg-[hsl(var(--surface-hover))] px-1.5 py-0.5 text-[13px] font-mono break-words tabular-nums" {...props}>
                       {children}
                     </code>
                   );
                 }
                 return (
-                  <pre className="app-chat-code-block overflow-x-auto rounded-md px-3.5 py-2.5">
-                    <code className={cn('text-[13px] font-mono leading-6', className)} {...props}>
+                  <pre className="app-chat-code-block overflow-x-auto rounded-xl bg-[#0F111A] !text-[#e2e8f0] px-4 py-3">
+                    <code className={cn('text-[13px] font-mono leading-[1.6] tabular-nums', className)} {...props}>
                       {children}
                     </code>
                   </pre>
@@ -737,15 +736,15 @@ function ToolCard({ name, input }: { name: string; input: unknown }) {
   return (
     <div className="app-chat-tool-card app-chat-secondary-block text-[14px]">
       <button
-        className="app-chat-secondary-toggle"
+        className="app-chat-secondary-toggle flex items-center gap-2 rounded-md px-3 h-7 bg-[hsl(var(--surface-hover))] transition-colors w-fit border-transparent shadow-none"
         onClick={() => setExpanded(!expanded)}
       >
         <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[hsl(var(--success))]" />
-        <span className="text-xs font-medium">{name}</span>
+        <span className="text-[13px] font-medium">{name}</span>
         {expanded ? <ChevronDown className="h-3 w-3 ml-auto" /> : <ChevronRight className="h-3 w-3 ml-auto" />}
       </button>
       {expanded && input != null && (
-        <pre className="app-chat-secondary-body overflow-x-auto text-xs text-muted-foreground">
+        <pre className="app-chat-secondary-body overflow-x-auto text-[12px] text-muted-foreground bg-[hsl(var(--surface-base))] p-3 rounded-md mt-1.5 border border-[hsl(var(--border-subtle))] font-mono tabular-nums">
           {typeof input === 'string' ? input : JSON.stringify(input, null, 2) as string}
         </pre>
       )}

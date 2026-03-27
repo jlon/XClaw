@@ -44,7 +44,25 @@ const {
     restart: vi.fn(),
   },
   updateState: {
+    status: 'available',
+    currentVersion: '2026.3.23',
+    updateInfo: {
+      version: '2026.3.26-beta.0',
+      releaseDate: '2026-03-26T08:00:00.000Z',
+      downloadUrl: 'https://www.xclaw.live/downloads/updates/beta/XClaw-2026.3.26-beta.0-mac-arm64.dmg',
+    },
+    progress: null,
+    error: null,
+    isInitialized: true,
+    autoInstallCountdown: null,
+    init: vi.fn(),
+    checkForUpdates: vi.fn(),
+    downloadUpdate: vi.fn(),
+    installUpdate: vi.fn(),
+    cancelAutoInstall: vi.fn(),
+    setChannel: vi.fn(),
     setAutoDownload: vi.fn(),
+    clearError: vi.fn(),
   },
   invokeIpcMock: vi.fn(),
   hostApiFetchMock: vi.fn(),
@@ -66,10 +84,6 @@ vi.mock('@/stores/update', () => ({
   useUpdateStore: (selector?: (state: typeof updateState) => unknown) => (
     selector ? selector(updateState) : updateState
   ),
-}));
-
-vi.mock('@/components/settings/UpdateSettings', () => ({
-  UpdateSettings: () => <div>更新面板</div>,
 }));
 
 vi.mock('@/components/layout/WorkbenchSummaryStrip', () => ({
@@ -125,10 +139,22 @@ vi.mock('react-i18next', () => ({
       if (key === 'gateway.autoStart') return '自动启动网关';
       if (key === 'updates.title') return '更新';
       if (key === 'updates.description') return '保持 XClaw 最新';
+      if (key === 'updates.status.available') return '发现新版本';
+      if (key === 'updates.detail.available') return '检测到更高版本，可以立即下载并在下载完成后安装。';
+      if (key === 'updates.currentVersion') return '当前版本';
+      if (key === 'updates.latestVersion') return '最新版本';
+      if (key === 'updates.latestUnknown') return '尚未获取';
       if (key === 'updates.autoCheck') return '自动检查更新';
       if (key === 'updates.autoCheckDesc') return '启动时检查更新';
-      if (key === 'updates.autoDownload') return '自动更新';
-      if (key === 'updates.autoDownloadDesc') return '自动下载并安装更新';
+      if (key === 'updates.autoDownload') return '自动下载更新';
+      if (key === 'updates.autoDownloadDesc') return '发现新版本后自动在后台下载。';
+      if (key === 'updates.channel') return '更新通道';
+      if (key === 'updates.channelDesc') return '当前桌面更新通道固定为 Beta。';
+      if (key === 'updates.actions.check') return '检查更新';
+      if (key === 'updates.actions.downloadLatest') return '下载最新版本';
+      if (key === 'updates.channels.beta') return 'Beta';
+      if (key === 'updates.manualDownloadTitle') return '手动更新';
+      if (key === 'updates.manualDownloadDesc') return 'mac 当前仅支持手动下载安装 Beta 包，不能使用内置自动更新。';
       if (key === 'developer.title') return '开发者';
       if (key === 'developer.description') return '开发者高级选项';
       if (key === 'advanced.telemetry') return '匿名使用数据';
@@ -145,6 +171,7 @@ vi.mock('react-i18next', () => ({
       if (key === 'common:actions.copy') return '复制';
       if (key === 'common:actions.show') return '显示';
       if (key === 'common:actions.hide') return '隐藏';
+      if (key === 'common:status.loading') return '加载中';
       if (key === 'gateway.logs') return '日志';
       if (key === 'gateway.exportLogs') return '导出日志包';
       if (key === 'gateway.logsExporting') return '导出中...';
@@ -210,7 +237,7 @@ describe('settings layout', () => {
     });
   });
 
-  it('removes auto-update toggles from the updates pane when built-in updater is disabled', async () => {
+  it('shows the beta-only updates pane with manual macOS download guidance', async () => {
     render(<Settings />);
 
     const updatesTab = screen.getByRole('tab', { name: '更新' });
@@ -218,11 +245,15 @@ describe('settings layout', () => {
     fireEvent.click(updatesTab);
 
     await waitFor(() => {
-      expect(screen.getByText('更新面板')).toBeInTheDocument();
+      expect(screen.getByText('自动检查更新')).toBeInTheDocument();
     });
 
-    expect(screen.queryByText('自动检查更新')).not.toBeInTheDocument();
-    expect(screen.queryByText('自动更新')).not.toBeInTheDocument();
+    expect(screen.getByText('自动检查更新')).toBeInTheDocument();
+    expect(screen.getByText('更新通道')).toBeInTheDocument();
+    expect(screen.getByText('Beta')).toBeInTheDocument();
+    expect(screen.getByText('手动更新')).toBeInTheDocument();
+    expect(screen.queryByText('自动下载更新')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '重启并安装' })).not.toBeInTheDocument();
   });
 
   it('exports a platform log bundle from the runtime pane', async () => {

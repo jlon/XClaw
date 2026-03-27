@@ -91,16 +91,14 @@ class ErrorBoundary extends Component<
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
-  const initSettings = useSettingsStore((state) => state.init);
   const theme = useSettingsStore((state) => state.theme);
   const language = useSettingsStore((state) => state.language);
   const setupComplete = useSettingsStore((state) => state.setupComplete);
   const settingsInitialized = useSettingsStore((state) => state.initialized);
-  const initGateway = useGatewayStore((state) => state.init);
 
   useEffect(() => {
-    initSettings();
-  }, [initSettings]);
+    void useSettingsStore.getState().init();
+  }, []);
 
   // Sync i18n language with persisted settings on mount
   useEffect(() => {
@@ -111,8 +109,8 @@ function App() {
 
   // Initialize Gateway connection on mount
   useEffect(() => {
-    initGateway();
-  }, [initGateway]);
+    void useGatewayStore.getState().init();
+  }, []);
 
   // Redirect to setup wizard if not complete
   useEffect(() => {

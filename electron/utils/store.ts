@@ -209,7 +209,7 @@ function createDefaultSettings(): AppSettings {
     proxyBypassRules: '<local>;localhost;127.0.0.1;::1',
 
     // Update
-    updateChannel: 'stable',
+    updateChannel: 'beta',
     autoCheckUpdate: true,
     autoDownloadUpdate: false,
     skippedVersions: [],

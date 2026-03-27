@@ -152,6 +152,10 @@ Windows packaging now trims non-target `node-llama-cpp` accelerator variants dur
 
 The beta release workflow now publishes the mainstream Windows build through the x64 installer only. Local multi-arch packaging remains available through `pnpm run package:win` when you explicitly need both Windows architectures.
 
+Packaged Windows builds now restore in-app updates under **Settings → Updates** on the Beta channel. Users can enable automatic checks and optionally download updates in the background. macOS Beta builds can check for new versions in-app, but because these packages are not Apple-signed they currently fall back to manual download and replace-install. Linux still stays on manual downloads.
+
+If you self-host the website download server, keep the installer list sync and updater feed sync separate. Use `scripts/sync-release-downloads.sh` for the website download manifest and `scripts/sync-update-feeds.sh` for `/downloads/updates/beta`.
+
 ### First Launch
 
 On the first run, the **Setup Wizard** walks you through:

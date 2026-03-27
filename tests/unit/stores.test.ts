@@ -185,6 +185,53 @@ describe('Settings Store', () => {
       }),
     );
   });
+
+  it('should persist update preferences through host api', () => {
+    const invoke = vi.mocked(window.electron.ipcRenderer.invoke);
+    invoke.mockResolvedValue({
+      ok: true,
+      data: {
+        status: 200,
+        ok: true,
+        json: { success: true },
+      },
+    });
+
+    const {
+      setUpdateChannel,
+      setAutoCheckUpdate,
+      setAutoDownloadUpdate,
+    } = useSettingsStore.getState();
+
+    setUpdateChannel('beta');
+    setAutoCheckUpdate(false);
+    setAutoDownloadUpdate(true);
+
+    expect(invoke).toHaveBeenCalledWith(
+      'hostapi:fetch',
+      expect.objectContaining({
+        path: '/api/settings/updateChannel',
+        method: 'PUT',
+        body: JSON.stringify({ value: 'beta' }),
+      }),
+    );
+    expect(invoke).toHaveBeenCalledWith(
+      'hostapi:fetch',
+      expect.objectContaining({
+        path: '/api/settings/autoCheckUpdate',
+        method: 'PUT',
+        body: JSON.stringify({ value: false }),
+      }),
+    );
+    expect(invoke).toHaveBeenCalledWith(
+      'hostapi:fetch',
+      expect.objectContaining({
+        path: '/api/settings/autoDownloadUpdate',
+        method: 'PUT',
+        body: JSON.stringify({ value: true }),
+      }),
+    );
+  });
 });
 
 describe('Electron settings store migration', () => {
@@ -288,11 +335,58 @@ describe('Gateway Store', () => {
 
   it('should proxy gateway rpc through ipc', async () => {
     const invoke = vi.mocked(window.electron.ipcRenderer.invoke);
-    invoke.mockResolvedValueOnce({ success: true, result: { ok: true } });
+    invoke.mockResolvedValueOnce({
+      ok: true,
+      data: {
+        status: 200,
+        ok: true,
+        json: { success: true, result: { ok: true } },
+      },
+    });
 
     const result = await useGatewayStore.getState().rpc<{ ok: boolean }>('chat.history', { limit: 10 }, 5000);
 
     expect(result.ok).toBe(true);
-    expect(invoke).toHaveBeenCalledWith('gateway:rpc', 'chat.history', { limit: 10 }, 5000);
+    expect(invoke).toHaveBeenCalledWith(
+      'hostapi:fetch',
+      expect.objectContaining({
+        path: '/api/gateway/rpc',
+        method: 'POST',
+        body: JSON.stringify({
+          method: 'chat.history',
+          params: { limit: 10 },
+          timeoutMs: 5000,
+        }),
+      }),
+    );
+  });
+
+  it('should use browser host api fallback for gateway rpc when Electron IPC is unavailable', async () => {
+    const previousElectron = window.electron;
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true, result: { ok: true } }),
+    });
+
+    // @ts-expect-error test explicitly simulates browser-only runtime
+    window.electron = undefined;
+    window.localStorage.setItem('XClaw:allow-localhost-fallback', '1');
+    vi.stubGlobal('fetch', fetchMock);
+
+    try {
+      const result = await useGatewayStore.getState().rpc<{ ok: boolean }>('chat.history', { limit: 5 }, 3000);
+
+      expect(result.ok).toBe(true);
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/gateway/rpc',
+        expect.objectContaining({
+          method: 'POST',
+        }),
+      );
+    } finally {
+      window.electron = previousElectron;
+      vi.unstubAllGlobals();
+    }
   });
 });

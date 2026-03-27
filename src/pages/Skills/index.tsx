@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   AlertCircle,
+  Brain,
   ChevronRight,
+  Code,
   Copy,
   FileCode,
   FolderOpen,
@@ -12,10 +14,17 @@ import {
   Lock,
   Loader2,
   MoreHorizontal,
+  Flame,
   Plus,
   Puzzle,
+  Search,
   Trash2,
   X,
+  Rocket,
+  BarChart,
+  PenTool,
+  Shield,
+  MessageCircle,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
@@ -34,8 +43,6 @@ import {
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { useSkillsStore } from '@/stores/skills';
 import { useGatewayStore } from '@/stores/gateway';
-import { WorkbenchHeader } from '@/components/layout/WorkbenchHeader';
-import { WorkbenchHeaderTitleBlock } from '@/components/layout/WorkbenchHeaderTitleBlock';
 import { WorkspacePageFrame, WorkspacePageLoading, WorkspacePageScrollArea, WorkspacePageShell } from '@/components/layout/WorkspacePage';
 import {
   workbenchPrimaryToolbarButtonClasses,
@@ -65,19 +72,19 @@ interface SkillDetailDialogProps {
 }
 
 const compactOutlineButtonClasses =
-  'workbench-motion-control h-8 rounded-md border border-border/70 bg-transparent px-3 text-[12px] font-medium text-foreground/78 shadow-sm hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
+  'workbench-motion-control h-[28px] rounded-[6px] border border-[hsl(var(--border-subtle))] bg-transparent px-3 text-[12px] font-medium text-foreground shadow-none hover:bg-[hsl(var(--surface-hover))] cursor-default transition-colors duration-[var(--motion-fast)]';
 const tokenInputClasses =
-  'appearance-none h-8 rounded-md font-mono text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-sm transition-all focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0';
+  'appearance-none h-[32px] rounded-[6px] font-mono text-[13px] bg-[hsl(var(--surface-base))] border border-[hsl(var(--border-subtle))] text-foreground placeholder:text-muted-foreground shadow-none transition-[border-color,box-shadow,background-color] duration-[var(--motion-fast)] ease-out focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(var(--glow-brand),0.25)] focus-visible:ring-offset-0 tabular-nums';
 const compactInputClasses =
-  'appearance-none h-8 rounded-md font-mono text-[12px] app-field-surface text-foreground/80 shadow-sm transition-all focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0';
+  'appearance-none h-[32px] rounded-[6px] font-mono text-[12px] bg-[hsl(var(--surface-base))] border border-[hsl(var(--border-subtle))] text-foreground/80 shadow-none transition-[border-color,box-shadow,background-color] duration-[var(--motion-fast)] ease-out focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(var(--glow-brand),0.25)] focus-visible:ring-offset-0 tabular-nums';
 const badgeClasses =
-  'rounded-sm border border-border/70 bg-[hsl(var(--surface-panel)/0.9)] px-2.5 py-0.5 text-[10.5px] font-medium text-foreground/65 shadow-none transition-colors dark:bg-[hsl(var(--surface-elevated)/0.82)] select-none';
+  'rounded-md border border-[hsl(var(--border-subtle))] bg-transparent px-2.5 py-0.5 text-[11px] font-semibold text-foreground shadow-none transition-colors select-none';
 const searchFieldClasses =
-  'workbench-motion-control relative flex items-center rounded-md border border-border/60 bg-[hsl(var(--surface-panel)/0.84)] px-3.5 py-2 hover:bg-[hsl(var(--surface-hover)/0.46)] focus-within:border-border/55 focus-within:bg-[hsl(var(--surface-panel)/0.96)]';
+  'workbench-motion-control relative flex h-[32px] items-center rounded-[6px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] px-3.5 hover:bg-[hsl(var(--surface-hover))] focus-within:ring-2 focus-within:ring-[rgba(var(--glow-brand),0.25)] focus-within:border-[hsl(var(--border-subtle))] transition-[border-color,box-shadow,background-color] duration-[var(--motion-fast)] ease-out';
 const skillCardClasses =
-  'app-skills-card workbench-motion-card group relative flex min-h-[160px] flex-col rounded-lg border border-border/70 bg-[hsl(var(--surface-elevated)/0.988)] px-4 py-4 shadow-sm motion-safe:hover:-translate-y-[1px] hover:border-border/90 hover:shadow-md cursor-default';
+  'app-skills-card workbench-motion-card group relative flex min-h-[160px] flex-col rounded-xl border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] px-4 py-4 shadow-sm motion-safe:hover:-translate-y-[1px] hover:border-[hsl(var(--border-strong))] hover:shadow-md cursor-default transition-[border-color,box-shadow,background-color,transform] duration-[var(--motion-base)] ease-[cubic-bezier(0.16,1,0.3,1)] ease-[cubic-bezier(0.16,1,0.3,1)]';
 const providerResultClasses =
-  'workbench-motion-card group flex items-start gap-4 rounded-lg border border-border/70 bg-[hsl(var(--surface-elevated)/0.985)] p-4 shadow-sm hover:border-border/85 hover:shadow-md';
+  'app-skills-card workbench-motion-card group relative flex min-h-[160px] flex-col rounded-xl border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] px-4 py-4 shadow-sm motion-safe:hover:-translate-y-[1px] hover:border-[hsl(var(--border-strong))] hover:shadow-md cursor-default transition-[border-color,box-shadow,background-color,transform] duration-[var(--motion-base)] ease-[cubic-bezier(0.16,1,0.3,1)]';
 const DEFAULT_PROVIDER_RESULT_LIMIT = 50;
 const SEARCH_PROVIDER_RESULT_LIMIT = 24;
 
@@ -293,12 +300,12 @@ function SkillDetailDialog({ skill, isOpen, onClose, onToggle, togglePending = f
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[min(84vh,760px)] max-w-[720px] gap-0 overflow-hidden rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated))] p-0 shadow-lg">
+      <DialogContent className="max-h-[min(84vh,760px)] max-w-[720px] gap-0 overflow-hidden border-[hsl(var(--border-subtle))] p-0">
         <div className="flex h-full min-h-0 max-h-[min(84vh,760px)] flex-col">
-          <div className="shrink-0 border-b border-border/70 px-6 py-5">
+          <div className="shrink-0 border-b border-[hsl(var(--border-subtle))] px-6 py-5">
             <div className="flex items-start justify-between gap-4">
               <DialogHeader className="min-w-0 space-y-0 text-left">
-                <div className="mb-3 flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border/70 bg-[hsl(var(--surface-panel)/0.92)] text-[22px] shadow-sm">
+                <div className="mb-3 flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-panel))] text-[22px] shadow-sm">
                   {skill.icon || '🔧'}
                 </div>
                 <DialogTitle className="truncate text-[20px] font-semibold tracking-tight text-foreground">
@@ -677,9 +684,9 @@ function ProviderSearchDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[min(82vh,760px)] max-h-[min(82vh,760px)] max-w-[880px] flex-col gap-0 overflow-hidden rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated))] p-0 shadow-lg">
+      <DialogContent className="flex h-[min(82vh,760px)] max-h-[min(82vh,760px)] max-w-[880px] flex-col gap-0 overflow-hidden border-[hsl(var(--border-subtle))] p-0">
         <div className="flex min-h-0 flex-1 flex-col">
-          <div className="border-b border-border/70 px-6 py-5">
+          <div className="border-b border-[hsl(var(--border-subtle))] px-6 py-5">
             <DialogHeader className="space-y-0 text-left">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
@@ -839,8 +846,8 @@ function GitHubImportDialog({
 }: GitHubImportDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[640px] gap-0 rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated))] p-0 shadow-lg">
-        <div className="border-b border-border/70 px-6 py-5">
+      <DialogContent className="max-w-[640px] gap-0 overflow-hidden border-[hsl(var(--border-subtle))] p-0">
+        <div className="border-b border-[hsl(var(--border-subtle))] px-6 py-5">
           <DialogHeader className="space-y-0 text-left">
             <DialogTitle className="text-[22px] font-semibold tracking-tight text-foreground">
               {t('githubImport.title', { defaultValue: '从 GitHub 导入' })}
@@ -889,6 +896,26 @@ function GitHubImportDialog({
   );
 }
 
+const LIBRARY_CATEGORIES = [
+  { id: 'ai', label: 'AI 智能', icon: Brain },
+  { id: 'dev', label: '开发工具', icon: Code },
+  { id: 'efficiency', label: '效率提升', icon: Rocket },
+  { id: 'data', label: '数据分析', icon: BarChart },
+  { id: 'content', label: '内容创作', icon: PenTool },
+  { id: 'security', label: '安全合规', icon: Shield },
+  { id: 'communication', label: '通讯协作', icon: MessageCircle },
+];
+
+const resolveCatalogSourceUrl = (item: SkillCatalogItem): string => {
+  const explicitUrl = typeof item.metadata?.sourceUrl === 'string'
+    ? item.metadata.sourceUrl.trim()
+    : '';
+  if (explicitUrl) return explicitUrl;
+  const skillId = (item.providerSkillId || item.slug || '').trim();
+  if (!skillId) return 'https://skillhub.tencent.com/';
+  return `https://skillhub.tencent.com/skills/${encodeURIComponent(skillId)}`;
+};
+
 export function Skills() {
   const {
     skills,
@@ -920,6 +947,39 @@ export function Skills() {
   const skillCardRefs = useRef<Array<HTMLDivElement | null>>([]);
   const isGatewayRunning = gatewayStatus.state === 'running';
   const [showGatewayWarning, setShowGatewayWarning] = useState(false);
+  const [activeTab, setActiveTab] = useState<'library' | 'installed'>('installed');
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [selectedLibrarySkill, setSelectedLibrarySkill] = useState<SkillCatalogItem | null>(null);
+  const [libraryResults, setLibraryResults] = useState<SkillCatalogItem[]>([]);
+  const [libraryLoading, setLibraryLoading] = useState(false);
+  const [libraryError, setLibraryError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (activeTab !== 'library') return;
+    let cancelled = false;
+    const fetchLibrary = async () => {
+      setLibraryLoading(true);
+      setLibraryError(null);
+      try {
+        const query = activeCategory ? LIBRARY_CATEGORIES.find(c => c.id === activeCategory)?.label : '';
+        const limit = activeCategory ? 10 : 50;
+        const result = await hostApiFetch<{ success: boolean; results?: SkillCatalogItem[]; error?: string }>('/api/skills/providers/skillhub/search', {
+          method: 'POST',
+          body: JSON.stringify({ query, limit }),
+        });
+        if (!result.success) throw new Error(result.error || 'Search failed');
+        if (!cancelled) {
+          setLibraryResults(result.results || []);
+        }
+      } catch (err) {
+        if (!cancelled) setLibraryError(String(err));
+      } finally {
+        if (!cancelled) setLibraryLoading(false);
+      }
+    };
+    void fetchLibrary();
+    return () => { cancelled = true; };
+  }, [activeTab, activeCategory]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -1182,16 +1242,10 @@ export function Skills() {
   }, [buildReturnContext, navigate, persistReturnContext]);
 
   const handleOpenProviderSource = useCallback(async (item: SkillCatalogItem) => {
-    const url = typeof item.metadata?.sourceUrl === 'string' ? item.metadata.sourceUrl : '';
-    if (!url) return;
+    const url = resolveCatalogSourceUrl(item);
     await invokeIpc('shell:openExternal', url);
   }, []);
 
-  const installedSummary = useMemo(() => ({
-    total: safeSkills.length,
-    enabled: safeSkills.filter((skill) => skill.enabled).length,
-    preinstalled: safeSkills.filter((skill) => skill.provenance === 'xclaw-preinstalled').length,
-  }), [safeSkills]);
   const registerSkillCard = useCallback((index: number, node: HTMLDivElement | null) => {
     skillCardRefs.current[index] = node;
   }, []);
@@ -1204,6 +1258,28 @@ export function Skills() {
     skillCardRefs.current[normalizedIndex]?.focus();
   }, [filteredSkills.length]);
 
+  const selectedLibrarySkillInstalledEntry = useMemo(() => {
+    if (!selectedLibrarySkill) return null;
+    const selectedKeys = [selectedLibrarySkill.slug, selectedLibrarySkill.providerSkillId, selectedLibrarySkill.id]
+      .filter((value): value is string => typeof value === 'string')
+      .map((value) => value.trim().toLowerCase())
+      .filter(Boolean);
+    return safeSkills.find((skill) => {
+      const skillKeys = [skill.slug, skill.id]
+        .filter((value): value is string => typeof value === 'string')
+        .map((value) => value.trim().toLowerCase())
+        .filter(Boolean);
+      return selectedKeys.some((key) => skillKeys.includes(key));
+    }) || null;
+  }, [safeSkills, selectedLibrarySkill]);
+  const selectedLibrarySkillInstalled = Boolean(selectedLibrarySkillInstalledEntry);
+  const selectedLibrarySkillCanUninstall = Boolean(
+    selectedLibrarySkillInstalledEntry
+    && selectedLibrarySkillInstalledEntry.slug
+    && !selectedLibrarySkillInstalledEntry.isBundled
+    && !selectedLibrarySkillInstalledEntry.isCore
+  );
+
   if (loading) {
     return <WorkspacePageLoading />;
   }
@@ -1211,122 +1287,275 @@ export function Skills() {
   return (
     <WorkspacePageFrame>
       <WorkspacePageShell className="app-skills-page-shell">
-        <WorkbenchHeader
-          titleBlock={(
-            <WorkbenchHeaderTitleBlock
-              title={t('title', { defaultValue: '技能管理' })}
-              subtitle={t('subtitle', { defaultValue: '为你的智能体提供预封装且可重复的最佳实践与工具' })}
-            />
-          )}
-          summary={(
-            <div className="space-y-4">
-              <div className="flex flex-col gap-3 md:flex-row md:items-center">
-                <div className={cn(searchFieldClasses, 'h-9 flex-1 rounded-md px-3 py-0')}>
-                  <Puzzle className="h-4.5 w-4.5 shrink-0 text-muted-foreground" />
-                  <input
-                    value={searchQuery}
-                    onChange={(event) => setSearchQuery(event.target.value)}
-                    placeholder={t('search', { defaultValue: '搜索已经安装的技能' })}
-                    className="ml-3 flex-1 bg-transparent p-0 text-[14px] font-medium text-foreground outline-none placeholder:text-foreground/42"
-                  />
-                  {searchQuery ? (
-                    <button
-                      type="button"
-                      onClick={() => setSearchQuery('')}
-                      className="shrink-0 rounded-sm px-1.5 py-1 text-foreground/42 transition-colors hover:bg-[hsl(var(--surface-hover)/0.52)] hover:text-foreground"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  ) : null}
+        <div className="flex flex-col pt-4 shrink-0 px-6 space-y-3 pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center rounded-[8px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-panel))] p-[2px]">
+              <button
+                type="button"
+                className={cn(
+                  'px-4 py-1.5 text-[13px] font-semibold rounded-[6px] transition-[border-color,box-shadow,background-color,color] duration-[var(--motion-fast)] ease-out outline-none cursor-default select-none',
+                  activeTab === 'library'
+                    ? 'bg-[hsl(var(--surface-base))] text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+                onClick={() => setActiveTab('library')}
+              >
+                {t('tab.library', { defaultValue: '技能库' })}
+              </button>
+              <button
+                type="button"
+                className={cn(
+                  'px-4 py-1.5 text-[13px] font-semibold rounded-[6px] transition-[border-color,box-shadow,background-color,color] duration-[var(--motion-fast)] ease-out outline-none cursor-default select-none',
+                  activeTab === 'installed'
+                    ? 'bg-[hsl(var(--surface-base))] text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+                onClick={() => setActiveTab('installed')}
+              >
+                {t('tab.installed', { defaultValue: '我的技能' })}
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2.5">
+              <div className={cn(searchFieldClasses, 'h-[32px] w-[240px]')}>
+                <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <input
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder={t('search', { defaultValue: '搜索已经安装的技能' })}
+                  className="ml-2 flex-1 bg-transparent p-0 text-[13px] font-medium text-foreground outline-none placeholder:text-muted-foreground"
+                />
+                {searchQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="shrink-0 rounded-sm p-0.5 text-muted-foreground hover:bg-[hsl(var(--surface-hover))] hover:text-foreground"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                ) : null}
+              </div>
+
+              <DropdownMenu open={showAddMenu} onOpenChange={setShowAddMenu}>
+                <DropdownMenuTrigger asChild>
+                  <Button type="button" className={cn(workbenchPrimaryToolbarButtonClasses, 'min-w-[120px] justify-center gap-1.5')}>
+                    <Plus className="h-4 w-4" />
+                    {t('createSkill', { defaultValue: '添加技能' })}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[248px] p-1.5">
+                  <DropdownMenuItem onSelect={() => setGithubImportOpen(true)} className="gap-2">
+                    <Github className="h-4 w-4 text-foreground/72" />
+                    {t('addMenu.importGithub', { defaultValue: '从 GitHub 导入' })}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => openProviderSearch('clawhub')} className="gap-2">
+                    <Globe className="h-4 w-4 text-[#d85d45]" />
+                    {t('addMenu.searchClawHub', { defaultValue: '从 ClawHub 搜索' })}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => openProviderSearch('skillhub')} className="gap-2">
+                    <Puzzle className="h-4 w-4 text-[#b37b5d]" />
+                    {t('addMenu.searchSkillHub', { defaultValue: '从 SkillHub 搜索' })}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </div>
+
+        <WorkspacePageScrollArea id="skills-page-scroll-area" className="px-6 pt-6 pb-6">
+          {activeTab === 'library' ? (
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center gap-5 border-b border-[hsl(var(--border-subtle))] pb-2">
+                  <button
+                    type="button"
+                    onClick={() => setActiveCategory(null)}
+                    className={cn(
+                      "inline-flex h-8 items-center gap-1.5 border-b-2 pb-1 text-[14px] font-semibold leading-none outline-none transition-[color,border-color] duration-[var(--motion-fast)] ease-out cursor-default select-none",
+                      activeCategory === null
+                        ? "text-foreground border-[hsl(var(--border-strong))]"
+                        : "text-muted-foreground border-transparent hover:text-foreground"
+                    )}
+                    aria-label={t('section.featured', { defaultValue: '精选技能' })}
+                  >
+                    <Flame className={cn("h-4 w-4", activeCategory === null ? "text-[hsl(var(--warning))]" : "text-muted-foreground")} />
+                    <span>精选</span>
+                  </button>
+                  {LIBRARY_CATEGORIES.map((c) => {
+                    const Icon = c.icon;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setActiveCategory(c.id)}
+                        className={cn(
+                          "inline-flex h-8 items-center gap-1.5 border-b-2 pb-1 text-[14px] font-medium leading-none outline-none transition-[color,border-color] duration-[var(--motion-fast)] ease-out cursor-default select-none",
+                          activeCategory === c.id
+                            ? "text-foreground border-[hsl(var(--border-strong))]"
+                            : "text-muted-foreground border-transparent hover:text-foreground"
+                        )}
+                      >
+                        <Icon className="h-4 w-4" strokeWidth={2} />
+                        <span>{c.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
-
-                <DropdownMenu open={showAddMenu} onOpenChange={setShowAddMenu}>
-                  <DropdownMenuTrigger asChild>
-                    <Button type="button" className={cn(workbenchPrimaryToolbarButtonClasses, 'min-w-[148px] justify-center gap-2')}>
-                      <Plus className="h-4 w-4" />
-                      {t('addSkill', { defaultValue: '添加技能' })}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-[248px] p-1.5">
-                    <DropdownMenuItem onSelect={() => setGithubImportOpen(true)} className="gap-2">
-                      <Github className="h-4 w-4 text-foreground/72" />
-                      {t('addMenu.importGithub', { defaultValue: '从 GitHub 导入' })}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => openProviderSearch('clawhub')} className="gap-2">
-                      <Globe className="h-4 w-4 text-[#d85d45]" />
-                      {t('addMenu.searchClawHub', { defaultValue: '从 ClawHub 搜索' })}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => openProviderSearch('skillhub')} className="gap-2">
-                      <Puzzle className="h-4 w-4 text-[#b37b5d]" />
-                      {t('addMenu.searchSkillHub', { defaultValue: '从 SkillHub 搜索' })}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2 text-[12px] font-medium text-foreground/48">
-                <span>{t('summary.total', { defaultValue: '{{count}} 个技能', count: installedSummary.total })}</span>
-                <span>·</span>
-                <span>{t('summary.enabled', { defaultValue: '{{count}} 个已启用', count: installedSummary.enabled })}</span>
-                <span>·</span>
-                <span>{t('summary.preinstalled', { defaultValue: '{{count}} 个内置技能', count: installedSummary.preinstalled })}</span>
+              <div>
+                {libraryLoading ? (
+                  <div className="py-12 flex justify-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                  </div>
+                ) : libraryError ? (
+                  <div className="flex items-center gap-2.5 rounded-lg border border-destructive/16 bg-[hsl(var(--danger))/0.06] px-4 py-3 text-[13px] font-medium text-destructive">
+                    <AlertCircle className="h-4.5 w-4.5 shrink-0" />
+                    <span>{libraryError}</span>
+                  </div>
+                ) : (
+                  <div className="app-skills-card-grid">
+                    {libraryResults.map((item) => {
+                      const itemKeys = [item.slug, item.providerSkillId, item.id]
+                        .filter((value): value is string => typeof value === 'string')
+                        .map((value) => value.trim().toLowerCase())
+                        .filter(Boolean);
+                      const isInstalled = itemKeys.some((key) => installedSkillKeys.has(key));
+                      return (
+                        <div
+                          key={item.id}
+                          className={cn(
+                            providerResultClasses,
+                            "relative group",
+                            isInstalled
+                              ? "cursor-default opacity-90"
+                              : "cursor-pointer"
+                          )}
+                          onClick={() => {
+                            setSelectedLibrarySkill(item);
+                          }}
+                        >
+                          {isInstalled ? (
+                            <Badge
+                              variant="secondary"
+                              className={cn(
+                                badgeClasses,
+                                "absolute right-3 top-3 h-5 px-2 text-[11px] leading-none bg-[hsl(var(--success)/0.12)] text-[hsl(var(--success))] border-[hsl(var(--success)/0.24)]"
+                              )}
+                            >
+                              已安装
+                            </Badge>
+                          ) : null}
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex min-w-0 items-start gap-4">
+                              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-panel))] text-[22px] shadow-sm">
+                                {item.icon || '🧩'}
+                              </div>
+                              <div className="min-w-0 pt-0.5">
+                                <div className="flex items-center gap-2">
+                                  <h3 className="truncate text-[15px] font-semibold tracking-tight text-foreground">
+                                    {item.name}
+                                  </h3>
+                                </div>
+                                <p className="mt-1.5 line-clamp-2 text-[13px] font-medium leading-[1.55] text-foreground/58">
+                                  {item.description}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="mt-4 border-t border-border/60" />
+                          <div className="mt-auto flex items-center justify-between gap-3 pt-4">
+                            <div className="app-skills-card-meta">
+                              <Badge variant="secondary" className={badgeClasses}>
+                                {item.sourceLabel || 'SkillHub'}
+                              </Badge>
+                              {item.author ? <span className="app-skills-card-version truncate">{item.author}</span> : null}
+                              <span className={cn(
+                                'app-skills-card-status-pill',
+                                isInstalled ? 'app-skills-card-status-pill--enabled' : 'app-skills-card-status-pill--disabled'
+                              )}>
+                                {isInstalled
+                                  ? t('library.status.installed', { defaultValue: '已安装' })
+                                  : t('library.status.notInstalled', { defaultValue: '未安装' })}
+                              </span>
+                            </div>
+                            <div className="flex shrink-0 items-center gap-2" onClick={(event) => event.stopPropagation()}>
+                              <Switch
+                                checked={isInstalled}
+                                disabled
+                                aria-label={isInstalled ? 'installed' : 'not-installed'}
+                                className="app-skills-card-switch"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-            </div>
-          )}
-        />
-
-        <WorkspacePageScrollArea id="skills-page-scroll-area">
-          {showGatewayWarning ? (
-            <div className="mb-5 flex items-center gap-2.5 rounded-lg border border-amber-500/15 bg-amber-500/6 px-4 py-3 app-insight-surface">
-              <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-              <span className="text-[13px] font-medium text-amber-900 dark:text-amber-100">
-                {t('gatewayWarning', { defaultValue: '网关未运行。没有活跃的网关，无法加载技能。' })}
-              </span>
-            </div>
-          ) : null}
-
-          {error ? (
-            <div className="mb-5 flex items-center gap-2.5 rounded-lg border border-destructive/16 bg-[hsl(var(--danger))/0.06] px-4 py-3 text-[13px] font-medium text-destructive">
-              <AlertCircle className="h-4.5 w-4.5 shrink-0" />
-              <span>{error}</span>
-            </div>
-          ) : null}
-
-          {filteredSkills.length === 0 ? (
-            <div className="flex min-h-[360px] flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-[hsl(var(--surface-panel)/0.62)] px-6 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-[hsl(var(--primary)/0.18)] bg-[hsl(var(--primary)/0.1)] text-[24px] text-primary shadow-sm">
-                🧩
-              </div>
-              <h2 className="mt-5 text-[18px] font-semibold tracking-tight text-foreground">
-                {searchQuery.trim()
-                  ? t('empty.searchTitle', { defaultValue: '没有找到匹配的技能' })
-                  : t('empty.defaultTitle', { defaultValue: '这里还没有技能' })}
-              </h2>
-              <p className="mt-2 max-w-[32rem] text-[13px] font-medium leading-[1.65] text-foreground/54">
-                {searchQuery.trim()
-                  ? t('empty.searchSubtitle', { defaultValue: '换个关键词，或者从添加技能里搜索新的技能来源。' })
-                  : t('empty.defaultSubtitle', { defaultValue: '你可以从 GitHub 导入，或者从 ClawHub / SkillHub 搜索。' })}
-              </p>
             </div>
           ) : (
-            <div data-testid="skills-card-grid" className="app-skills-card-grid">
-              {filteredSkills.map((skill, index) => (
-                <SkillCard
-                  key={skill.id}
-                  skill={skill}
-                  index={index}
-                  onOpen={() => setSelectedSkill(skill)}
-                  onToggle={(enabled) => handleToggle(skill.id, enabled)}
-                  togglePending={pendingToggleSkillIds.has(skill.id)}
-                  onRequestFocus={requestSkillCardFocus}
-                  registerCard={registerSkillCard}
-                  onOpenFolder={handleOpenSkillFolder}
-                  onOpenReadme={handleOpenSkillReadme}
-                  onUninstall={handleUninstall}
-                  t={t}
-                />
-              ))}
-            </div>
+            <>
+              {showGatewayWarning ? (
+                <div className="mb-5 flex items-center gap-2.5 rounded-lg border border-amber-500/15 bg-amber-500/6 px-4 py-3 app-insight-surface">
+                  <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                  <span className="text-[13px] font-medium text-amber-900 dark:text-amber-100">
+                    {t('gatewayWarning', { defaultValue: '网关未运行。没有活跃的网关，无法加载技能。' })}
+                  </span>
+                </div>
+              ) : null}
+
+              {error ? (
+                <div className="mb-5 flex items-center gap-2.5 rounded-lg border border-destructive/16 bg-[hsl(var(--danger))/0.06] px-4 py-3 text-[13px] font-medium text-destructive">
+                  <AlertCircle className="h-4.5 w-4.5 shrink-0" />
+                  <span>{error}</span>
+                </div>
+              ) : null}
+
+              {filteredSkills.length === 0 ? (
+                <div className="flex min-h-[360px] flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-[hsl(var(--surface-panel)/0.62)] px-6 text-center">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-[hsl(var(--primary)/0.18)] bg-[hsl(var(--primary)/0.1)] text-[24px] text-primary shadow-sm">
+                    🧩
+                  </div>
+                  <h2 className="mt-5 text-[18px] font-semibold tracking-tight text-foreground">
+                    {searchQuery.trim()
+                      ? t('empty.searchTitle', { defaultValue: '没有找到匹配的技能' })
+                      : t('empty.defaultTitle', { defaultValue: '这里还没有技能' })}
+                  </h2>
+                  <p className="mt-2 max-w-[32rem] text-[13px] font-medium leading-[1.65] text-foreground/54">
+                    {searchQuery.trim()
+                      ? t('empty.searchSubtitle', { defaultValue: '换个关键词，或者从添加技能里搜索新的技能来源。' })
+                      : t('empty.defaultSubtitle', { defaultValue: '你可以从 GitHub 导入，或者去技能库看看。' })}
+                  </p>
+                  {!searchQuery.trim() && (
+                    <Button type="button" className="mt-6" onClick={() => setActiveTab('library')}>
+                      <Globe className="mr-2 h-4 w-4" />
+                      去技能库看看
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div data-testid="skills-card-grid" className="app-skills-card-grid">
+                  {filteredSkills.map((skill, index) => (
+                    <SkillCard
+                      key={skill.id}
+                      skill={skill}
+                      index={index}
+                      onOpen={() => setSelectedSkill(skill)}
+                      onToggle={(enabled) => handleToggle(skill.id, enabled)}
+                      togglePending={pendingToggleSkillIds.has(skill.id)}
+                      onRequestFocus={requestSkillCardFocus}
+                      registerCard={registerSkillCard}
+                      onOpenFolder={handleOpenSkillFolder}
+                      onOpenReadme={handleOpenSkillReadme}
+                      onUninstall={handleUninstall}
+                      t={t}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </WorkspacePageScrollArea>
       </WorkspacePageShell>
@@ -1338,7 +1567,10 @@ export function Skills() {
         results={providerResults}
         loading={providerLoading}
         error={providerError}
-        onOpenChange={setProviderDialogOpen}
+        onOpenChange={(open) => {
+          setProviderDialogOpen(open);
+          if (!open) setActiveTab('installed');
+        }}
         onQueryChange={setProviderQuery}
         onInstall={handleProviderInstall}
         onOpenSource={handleOpenProviderSource}
@@ -1371,6 +1603,90 @@ export function Skills() {
         onUninstall={handleUninstall}
         onOpenFolder={handleOpenSkillFolder}
       />
+
+      <Dialog open={!!selectedLibrarySkill} onOpenChange={(open) => { if (!open) setSelectedLibrarySkill(null); }}>
+        <DialogContent className="max-w-[680px] gap-0 overflow-hidden border-[hsl(var(--border-subtle))] p-0">
+          {selectedLibrarySkill ? (
+            <>
+              <div className="border-b border-[hsl(var(--border-subtle))] px-6 py-5">
+                <DialogHeader className="space-y-0 text-left">
+                  <DialogTitle className="text-[20px] font-semibold tracking-tight text-foreground">
+                    {selectedLibrarySkill.name}
+                  </DialogTitle>
+                  <DialogDescription className="mt-2 text-[13px] font-medium leading-[1.6] text-foreground/62">
+                    {resolveLocalizedSkillDescription(selectedLibrarySkill, t)}
+                  </DialogDescription>
+                </DialogHeader>
+              </div>
+
+              <div className="space-y-3 px-6 py-5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="secondary" className={badgeClasses}>
+                    {selectedLibrarySkill.sourceLabel || 'SkillHub'}
+                  </Badge>
+                  {selectedLibrarySkill.author ? (
+                    <span className="text-[12px] text-muted-foreground">{selectedLibrarySkill.author}</span>
+                  ) : null}
+                  {selectedLibrarySkill.version ? (
+                    <span className="text-[12px] text-muted-foreground">v{selectedLibrarySkill.version}</span>
+                  ) : null}
+                  {selectedLibrarySkillInstalled ? (
+                    <Badge
+                      variant="secondary"
+                      className={cn(
+                        badgeClasses,
+                        "bg-[hsl(var(--success)/0.12)] text-[hsl(var(--success))] border-[hsl(var(--success)/0.24)]"
+                      )}
+                    >
+                      已安装
+                    </Badge>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 border-t border-[hsl(var(--border-subtle))] px-6 py-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-8 rounded-md px-3 text-[12px] font-semibold shadow-sm"
+                  onClick={() => void handleOpenProviderSource(selectedLibrarySkill)}
+                >
+                  <Globe className="mr-1.5 h-3.5 w-3.5" />
+                  查看来源
+                </Button>
+                {selectedLibrarySkillCanUninstall ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-8 rounded-md px-3 text-[12px] font-semibold text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                    onClick={async () => {
+                      const slug = selectedLibrarySkillInstalledEntry?.slug;
+                      if (!slug) return;
+                      await handleUninstall(slug);
+                      setSelectedLibrarySkill(null);
+                    }}
+                  >
+                    <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                    卸载
+                  </Button>
+                ) : null}
+                <Button
+                  type="button"
+                  className="h-8 rounded-md px-3.5 text-[12px] font-semibold shadow-sm"
+                  disabled={selectedLibrarySkillInstalled}
+                  onClick={() => {
+                    handleProviderInstall(selectedLibrarySkill);
+                    setSelectedLibrarySkill(null);
+                  }}
+                >
+                  {selectedLibrarySkillInstalled ? '已安装' : t('providerSearch.sendToChat', { defaultValue: '发送到聊天' })}
+                  {!selectedLibrarySkillInstalled ? <ChevronRight className="ml-1.5 h-3.5 w-3.5" /> : null}
+                </Button>
+              </div>
+            </>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </WorkspacePageFrame>
   );
 }

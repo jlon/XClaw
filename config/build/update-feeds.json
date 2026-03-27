@@ -1,0 +1,6 @@
+{
+  "baseUrl": "https://www.xclaw.live/downloads/updates",
+  "channels": {
+    "beta": "beta"
+  }
+}

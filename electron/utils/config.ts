@@ -59,7 +59,7 @@ export const UPDATE_CONFIG = {
   CHECK_INTERVAL: 6 * 60 * 60 * 1000,
   
   /** Default update channel */
-  DEFAULT_CHANNEL: 'stable' as UpdateChannel,
+  DEFAULT_CHANNEL: 'beta' as UpdateChannel,
   
   /** Auto download updates */
   AUTO_DOWNLOAD: false,

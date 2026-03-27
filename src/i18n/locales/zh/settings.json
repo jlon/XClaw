@@ -158,12 +158,52 @@
   },
   "updates": {
     "title": "更新",
-    "description": "查看当前版本信息",
+    "description": "保持 XClaw 为最新版本",
     "status": {
-      "disabled": "内置自动更新已禁用"
+      "idle": "准备检查更新",
+      "checking": "正在检查更新",
+      "available": "发现新版本",
+      "not-available": "当前已是最新版本",
+      "downloading": "正在下载更新",
+      "downloaded": "更新已下载完成",
+      "error": "更新失败",
+      "unsupported": "当前环境不支持自动更新"
     },
     "currentVersion": "当前版本",
-    "disabledDetail": "当前构建不包含内置自动更新。需要新版本时，请手动下载和安装。"
+    "latestVersion": "最新版本",
+    "latestUnknown": "尚未获取",
+    "channel": "更新通道",
+    "channelDesc": "当前桌面更新通道固定为 Beta。",
+    "autoCheck": "自动检查更新",
+    "autoCheckDesc": "应用启动后自动检查是否有新版本。",
+    "autoDownload": "自动下载更新",
+    "autoDownloadDesc": "发现新版本后自动在后台下载。",
+    "channels": {
+      "stable": "稳定版",
+      "beta": "Beta",
+      "dev": "开发版"
+    },
+    "actions": {
+      "check": "检查更新",
+      "download": "下载更新",
+      "downloadLatest": "下载最新版本",
+      "install": "重启并安装"
+    },
+    "detail": {
+      "idle": "你可以手动检查更新，也可以让 XClaw 在启动后自动检查。",
+      "checking": "正在连接更新源并比对当前版本。",
+      "available": "检测到更高版本，可以立即下载并在下载完成后安装。",
+      "not-available": "当前安装包已经是该通道的最新版本。",
+      "downloading": "更新正在后台下载，下载完成后可直接重启安装。",
+      "downloaded": "更新已准备就绪，点击“重启并安装”即可完成替换。",
+      "error": "检查或下载更新时发生错误，请稍后重试。",
+      "unsupported": "当前环境无法使用自动更新，请改用安装包手动升级。"
+    },
+    "releaseVersion": "版本 {{version}}",
+    "releaseNotes": "更新说明",
+    "downloadProgress": "下载进度 {{percent}}%",
+    "manualDownloadTitle": "手动更新",
+    "manualDownloadDesc": "mac 当前仅支持手动下载安装 Beta 包，不能使用内置自动更新。"
   },
   "advanced": {
     "title": "高级",

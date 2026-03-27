@@ -158,12 +158,52 @@
   },
   "updates": {
     "title": "Updates",
-    "description": "View the current build version",
+    "description": "Keep XClaw up to date",
     "status": {
-      "disabled": "Built-in auto-updates are disabled"
+      "idle": "Ready to check for updates",
+      "checking": "Checking for updates",
+      "available": "Update available",
+      "not-available": "You are up to date",
+      "downloading": "Downloading update",
+      "downloaded": "Update ready to install",
+      "error": "Update failed",
+      "unsupported": "Automatic updates are unavailable"
     },
     "currentVersion": "Current Version",
-    "disabledDetail": "This build does not include built-in auto-updates. Download and install newer versions manually."
+    "latestVersion": "Latest Version",
+    "latestUnknown": "Not checked yet",
+    "channel": "Update Channel",
+    "channelDesc": "The desktop update channel is fixed to Beta in this build.",
+    "autoCheck": "Automatically check for updates",
+    "autoCheckDesc": "Check for a newer version when XClaw starts.",
+    "autoDownload": "Automatically download updates",
+    "autoDownloadDesc": "Download the update in the background as soon as it is found.",
+    "channels": {
+      "stable": "Stable",
+      "beta": "Beta",
+      "dev": "Dev"
+    },
+    "actions": {
+      "check": "Check for Updates",
+      "download": "Download Update",
+      "downloadLatest": "Download Latest Build",
+      "install": "Restart and Install"
+    },
+    "detail": {
+      "idle": "You can check manually at any time or let XClaw check automatically on launch.",
+      "checking": "Connecting to the update feed and comparing versions.",
+      "available": "A newer version is available and can be downloaded now.",
+      "not-available": "This installation already matches the latest build in the selected channel.",
+      "downloading": "The update is downloading in the background.",
+      "downloaded": "The update is ready. Restart and install when you are ready.",
+      "error": "Checking or downloading the update failed. Try again later.",
+      "unsupported": "Automatic updates are not available in this environment. Use the installer manually instead."
+    },
+    "releaseVersion": "Version {{version}}",
+    "releaseNotes": "Release Notes",
+    "downloadProgress": "{{percent}}% downloaded",
+    "manualDownloadTitle": "Manual Update",
+    "manualDownloadDesc": "macOS currently supports Beta downloads only through manual installation, not built-in automatic updates."
   },
   "advanced": {
     "title": "Advanced",

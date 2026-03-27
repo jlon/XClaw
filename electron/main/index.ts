@@ -141,10 +141,13 @@ function createWindow(): BrowserWindow {
       webviewTag: true, // Enable <webview> for embedding OpenClaw Control UI
     },
     titleBarStyle: isMac ? 'hiddenInset' : 'hidden',
-    trafficLightPosition: isMac ? { x: 16, y: 16 } : undefined,
+    trafficLightPosition: isMac ? { x: 18, y: 18 } : undefined,
+    transparent: isMac,
+    vibrancy: isMac ? 'sidebar' : undefined,
+    visualEffectState: isMac ? 'followWindow' : undefined,
     frame: isMac,
     show: false,
-    backgroundColor: '#f8f8f9',
+    backgroundColor: isMac ? '#00000000' : '#f8f8f9',
   });
 
   win.webContents.on('did-start-loading', () => {

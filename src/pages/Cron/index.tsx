@@ -58,15 +58,15 @@ const schedulePresets: { key: string; value: string; type: ScheduleType }[] = [
 ];
 
 const inputClasses =
-  'appearance-none h-8 rounded-md text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-sm transition-all focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0';
+  'appearance-none h-8 rounded-[6px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] text-[13px] text-foreground placeholder:text-muted-foreground shadow-none transition-[border-color,box-shadow,background-color] duration-[var(--motion-fast)] ease-out focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(var(--glow-brand),0.25)] focus-visible:ring-offset-0';
 const tokenInputClasses =
-  'appearance-none h-8 rounded-md font-mono text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-sm transition-all focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0';
+  'appearance-none h-8 rounded-[6px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] font-mono text-[13px] text-foreground placeholder:text-muted-foreground shadow-none transition-[border-color,box-shadow,background-color] duration-[var(--motion-fast)] ease-out focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(var(--glow-brand),0.25)] focus-visible:ring-offset-0';
 const textareaClasses =
-  'appearance-none rounded-md text-[13px] app-field-surface text-foreground placeholder:text-foreground/40 shadow-sm transition-all focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 resize-none';
+  'appearance-none rounded-[6px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] text-[13px] text-foreground placeholder:text-muted-foreground shadow-none transition-[border-color,box-shadow,background-color] duration-[var(--motion-fast)] ease-out focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(var(--glow-brand),0.25)] focus-visible:ring-offset-0 resize-none';
 const modalSurfaceClasses =
   'app-modal-surface w-full rounded-xl';
 const cardSurfaceClasses =
-  'app-cron-task-card workbench-motion-card group relative flex min-h-[160px] flex-col overflow-hidden rounded-lg border border-border/70 px-4 py-4 motion-safe:hover:-translate-y-[1px] cursor-default';
+  'app-cron-task-card workbench-motion-card group relative flex min-h-[160px] flex-col overflow-hidden rounded-xl border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] px-4 py-4 shadow-sm motion-safe:hover:-translate-y-[1px] hover:border-[hsl(var(--border-strong))] hover:shadow-md cursor-default transition-[border-color,box-shadow,background-color,transform] duration-[var(--motion-base)] ease-[cubic-bezier(0.16,1,0.3,1)]';
 const scheduleButtonBaseClasses =
   'workbench-motion-control justify-start h-8 rounded-md font-medium text-[13px]';
 
@@ -823,7 +823,6 @@ export function Cron() {
   const { jobs, loading, error, fetchJobs, createJob, updateJob, toggleJob, deleteJob, triggerJob } = useCronStore();
   const agents = useAgentsStore((state) => state.agents);
   const defaultAgentId = useAgentsStore((state) => state.defaultAgentId);
-  const fetchAgents = useAgentsStore((state) => state.fetchAgents);
   const gatewayStatus = useGatewayStore((state) => state.status);
   const [showDialog, setShowDialog] = useState(false);
   const [editingJob, setEditingJob] = useState<CronJob | undefined>();
@@ -840,8 +839,8 @@ export function Cron() {
   }, [fetchJobs, isGatewayRunning]);
 
   useEffect(() => {
-    void fetchAgents();
-  }, [fetchAgents]);
+    void useAgentsStore.getState().fetchAgents();
+  }, []);
 
   useEffect(() => {
     const loadChannelGroups = async () => {

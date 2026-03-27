@@ -17,6 +17,11 @@ export function ChatToolbar({ compact = false }: { compact?: boolean }) {
   const onStudioRoute = isStudioRoutePath(location.pathname);
   const showThinkingToggle = !onStudioRoute;
 
+  // On Studio route, the chat area is hidden or inactive, so refresh/thinking toggles shouldn't be active
+  if (onStudioRoute) {
+    return null;
+  }
+
   return (
     <div className="app-chat-toolbar-group flex items-center gap-1.5">
       <Tooltip>

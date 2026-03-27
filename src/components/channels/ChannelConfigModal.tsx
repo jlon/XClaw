@@ -111,7 +111,9 @@ export function ChannelConfigModal({
   onChannelSaved,
 }: ChannelConfigModalProps) {
   const { t } = useTranslation('channels');
-  const { channels, addChannel, fetchChannels } = useChannelsStore();
+  const channels = useChannelsStore((state) => state.channels);
+  const addChannel = useChannelsStore((state) => state.addChannel);
+  const fetchChannels = useChannelsStore((state) => state.fetchChannels);
   const [selectedType, setSelectedType] = useState<ChannelType | null>(initialSelectedType);
   const [configValues, setConfigValues] = useState<Record<string, string>>({});
   const [channelName, setChannelName] = useState('');

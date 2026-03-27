@@ -1,7 +1,3 @@
-/**
- * Update State Store
- * Manages application update state
- */
 import { create } from 'zustand';
 import { invokeIpc } from '@/lib/api-client';
 
@@ -9,6 +5,7 @@ export interface UpdateInfo {
   version: string;
   releaseDate?: string;
   releaseNotes?: string | null;
+  downloadUrl?: string;
 }
 
 export interface ProgressInfo {
@@ -21,7 +18,12 @@ export interface ProgressInfo {
 
 export type UpdateStatus = 
   | 'idle'
-  | 'disabled'
+  | 'checking'
+  | 'available'
+  | 'not-available'
+  | 'downloading'
+  | 'downloaded'
+  | 'unsupported'
   | 'error';
 
 interface UpdateState {
@@ -57,7 +59,6 @@ export const useUpdateStore = create<UpdateState>((set, get) => ({
   init: async () => {
     if (get().isInitialized) return;
 
-    // Get current version
     try {
       const version = await invokeIpc<string>('update:version');
       set({ currentVersion: version as string });
@@ -65,7 +66,6 @@ export const useUpdateStore = create<UpdateState>((set, get) => ({
       console.error('Failed to get version:', error);
     }
 
-    // Get current status
     try {
       const status = await invokeIpc<{
         status: UpdateStatus;
@@ -83,9 +83,6 @@ export const useUpdateStore = create<UpdateState>((set, get) => ({
       console.error('Failed to get update status:', error);
     }
 
-    // Listen for update events
-    // Single source of truth: listen only to update:status-changed
-    // (sent by AppUpdater.updateStatus() in the main process)
     window.electron?.ipcRenderer?.on('update:status-changed', (data) => {
       const status = data as {
         status: UpdateStatus;
@@ -111,44 +108,74 @@ export const useUpdateStore = create<UpdateState>((set, get) => ({
   },
 
   checkForUpdates: async () => {
-    set({
-      status: 'disabled',
-      error: 'Built-in auto updates are disabled in this build.',
-      updateInfo: null,
-      progress: null,
-      autoInstallCountdown: null,
-    });
+    const result = await invokeIpc<{
+      success?: boolean;
+      status?: {
+        status: UpdateStatus;
+        info?: UpdateInfo;
+        progress?: ProgressInfo;
+        error?: string;
+      };
+      error?: string;
+    }>('update:check');
+    if (result?.status) {
+      set({
+        status: result.status.status,
+        updateInfo: result.status.info || null,
+        progress: result.status.progress || null,
+        error: result.status.error || null,
+      });
+      return;
+    }
+    if (result?.error) {
+      set({ status: 'error', error: result.error });
+    }
   },
 
   downloadUpdate: async () => {
-    set({
-      status: 'disabled',
-      error: 'Built-in auto updates are disabled in this build.',
-      updateInfo: null,
-      progress: null,
-      autoInstallCountdown: null,
-    });
+    const result = await invokeIpc<{
+      success?: boolean;
+      status?: {
+        status: UpdateStatus;
+        info?: UpdateInfo;
+        progress?: ProgressInfo;
+        error?: string;
+      };
+      error?: string;
+    }>('update:download');
+    if (result?.status) {
+      set({
+        status: result.status.status,
+        updateInfo: result.status.info || null,
+        progress: result.status.progress || null,
+        error: result.status.error || null,
+      });
+      return;
+    }
+    if (result?.error) {
+      set({ status: 'error', error: result.error });
+    }
   },
 
   installUpdate: () => {
-    set({
-      status: 'disabled',
-      error: 'Built-in auto updates are disabled in this build.',
-      autoInstallCountdown: null,
-    });
+    void invokeIpc('update:install');
   },
 
   cancelAutoInstall: async () => {
+    await invokeIpc('update:cancelAutoInstall');
     set({ autoInstallCountdown: null });
   },
 
   setChannel: async (channel) => {
-    void channel;
+    await invokeIpc('update:setChannel', channel);
   },
 
   setAutoDownload: async (enable) => {
-    void enable;
+    await invokeIpc('update:setAutoDownload', enable);
   },
 
-  clearError: () => set({ error: null, status: 'disabled' }),
+  clearError: () => set((state) => ({
+    error: null,
+    status: state.status === 'error' ? 'idle' : state.status,
+  })),
 }));

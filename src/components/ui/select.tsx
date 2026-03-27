@@ -58,7 +58,7 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
           aria-label={ariaLabel}
           data-testid={dataTestId}
           className={cn(
-            'appearance-none inline-flex h-8 w-full items-center justify-between gap-2 rounded-md border border-border/70 bg-[hsl(var(--surface-panel)/1)] px-3 py-2 text-[13px] text-foreground shadow-sm transition-colors data-[placeholder]:text-muted-foreground/70 focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:truncate',
+            'appearance-none inline-flex h-[32px] w-full items-center justify-between gap-2 rounded-[6px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] px-3 py-1.5 text-[13px] text-foreground shadow-none transition-colors duration-[var(--motion-fast)] ease-out data-[placeholder]:text-muted-foreground/70 focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(var(--glow-brand),0.25)] focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:truncate',
             className,
           )}
         >
@@ -72,7 +72,7 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
             position="popper"
             sideOffset={8}
             className={cn(
-              'z-50 max-h-72 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-[16px] border border-border/70 bg-popover text-popover-foreground shadow-[0_12px_28px_rgba(15,23,42,0.08)]',
+              'z-50 max-h-72 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-xl border border-[hsl(var(--border-subtle))] bg-popover text-popover-foreground shadow-lg',
               contentClassName,
             )}
           >

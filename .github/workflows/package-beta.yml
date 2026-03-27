@@ -200,6 +200,8 @@ jobs:
           target_commitish: ${{ needs.prepare.outputs.publish_target }}
           files: |
             release-artifacts/**/*.dmg
+            release-artifacts/**/*.zip
+            release-artifacts/**/*.blockmap
             release-artifacts/**/*.exe
             release-artifacts/**/*.AppImage
             release-artifacts/**/*.deb
