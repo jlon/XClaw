@@ -94,12 +94,25 @@ export function pruneExecApprovalQueue(queue: ExecApprovalRequest[], nowMs = Dat
   return queue.filter((entry) => entry.expiresAtMs > nowMs);
 }
 
+function sameApprovalRequest(left: ExecApprovalRequestPayload, right: ExecApprovalRequestPayload): boolean {
+  return left.command === right.command
+    && (left.cwd ?? null) === (right.cwd ?? null)
+    && (left.host ?? null) === (right.host ?? null)
+    && (left.security ?? null) === (right.security ?? null)
+    && (left.ask ?? null) === (right.ask ?? null)
+    && (left.agentId ?? null) === (right.agentId ?? null)
+    && (left.resolvedPath ?? null) === (right.resolvedPath ?? null)
+    && (left.sessionKey ?? null) === (right.sessionKey ?? null);
+}
+
 export function addExecApproval(
   queue: ExecApprovalRequest[],
   entry: ExecApprovalRequest,
   nowMs = Date.now(),
 ): ExecApprovalRequest[] {
-  const next = pruneExecApprovalQueue(queue, nowMs).filter((item) => item.id !== entry.id);
+  const next = pruneExecApprovalQueue(queue, nowMs).filter(
+    (item) => item.id !== entry.id && !sameApprovalRequest(item.request, entry.request),
+  );
   next.push(entry);
   return next;
 }

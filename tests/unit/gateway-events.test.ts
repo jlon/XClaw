@@ -81,4 +81,58 @@ describe('gateway store event wiring', () => {
 
     expect(useGatewayStore.getState().execApprovalQueue).toEqual([]);
   });
+
+  it('keeps only the latest pending approval when the same command is requested again', async () => {
+    hostApiFetchMock.mockResolvedValueOnce({ state: 'running', port: 18789 });
+
+    const handlers = new Map<string, (payload: unknown) => void>();
+    subscribeHostEventMock.mockImplementation((eventName: string, handler: (payload: unknown) => void) => {
+      handlers.set(eventName, handler);
+      return () => {};
+    });
+
+    const { useGatewayStore } = await import('@/stores/gateway');
+    await useGatewayStore.getState().init();
+
+    handlers.get('gateway:notification')?.({
+      method: 'exec.approval.requested',
+      params: {
+        id: '242f771b-1111-2222-3333-444444444444',
+        createdAtMs: 10,
+        expiresAtMs: Date.now() + 60_000,
+        request: {
+          command: 'find ~/Downloads -type f',
+          cwd: '/Users/jianglong/.openclaw/workspace',
+          host: 'gateway',
+          security: 'allowlist',
+          ask: 'on-miss',
+          sessionKey: 'agent:main:main',
+        },
+      },
+    });
+
+    handlers.get('gateway:notification')?.({
+      method: 'exec.approval.requested',
+      params: {
+        id: '963235e2-1111-2222-3333-444444444444',
+        createdAtMs: 20,
+        expiresAtMs: Date.now() + 60_000,
+        request: {
+          command: 'find ~/Downloads -type f',
+          cwd: '/Users/jianglong/.openclaw/workspace',
+          host: 'gateway',
+          security: 'allowlist',
+          ask: 'on-miss',
+          sessionKey: 'agent:main:main',
+        },
+      },
+    });
+
+    expect(useGatewayStore.getState().execApprovalQueue).toEqual([
+      expect.objectContaining({
+        id: '963235e2-1111-2222-3333-444444444444',
+        slug: '963235e2',
+      }),
+    ]);
+  });
 });

@@ -111,4 +111,39 @@ describe('exec approval queue', () => {
     expect(queue).toHaveLength(1);
     expect(removeExecApproval(queue, entry!.id)).toEqual([]);
   });
+
+  it('replaces an older pending approval when the same request is re-issued with a new id', () => {
+    const older = parseExecApprovalRequested({
+      id: '242f771b-1111-2222-3333-444444444444',
+      createdAtMs: 10,
+      expiresAtMs: Date.now() + 60_000,
+      request: {
+        command: 'find ~/Downloads -type f',
+        cwd: '/Users/jianglong/.openclaw/workspace',
+        host: 'gateway',
+        security: 'allowlist',
+        ask: 'on-miss',
+        sessionKey: 'agent:main:main',
+      },
+    });
+    const newer = parseExecApprovalRequested({
+      id: '963235e2-1111-2222-3333-444444444444',
+      createdAtMs: 20,
+      expiresAtMs: Date.now() + 60_000,
+      request: {
+        command: 'find ~/Downloads -type f',
+        cwd: '/Users/jianglong/.openclaw/workspace',
+        host: 'gateway',
+        security: 'allowlist',
+        ask: 'on-miss',
+        sessionKey: 'agent:main:main',
+      },
+    });
+    expect(older).not.toBeNull();
+    expect(newer).not.toBeNull();
+
+    const queue = addExecApproval(addExecApproval([], older!), newer!);
+
+    expect(queue).toEqual([newer]);
+  });
 });
