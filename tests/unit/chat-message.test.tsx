@@ -7,6 +7,10 @@ vi.mock('@/lib/api-client', () => ({
   invokeIpc: vi.fn(),
 }));
 
+vi.mock('@/components/agents/AgentAvatar', () => ({
+  AgentAvatar: () => <img data-testid="agent-avatar-mock" src="data:image/svg+xml;base64,ZmFrZQ==" alt="agent avatar mock" />,
+}));
+
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => {
@@ -84,11 +88,12 @@ describe('ChatMessage', () => {
 
     expect(userPrimary).toBeInTheDocument();
     expect(assistantPrimary).toBeInTheDocument();
-    expect(userBubble).toHaveClass('rounded-md');
-    expect(userBubble).toHaveClass('rounded-br-[2px]');
+    expect(userBubble).toHaveClass('app-chat-bubble-user-v3');
+    expect(userBubble).toHaveClass('rounded-[20px]');
+    expect(userBubble).toHaveClass('rounded-tr-[3px]');
     expect(userBubble).toHaveClass('border');
-    expect(assistantBubble).toHaveClass('rounded-md');
-    expect(assistantBubble).toHaveClass('rounded-bl-[2px]');
+    expect(assistantBubble).toHaveClass('app-chat-bubble-assistant-v3');
+    expect(assistantBubble).toHaveClass('rounded-none');
     expect(assistantBubble).not.toHaveClass('rounded-tl-[6px]');
   });
 
@@ -113,7 +118,7 @@ describe('ChatMessage', () => {
 
     expect(screen.getAllByTitle('Copy')).toHaveLength(2);
 
-    const hoverbars = Array.from(document.querySelectorAll('.app-chat-hoverbar'));
+    const hoverbars = Array.from(document.querySelectorAll('.app-chat-message-meta'));
     expect(hoverbars).toHaveLength(2);
     hoverbars.forEach((hoverbar) => {
       expect(hoverbar).not.toHaveClass('absolute');
@@ -204,11 +209,22 @@ describe('ChatMessage', () => {
     };
 
     render(
-      <ChatMessage message={message} showThinking={false} isStreaming />,
+      <ChatMessage
+        message={message}
+        showThinking={false}
+        isStreaming
+        streamingTools={[
+          {
+            name: 'models.list',
+            status: 'running',
+          },
+        ]}
+      />,
     );
 
     const indicator = screen.getByTestId('chat-streaming-indicator');
     expect(indicator.children).toHaveLength(3);
+    expect(document.querySelectorAll('.app-chat-tool-chip')).toHaveLength(1);
   });
 
   it('renders assistant process rails before the final answer body', () => {

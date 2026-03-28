@@ -8,6 +8,7 @@ import {
   pruneNodeLlamaCppPackages,
   resolveNodeLlamaCppPackagesToKeep,
 } from '../../scripts/openclaw-bundle-pruning.mjs';
+const { cleanupUnnecessaryFiles } = await import('../../scripts/after-pack.cjs');
 
 describe('openclaw bundle pruning', () => {
   const tempDirs: string[] = [];
@@ -62,5 +63,32 @@ describe('openclaw bundle pruning', () => {
     expect(existsSync(path.join(nodeModulesDir, '@node-llama-cpp', 'win-arm64'))).toBe(false);
     expect(existsSync(path.join(nodeModulesDir, '@node-llama-cpp', 'win-x64-cuda'))).toBe(false);
     expect(existsSync(path.join(nodeModulesDir, '@node-llama-cpp', 'linux-x64'))).toBe(false);
+  });
+
+  it('preserves runtime TypeScript files inside bundled openclaw extensions', () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), 'xclaw-after-pack-cleanup-'));
+    tempDirs.push(root);
+
+    const extensionDir = path.join(root, 'extensions', 'telegram', 'src');
+    const nodeModuleDir = path.join(root, 'node_modules', 'somepkg');
+    mkdirSync(extensionDir, { recursive: true });
+    mkdirSync(nodeModuleDir, { recursive: true });
+
+    const extensionEntry = path.join(root, 'extensions', 'telegram', 'index.ts');
+    const extensionSource = path.join(extensionDir, 'channel.ts');
+    const extensionReadme = path.join(root, 'extensions', 'telegram', 'README.md');
+    const nodeModuleSource = path.join(nodeModuleDir, 'index.ts');
+
+    writeFileSync(extensionEntry, 'export {};\n');
+    writeFileSync(extensionSource, 'export {};\n');
+    writeFileSync(extensionReadme, '# telegram\n');
+    writeFileSync(nodeModuleSource, 'export {};\n');
+
+    cleanupUnnecessaryFiles(root);
+
+    expect(existsSync(extensionEntry)).toBe(true);
+    expect(existsSync(extensionSource)).toBe(true);
+    expect(existsSync(extensionReadme)).toBe(false);
+    expect(existsSync(nodeModuleSource)).toBe(false);
   });
 });

@@ -57,7 +57,7 @@ function SidebarToneIcon({
   children: React.ReactNode;
 }) {
   return (
-    <span className={cn('app-sidebar-icon', `app-sidebar-icon--${tone}`)}>
+    <span className={cn('app-sidebar-icon', 'app-sidebar-toned-icon', `app-sidebar-icon--${tone}`, `app-sidebar-toned-icon--${tone}`)}>
       {children}
     </span>
   );
@@ -209,6 +209,7 @@ export function Sidebar({ railOnly = false, className }: SidebarProps) {
   const sidebarCollapsed = useSettingsStore((state) => state.sidebarCollapsed);
   const { t } = useTranslation('common');
   const collapsed = railOnly || sidebarCollapsed;
+  const isMacDesktop = typeof window !== 'undefined' && window.electron?.platform === 'darwin';
 
   const navItems = [
     { to: '/', icon: <MessageSquareText className="h-[16px] w-[16px]" strokeWidth={2} />, label: t('sidebar.chat'), tone: 'chat' as const },
@@ -223,10 +224,12 @@ export function Sidebar({ railOnly = false, className }: SidebarProps) {
 
   return (
     <aside
+      data-sidebar-collapsed={collapsed ? 'true' : 'false'}
       className={cn(
         'desktop-app-sidebar desktop-app-sidebar-surface flex shrink-0 flex-col overflow-hidden border-r border-border/55 [font-family:var(--font-sidebar)] transition-[width,background-color,border-color] duration-[var(--motion-slow)] ease-[cubic-bezier(0.16,1,0.3,1)]',
         railOnly ? 'desktop-app-sidebar-rail' : 'desktop-app-sidebar-panel',
-        collapsed ? 'w-11' : 'w-56',
+        collapsed ? 'w-[var(--desktop-sidebar-rail-width)]' : 'w-[var(--desktop-sidebar-width)]',
+        isMacDesktop ? 'pt-12' : '',
         className,
       )}
     >

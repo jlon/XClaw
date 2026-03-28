@@ -18,8 +18,12 @@ const {
 } = vi.hoisted(() => ({
   settingsState: {
     sidebarCollapsed: false,
+    sidebarWidth: 250,
     chatFocusMode: false,
+    initialized: true,
+    setupComplete: true,
     setSidebarCollapsed: vi.fn(),
+    setSidebarWidth: vi.fn(),
     setChatFocusMode: vi.fn(),
   },
   chatState: {
@@ -51,6 +55,7 @@ const {
 
 vi.mock('@/stores/settings', () => ({
   useSettingsStore: (selector: (state: typeof settingsState) => unknown) => selector(settingsState),
+  SIDEBAR_RAIL_WIDTH: 44,
 }));
 
 vi.mock('@/stores/chat', () => ({
@@ -67,7 +72,16 @@ vi.mock('@/stores/gateway', () => ({
 }));
 
 vi.mock('@/stores/agents', () => ({
-  useAgentsStore: (selector: (state: typeof agentsState) => unknown) => selector(agentsState),
+  useAgentsStore: Object.assign(
+    (selector: (state: typeof agentsState) => unknown) => selector(agentsState),
+    {
+      getState: () => agentsState,
+    },
+  ),
+}));
+
+vi.mock('@/components/agents/AgentAvatar', () => ({
+  AgentAvatar: ({ agentId }: { agentId: string }) => <img alt={agentId} data-testid={`agent-avatar-${agentId}`} />,
 }));
 
 vi.mock('@/components/ui/confirm-dialog', () => ({
@@ -185,9 +199,15 @@ describe('chat layout', () => {
   beforeEach(() => {
     window.electron.platform = 'darwin';
     settingsState.sidebarCollapsed = false;
+    settingsState.sidebarWidth = 250;
     settingsState.chatFocusMode = false;
+    settingsState.initialized = true;
+    settingsState.setupComplete = true;
     settingsState.setSidebarCollapsed = vi.fn((value: boolean) => {
       settingsState.sidebarCollapsed = value;
+    });
+    settingsState.setSidebarWidth = vi.fn((value: number) => {
+      settingsState.sidebarWidth = value;
     });
     settingsState.setChatFocusMode = vi.fn((value: boolean) => {
       settingsState.chatFocusMode = value;
@@ -269,11 +289,13 @@ describe('chat layout', () => {
     expect(designReviewRow.querySelector('img')).not.toBeNull();
     expect(screen.queryByText('Main')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Search chats' })).toBeInTheDocument();
-    expect(screen.getByTestId('chat-titlebar-session-slot')).toHaveClass('w-[250px]');
-    expect(screen.getByTestId('chat-titlebar-session-slot')).toHaveClass('h-full');
-    expect(screen.getByTestId('chat-titlebar-session-slot')).toHaveClass('justify-end');
-    expect(screen.getByTestId('chat-session-header-controls-titlebar')).toHaveClass('h-full');
+    expect(screen.getByTestId('chat-titlebar-control-rail')).toHaveClass('absolute', 'left-[80px]', 'top-[12px]', 'no-drag');
+    expect(screen.queryByTestId('chat-titlebar-session-slot')).not.toBeInTheDocument();
+    expect(screen.getByTestId('chat-session-header-controls-titlebar')).toHaveClass('h-full', 'no-drag');
+    expect(within(screen.getByTestId('chat-titlebar-control-rail')).getByTestId('chat-session-header-controls-titlebar')).toBeInTheDocument();
     expect(screen.queryByTestId('chat-session-header-controls-pane')).not.toBeInTheDocument();
+    expect(screen.getByRole('main')).toHaveClass('rounded-bl-[12px]');
+    expect(screen.getByRole('main')).not.toHaveClass('rounded-l-[12px]');
     expect(screen.getByRole('button', { name: 'Hide sessions' })).toHaveClass('app-desktop-sidebar-toggle', 'h-6', 'w-6', 'p-0', 'leading-none');
     expect(screen.getByTestId('chat-new-chat-titlebar')).toHaveClass('h-6', 'w-6', 'p-0', 'leading-none');
     expect(within(screen.getByTestId('chat-session-header-controls-titlebar')).getByTestId('qclaw-session-toggle-icon')).toBeInTheDocument();
@@ -286,7 +308,19 @@ describe('chat layout', () => {
     expect(screen.queryByRole('link', { name: 'Chat' })).not.toBeInTheDocument();
     expect(screen.getByTestId('chat-sessions-scroll-area')).toHaveClass('subtle-scrollbar');
     expect(screen.getByTestId('chat-sessions-scroll-area')).not.toHaveClass('subtle-scrollbar-win');
+    expect(screen.getByTestId('desktop-shell-resize-handle')).toBeInTheDocument();
     expect(screen.queryByText(/\d{1,2}:\d{2}/)).not.toBeInTheDocument();
+
+    fireEvent.click(searchTrigger);
+
+    const searchInput = screen.getByRole('textbox', { name: 'Search chats' });
+    const searchControl = searchInput.closest('.app-chat-session-control--search');
+
+    expect(searchControl).not.toBeNull();
+    expect(searchControl).toHaveClass('ring-1');
+    expect(searchControl).not.toHaveClass('rounded-full');
+    expect(searchControl).not.toHaveClass('focus-within:ring-2');
+    expect(searchTrigger).toHaveClass('rounded-[6px]');
   });
 
   it('keeps the studio surface mounted while toggling between chat and studio', () => {
@@ -313,6 +347,27 @@ describe('chat layout', () => {
 
     expect(screen.getByTestId('studio-surface-probe')).toBeInTheDocument();
     expect(studioMountSpy).toHaveBeenCalledTimes(1);
+    expect(studioUnmountSpy).not.toHaveBeenCalled();
+  });
+
+  it('does not mount the studio surface before setup is complete', () => {
+    settingsState.initialized = false;
+    settingsState.setupComplete = false;
+
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <Routes>
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<div>Chat body</div>} />
+            <Route path="/studio/*" element={<div>Studio route outlet</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText('Chat body')).toBeInTheDocument();
+    expect(screen.queryByTestId('studio-surface-probe')).not.toBeInTheDocument();
+    expect(studioMountSpy).not.toHaveBeenCalled();
     expect(studioUnmountSpy).not.toHaveBeenCalled();
   });
 
@@ -397,9 +452,8 @@ describe('chat layout', () => {
 
     expect(screen.getByText('Design review')).not.toBeVisible();
     expect(screen.getByTestId('chat-sessions-scroll-area')).not.toBeVisible();
-    expect(screen.getByTestId('chat-titlebar-session-slot')).not.toHaveClass('w-[250px]');
-    expect(screen.getByTestId('chat-titlebar-session-slot')).toHaveClass('h-full');
-    expect(screen.getByTestId('chat-titlebar-session-slot')).toHaveClass('justify-start');
+    expect(screen.getByTestId('chat-titlebar-control-rail')).toHaveClass('absolute', 'left-[80px]', 'top-[12px]');
+    expect(screen.queryByTestId('chat-titlebar-session-slot')).not.toBeInTheDocument();
     expect(screen.getByTestId('chat-session-header-controls-titlebar')).toHaveClass('h-full');
     expect(within(screen.getByTestId('chat-session-header-controls-titlebar')).getByTestId('qclaw-session-toggle-icon')).toBeInTheDocument();
     expect(within(screen.getByTestId('chat-session-header-controls-titlebar')).getByTestId('qclaw-new-chat-icon')).toBeInTheDocument();
@@ -555,9 +609,11 @@ describe('chat layout', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByTestId('workspace-titlebar-sidebar-slot')).toHaveClass('w-56', 'justify-end');
-    expect(screen.getByTestId('workspace-sidebar-toggle-titlebar')).toHaveClass('app-desktop-sidebar-toggle');
+    expect(screen.getByTestId('workspace-titlebar-control-rail')).toHaveClass('absolute', 'left-[80px]', 'top-[12px]', 'no-drag');
+    expect(screen.queryByTestId('workspace-titlebar-sidebar-slot')).not.toBeInTheDocument();
+    expect(screen.getByTestId('workspace-sidebar-toggle-titlebar')).toHaveClass('app-desktop-sidebar-toggle', 'no-drag');
     expect(screen.queryByTestId('workspace-sidebar-toggle-inline')).not.toBeInTheDocument();
+    expect(screen.getByTestId('desktop-shell-resize-handle')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Collapse sidebar' }));
 
@@ -577,8 +633,9 @@ describe('chat layout', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByTestId('workspace-titlebar-sidebar-slot')).not.toHaveClass('w-11');
-    expect(screen.getByTestId('workspace-titlebar-sidebar-slot')).toHaveClass('justify-start', 'pl-24');
+    expect(screen.getByTestId('workspace-titlebar-control-rail')).toHaveClass('absolute', 'left-[80px]', 'top-[12px]');
+    expect(screen.queryByTestId('workspace-titlebar-sidebar-slot')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Expand sidebar' })).toHaveClass('app-desktop-sidebar-toggle');
     expect(screen.getByTestId('workspace-sidebar-toggle-titlebar')).toHaveClass('app-desktop-sidebar-toggle');
   });
 
@@ -597,7 +654,7 @@ describe('chat layout', () => {
       );
     });
 
-    expect(screen.getByTestId('workspace-titlebar-sidebar-slot')).toHaveClass('w-56', 'justify-end');
+    expect(screen.getByTestId('workspace-titlebar-sidebar-slot')).toHaveClass('w-[var(--desktop-sidebar-width)]', 'justify-end');
     expect(screen.getByTestId('workspace-titlebar-sidebar-slot')).not.toHaveClass('pl-24');
     expect(screen.getByTestId('workspace-sidebar-toggle-titlebar')).toHaveClass('app-desktop-sidebar-toggle');
   });
@@ -618,7 +675,7 @@ describe('chat layout', () => {
       );
     });
 
-    expect(screen.getByTestId('workspace-titlebar-sidebar-slot')).toHaveClass('w-11', 'justify-center');
+    expect(screen.getByTestId('workspace-titlebar-sidebar-slot')).toHaveClass('w-[var(--desktop-sidebar-rail-width)]', 'justify-center');
     expect(screen.getByTestId('workspace-titlebar-sidebar-slot')).not.toHaveClass('pl-24');
     expect(screen.getByTestId('workspace-sidebar-toggle-titlebar')).toHaveClass('app-desktop-sidebar-toggle');
   });

@@ -12,7 +12,7 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "inline-flex h-9 items-center justify-center rounded-md border border-border/70 bg-muted/40 p-1 text-muted-foreground shadow-inner",
+      "inline-flex min-h-[32px] items-center justify-center rounded-[8px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-panel)/0.96)] p-[3px] text-[12px] text-muted-foreground",
       className
     )}
     {...props}
@@ -27,7 +27,7 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      "workbench-motion-button inline-flex items-center justify-center whitespace-nowrap rounded-[10px] border border-transparent px-3 py-1.5 text-sm font-medium ring-offset-background focus:outline-none focus-visible:outline-none focus-visible:border-ring focus-visible:ring-0 disabled:pointer-events-none disabled:opacity-50 motion-safe:active:translate-y-[0.5px] data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm",
+      "desktop-focus-ring workbench-motion-button inline-flex items-center justify-center whitespace-nowrap rounded-[6px] border border-transparent px-3 py-1 text-[12px] font-medium disabled:pointer-events-none disabled:opacity-50 motion-safe:active:translate-y-[0.5px] data-[state=active]:bg-[hsl(var(--surface-elevated))] data-[state=active]:text-foreground data-[state=active]:shadow-[0_1px_2px_rgba(18,24,33,0.06)]",
       className
     )}
     {...props}

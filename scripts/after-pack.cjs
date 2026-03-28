@@ -67,6 +67,17 @@ function cleanupUnnecessaryFiles(dir) {
     'NOTICE', 'NOTICE.txt', 'AUTHORS', 'AUTHORS.txt',
   ]);
 
+  function shouldPreserveRuntimeExtensionSource(fullPath) {
+    const relativePath = fullPath.startsWith(dir)
+      ? fullPath.slice(dir.length).replace(/^[/\\]+/, '')
+      : fullPath;
+    const normalized = relativePath.replace(/\\/g, '/');
+    if (!normalized.startsWith('extensions/')) {
+      return false;
+    }
+    return normalized.endsWith('.ts') || normalized.endsWith('.mts') || normalized.endsWith('.cts');
+  }
+
   function walk(currentDir) {
     let entries;
     try { entries = readdirSync(currentDir, { withFileTypes: true }); } catch { return; }
@@ -82,6 +93,9 @@ function cleanupUnnecessaryFiles(dir) {
         }
       } else if (entry.isFile()) {
         const name = entry.name;
+        if (shouldPreserveRuntimeExtensionSource(fullPath)) {
+          continue;
+        }
         if (REMOVE_FILE_NAMES.has(name) || REMOVE_FILE_EXTS.some(e => name.endsWith(e))) {
           try { rmSync(fullPath, { force: true }); removedCount++; } catch { /* */ }
         }
@@ -92,6 +106,7 @@ function cleanupUnnecessaryFiles(dir) {
   walk(dir);
   return removedCount;
 }
+exports.cleanupUnnecessaryFiles = cleanupUnnecessaryFiles;
 
 // ── Platform-specific: koffi ─────────────────────────────────────────────────
 // koffi ships 18 platform pre-builds under koffi/build/koffi/{platform}_{arch}/.

@@ -30,7 +30,19 @@
 - `pnpm exec vitest run tests/unit/channel-config-modal.test.tsx --testTimeout=15000 --reporter=dot`
 - `pnpm exec vitest run tests/unit/theme-second-wave-pages.test.ts --testTimeout=15000 --reporter=dot`
 - `pnpm exec vitest run tests/unit/channel-config-modal.test.tsx tests/unit/theme-second-wave-pages.test.ts tests/unit/chat-theme-shell.test.ts tests/unit/chat-input.test.tsx tests/unit/chat-humanized-actions.test.tsx --testTimeout=15000 --reporter=dot`
+- `pnpm exec vitest run tests/unit/ui-primitives-theme.test.tsx`
+- `pnpm exec vitest run tests/unit/workspace-page-layout.test.tsx`
+- `pnpm exec vitest run tests/unit/workspace-page-layout.test.tsx tests/unit/stores.test.ts tests/unit/chat-layout.test.tsx --testTimeout=15000`
+- `pnpm exec vitest run tests/unit/chat-theme-shell.test.ts tests/unit/chat-input.test.tsx tests/unit/chat-message.test.tsx --testTimeout=15000`
+- `pnpm exec vitest run tests/unit/workspace-page-layout.test.tsx tests/unit/chat-layout.test.tsx tests/unit/chat-theme-shell.test.ts tests/unit/chat-input.test.tsx tests/unit/chat-message.test.tsx --testTimeout=15000`
+- `pnpm exec vitest run tests/unit/chat-layout.test.tsx -t "shows a dedicated chats pane on the chat route" --testTimeout=15000`
+- `pnpm exec vitest run tests/unit/chat-layout.test.tsx -t "does not mount the studio surface before setup is complete" --testTimeout=15000`
+- `pnpm exec eslint src/components/layout/TitleBar.tsx src/components/layout/ChatSessionHeaderControls.tsx src/components/layout/GlobalTitleBarUtilities.tsx src/pages/Chat/index.tsx src/pages/Chat/ChatInput.tsx src/pages/Chat/ChatMessage.tsx tests/unit/workspace-page-layout.test.tsx tests/unit/chat-layout.test.tsx tests/unit/chat-theme-shell.test.ts tests/unit/chat-input.test.tsx tests/unit/chat-message.test.tsx --max-warnings=0`
+- `pnpm run typecheck`
+- `git diff --check`
 - `pnpm exec eslint src/components/layout/MainLayout.tsx src/components/layout/WorkspacePage.tsx src/components/layout/Sidebar.tsx src/components/layout/TitleBar.tsx src/components/layout/ChatSessionsPane.tsx src/components/channels/ChannelConfigModal.tsx src/components/settings/ProvidersSettings.tsx src/components/setup/SetupStartStage.tsx src/components/setup/SetupPreparationStage.tsx src/components/setup/SetupProviderStage.tsx src/components/setup/SetupCompleteStage.tsx src/components/ui/button.tsx src/components/ui/input.tsx src/components/ui/select.tsx src/components/ui/textarea.tsx src/components/ui/card.tsx src/components/ui/confirm-dialog.tsx src/pages/Agents/index.tsx src/pages/Cron/index.tsx src/pages/Skills/index.tsx src/pages/Models/index.tsx src/pages/Settings/index.tsx src/pages/Channels/index.tsx src/pages/Chat/ChatInput.tsx tests/unit/theme-application.test.tsx tests/unit/workspace-page-layout.test.tsx tests/unit/ui-primitives-theme.test.tsx tests/unit/chat-layout.test.tsx tests/unit/theme-second-wave-pages.test.ts tests/unit/channel-config-modal.test.tsx tests/unit/setup-wizard-layout.test.tsx tests/unit/channels-page.test.tsx tests/unit/chat-theme-shell.test.ts --max-warnings=0`
+- `pnpm exec eslint src/components/layout/MainLayout.tsx src/components/layout/WorkspacePage.tsx src/components/layout/ChatSessionsPane.tsx src/components/ui/button.tsx src/components/ui/input.tsx src/components/ui/select.tsx src/components/ui/tabs.tsx src/components/ui/textarea.tsx src/pages/Chat/index.tsx src/pages/Chat/ChatInput.tsx src/pages/Chat/ChatMessage.tsx tests/unit/workspace-page-layout.test.tsx tests/unit/chat-layout.test.tsx tests/unit/ui-primitives-theme.test.tsx tests/unit/chat-theme-shell.test.ts tests/unit/chat-input.test.tsx tests/unit/chat-message.test.tsx --max-warnings=0`
+- `pnpm exec eslint src/components/layout/MainLayout.tsx src/components/layout/TitleBar.tsx src/components/layout/Sidebar.tsx src/components/layout/ChatSessionsPane.tsx src/pages/Chat/index.tsx src/pages/Chat/ChatInput.tsx src/stores/settings.ts tests/unit/workspace-page-layout.test.tsx tests/unit/stores.test.ts tests/unit/chat-layout.test.tsx tests/unit/chat-theme-shell.test.ts tests/unit/chat-input.test.tsx --max-warnings=0`
 - `pnpm exec eslint src/components/layout/workbench-button-styles.ts src/components/layout/WorkbenchHeaderIcon.tsx src/pages/Settings/index.tsx src/components/layout/ChatSessionsPane.tsx src/pages/Chat/ExecApprovalOverlay.tsx src/components/agents/AgentListPane.tsx src/pages/Agents/index.tsx src/pages/Skills/index.tsx src/components/channels/ChannelConfigEditor.tsx src/components/setup/SetupCompleteStage.tsx tests/unit/dark-theme-compatibility.test.ts --max-warnings=0`
 - `pnpm exec eslint src/components/channels/ChannelConfigModal.tsx tests/unit/channel-config-modal.test.tsx --max-warnings=0`
 - `pnpm exec eslint src/components/channels/ChannelConfigModal.tsx src/components/settings/ProvidersSettings.tsx src/pages/Settings/index.tsx src/pages/Chat/ChatInput.tsx src/pages/Chat/ChatToolbar.tsx src/pages/Chat/ChatMessage.tsx src/pages/Chat/index.tsx src/pages/Agents/index.tsx src/pages/Skills/index.tsx src/pages/Cron/index.tsx src/pages/Setup/index.tsx tests/unit/channel-config-modal.test.tsx tests/unit/theme-second-wave-pages.test.ts tests/unit/chat-theme-shell.test.ts tests/unit/chat-input.test.tsx tests/unit/chat-humanized-actions.test.tsx --max-warnings=0`
@@ -66,6 +78,7 @@
 1. 搜索入口更像轻筛选器/trigger，而不是厚表单
 2. source list 更像桌面列表，而不是卡片流
 3. 输入区更像桌面编辑坞站，而不是网页表单
+4. 桌面壳层要能实际验证 `window-drag-bar / resize handle / workspace tint` 三个结构 hook，而不是只看配色
 4. modal / empty / stat panel 也必须共享同一套 desktop substrate
 5. hover / active / destructive 默认足够克制
 
@@ -102,6 +115,9 @@
 - 搜索、列表、输入区重新长回厚表单感
 - `Channels` 大文件测试在默认 5 秒超时下偶发超时；如果只验证这一页，统一使用 `--testTimeout=15000`，不要把资源抖动误判成回归
 - `ChatInput` 的 composer 节奏已经收紧，相关源码断言目前以 `min-h-[82px] / min-h-[68px]` 为准；如果继续调整输入坞站高度，要同步修改 `chat-theme-shell` 里的结构断言
+- `chat-layout.test.tsx` 全文件目前仍有若干和本批次无关的旧失败；本轮只验证了新增/修改的两条用例，不能把那些存量噪音误记到这次主题收口上
+- `Chat` 当前虽然已经是单滚动层 + footer dock composer，但这仍然只是 `nexu` 结构对齐的一部分；如果继续调标题栏 toggle、工作区正文节奏或 pane 关系，必须同步维护 `chat-layout / chat-theme-shell / workspace-page-layout`
+- `pnpm exec eslint` 当前不会处理 `src/styles/globals.css`；如果把 CSS 文件直接塞进命令，会收到 “File ignored because no matching configuration was supplied” 的噪音 warning，不要误判成代码回归
 - `ChannelConfigModal` 已继续压平为桌面 modal / pane 语法；如果继续调标题、字段和底部动作，必须同步更新 `channel-config-modal` 的 class 断言
 - `Settings / Providers / Channels / Chat / Setup` 这批热点已经证明“只改 token 不够”，后续调整必须同时检查 utility button、badge、picker、log panel 和 inspector 的局部语法
 - 品牌色再次滑入背景层

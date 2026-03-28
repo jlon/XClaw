@@ -111,6 +111,7 @@ export function ChatSessionHeaderControls({
       data-testid={`chat-session-header-controls-${surface}`}
       className={cn(
         'flex h-full items-center leading-none',
+        surface === 'titlebar' && 'no-drag',
         surface === 'titlebar' && 'gap-2',
         surface === 'pane' && 'ml-auto',
       )}

@@ -36,11 +36,29 @@ describe('dev-vite script', () => {
   it('adds chokidar polling flags only for the fallback retry', () => {
     const baseEnv = { PATH: '/usr/bin', CHOKIDAR_INTERVAL: '250' };
 
-    expect(buildViteDevEnv({ baseEnv, usePolling: false })).toMatchObject(baseEnv);
+    expect(buildViteDevEnv({ baseEnv, usePolling: false, repoRoot: '/repo/XClaw' })).toMatchObject({
+      ...baseEnv,
+      XClaw_USER_DATA_DIR: '/repo/XClaw/tmp/XClaw-dev-user-data',
+    });
     expect(buildViteDevEnv({ baseEnv, usePolling: true })).toMatchObject({
       PATH: '/usr/bin',
       CHOKIDAR_USEPOLLING: '1',
       CHOKIDAR_INTERVAL: '250',
+      XClaw_USER_DATA_DIR: expect.stringContaining('XClaw-dev-user-data'),
+    });
+  });
+
+  it('preserves an explicit dev userData override', () => {
+    expect(buildViteDevEnv({
+      baseEnv: {
+        PATH: '/usr/bin',
+        XClaw_USER_DATA_DIR: '/tmp/custom-xclaw-user-data',
+      },
+      usePolling: false,
+      repoRoot: '/repo/XClaw',
+    })).toMatchObject({
+      PATH: '/usr/bin',
+      XClaw_USER_DATA_DIR: '/tmp/custom-xclaw-user-data',
     });
   });
 

@@ -278,7 +278,7 @@ export function ChatInput({
   const currentModelLabel = selectedModel
     ? getModelOptionLabel(selectedModel)
     : (currentAgent?.modelDisplay || currentModelId || t('composer.modelPickerDefault'));
-  const composerTextareaMinHeight = isEmpty ? 74 : 60;
+  const composerTextareaMinHeight = isEmpty ? 68 : 56;
   const idlePrompts = useMemo(() => {
     const translated = t('composer.idlePrompts', { returnObjects: true });
     return Array.isArray(translated)
@@ -839,8 +839,8 @@ export function ChatInput({
   return (
     <div
       className={cn(
-        'chat-im-font app-chat-workbench relative px-5 pb-5 transition-all duration-300 md:px-6',
-        isEmpty ? 'pt-5' : 'pt-4',
+        'chat-im-font app-chat-composer-shell relative px-4 pb-4 md:px-6',
+        isEmpty ? 'pt-4.5' : 'pt-3.5',
       )}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -878,7 +878,10 @@ export function ChatInput({
         )}
 
         {/* Input Row */}
-        <div className={cn('app-chat-composer-dock relative rounded-[16px] px-4 py-2.5 transition-all', dragOver ? 'border-primary/30 ring-2 ring-primary/12' : '')}>
+        <div className={cn(
+          'app-chat-composer-dock relative rounded-[14px] border border-[hsl(var(--border-subtle)/0.68)] bg-[hsl(var(--surface-elevated)/0.985)] px-4 py-2.5 shadow-none',
+          dragOver ? 'border-primary/30 ring-2 ring-primary/12' : '',
+        )}>
           <div className="app-chat-composer-editor">
             <textarea
               ref={textareaRef}
@@ -900,7 +903,7 @@ export function ChatInput({
               placeholder={resolvedPlaceholder}
               disabled={disabled}
               className={cn(
-                'w-full max-h-[180px] resize-none border-0 bg-transparent px-0 py-0 text-[15px] leading-[1.6] text-foreground outline-none caret-foreground placeholder:text-[#c8c8c8] dark:text-black dark:caret-black dark:placeholder:text-[hsl(var(--foreground)/0.32)]',
+                'w-full max-h-[180px] resize-none border-0 bg-transparent px-0 py-0 text-[15px] leading-[1.6] text-foreground outline-none caret-foreground placeholder:text-[#c8c8c8] dark:placeholder:text-[hsl(var(--foreground)/0.32)]',
                 isEmpty ? 'min-h-[74px]' : 'min-h-[60px]',
               )}
               style={!input ? { height: `${composerTextareaMinHeight}px` } : undefined}
@@ -909,7 +912,7 @@ export function ChatInput({
           </div>
 
           {slashMenuOpen && (
-            <div className="pointer-events-auto absolute bottom-full left-4 z-20 mb-3 w-[min(100%-2rem,24rem)] overflow-hidden rounded-[16px] border border-[hsl(var(--border-subtle)/0.9)] bg-[hsl(var(--surface-elevated)/0.98)] shadow-[0_20px_48px_hsl(var(--foreground)/0.12)] backdrop-blur-xl">
+            <div className="pointer-events-auto absolute bottom-full left-4 z-20 mb-3 w-[min(100%-2rem,24rem)] overflow-hidden rounded-[12px] border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] shadow-[0_14px_32px_hsl(var(--foreground)/0.08)] backdrop-blur-md">
               {slashMenuMode === 'args' && slashMenuCommand && slashMenuArgItems.length > 0 ? (
                 <div className="p-2">
                   <div className="px-3 py-2 text-[11px] font-medium text-muted-foreground/80">
@@ -1005,8 +1008,8 @@ export function ChatInput({
             </div>
           )}
 
-          <div className="app-chat-composer-footer absolute inset-x-4 bottom-3.5 pointer-events-none">
-            <div className="app-chat-composer-tools pointer-events-auto">
+          <div className="app-chat-composer-footer mt-2.5">
+            <div className="app-chat-composer-tools">
               <Button
                 variant="ghost"
                 size="icon"
@@ -1015,7 +1018,7 @@ export function ChatInput({
                 disabled={disabled || sending}
                 title={t('composer.attachFiles')}
               >
-                <Paperclip className="h-[17px] w-[17px]" />
+                <Paperclip className="h-4 w-4" />
               </Button>
 
               {showAgentPicker && (
@@ -1034,7 +1037,7 @@ export function ChatInput({
                     disabled={disabled || sending}
                     title={t('composer.pickAgent')}
                   >
-                    <AtSign className="h-[17px] w-[17px]" />
+                    <AtSign className="h-4 w-4" />
                   </Button>
                   {pickerOpen && (
                     <div className="app-chat-picker-surface absolute left-0 bottom-full z-20 mb-2 w-72 overflow-hidden rounded-md p-1.5">
@@ -1088,11 +1091,11 @@ export function ChatInput({
                   disabled={disabled || sending || switchingModel}
                   title={t('composer.currentModelTooltip', { model: currentModelLabel })}
                   aria-label={t('composer.currentModelTooltip', { model: currentModelLabel })}
-                >
+                  >
                   {switchingModel ? (
-                    <Loader2 className="h-[17px] w-[17px] animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <Box className="h-[17px] w-[17px] shrink-0" />
+                    <Box className="h-4 w-4 shrink-0" />
                   )}
                 </Button>
                 {modelPickerOpen && (
@@ -1175,24 +1178,24 @@ export function ChatInput({
               </div>
             </div>
 
-              <Button
-                onClick={sending ? handleStop : handleSend}
-                disabled={sending ? !canStop : !canSend}
-                size="icon"
-                className={`pointer-events-auto h-7 w-7 shrink-0 rounded-md transition-colors ${
-                  sending
-                    ? 'border border-border/70 bg-[hsl(var(--surface-elevated))] text-foreground hover:bg-[hsl(var(--surface-hover))]'
-                    : canSend
-                      ? 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90'
-                      : 'bg-transparent text-muted-foreground/45 hover:bg-transparent'
-                }`}
-                variant="ghost"
-                title={sending ? t('composer.stop') : t('composer.send')}
-              >
+            <Button
+              onClick={sending ? handleStop : handleSend}
+              disabled={sending ? !canStop : !canSend}
+              size="icon"
+              className={`h-7 w-7 shrink-0 rounded-md transition-colors ${
+                sending
+                  ? 'border border-border/70 bg-[hsl(var(--surface-elevated))] text-foreground hover:bg-[hsl(var(--surface-hover))]'
+                  : canSend
+                    ? 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90'
+                    : 'bg-transparent text-muted-foreground/45 hover:bg-transparent'
+              }`}
+              variant="ghost"
+              title={sending ? t('composer.stop') : t('composer.send')}
+            >
               {sending ? (
                 <Square className="h-4 w-4" fill="currentColor" />
               ) : (
-                <SendHorizontal className="h-[18px] w-[18px] -rotate-90" strokeWidth={2} />
+                <SendHorizontal className="h-[17px] w-[17px] -rotate-90" strokeWidth={2} />
               )}
             </Button>
           </div>

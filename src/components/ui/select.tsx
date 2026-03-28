@@ -58,7 +58,7 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
           aria-label={ariaLabel}
           data-testid={dataTestId}
           className={cn(
-            'appearance-none inline-flex h-[32px] w-full items-center justify-between gap-2 rounded-[6px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] px-3 py-1.5 text-[13px] text-foreground shadow-none transition-colors duration-[var(--motion-fast)] ease-out data-[placeholder]:text-muted-foreground/70 focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(var(--glow-brand),0.25)] focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:truncate',
+            'desktop-focus-ring appearance-none inline-flex h-[32px] w-full items-center justify-between gap-2 rounded-[6px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] px-3 py-1.5 text-[13px] text-foreground shadow-none data-[placeholder]:text-muted-foreground/70 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:truncate',
             className,
           )}
         >
@@ -72,7 +72,7 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
             position="popper"
             sideOffset={8}
             className={cn(
-              'z-50 max-h-72 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-xl border border-[hsl(var(--border-subtle))] bg-popover text-popover-foreground shadow-lg',
+              'z-50 max-h-72 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-[8px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-elevated)/0.98)] text-popover-foreground shadow-[var(--shadow-sm)]',
               contentClassName,
             )}
           >
@@ -84,7 +84,7 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
                     key={optionValue}
                     value={optionValue}
                     disabled={option.disabled}
-                    className="relative flex w-full cursor-default select-none items-center rounded-[10px] py-2 pl-9 pr-3 text-sm outline-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-40 data-[highlighted]:bg-[hsl(var(--foreground)/0.05)] data-[highlighted]:text-foreground"
+                    className="relative flex w-full cursor-default select-none items-center rounded-[6px] py-1.5 pl-9 pr-3 text-[13px] outline-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-40 data-[highlighted]:bg-[hsl(var(--surface-hover))] data-[highlighted]:text-foreground"
                   >
                     <span className="absolute left-3 flex h-4 w-4 items-center justify-center">
                       <SelectPrimitive.ItemIndicator>

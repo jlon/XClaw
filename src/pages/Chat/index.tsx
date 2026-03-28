@@ -43,7 +43,7 @@ const messageVisualRole = (message: RawMessage, showThinking: boolean): 'assista
 };
 
 const stackSpacingClass = (isClusteredWithPrevious: boolean, isFirst: boolean) =>
-  isFirst ? 'mt-0' : isClusteredWithPrevious ? 'mt-2' : 'mt-4';
+  isFirst ? 'mt-0' : isClusteredWithPrevious ? 'mt-1.5' : 'mt-3';
 
 const welcomeCardClassNames = {
   execution: 'app-chat-welcome-card--execution',
@@ -435,26 +435,26 @@ export function Chat() {
 
   return (
     <div className={cn('app-chat-shell relative flex h-full flex-col transition-colors duration-500')}>
-      <div
-        ref={scrollRef}
-        className={cn(
-          'chat-im-font flex-1 overflow-y-auto px-5 py-3 md:px-6 md:py-4',
-          scrollChromeClass,
-        )}
-      >
-        {isEmpty ? (
-          <div ref={contentRef} className="app-chat-workbench space-y-5">
-            <WelcomeScreen
-              onQuickAction={(nextDraft) => {
-                setDraftSeed(nextDraft);
-                setDraftSeedVersion((version) => version + 1);
-              }}
-            />
-          </div>
-        ) : (
-          <div className="app-chat-workbench flex min-h-full flex-col">
-            <div className="app-chat-thread-stage flex min-h-full flex-1 flex-col justify-end">
-              <div ref={contentRef} className="app-chat-thread-canvas flex flex-col">
+      <div className="app-chat-main-stage relative flex min-h-0 flex-1 flex-col">
+        <div
+          ref={scrollRef}
+          className={cn(
+            'chat-im-font app-chat-workspace-shell flex-1 min-w-0 overflow-y-auto px-4 py-3 md:px-6 md:py-4',
+            scrollChromeClass,
+          )}
+        >
+          {isEmpty ? (
+            <div ref={contentRef} className="app-chat-workspace-frame space-y-5">
+              <WelcomeScreen
+                onQuickAction={(nextDraft) => {
+                  setDraftSeed(nextDraft);
+                  setDraftSeedVersion((version) => version + 1);
+                }}
+              />
+            </div>
+          ) : (
+            <div className="app-chat-workspace-frame flex min-h-full flex-col justify-end">
+              <div ref={contentRef} className="app-chat-thread-flow flex flex-col">
                 {renderedMessages.map(({ message, idx, showAvatar, isClusteredWithPrevious }, visibleIndex) => (
                   <div
                     key={message.id || `msg-${idx}`}
@@ -505,68 +505,31 @@ export function Chat() {
                 )}
               </div>
             </div>
-          </div>
-        )}
-      </div>
-
-      {activeExecApproval ? (
-        <ExecApprovalOverlay
-          entry={activeExecApproval}
-          queueCount={execApprovalQueue.length}
-          busy={execApprovalBusy}
-          error={execApprovalError?.approvalId === activeExecApproval.id ? execApprovalError.message : null}
-          onDecision={handleExecApprovalDecision}
-        />
-      ) : null}
-
-      {composerErrorCopy && (
-        <div className="app-chat-workbench px-4 pb-2">
-          <div className="flex justify-end">
-            <div className="app-chat-composer-error" role="status" aria-live="polite">
-              <div className="flex min-w-0 items-center gap-2.5">
-                <span className="app-chat-composer-error-dot" aria-hidden="true" />
-                <p className="truncate text-[13px] font-medium">{composerErrorCopy}</p>
-              </div>
-              <button
-                type="button"
-                onClick={clearError}
-                className="app-chat-composer-error-action"
-                aria-label={t('common:actions.dismiss')}
-                title={t('common:actions.dismiss')}
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </div>
+          )}
         </div>
-      )}
 
-      {skillFlowRailCopy && (
-        <div className="app-chat-workbench px-4 pb-2">
-          <div className="flex justify-end">
-            <div data-testid="chat-skill-flow-rail" className="app-chat-skill-flow-rail">
-              <div className="min-w-0 flex-1">
-                <div className="app-chat-skill-flow-meta">
-                  <span className="app-chat-skill-flow-badge">{skillFlowRailCopy.sourceLabel}</span>
-                  <span className="truncate text-[12px] font-medium text-foreground/46">{skillFlowState?.draft.name || skillFlowState?.draft.title}</span>
+        {activeExecApproval ? (
+          <ExecApprovalOverlay
+            entry={activeExecApproval}
+            queueCount={execApprovalQueue.length}
+            busy={execApprovalBusy}
+            error={execApprovalError?.approvalId === activeExecApproval.id ? execApprovalError.message : null}
+            onDecision={handleExecApprovalDecision}
+          />
+        ) : null}
+
+        {composerErrorCopy && (
+          <div className="app-chat-workspace-frame px-4 pb-2 md:px-6">
+            <div className="flex justify-end">
+              <div className="app-chat-composer-error" role="status" aria-live="polite">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <span className="app-chat-composer-error-dot" aria-hidden="true" />
+                  <p className="truncate text-[13px] font-medium">{composerErrorCopy}</p>
                 </div>
-                <p className="truncate text-[13px] font-semibold text-foreground/86">{skillFlowRailCopy.title}</p>
-                <p className="mt-0.5 text-[12px] font-medium leading-[1.55] text-foreground/56">{skillFlowRailCopy.description}</p>
-              </div>
-              <div className="flex shrink-0 items-center gap-1.5">
                 <button
                   type="button"
-                  className="app-chat-skill-flow-return"
-                  onClick={handleReturnToSkills}
-                  data-testid="chat-skill-flow-return"
-                >
-                  <ArrowLeft className="h-3.5 w-3.5" />
-                  <span>{t('skillFlow.returnToSkills', { defaultValue: '返回技能页' })}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSkillFlowState(null)}
-                  className="app-chat-skill-flow-dismiss"
+                  onClick={clearError}
+                  className="app-chat-composer-error-action"
                   aria-label={t('common:actions.dismiss')}
                   title={t('common:actions.dismiss')}
                 >
@@ -575,33 +538,68 @@ export function Chat() {
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Input Area */}
-      <ChatInput
-        onSend={sendMessage}
-        onSendSkillDraft={handleSendSkillDraft}
-        onStop={abortRun}
-        disabled={!isGatewayRunning}
-        sending={sending}
-        isEmpty={isEmpty}
-        draftSeed={draftSeed}
-        draftSeedVersion={draftSeedVersion}
-        pendingSkillDraft={pendingSkillDraft}
-        showScrollToLatest={showScrollToLatest}
-        hasPendingLatest={hasPendingLatest}
-        onScrollToLatest={scrollToLatest}
-      />
-
-      {/* Only block the thread on first-load history; background refresh uses toolbar feedback */}
-      {isHistoryLoading && !sending && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center rounded-xl bg-background/18 pointer-events-auto">
-          <div className="rounded-md border border-border/65 bg-[hsl(var(--surface-elevated)/0.98)] p-2.5 shadow-sm">
-            <LoadingSpinner size="md" />
+        {skillFlowRailCopy && (
+          <div className="app-chat-workspace-frame px-4 pb-2 md:px-6">
+            <div className="flex justify-end">
+              <div data-testid="chat-skill-flow-rail" className="app-chat-skill-flow-rail">
+                <div className="min-w-0 flex-1">
+                  <div className="app-chat-skill-flow-meta">
+                    <span className="app-chat-skill-flow-badge">{skillFlowRailCopy.sourceLabel}</span>
+                    <span className="truncate text-[12px] font-medium text-foreground/46">{skillFlowState?.draft.name || skillFlowState?.draft.title}</span>
+                  </div>
+                  <p className="truncate text-[13px] font-semibold text-foreground/86">{skillFlowRailCopy.title}</p>
+                  <p className="mt-0.5 text-[12px] font-medium leading-[1.55] text-foreground/56">{skillFlowRailCopy.description}</p>
+                </div>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <button
+                    type="button"
+                    className="app-chat-skill-flow-return"
+                    onClick={handleReturnToSkills}
+                    data-testid="chat-skill-flow-return"
+                  >
+                    <ArrowLeft className="h-3.5 w-3.5" />
+                    <span>{t('skillFlow.returnToSkills', { defaultValue: '返回技能页' })}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSkillFlowState(null)}
+                    className="app-chat-skill-flow-dismiss"
+                    aria-label={t('common:actions.dismiss')}
+                    title={t('common:actions.dismiss')}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+        <ChatInput
+          onSend={sendMessage}
+          onSendSkillDraft={handleSendSkillDraft}
+          onStop={abortRun}
+          disabled={!isGatewayRunning}
+          sending={sending}
+          isEmpty={isEmpty}
+          draftSeed={draftSeed}
+          draftSeedVersion={draftSeedVersion}
+          pendingSkillDraft={pendingSkillDraft}
+          showScrollToLatest={showScrollToLatest}
+          hasPendingLatest={hasPendingLatest}
+          onScrollToLatest={scrollToLatest}
+        />
+
+        {isHistoryLoading && !sending && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center rounded-xl bg-background/18 pointer-events-auto">
+            <div className="rounded-md border border-border/65 bg-[hsl(var(--surface-elevated)/0.98)] p-2.5 shadow-sm">
+              <LoadingSpinner size="md" />
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -658,7 +656,7 @@ function WelcomeScreen({
   ];
 
   return (
-    <div data-testid="chat-welcome-hero" className="app-chat-welcome-hero mx-auto flex min-h-full w-full max-w-[1000px] flex-col px-1 pb-4 pt-1">
+    <div data-testid="chat-welcome-hero" className="app-chat-welcome-hero flex min-h-full w-full flex-col px-1 pb-4 pt-1">
       <div className="app-chat-welcome-stage">
         <div className="app-chat-welcome-brand">
           <div className="app-chat-welcome-logo-shell" aria-hidden="true">
@@ -829,15 +827,15 @@ function TypingIndicator({
   return (
     <div className="app-chat-typing-row chat-im-font">
       {showAvatar ? (
-        <AgentAvatar agentId={avatar.id} profile={avatar.avatarProfile} size={36} className="mt-1" />
+        <AgentAvatar agentId={avatar.id} profile={avatar.avatarProfile} size={30} className="mt-0.5" />
       ) : (
-        <div aria-hidden="true" className="mt-1 h-9 w-9 shrink-0" />
+        <div aria-hidden="true" className="mt-0.5 h-[30px] w-[30px] shrink-0" />
       )}
       <div className="app-chat-typing-bubble" role="status" aria-live="polite">
         <div className="app-chat-typing-indicator" aria-hidden="true">
-          <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-          <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-          <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+          <span className="typing-dot h-1.5 w-1.5 rounded-full bg-muted-foreground/50" style={{ animationDelay: '0ms' }} />
+          <span className="typing-dot h-1.5 w-1.5 rounded-full bg-muted-foreground/50" style={{ animationDelay: '140ms' }} />
+          <span className="typing-dot h-1.5 w-1.5 rounded-full bg-muted-foreground/50" style={{ animationDelay: '280ms' }} />
         </div>
       </div>
     </div>
@@ -860,9 +858,9 @@ function ActivityIndicator({
   return (
     <div className="app-chat-typing-row chat-im-font">
       {showAvatar ? (
-        <AgentAvatar agentId={avatar.id} profile={avatar.avatarProfile} size={36} className="mt-1" />
+        <AgentAvatar agentId={avatar.id} profile={avatar.avatarProfile} size={30} className="mt-0.5" />
       ) : (
-        <div aria-hidden="true" className="mt-1 h-9 w-9 shrink-0" />
+        <div aria-hidden="true" className="mt-0.5 h-[30px] w-[30px] shrink-0" />
       )}
       <div className="app-chat-typing-bubble" role="status" aria-live="polite">
         <div className="app-chat-typing-status">

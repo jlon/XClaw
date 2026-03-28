@@ -11,6 +11,9 @@ describe('workspace page layout', () => {
     expect(source).toContain('desktop-app-shell');
     expect(source).toContain('desktop-app-workspace');
     expect(source).toContain('desktop-app-shell-sidebar');
+    expect(source).toContain('desktop-app-shell-resize-handle');
+    expect(source).toContain('desktop-app-workspace-tint');
+    expect(source).toContain('--desktop-sidebar-width');
   });
 
   it('keeps preserved chat chrome wrappers stretched to the full shell height', () => {
@@ -35,6 +38,13 @@ describe('workspace page layout', () => {
     expect(source).toContain('desktop-app-titlebar');
     expect(source).toContain('desktop-app-titlebar--mac');
     expect(source).toContain('desktop-app-titlebar--win');
+    expect(source).toContain('window-drag-bar');
+    expect(source).toContain('chat-titlebar-control-rail');
+    expect(source).toContain('workspace-titlebar-control-rail');
+    expect(source).toContain('desktop-app-titlebar-sidebar-slot desktop-app-titlebar-sidebar-slot--chat');
+    expect(source).toContain('desktop-app-titlebar-sidebar-slot desktop-app-titlebar-sidebar-slot--workspace');
+    expect(source).toContain('left-[80px]');
+    expect(source).toContain('no-drag');
     expect(source).not.toContain('border-b border-border/70');
   });
 
@@ -57,9 +67,24 @@ describe('workspace page layout', () => {
     expect(shellSource).toContain('.desktop-app-chat-nav-shell {');
     expect(shellSource).toContain('hsl(var(--chrome-divider) / 0.82)');
     expect(shellSource).toContain('.desktop-app-workspace {');
-    expect(shellSource).toContain('hsl(var(--surface-panel) / 0.965)');
+    expect(shellSource).toContain('hsl(var(--background))');
+    expect(source).toContain('.window-drag-bar {');
+    expect(source).toContain('.desktop-app-shell-resize-handle {');
+    expect(source).toContain('.desktop-app-shell-resize-handle:hover::after,');
+    expect(source).toContain("data-sidebar-resizing='true']");
+    expect(source).toContain('.desktop-app-workspace-tint {');
     expect(shellSource).not.toContain('background: #f8f8f9;');
     expect(shellSource).not.toContain('background: #fafafa;');
+  });
+
+  it('lets the mac titlebar own the upper-left workspace corner to avoid seam leaks', () => {
+    const source = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
+    const macWorkspaceSource = source.match(/html\[data-platform="darwin"\] \.mac-workspace-main \{[\s\S]*?\}/u)?.[0] ?? '';
+    const darkMacWorkspaceSource = source.match(/html\[data-platform="darwin"\]\.dark \.mac-workspace-main \{[\s\S]*?\}/u)?.[0] ?? '';
+
+    expect(macWorkspaceSource).toContain('border-top-left-radius: 0;');
+    expect(macWorkspaceSource).toContain('border-bottom-left-radius: 12px;');
+    expect(darkMacWorkspaceSource).toContain('box-shadow: none;');
   });
 
   it('marks workspace frame, shell, and scroll area with shared desktop classes', () => {
@@ -75,6 +100,15 @@ describe('workspace page layout', () => {
 
     expect(screen.getByTestId('frame')).toHaveClass('workspace-page-frame', 'desktop-workspace-frame');
     expect(screen.getByTestId('shell')).toHaveClass('workspace-page-shell', 'desktop-workspace-shell', 'max-w-[1680px]');
+    expect(screen.getByTestId('shell')).not.toHaveClass('mx-auto');
+    expect(screen.getByTestId('shell')).not.toHaveClass('max-w-[1560px]');
     expect(screen.getByTestId('scroll')).toHaveClass('workspace-page-scroll', 'desktop-workspace-scroll', 'workspace-page-scroll-win');
+  });
+
+  it('keeps the workspace shell free of centered web-page sizing by default', () => {
+    const source = readFileSync(resolve(process.cwd(), 'src/components/layout/WorkspacePage.tsx'), 'utf8');
+
+    expect(source).toContain('workspace-page-shell desktop-workspace-shell');
+    expect(source).not.toContain('mx-auto flex h-full w-full max-w-[1560px]');
   });
 });

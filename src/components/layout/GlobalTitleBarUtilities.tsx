@@ -35,7 +35,7 @@ export function GlobalTitleBarUtilities({
   const ThemeIcon = appliedTheme === 'dark' ? Sun : Moon;
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="no-drag flex items-center gap-1.5">
       <StudioToggleButton compact={compact} iconOnly={studioIconOnly} />
 
       <Tooltip>

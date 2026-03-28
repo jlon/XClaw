@@ -9,24 +9,24 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'workbench-motion-button inline-flex items-center justify-center whitespace-nowrap rounded-[6px] border border-transparent text-[13px] font-medium transition-colors duration-[var(--motion-fast)] ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(var(--glow-brand),0.25)] disabled:pointer-events-none disabled:opacity-50 cursor-default motion-safe:active:scale-[0.98]',
+  'workbench-motion-button desktop-focus-ring inline-flex items-center justify-center whitespace-nowrap rounded-[6px] border border-transparent text-[13px] font-medium disabled:pointer-events-none disabled:opacity-50 cursor-default motion-safe:active:scale-[0.98]',
   {
     variants: {
       variant: {
         default:
-          'bg-primary text-primary-foreground shadow-none hover:bg-primary/90',
+          'bg-primary text-primary-foreground shadow-[0_1px_2px_rgba(18,24,33,0.08)] hover:bg-primary/92',
         destructive:
-          'bg-destructive text-destructive-foreground shadow-none hover:bg-destructive/90',
+          'bg-destructive text-destructive-foreground shadow-[0_1px_2px_rgba(18,24,33,0.06)] hover:bg-destructive/92',
         outline:
-          'border-[hsl(var(--border-subtle))] bg-transparent text-foreground shadow-none hover:bg-[hsl(var(--surface-hover))]',
+          'border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-elevated))] text-foreground shadow-none hover:bg-[hsl(var(--surface-hover))]',
         secondary:
-          'bg-[hsl(var(--surface-base))] border border-[hsl(var(--border-subtle))] text-foreground shadow-none hover:bg-[hsl(var(--surface-hover))]',
-        ghost: 'hover:bg-[hsl(var(--surface-hover))] hover:text-foreground',
+          'bg-[hsl(var(--surface-panel)/0.92)] border border-[hsl(var(--border-subtle))] text-foreground shadow-none hover:bg-[hsl(var(--surface-hover))]',
+        ghost: 'hover:bg-[hsl(var(--foreground)/0.05)] hover:text-foreground',
         link: 'text-primary underline-offset-4 hover:underline hover:text-primary cursor-pointer',
       },
       size: {
         default: 'h-[32px] px-3 py-1.5',
-        sm: 'h-7 rounded-[4px] px-2.5 text-xs',
+        sm: 'h-7 rounded-[6px] px-2.5 text-xs',
         lg: 'h-9 px-4',
         icon: 'h-[32px] w-[32px]',
       },

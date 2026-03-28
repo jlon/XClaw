@@ -126,6 +126,7 @@ const handleBeforeQuit = createBeforeQuitHandler({
  */
 function createWindow(): BrowserWindow {
   const isMac = process.platform === 'darwin';
+  const macWindowBackground = '#1b1614';
 
   const win = new BrowserWindow({
     width: DEFAULT_MAIN_WINDOW_WIDTH,
@@ -142,12 +143,12 @@ function createWindow(): BrowserWindow {
     },
     titleBarStyle: isMac ? 'hiddenInset' : 'hidden',
     trafficLightPosition: isMac ? { x: 18, y: 18 } : undefined,
-    transparent: isMac,
-    vibrancy: isMac ? 'sidebar' : undefined,
-    visualEffectState: isMac ? 'followWindow' : undefined,
+    transparent: false,
+    vibrancy: undefined,
+    visualEffectState: undefined,
     frame: isMac,
     show: false,
-    backgroundColor: isMac ? '#00000000' : '#f8f8f9',
+    backgroundColor: isMac ? macWindowBackground : '#f8f8f9',
   });
 
   win.webContents.on('did-start-loading', () => {

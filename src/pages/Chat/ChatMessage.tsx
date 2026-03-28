@@ -78,7 +78,7 @@ export const ChatMessage = memo(function ChatMessage({
   return (
     <div
       className={cn(
-        'app-chat-message-row chat-im-font group flex w-full min-w-0 gap-3',
+        'app-chat-message-row chat-im-font group flex w-full min-w-0 gap-2',
         isUser ? 'flex-row-reverse' : 'flex-row',
       )}
     >
@@ -87,11 +87,11 @@ export const ChatMessage = memo(function ChatMessage({
           <AgentAvatar
             agentId={assistantAvatar?.id ?? 'main'}
             profile={assistantAvatar?.avatarProfile}
-            size={34}
+            size={32}
             className="mt-0.5"
           />
         ) : (
-          <div data-testid="chat-assistant-avatar-placeholder" aria-hidden="true" className="mt-0.5 h-[34px] w-[34px] shrink-0" />
+          <div data-testid="chat-assistant-avatar-placeholder" aria-hidden="true" className="mt-0.5 h-8 w-8 shrink-0" />
         )
       )}
 
@@ -287,7 +287,7 @@ function ToolStatusBar({
   }>;
 }) {
   return (
-    <div className="app-chat-process-rail app-chat-secondary-block w-full flex flex-col gap-1.5">
+    <div className="app-chat-tool-chip-stack app-chat-secondary-block w-fit max-w-full flex flex-col gap-1.5">
       {tools.map((tool) => {
         const duration = formatDuration(tool.durationMs);
         const isRunning = tool.status === 'running';
@@ -297,7 +297,7 @@ function ToolStatusBar({
             key={tool.toolCallId || tool.id || tool.name}
             data-state={tool.status}
             className={cn(
-              'app-chat-process-node app-chat-tool-status flex items-center gap-2 rounded-md px-3 h-7 bg-[hsl(var(--surface-hover))] transition-colors w-fit',
+              'app-chat-process-node app-chat-tool-chip inline-flex max-w-full items-center gap-1.5 rounded-full border border-[hsl(var(--border-subtle)/0.5)] bg-[hsl(var(--surface-elevated)/0.78)] px-2.5 py-1 text-[12px] leading-none shadow-none',
               isRunning && 'text-foreground',
               !isRunning && !isError && 'text-muted-foreground',
               isError && 'text-destructive',
@@ -333,7 +333,7 @@ function MessageMetaBar({ text, timestamp, align }: { text: string; timestamp?: 
   return (
     <div
       className={cn(
-        'app-chat-hoverbar app-chat-hoverbar--floating pointer-events-none relative z-[1] mt-1.5 inline-flex w-fit items-center gap-1.5 rounded-sm px-2 py-1 opacity-0 transition-opacity duration-150 select-none group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100',
+        'app-chat-message-meta pointer-events-none relative z-[1] mt-1 inline-flex w-fit items-center gap-1.5 rounded-full border border-[hsl(var(--border-subtle)/0.3)] bg-[hsl(var(--surface-base)/0.82)] px-2 py-0.5 opacity-0 transition-opacity duration-150 select-none group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100',
         align === 'end' ? 'self-end' : 'self-start',
       )}
     >
@@ -368,10 +368,10 @@ function MessageBubble({
   return (
     <div
       className={cn(
-        'relative max-w-full text-[14px] leading-[1.6]',
+        'relative inline-block w-fit max-w-full text-[14px] leading-[1.6]',
         isUser
-          ? 'app-chat-bubble-user rounded-[20px] rounded-br-[4px] px-[16px] py-[10px] bg-[hsl(var(--surface-active)/0.6)] border border-transparent shadow-[inset_0_-1px_0_rgba(0,0,0,0.04)] dark:bg-[hsl(var(--surface-elevated))]'
-          : 'app-chat-bubble-assistant rounded-none px-0 py-0 bg-transparent border-transparent shadow-none text-foreground',
+          ? 'app-chat-bubble-user-v3 rounded-[18px] rounded-tr-[4px] border border-[hsl(var(--primary)/0.14)] bg-[hsl(var(--primary)/0.08)] px-[14px] py-[10px] text-foreground shadow-[0_8px_20px_rgba(15,23,42,0.04)] dark:border-[hsl(var(--primary)/0.24)] dark:bg-[hsl(var(--primary)/0.16)]'
+          : 'app-chat-bubble-assistant-v3 rounded-[18px] rounded-tl-[4px] border border-[hsl(var(--border-subtle)/0.72)] bg-[hsl(var(--surface-elevated)/0.96)] px-[14px] py-[10px] text-foreground/96 shadow-[0_8px_20px_rgba(15,23,42,0.03)] dark:border-[hsl(var(--border-subtle)/0.82)] dark:bg-[hsl(var(--surface-elevated)/0.9)]',
       )}
       data-testid={isUser ? 'chat-user-bubble' : 'chat-assistant-bubble'}
     >
@@ -379,7 +379,7 @@ function MessageBubble({
         <p className="whitespace-pre-wrap break-words text-[14px] leading-[1.6]">{text}</p>
       ) : (
         <div className={cn(
-          'prose prose-sm max-w-none break-words text-[14px] leading-[1.6] text-foreground/94 prose-headings:text-foreground prose-p:text-foreground/90 prose-strong:text-foreground prose-li:text-foreground/88 prose-ul:text-foreground/88 prose-ol:text-foreground/88 prose-code:text-foreground prose-p:my-2 prose-ul:my-2.5 prose-ol:my-2.5 prose-li:my-1 prose-pre:my-2.5 prose-headings:mb-2 prose-headings:mt-4',
+          'chat-markdown prose prose-sm max-w-none break-words text-[14px] leading-[1.6] text-foreground/94 prose-headings:text-foreground prose-p:text-foreground/90 prose-strong:text-foreground prose-li:text-foreground/88 prose-ul:text-foreground/88 prose-ol:text-foreground/88 prose-code:text-foreground prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5 prose-li:my-1 prose-pre:my-2 prose-headings:mb-2 prose-headings:mt-4',
           isStreaming && 'app-chat-streaming-content',
         )}>
           <ReactMarkdown
@@ -390,13 +390,13 @@ function MessageBubble({
                 const isInline = !match && !className;
                 if (isInline) {
                   return (
-                    <code className="app-chat-inline-code rounded-[4px] bg-[hsl(var(--surface-hover))] px-1.5 py-0.5 text-[13px] font-mono break-words tabular-nums" {...props}>
+                    <code className="app-chat-inline-code rounded-[4px] px-1.5 py-0.5 text-[0.9em] font-mono break-words tabular-nums" {...props}>
                       {children}
                     </code>
                   );
                 }
                 return (
-                  <pre className="app-chat-code-block overflow-x-auto rounded-xl bg-[#0F111A] !text-[#e2e8f0] px-4 py-3">
+                  <pre className="app-chat-code-block overflow-x-auto rounded-lg px-4 py-3 !text-[#cdd6f4]">
                     <code className={cn('text-[13px] font-mono leading-[1.6] tabular-nums', className)} {...props}>
                       {children}
                     </code>
@@ -524,7 +524,7 @@ function ThinkingBlock({ content }: { content: string }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="app-chat-thinking-card app-chat-process-rail app-chat-secondary-block w-full text-[14px]">
+    <div className="app-chat-thinking-card app-chat-process-rail app-chat-secondary-block w-fit max-w-full text-[14px]">
       <button
         className="app-chat-secondary-toggle app-chat-process-toggle"
         onClick={() => setExpanded(!expanded)}
@@ -734,17 +734,17 @@ function ToolCard({ name, input }: { name: string; input: unknown }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="app-chat-tool-card app-chat-secondary-block text-[14px]">
+    <div className="app-chat-tool-card app-chat-secondary-block w-fit max-w-full text-[14px]">
       <button
-        className="app-chat-secondary-toggle flex items-center gap-2 rounded-md px-3 h-7 bg-[hsl(var(--surface-hover))] transition-colors w-fit border-transparent shadow-none"
+        className="app-chat-secondary-toggle flex items-center gap-1.5 rounded-full px-2.5 h-7 bg-[hsl(var(--surface-hover))] transition-colors w-fit border-transparent shadow-none"
         onClick={() => setExpanded(!expanded)}
       >
         <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[hsl(var(--success))]" />
-        <span className="text-[13px] font-medium">{name}</span>
+        <span className="text-[12.5px] font-medium">{name}</span>
         {expanded ? <ChevronDown className="h-3 w-3 ml-auto" /> : <ChevronRight className="h-3 w-3 ml-auto" />}
       </button>
       {expanded && input != null && (
-        <pre className="app-chat-secondary-body overflow-x-auto text-[12px] text-muted-foreground bg-[hsl(var(--surface-base))] p-3 rounded-md mt-1.5 border border-[hsl(var(--border-subtle))] font-mono tabular-nums">
+        <pre className="app-chat-secondary-body overflow-x-auto rounded-lg border border-[hsl(var(--border-subtle)/0.72)] bg-[hsl(var(--surface-base))] p-3 text-[12px] text-muted-foreground font-mono tabular-nums">
           {typeof input === 'string' ? input : JSON.stringify(input, null, 2) as string}
         </pre>
       )}

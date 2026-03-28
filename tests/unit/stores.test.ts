@@ -12,6 +12,7 @@ describe('Settings Store', () => {
       theme: 'system',
       language: 'en',
       sidebarCollapsed: false,
+      sidebarWidth: 250,
       devModeUnlocked: false,
       gatewayAutoStart: true,
       gatewayDesiredState: 'running',
@@ -29,6 +30,7 @@ describe('Settings Store', () => {
     const state = useSettingsStore.getState();
     expect(state.theme).toBe('system');
     expect(state.sidebarCollapsed).toBe(false);
+    expect(state.sidebarWidth).toBe(250);
     expect(state.gatewayAutoStart).toBe(true);
     expect(state.gatewayDesiredState).toBe('running');
     expect(state.gatewayManagedMode).toBe('unmanaged');
@@ -44,6 +46,16 @@ describe('Settings Store', () => {
     const { setSidebarCollapsed } = useSettingsStore.getState();
     setSidebarCollapsed(true);
     expect(useSettingsStore.getState().sidebarCollapsed).toBe(true);
+  });
+
+  it('should clamp sidebar width updates', () => {
+    const { setSidebarWidth } = useSettingsStore.getState();
+
+    setSidebarWidth(999);
+    expect(useSettingsStore.getState().sidebarWidth).toBe(360);
+
+    setSidebarWidth(120);
+    expect(useSettingsStore.getState().sidebarWidth).toBe(200);
   });
   
   it('should unlock dev mode', () => {

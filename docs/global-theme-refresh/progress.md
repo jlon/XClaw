@@ -25,6 +25,7 @@
 - [x] 确认浅色主题实现已偏离原设计目标，并开始将全局 `token / chrome / surface` 从暖米色网页感收回到冷中性桌面基座
 - [x] 重写主题主线：从“品牌配色方案”切换为 `QClaw substrate, XClaw accent`
 - [x] 将“全局只保留一套冷中性 desktop substrate”写成最高准则，明确它不是模仿外观，而是吸收 `QClaw` 已验证的桌面基底规律
+- [x] 完成 `design-v3` 当前最高收益的一批桌面化收口：`WorkspacePage` 默认退出居中定宽壳，`Chat` 退出 centered workbench / thread canvas / `transition-all` composer，shared primitive 焦点语法统一到 `desktop-focus-ring`
 
 ## 当前落地结果
 
@@ -117,6 +118,13 @@
 - 已补齐 `Skills` 浅色主题启用开关的回归锁：开启态现在强制走 token 驱动的 accent 渐变，不允许再退回硬黑开关
 - 已完成一轮面向深色主题的残留 hardcode 审计，并把共享 workbench 主按钮、`Settings` 激活态、聊天侧栏菜单/utility、`ExecApprovalOverlay`、`Agents` 搜索与空态、`Skills` 图标壳、`ChannelConfigEditor` 开关和 `SetupCompleteStage` pending 指示器收回统一 token 体系
 - 已新增 `tests/unit/dark-theme-compatibility.test.ts`，专门锁住上述深色回归点，避免这些页面再次在 dark theme 下露出浅色暖梯度、白底或固定浅色文案色
+- 已将 `MainLayout` 主工作区补上 `rounded-l-[12px]` 边界，`WorkspacePageShell` 默认退出 `mx-auto + max-width`，并统一了 workspace / subtle scrollbar 的桌面口径
+- 已将 `ChatSessionsPane` 搜索 trigger 从 `rounded-full + focus-within:ring-2` 改回轻量桌面 trigger，减少左侧导航第一触点的网页表单感
+- 已补齐聊天页本轮新增的桌面结构钩子：`app-chat-main-stage / app-chat-workspace-shell / frame / thread-flow / composer-shell / composer-dock / bubble-user-v3 / bubble-assistant-v3 / message-meta / tool-chip`
+- 已完成第三轮 `nexu` 结构对齐：`MainLayout` 接入 `sidebarWidth` 持久化、真实 `resize handle` 与 `workspace tint`，`mac TitleBar` 改为固定 `window-drag-bar`，`Chat` 主区确认单滚动层 + footer dock composer
+- 已将左侧导航宽度从固定 `w-56 / w-[250px]` 升级为共享 `sidebarWidth` 变量，聊天列表与全局侧栏统一用同一套宽度与收起语义
+- 已将 mac 标题栏左上交互区继续推进为固定 control rail：聊天 pane 切换与 workspace sidebar toggle 不再依赖 sidebar slot 居中逻辑，而是固定锚在 traffic lights 右侧的安全点击区
+- 已将 `Chat` 的 typing 行、tool chip 状态底色与深色代码块继续向 `nexu` 收口：typing dot 更轻、tool 状态退出透明空壳、代码块在深浅主题下统一回到 `#1e1e2e`
 
 ## 完成判断
 
@@ -124,6 +132,7 @@
 - 自动化验证已覆盖主题、布局、`Setup` 向导和构建链，当前可以认为“代码与自动化回归已闭环”
 - 本特性暂时不宣称“最终验收完成”，因为 `mac / Windows` 真机手工 smoke 还没完成，首页/欢迎态资产也仍在观察范围
 - 任何后续“已完成”表述，都必须先确认工作树与运行树一致，并核对 `provider store`、`~/.openclaw/openclaw.json`、`CLI/runtime`、`UI` 四层状态一致；否则只能算未闭环
+- 当前可以确认“已经不只是去网页感”，而是进入了 `nexu` 级别的结构对齐阶段；但仍不能宣称“完全对齐 nexu”，因为聊天正文排版、工具轨与更深的 pane 关系，以及真机桌面手感，还没全部追平
 
 ## 下一步
 
@@ -135,6 +144,7 @@
 - 继续观察 `Chat` 空态建议卡片的文字密度，确认是否还需要进一步压缩成更接近桌面应用的文本清单
 - 继续观察 `Chat` 代码块、图片预览和 hover 元信息在真实桌面窗口中的存在感，确认是否还需要进一步收平为更接近原生文档工作区的表达
 - 继续收 `Providers / Channels / Chat` 里仍偏网页化的 modal / picker / inspector 次级面板
+- 继续推进 `Setup / Studio / Agents / Skills / Models / Cron` 的去网页化，这批页面还没有达到 `design-v3` 的严格桌面壳层要求
 - 继续观察 `ChannelConfigModal` 在真实桌面窗口中的标题、字段和底部动作密度，确认是否还需要继续压平
 - 继续做 mac / Windows 真机手工 smoke，确认代码级闭环和真实桌面观感一致
 

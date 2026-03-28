@@ -15,15 +15,23 @@ export function shouldRetryWithPolling({ exitCode, alreadyPolling, stderr }) {
   return exitCode !== 0 && !alreadyPolling && watcherLimitPattern.test(stderr);
 }
 
-export function buildViteDevEnv({ baseEnv, usePolling }) {
+export function buildViteDevEnv({ baseEnv, usePolling, repoRoot: repoRootOverride = repoRoot }) {
+  const XClawUserDataDir = typeof baseEnv.XClaw_USER_DATA_DIR === 'string' && baseEnv.XClaw_USER_DATA_DIR.trim()
+    ? baseEnv.XClaw_USER_DATA_DIR
+    : resolve(repoRootOverride, 'tmp', 'XClaw-dev-user-data');
+
   if (!usePolling) {
-    return { ...baseEnv };
+    return {
+      ...baseEnv,
+      XClaw_USER_DATA_DIR: XClawUserDataDir,
+    };
   }
 
   return {
     ...baseEnv,
     CHOKIDAR_USEPOLLING: '1',
     CHOKIDAR_INTERVAL: baseEnv.CHOKIDAR_INTERVAL || defaultPollingInterval,
+    XClaw_USER_DATA_DIR: XClawUserDataDir,
   };
 }
 

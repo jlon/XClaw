@@ -14,6 +14,27 @@ type UpdateChannel = 'stable' | 'beta' | 'dev';
 type GatewayDesiredState = 'running' | 'stopped';
 type GatewayManagedMode = 'managed' | 'unmanaged';
 
+export const SIDEBAR_RAIL_WIDTH = 44;
+export const SIDEBAR_WIDTH_MIN = 200;
+export const SIDEBAR_WIDTH_MAX = 360;
+export const SIDEBAR_WIDTH_DEFAULT = 250;
+
+function clampSidebarWidth(value: number) {
+  if (!Number.isFinite(value)) {
+    return SIDEBAR_WIDTH_DEFAULT;
+  }
+
+  return Math.min(SIDEBAR_WIDTH_MAX, Math.max(SIDEBAR_WIDTH_MIN, Math.round(value)));
+}
+
+function resolveSidebarWidth(value: unknown) {
+  if (typeof value === 'number') {
+    return clampSidebarWidth(value);
+  }
+
+  return SIDEBAR_WIDTH_DEFAULT;
+}
+
 function resolveGatewayDesiredState(
   gatewayDesiredState: unknown,
   gatewayAutoStart: unknown,
@@ -61,6 +82,7 @@ interface SettingsState {
 
   // UI State
   sidebarCollapsed: boolean;
+  sidebarWidth: number;
   chatFocusMode: boolean;
   devModeUnlocked: boolean;
 
@@ -87,6 +109,7 @@ interface SettingsState {
   setAutoCheckUpdate: (value: boolean) => void;
   setAutoDownloadUpdate: (value: boolean) => void;
   setSidebarCollapsed: (value: boolean) => void;
+  setSidebarWidth: (value: number) => void;
   setChatFocusMode: (value: boolean) => void;
   setDevModeUnlocked: (value: boolean) => void;
   markSetupComplete: (options?: { persist?: boolean }) => void;
@@ -113,6 +136,7 @@ const defaultSettings = {
   autoCheckUpdate: true,
   autoDownloadUpdate: false,
   sidebarCollapsed: false,
+  sidebarWidth: SIDEBAR_WIDTH_DEFAULT,
   chatFocusMode: false,
   devModeUnlocked: false,
   setupComplete: false,
@@ -142,6 +166,7 @@ export const useSettingsStore = createWithEqualityFn<SettingsState>()(
           set((state) => ({
             ...state,
             ...settings,
+            sidebarWidth: resolveSidebarWidth(settings.sidebarWidth ?? state.sidebarWidth),
             setupComplete,
             initialized: true,
             gatewayDesiredState,
@@ -229,6 +254,7 @@ export const useSettingsStore = createWithEqualityFn<SettingsState>()(
         }).catch(() => { });
       },
       setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
+      setSidebarWidth: (sidebarWidth) => set({ sidebarWidth: clampSidebarWidth(sidebarWidth) }),
       setChatFocusMode: (chatFocusMode) => set({ chatFocusMode }),
       setDevModeUnlocked: (devModeUnlocked) => {
         set({ devModeUnlocked });
@@ -264,6 +290,7 @@ export const useSettingsStore = createWithEqualityFn<SettingsState>()(
         const nextState = { ...(persistedState as Record<string, unknown>) };
         delete nextState.setupComplete;
         delete nextState.initialized;
+        nextState.sidebarWidth = resolveSidebarWidth(nextState.sidebarWidth);
         return nextState;
       },
     }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Bot, Clock, Cpu, LayoutGrid, Network, Puzzle, Search, Settings, Terminal, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AgentAvatar } from '@/components/agents/AgentAvatar';
@@ -35,10 +35,25 @@ function getSessionBucket(activityMs: number, nowMs: number): SessionBucketKey {
   return 'older';
 }
 
+function SessionToneIcon({
+  tone,
+  children,
+}: {
+  tone: string;
+  children: ReactNode;
+}) {
+  return (
+    <span className={cn('app-chat-session-toned-icon', `app-chat-session-toned-icon--${tone}`)}>
+      {children}
+    </span>
+  );
+}
+
 export function ChatSessionsPane() {
   const { t } = useTranslation(['common', 'chat']);
   const navigate = useNavigate();
   const isWindows = window.electron?.platform === 'win32';
+  const isMacDesktop = window.electron?.platform === 'darwin';
   const sessions = useChatStore((s) => s.sessions);
   const currentSessionKey = useChatStore((s) => s.currentSessionKey);
   const sessionLabels = useChatStore((s) => s.sessionLabels);
@@ -171,7 +186,7 @@ export function ChatSessionsPane() {
   const isBrowserMode = typeof window !== 'undefined' && !window.electron?.ipcRenderer;
 
   return (
-    <aside className="flex w-[250px] shrink-0 flex-col bg-transparent [font-family:var(--font-sidebar)]">
+    <aside className={cn('flex w-[var(--desktop-sidebar-width)] shrink-0 flex-col bg-transparent [font-family:var(--font-sidebar)]', isMacDesktop ? 'pt-12' : '')}>
       <div className="px-3 pb-2 pt-3">
         {!isBrowserMode && (
           <div className="pb-2">
@@ -180,8 +195,10 @@ export function ChatSessionsPane() {
         )}
         <div className="flex min-h-[32px] items-center">
           {searchOpen || searchQuery ? (
-            <div className="app-chat-session-control app-chat-session-control--search relative flex h-[28px] min-w-0 flex-1 items-center rounded-full px-3 transition-colors duration-[var(--motion-base)] ring-1 ring-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] focus-within:ring-2 focus-within:ring-[rgba(var(--brand-color),0.25)]">
-              <Search aria-hidden="true" className="pointer-events-none h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <div className="app-chat-session-control app-chat-session-control--search relative flex h-[28px] min-w-0 flex-1 items-center rounded-[6px] px-3 transition-colors duration-[var(--motion-base)] ring-1 ring-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))]">
+              <SessionToneIcon tone="search">
+                <Search aria-hidden="true" className="pointer-events-none h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              </SessionToneIcon>
               <input
                 ref={searchInputRef}
                 aria-label={t('chat:sessionPane.searchLabel')}
@@ -208,7 +225,9 @@ export function ChatSessionsPane() {
               className="app-chat-session-control app-chat-session-control--search flex h-[28px] min-w-0 flex-1 items-center gap-2 rounded-[6px] px-2.5 text-left text-[13px] font-normal text-muted-foreground/62 transition-colors duration-[var(--motion-base)] hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground cursor-default focus-visible:outline-none border border-transparent shadow-none"
               onClick={() => setSearchOpen(true)}
             >
-              <Search aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
+              <SessionToneIcon tone="search">
+                <Search aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
+              </SessionToneIcon>
               <span className="truncate">{t('chat:sessionPane.searchPlaceholder')}</span>
             </button>
           )}
@@ -312,7 +331,9 @@ export function ChatSessionsPane() {
               className="app-chat-session-footer-action flex h-[32px] w-full items-center gap-2.5 rounded-[6px] px-2.5 text-left text-[13px] font-normal leading-5 text-foreground/68 transition-colors duration-[var(--motion-base)] hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground cursor-default"
               onClick={() => setWorkspaceMenuOpen((open) => !open)}
             >
-              <LayoutGrid className="h-[14px] w-[14px] shrink-0 text-muted-foreground" strokeWidth={1.9} />
+              <SessionToneIcon tone="workspace">
+                <LayoutGrid className="h-[14px] w-[14px] shrink-0 text-muted-foreground" strokeWidth={1.9} />
+              </SessionToneIcon>
               <span className="truncate">{t('chat:sessionPane.workspaceLauncher')}</span>
             </button>
             {workspaceMenuOpen ? (
@@ -330,9 +351,11 @@ export function ChatSessionsPane() {
                           navigate(item.to);
                         }}
                       >
-                        <div className="flex h-[16px] w-[16px] items-center justify-center shrink-0 text-muted-foreground group-hover:text-foreground transition-colors duration-[var(--motion-base)]">
-                          <Icon className="h-[14px] w-[14px]" strokeWidth={1.9} />
-                        </div>
+                        <SessionToneIcon tone={item.tone}>
+                          <div className="flex h-[16px] w-[16px] items-center justify-center shrink-0 text-muted-foreground transition-colors duration-[var(--motion-base)] group-hover:text-foreground">
+                            <Icon className="h-[14px] w-[14px]" strokeWidth={1.9} />
+                          </div>
+                        </SessionToneIcon>
                         <span className="truncate">{item.label}</span>
                       </button>
                     );
@@ -346,9 +369,11 @@ export function ChatSessionsPane() {
                       void openDevConsole();
                     }}
                   >
-                    <div className="flex h-[16px] w-[16px] items-center justify-center shrink-0 text-muted-foreground group-hover:text-foreground transition-colors duration-[var(--motion-base)]">
-                      <Terminal className="h-[14px] w-[14px]" strokeWidth={1.9} />
-                    </div>
+                    <SessionToneIcon tone="terminal">
+                      <div className="flex h-[16px] w-[16px] items-center justify-center shrink-0 text-muted-foreground transition-colors duration-[var(--motion-base)] group-hover:text-foreground">
+                        <Terminal className="h-[14px] w-[14px]" strokeWidth={1.9} />
+                      </div>
+                    </SessionToneIcon>
                     <span className="truncate">{t('common:sidebar.openClawPage')}</span>
                   </button>
                 </div>
@@ -363,7 +388,9 @@ export function ChatSessionsPane() {
             className="app-chat-session-utility-button flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-[6px] text-muted-foreground transition-colors duration-[var(--motion-base)] hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground cursor-default focus-visible:outline-none"
             onClick={() => navigate('/settings')}
           >
-            <Settings className="h-[14px] w-[14px]" strokeWidth={1.9} />
+            <SessionToneIcon tone="settings">
+              <Settings className="h-[14px] w-[14px]" strokeWidth={1.9} />
+            </SessionToneIcon>
           </button>
         </div>
       </div>

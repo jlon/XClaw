@@ -336,7 +336,11 @@ describe('ChatInput agent targeting', () => {
     render(<ChatInput onSend={vi.fn()} />);
 
     const textbox = screen.getByRole('textbox');
+    const composerShell = textbox.closest('.app-chat-composer-shell');
+    const composerDock = textbox.closest('.app-chat-composer-dock');
 
+    expect(composerShell).toBeInTheDocument();
+    expect(composerDock).toBeInTheDocument();
     expect(textbox).toHaveClass('dark:text-black');
     expect(textbox).toHaveClass('dark:caret-black');
   });

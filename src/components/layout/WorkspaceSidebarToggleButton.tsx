@@ -42,7 +42,7 @@ export function WorkspaceSidebarToggleButton({
       type="button"
       className={cn(
         workspaceSidebarToggleButtonClassName,
-        'inline-flex h-6 w-6 items-center justify-center rounded-[7px] p-0 leading-none',
+        'no-drag inline-flex h-6 w-6 items-center justify-center rounded-[7px] p-0 leading-none',
         className,
       )}
       {...props}

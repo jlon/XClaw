@@ -146,6 +146,22 @@
 
 ## 当前未闭环项
 
+### 0. 目前只能说进入 `nexu` 结构对齐，不应误报成“已经完全对齐”
+
+本轮已经补上了真正决定桌面壳层质感的几处结构：
+
+- `sidebarWidth` 持久化
+- 真实 `resize handle`
+- `workspace tint`
+- mac 固定 `window-drag-bar`
+- `Chat` 单滚动层 + footer dock composer
+
+但仍然没有资格说“完全对齐 nexu”，原因很具体：
+
+- mac 左上固定 control rail 虽然已经补上，但这只解决了壳层交互语义，不代表聊天工作区内部层级已经完全追平
+- 聊天正文虽然已改成 document-like assistant shell，但正文排版、工具轨和更多 pane 关系还没追到同一完成度
+- 真机桌面窗口里的拖拽、缩放与层级手感还没有做完 mac / Windows 手工验收
+
 ### 1. 浅色桌面基底虽然已开始回正，但还没有完成全页统一
 
 尤其需要继续观察：
@@ -275,6 +291,36 @@
 - `Setup` 已继续退出 `2xl` 大圆角、网页 glow 和厚面板
 - `Chat` 已继续退出网页式 `accent-hover`、圆形 overlay 和红色删除角标
 - 后续如果这两页再出现“看起来像网页小组件”的问题，优先检查 utility 语法，而不是只调 token
+
+### 14. `Workspace / Chat` 这轮已经收掉最高收益红线，但还不能误判成“全站严格遵循 design-v3”
+
+这次已经明确解决的是真正最刺眼的红线：
+
+- `WorkspacePage` 默认 `mx-auto + max-width` 的网页壳
+- `Chat` 的 centered workbench / thread canvas
+- `Chat` composer 的 `transition-all + rounded-[16px]` 胶囊语法
+- shared primitive 的 `ring-2` 默认焦点
+
+但这不等于全站已经闭环。当前仍然明显落后的页面是：
+
+- `Setup`
+- `Studio`
+- `Agents`
+- `Skills`
+- `Models`
+- `Cron`
+
+这些页面还残留：
+
+- 网页式大卡片或居中大盒子
+- 分叉的 modal / inspector 语言
+- 焦点与 segment 语法不统一
+- 次级面板仍偏 dashboard / settings center
+
+本轮处理：
+
+- 先把最高频入口 `workspace + chat + high-frequency primitives` 收到桌面语法
+- 把剩余页面明确记成下一批 scope，不再模糊成“后面顺手优化”
 
 ## 开发准则补充
 

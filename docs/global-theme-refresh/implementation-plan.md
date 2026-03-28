@@ -10,6 +10,39 @@
 
 ---
 
+## 当前执行批次（2026-03-27）
+
+本轮不再继续铺开全站“顺手修一点”的做法，而是严格收敛到 `design-v3.md` 里当前偏差最大的两条主线：
+
+1. `桌面壳层`：去掉工作区的网页定宽居中壳，收口全局滚动条、焦点和动效语法，让窗口层级更接近 `nexu`。
+2. `Chat 工作区`：把聊天页从“网页居中内容区 + 胶囊输入框 + 半套 IM 气泡”改回真正的桌面工作台。
+
+本轮明确不处理：
+
+- `Setup / Studio / Agents / Skills / Models / Settings / Cron` 的大范围去网页化
+- 全量 primitive 体系重做
+- 新增功能或交互路径改造
+
+本轮交付的完成标准：
+
+- `WorkspacePage` 不再使用 `mx-auto + max-width` 作为默认工作区壳
+- `Chat` 线程画布与 composer 不再使用网页式居中卡片节奏
+- 聊天气泡、工具状态、会话搜索框回到统一桌面语法
+- 回归测试能锁住上述结构，避免下一轮再次回退
+
+本轮新增的结构级强制项：
+
+- `MainLayout` 必须具备共享 `sidebarWidth`、真实 `resize handle` 与 `workspace tint`
+- `TitleBar` 在 mac 下必须使用固定 `window-drag-bar`，不能继续依赖整片 `drag-region/no-drag`
+- `Chat` 必须维持单主滚动层，composer 只能作为 footer dock 存在
+
+本轮已补充完成的收口点：
+
+- mac 标题栏左上交互区已固定为 control rail，workspace sidebar toggle 与聊天 pane 切换不再挂靠 sidebar slot 居中逻辑
+- `Chat` 的 typing row、tool chip 状态和 Markdown 代码块继续向 `nexu` 语法对齐，避免在最后一层细节重新长回网页味
+
+---
+
 ## 文件结构
 
 ### 第一批核心修改
@@ -20,6 +53,7 @@
 - `src/components/layout/Sidebar.tsx`
 - `src/components/layout/TitleBar.tsx`
 - `src/components/layout/WorkspacePage.tsx`
+- `src/components/layout/ChatSessionsPane.tsx`
 - `src/components/ui/button.tsx`
 - `src/components/ui/input.tsx`
 - `src/components/ui/textarea.tsx`
@@ -30,12 +64,17 @@
 - `src/components/ui/switch.tsx`
 - `src/pages/Chat/index.tsx`
 - `src/pages/Chat/ChatToolbar.tsx`
+- `src/pages/Chat/ChatInput.tsx`
+- `src/pages/Chat/ChatMessage.tsx`
 - `src/pages/Channels/index.tsx`
 
 ### 第一批测试修改 / 新增
 
 - `tests/unit/workspace-page-layout.test.tsx`
 - `tests/unit/chat-layout.test.tsx`
+- `tests/unit/chat-theme-shell.test.ts`
+- `tests/unit/chat-input.test.tsx`
+- `tests/unit/chat-message.test.tsx`
 - `tests/unit/channels-page.test.tsx`
 - `tests/unit/ui-primitives-theme.test.tsx`
 - `tests/unit/theme-application.test.tsx`

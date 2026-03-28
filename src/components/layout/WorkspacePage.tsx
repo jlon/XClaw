@@ -26,7 +26,7 @@ export function WorkspacePageShell({
   ...props
 }: PropsWithChildren<HTMLAttributes<HTMLDivElement>>) {
   return (
-    <div className={cn('workspace-page-shell desktop-workspace-shell mx-auto flex h-full w-full max-w-[1560px] flex-col rounded-none border-0 bg-transparent px-3 py-4 shadow-none md:px-4 xl:px-5', className)} {...props}>
+    <div className={cn('workspace-page-shell desktop-workspace-shell mx-0 flex h-full w-full max-w-none flex-col rounded-none border-0 bg-transparent px-3 py-4 shadow-none md:px-4 xl:px-5', className)} {...props}>
       {children}
     </div>
   );
