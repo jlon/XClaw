@@ -50,21 +50,13 @@ import { StudioService } from '../studio/service';
 const WINDOWS_APP_USER_MODEL_ID = 'app.XClaw.desktop';
 const isHeadlessDevBackend = process.env.XCLAW_HEADLESS_DEV_BACKEND === '1' && Boolean(process.env.VITE_DEV_SERVER_URL);
 
-// Disable GPU hardware acceleration globally for maximum stability across
-// all GPU configurations (no GPU, integrated, discrete).
-//
-// Rationale (following VS Code's philosophy):
-// - Page/file loading is async data fetching — zero GPU dependency.
-// - The original per-platform GPU branching was added to avoid CPU rendering
-//   competing with sync I/O on Windows, but all file I/O is now async
-//   (fs/promises), so that concern no longer applies.
-// - Software rendering is deterministic across all hardware; GPU compositing
-//   behaviour varies between vendors (Intel, AMD, NVIDIA, Apple Silicon) and
-//   driver versions, making it the #1 source of rendering bugs in Electron.
-//
-// Users who want GPU acceleration can pass `--enable-gpu` on the CLI or
-// set `"disable-hardware-acceleration": false` in the app config (future).
-app.disableHardwareAcceleration();
+const shouldDisableHardwareAcceleration = isHeadlessDevBackend
+  || process.argv.includes('--disable-gpu')
+  || process.env.XCLAW_DISABLE_HARDWARE_ACCELERATION === '1';
+
+if (shouldDisableHardwareAcceleration) {
+  app.disableHardwareAcceleration();
+}
 
 if (isHeadlessDevBackend) {
   app.commandLine.appendSwitch('headless');

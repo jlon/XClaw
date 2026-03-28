@@ -107,7 +107,7 @@ export function MainLayout() {
                 aria-hidden={!isChatRoute}
                 className={cn(
                   'min-h-0 flex flex-1 flex-col',
-                  isChatRoute ? 'relative' : 'pointer-events-none absolute inset-0 opacity-0',
+                  isChatRoute ? 'relative' : 'hidden',
                 )}
               >
                 {/* eslint-disable-next-line react-hooks/refs */}
@@ -117,7 +117,7 @@ export function MainLayout() {
                 aria-hidden={!isStudioRoute}
                 className={cn(
                   'min-h-0 flex flex-1 flex-col',
-                  isStudioRoute ? 'relative' : 'pointer-events-none absolute inset-0 opacity-0',
+                  isStudioRoute ? 'relative' : 'hidden',
                 )}
               >
                 {canKeepStudioAlive ? <Studio /> : null}
