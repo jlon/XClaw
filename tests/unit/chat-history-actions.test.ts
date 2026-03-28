@@ -47,6 +47,9 @@ type ChatLikeState = {
   sending: boolean;
   lastUserMessageAt: number | null;
   pendingFinal: boolean;
+  streamingText: string;
+  streamingMessage: unknown | null;
+  streamingTools: unknown[];
   sessionLabels: Record<string, string>;
   sessionLastActivity: Record<string, number>;
   thinkingLevel: string | null;
@@ -62,6 +65,9 @@ function makeHarness(initial?: Partial<ChatLikeState>) {
     sending: false,
     lastUserMessageAt: null,
     pendingFinal: false,
+    streamingText: '',
+    streamingMessage: null,
+    streamingTools: [],
     sessionLabels: {},
     sessionLastActivity: {},
     thinkingLevel: null,
@@ -221,5 +227,57 @@ describe('chat history actions', () => {
       sessionKey: 'agent:main:main',
       limit: 200,
     });
+  });
+
+  it('clears stale streaming state when quiet history already contains the final assistant reply', async () => {
+    const { createHistoryActions } = await import('@/stores/chat/history-actions');
+    const h = makeHarness({
+      currentSessionKey: 'agent:main:main',
+      sending: true,
+      pendingFinal: true,
+      activeRunId: 'run-1',
+      lastUserMessageAt: 1773281731495,
+      streamingText: 'partial',
+      streamingMessage: {
+        role: 'assistant',
+        content: 'Final answer',
+      },
+      streamingTools: [{ name: 'read', status: 'running' }],
+      messages: [
+        {
+          id: 'user-1',
+          role: 'user',
+          content: 'Need help',
+          timestamp: 1773281731495,
+        },
+      ] as never,
+    });
+    const actions = createHistoryActions(h.set as never, h.get as never);
+
+    gatewayRpcMock.mockResolvedValueOnce({
+      messages: [
+        {
+          id: 'user-1',
+          role: 'user',
+          content: 'Need help',
+          timestamp: 1773281731495,
+        },
+        {
+          id: 'assistant-1',
+          role: 'assistant',
+          content: 'Final answer',
+          timestamp: 1773281732751,
+        },
+      ],
+    });
+
+    await actions.loadHistory(true);
+
+    expect(h.read().sending).toBe(false);
+    expect(h.read().pendingFinal).toBe(false);
+    expect(h.read().activeRunId).toBeNull();
+    expect(h.read().streamingText).toBe('');
+    expect(h.read().streamingMessage).toBeNull();
+    expect(h.read().streamingTools).toEqual([]);
   });
 });

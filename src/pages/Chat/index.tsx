@@ -42,6 +42,30 @@ const messageVisualRole = (message: RawMessage, showThinking: boolean): 'assista
   return role === 'user' ? 'user' : 'assistant';
 };
 
+const messagesMatchForDisplay = (left: RawMessage | null, right: RawMessage | null, showThinking: boolean): boolean => {
+  if (!left || !right) return false;
+  const leftRole = typeof left.role === 'string' ? left.role.toLowerCase() : 'assistant';
+  const rightRole = typeof right.role === 'string' ? right.role.toLowerCase() : 'assistant';
+  if (leftRole !== 'assistant' || rightRole !== 'assistant') return false;
+
+  const leftText = extractText(left).trim();
+  const rightText = extractText(right).trim();
+  const leftThinking = showThinking ? (extractThinking(left)?.trim() ?? '') : '';
+  const rightThinking = showThinking ? (extractThinking(right)?.trim() ?? '') : '';
+  const leftTools = JSON.stringify(extractToolUse(left));
+  const rightTools = JSON.stringify(extractToolUse(right));
+  const leftImages = extractImages(left).length;
+  const rightImages = extractImages(right).length;
+  const leftFiles = left._attachedFiles?.length ?? 0;
+  const rightFiles = right._attachedFiles?.length ?? 0;
+
+  return leftText === rightText
+    && leftThinking === rightThinking
+    && leftTools === rightTools
+    && leftImages === rightImages
+    && leftFiles === rightFiles;
+};
+
 const stackSpacingClass = (isClusteredWithPrevious: boolean, isFirst: boolean) =>
   isFirst ? 'mt-0' : isClusteredWithPrevious ? 'mt-1.5' : 'mt-3';
 
@@ -70,6 +94,7 @@ export function Chat() {
   const sessionLabels = useChatStore((s) => s.sessionLabels);
   const loading = useChatStore((s) => s.loading);
   const sending = useChatStore((s) => s.sending);
+  const lastUserMessageAt = useChatStore((s) => s.lastUserMessageAt);
   const error = useChatStore((s) => s.error);
   const showThinking = useChatStore((s) => s.showThinking);
   const streamingMessage = useChatStore((s) => s.streamingMessage);
@@ -299,6 +324,21 @@ export function Chat() {
   const nextAssistantAvatarVisible = lastVisibleRole !== 'assistant';
   const nextAssistantClustered = lastVisibleRole === 'assistant';
   const nextAssistantSpacingClass = stackSpacingClass(nextAssistantClustered, renderedMessages.length === 0);
+  const lastRenderedAssistantMessage = renderedMessages.length > 0 && renderedMessages.at(-1)?.visualRole === 'assistant'
+    ? renderedMessages.at(-1)?.message ?? null
+    : null;
+  const streamingDuplicatesLastAssistant = streamMsg
+    ? messagesMatchForDisplay(
+        lastRenderedAssistantMessage,
+        {
+          ...(streamMsg as Record<string, unknown>),
+          role: (typeof streamMsg.role === 'string' ? streamMsg.role : 'assistant') as RawMessage['role'],
+          content: streamMsg.content ?? streamText,
+          timestamp: streamMsg.timestamp,
+        } as RawMessage,
+        showThinking,
+      )
+    : false;
   const composerErrorCopy = error
     ? (/timed out/i.test(error) ? t('errors.requestTimeout') : error)
     : null;
@@ -344,11 +384,17 @@ export function Chat() {
   const scrollToLatest = useCallback(() => {
     const scrollElement = scrollRef.current;
     if (!scrollElement) return;
-    if (typeof scrollElement.scrollTo === 'function') {
-      scrollElement.scrollTo({ top: scrollElement.scrollHeight, behavior: 'smooth' });
-    } else {
-      scrollElement.scrollTop = scrollElement.scrollHeight;
-    }
+    scrollElement.scrollTop = scrollElement.scrollHeight;
+    isNearBottomRef.current = true;
+    setShowScrollToLatest(false);
+    setHasPendingLatest(false);
+  }, [scrollRef]);
+  const stickComposerFlowToBottom = useCallback(() => {
+    const scrollElement = scrollRef.current;
+    if (!scrollElement) return;
+    scrollElement.scrollTop = scrollElement.scrollHeight;
+    isNearBottomRef.current = true;
+    setShowScrollToLatest(false);
     setHasPendingLatest(false);
   }, [scrollRef]);
   const scrollChromeClass = isEmpty
@@ -399,6 +445,22 @@ export function Chat() {
     messages,
     pendingSlashAction,
   ]);
+
+  useEffect(() => {
+    if (!lastUserMessageAt) return;
+    const frame = requestAnimationFrame(() => {
+      stickComposerFlowToBottom();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [lastUserMessageAt, stickComposerFlowToBottom]);
+
+  useEffect(() => {
+    if (!sending || !isNearBottomRef.current) return;
+    const frame = requestAnimationFrame(() => {
+      stickComposerFlowToBottom();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [messages.length, pendingFinal, sending, shouldRenderStreaming, stickComposerFlowToBottom]);
 
   const handleExecApprovalDecision = useCallback(async (decision: 'allow-once' | 'allow-always' | 'deny') => {
     if (!activeExecApproval || execApprovalBusy) {
@@ -466,7 +528,7 @@ export function Chat() {
                   </div>
                 ))}
 
-                {shouldRenderStreaming && (
+                {shouldRenderStreaming && !streamingDuplicatesLastAssistant && (
                   <div className={cn(nextAssistantSpacingClass)}>
                     <ChatMessage
                       message={(streamMsg

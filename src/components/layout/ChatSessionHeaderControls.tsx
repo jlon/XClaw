@@ -175,7 +175,7 @@ function NewChatControl({
       </Tooltip>
 
       {menuState ? (
-        <div className="absolute right-0 top-[calc(100%+6px)] z-30 min-w-[168px] rounded-lg border border-border/80 bg-[hsl(var(--surface-elevated)/0.995)] p-1 shadow-md">
+        <div className="app-chat-new-session-menu absolute right-0 top-[calc(100%+6px)] z-30 min-w-[168px] rounded-lg border border-border/80 bg-[hsl(var(--surface-elevated)/0.995)] p-1 shadow-md">
           <div className="px-2 py-1 text-[10px] font-medium tracking-tight text-muted-foreground/56">
             {menuTitle}
           </div>
@@ -184,7 +184,8 @@ function NewChatControl({
               <button
                 key={agent.id}
                 type="button"
-                className="flex w-full items-center justify-between rounded-[9px] px-2 py-1.5 text-left text-[12px] text-foreground/88 transition-[background-color,color] duration-150 hover:bg-[hsl(var(--foreground)/0.032)] hover:text-foreground"
+                className="app-chat-new-session-menu-item flex w-full items-center justify-between rounded-[9px] px-2 py-1.5 text-left text-[12px] text-foreground/88 transition-[background-color,border-color,color,box-shadow,transform] duration-150"
+                data-current={agent.id === menuState.currentAgentId ? 'true' : undefined}
                 onClick={() => navigateToNewChat(agent.id, menuState.currentAgentId)}
               >
                 <span className="truncate">{agent.name}</span>

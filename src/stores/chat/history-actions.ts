@@ -131,7 +131,14 @@ export function createHistoryActions(
           });
           if (recentAssistant) {
             clearHistoryPoll();
-            set({ sending: false, activeRunId: null, pendingFinal: false });
+            set({
+              sending: false,
+              activeRunId: null,
+              pendingFinal: false,
+              streamingText: '',
+              streamingMessage: null,
+              streamingTools: [],
+            });
           }
         }
       };

@@ -52,11 +52,15 @@
         "submittedDescription": "安装完成后可回到技能页查看、启停或继续管理。",
         "returnToSkills": "返回技能页"
     },
-    "message": {
-        "thinking": "思考过程",
-        "toolProcessing": "正在整理工具执行结果…",
-        "showInFolder": "在文件夹中显示",
-        "openFile": "打开文件",
+  "message": {
+    "thinking": "思考过程",
+    "toolCalls_one": "工具调用 {{count}} 项",
+    "toolCalls_other": "工具调用 {{count}} 项",
+    "toolProcessing": "正在整理工具执行结果…",
+    "generatedFiles_one": "生成文件 {{count}} 个",
+    "generatedFiles_other": "生成文件 {{count}} 个",
+    "showInFolder": "在文件夹中显示",
+    "openFile": "打开文件",
         "image": "图片",
         "file": "文件",
         "feedbackHelpful": "有帮助",

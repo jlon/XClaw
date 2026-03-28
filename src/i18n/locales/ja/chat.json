@@ -52,11 +52,15 @@
         "submittedDescription": "確認や有効化、管理を続けたいときはスキル画面へ戻れます。",
         "returnToSkills": "スキルへ戻る"
     },
-    "message": {
-        "thinking": "思考過程",
-        "toolProcessing": "ツール実行結果を整理しています…",
-        "showInFolder": "フォルダで表示",
-        "openFile": "ファイルを開く",
+  "message": {
+    "thinking": "思考過程",
+    "toolCalls_one": "ツール呼び出し {{count}} 件",
+    "toolCalls_other": "ツール呼び出し {{count}} 件",
+    "toolProcessing": "ツール実行結果を整理しています…",
+    "generatedFiles_one": "生成ファイル {{count}} 件",
+    "generatedFiles_other": "生成ファイル {{count}} 件",
+    "showInFolder": "フォルダで表示",
+    "openFile": "ファイルを開く",
         "image": "画像",
         "file": "ファイル",
         "feedbackHelpful": "役に立った",

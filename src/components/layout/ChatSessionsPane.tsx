@@ -187,7 +187,7 @@ export function ChatSessionsPane() {
 
   return (
     <aside className={cn('flex w-[var(--desktop-sidebar-width)] shrink-0 flex-col bg-transparent [font-family:var(--font-sidebar)]', isMacDesktop ? 'pt-12' : '')}>
-      <div className="px-3 pb-2 pt-3">
+      <div className="px-3 pb-2 pt-1.5">
         <div className="flex min-h-[32px] items-center gap-2">
           {!isBrowserMode && (
             <AppBrandLockup compact className="min-h-8 shrink-0" testIdPrefix="chat-sidebar-brand" />

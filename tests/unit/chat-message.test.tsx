@@ -13,7 +13,7 @@ vi.mock('@/components/agents/AgentAvatar', () => ({
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string) => {
+    t: (key: string, vars?: Record<string, unknown>) => {
       switch (key) {
         case 'message.thinking':
           return 'Thinking';
@@ -25,16 +25,10 @@ vi.mock('react-i18next', () => ({
           return 'File';
         case 'message.image':
           return 'Image';
-        case 'message.feedbackHelpful':
-          return 'Helpful';
-        case 'message.feedbackNotHelpful':
-          return 'Not helpful';
-        case 'message.feedbackPanelTitle':
-          return 'Thanks for the feedback';
-        case 'message.feedbackPlaceholder':
-          return 'Tell us what was not helpful';
-        case 'message.feedbackSubmit':
-          return 'Submit';
+        case 'message.toolCalls':
+          return `${String(vars?.count ?? 0)} tool calls`;
+        case 'message.generatedFiles':
+          return `${String(vars?.count ?? 0)} generated files`;
         case 'common:actions.close':
           return 'Close';
         case 'common:actions.copy':
@@ -89,12 +83,12 @@ describe('ChatMessage', () => {
     expect(userPrimary).toBeInTheDocument();
     expect(assistantPrimary).toBeInTheDocument();
     expect(userBubble).toHaveClass('app-chat-bubble-user-v3');
-    expect(userBubble).toHaveClass('rounded-[20px]');
-    expect(userBubble).toHaveClass('rounded-tr-[3px]');
+    expect(userBubble).toHaveClass('rounded-[18px]');
+    expect(userBubble).toHaveClass('rounded-tr-[4px]');
     expect(userBubble).toHaveClass('border');
     expect(assistantBubble).toHaveClass('app-chat-bubble-assistant-v3');
-    expect(assistantBubble).toHaveClass('rounded-none');
-    expect(assistantBubble).not.toHaveClass('rounded-tl-[6px]');
+    expect(assistantBubble).toHaveClass('rounded-[18px]');
+    expect(assistantBubble).toHaveClass('rounded-tl-[4px]');
   });
 
   it('shows a lightweight copy action below both user and assistant messages', () => {
@@ -126,20 +120,19 @@ describe('ChatMessage', () => {
     });
   });
 
-  it('renders a visible assistant feedback rail with desktop-im thumbs affordances', () => {
+  it('renders a subtle assistant name label when the avatar is shown', () => {
     const assistantMessage: RawMessage = {
       role: 'assistant',
       content: 'And me',
       timestamp: 1710000100,
     };
 
-    render(<ChatMessage message={assistantMessage} showThinking={false} />);
+    render(<ChatMessage message={assistantMessage} showThinking={false} assistantAvatar={{ id: 'main', name: 'Main Agent' }} />);
 
-    expect(screen.getByRole('button', { name: 'Helpful' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Not helpful' })).toBeInTheDocument();
+    expect(screen.getByText('Main Agent')).toBeInTheDocument();
   });
 
-  it('opens a dislike feedback panel with a close action and optional input', () => {
+  it('does not render the legacy assistant feedback rail anymore', () => {
     const assistantMessage: RawMessage = {
       role: 'assistant',
       content: 'And me',
@@ -148,17 +141,14 @@ describe('ChatMessage', () => {
 
     render(<ChatMessage message={assistantMessage} showThinking={false} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Not helpful' }));
-
-    expect(screen.getByText('Thanks for the feedback')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Tell us what was not helpful')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Helpful' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Not helpful' })).not.toBeInTheDocument();
   });
 
   it('marks chat images as lazy async media so long sessions scroll with less pressure', () => {
     const assistantImageMessage: RawMessage = {
       role: 'assistant',
+      content: 'Generated preview',
       timestamp: 1710000100,
       _attachedFiles: [
         {
@@ -175,6 +165,7 @@ describe('ChatMessage', () => {
       <ChatMessage message={assistantImageMessage} showThinking={false} />,
     );
 
+    fireEvent.click(screen.getByRole('button', { name: /1 generated files/i }));
     const image = screen.getByAltText('preview.png');
     expect(image).toHaveAttribute('loading', 'lazy');
     expect(image).toHaveAttribute('decoding', 'async');
@@ -198,6 +189,7 @@ describe('ChatMessage', () => {
     render(<ChatMessage message={assistantMessage} showThinking={false} />);
 
     expect(screen.getByText('const answer = 42;')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /1 generated files/i }));
     expect(screen.getByText('notes.txt')).toBeInTheDocument();
   });
 

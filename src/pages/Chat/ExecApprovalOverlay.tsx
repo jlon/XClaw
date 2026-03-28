@@ -1,8 +1,10 @@
 import { Button } from '@/components/ui/button';
 import type { ExecApprovalRequest } from '@/lib/exec-approval-queue';
 import { cn } from '@/lib/utils';
+import { useSettingsStore } from '@/stores/settings';
 import { Loader2, ShieldAlert } from 'lucide-react';
 import { useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 
 type ExecApprovalOverlayProps = {
@@ -29,14 +31,25 @@ export function ExecApprovalOverlay({
   onDecision,
 }: ExecApprovalOverlayProps) {
   const { t } = useTranslation('chat');
+  const chatFocusMode = useSettingsStore((state) => ('chatFocusMode' in state ? state.chatFocusMode : false));
+  const sidebarWidth = useSettingsStore((state) => state.sidebarWidth);
   const remainingText = useMemo(
     () => formatExpiryTime(entry.expiresAtMs),
     [entry.expiresAtMs],
   );
+  const overlayInsetLeft = chatFocusMode ? 0 : sidebarWidth;
 
-  return (
-    <div className="pointer-events-none absolute inset-0 z-40 flex items-start justify-center px-6 pt-6">
-      <div className="pointer-events-auto w-full max-w-[44rem] rounded-xl border border-border/70 bg-background p-5 shadow-xl">
+  if (typeof document === 'undefined') {
+    return null;
+  }
+
+  return createPortal(
+    <div
+      className="app-chat-exec-approval-overlay pointer-events-auto fixed inset-y-0 right-0 z-[80] flex items-center justify-center px-6 py-6"
+      style={{ left: `${overlayInsetLeft}px` }}
+    >
+      <div aria-hidden="true" className="app-modal-overlay absolute inset-0" />
+      <div className="pointer-events-auto relative w-full max-w-[44rem] rounded-xl border border-border/70 bg-background p-5 shadow-xl">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[hsl(var(--warning)/0.18)] bg-[hsl(var(--warning)/0.12)] text-[hsl(var(--warning))] shadow-sm">
@@ -122,6 +135,7 @@ export function ExecApprovalOverlay({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

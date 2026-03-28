@@ -52,11 +52,15 @@
         "submittedDescription": "Go back to Skills when you want to review, toggle, or keep managing it.",
         "returnToSkills": "Back to Skills"
     },
-    "message": {
-        "thinking": "Thinking",
-        "toolProcessing": "Processing tool results…",
-        "showInFolder": "Show in folder",
-        "openFile": "Open file",
+  "message": {
+    "thinking": "Thinking",
+    "toolCalls_one": "{{count}} tool call",
+    "toolCalls_other": "{{count}} tool calls",
+    "toolProcessing": "Processing tool results…",
+    "generatedFiles_one": "{{count}} generated file",
+    "generatedFiles_other": "{{count}} generated files",
+    "showInFolder": "Show in folder",
+    "openFile": "Open file",
         "image": "Image",
         "file": "File",
         "feedbackHelpful": "Helpful",

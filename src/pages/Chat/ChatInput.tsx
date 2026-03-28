@@ -6,7 +6,7 @@
  * Files are staged to disk via IPC — only lightweight path references
  * are sent with the message (no base64 over WebSocket).
  */
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { memo, useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   SendHorizontal,
   Square,
@@ -177,7 +177,7 @@ function readFileAsBase64(file: globalThis.File): Promise<string> {
 
 // ── Component ────────────────────────────────────────────────────
 
-export function ChatInput({
+export const ChatInput = memo(function ChatInput({
   onSend,
   onSendSkillDraft,
   onStop,
@@ -647,8 +647,12 @@ export function ChatInput({
         return;
       }
     }
-    onSend(textToSend, attachmentsToSend?.length ? attachmentsToSend : undefined, targetAgentId);
+    const nextAttachments = attachmentsToSend?.length ? attachmentsToSend : undefined;
+    const nextTargetAgentId = targetAgentId;
     clearComposer();
+    queueMicrotask(() => {
+      onSend(textToSend, nextAttachments, nextTargetAgentId);
+    });
   }, [clearComposer, onSend, onSendSkillDraft, pendingSkillDraft, targetAgentId]);
 
   const selectSlashArg = useCallback((arg: string, execute: boolean) => {
@@ -695,13 +699,6 @@ export function ChatInput({
     const readyAttachments = attachments.filter(a => a.status === 'ready');
     const textToSend = input.trim();
     const attachmentsToSend = readyAttachments.length > 0 ? readyAttachments : undefined;
-    console.log(`[handleSend] text="${textToSend.substring(0, 50)}", attachments=${attachments.length}, ready=${readyAttachments.length}, sending=${!!attachmentsToSend}`);
-    if (attachmentsToSend) {
-      console.log('[handleSend] Attachment details:', attachmentsToSend.map(a => ({
-        id: a.id, fileName: a.fileName, mimeType: a.mimeType, fileSize: a.fileSize,
-        stagedPath: a.stagedPath, status: a.status, hasPreview: !!a.preview,
-      })));
-    }
     dispatchMessage(textToSend, attachmentsToSend);
   }, [attachments, canSend, dispatchMessage, input]);
 
@@ -1218,7 +1215,9 @@ export function ChatInput({
       </div>
     </div>
   );
-}
+});
+
+ChatInput.displayName = 'ChatInput';
 
 // ── Attachment Preview ───────────────────────────────────────────
 

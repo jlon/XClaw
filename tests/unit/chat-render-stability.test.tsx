@@ -25,6 +25,7 @@ const {
     streamingMessage: null as unknown,
     streamingTools: [] as Array<Record<string, unknown>>,
     pendingFinal: false,
+    lastUserMessageAt: null as number | null,
     sendMessage: vi.fn(),
     abortRun: vi.fn(),
     clearError: vi.fn(),
@@ -64,11 +65,21 @@ vi.mock('@/stores/gateway', () => ({
 }));
 
 vi.mock('@/stores/agents', () => ({
-  useAgentsStore: (selector: (state: typeof agentsState) => unknown) => selector(agentsState),
+  useAgentsStore: Object.assign(
+    (selector: (state: typeof agentsState) => unknown) => selector(agentsState),
+    {
+      getState: () => agentsState,
+    },
+  ),
 }));
 
 vi.mock('@/stores/settings', () => ({
-  useSettingsStore: (selector: (state: typeof settingsState) => unknown) => selector(settingsState),
+  useSettingsStore: Object.assign(
+    (selector: (state: typeof settingsState) => unknown) => selector(settingsState),
+    {
+      getState: () => settingsState,
+    },
+  ),
 }));
 
 vi.mock('@/hooks/use-stick-to-bottom-instant', () => ({
@@ -198,6 +209,7 @@ describe('chat render stability', () => {
     chatState.streamingMessage = null;
     chatState.streamingTools = [];
     chatState.pendingFinal = false;
+    chatState.lastUserMessageAt = null;
     gatewayState.status = { state: 'running', port: 18789 };
     gatewayState.execApprovalQueue = [];
     agentsState.agents = [
@@ -234,7 +246,7 @@ describe('chat render stability', () => {
     chatState.messages = [];
 
     const { container, queryByText, getByText } = renderChat();
-    const scrollShell = container.querySelector('.app-chat-shell > .chat-im-font');
+    const scrollShell = container.querySelector('.app-chat-workspace-shell');
 
     expect(queryByText('Main Agent')).not.toBeInTheDocument();
     expect(getByText('XClaw')).toBeInTheDocument();
@@ -301,9 +313,30 @@ describe('chat render stability', () => {
     expect(chatMessageRenderSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('does not render a duplicate streaming row after the final assistant reply is already in history', () => {
+    chatState.messages = [
+      {
+        id: 'm1',
+        role: 'assistant',
+        content: 'Final answer',
+        timestamp: 1710000100,
+      },
+    ];
+    chatState.sending = true;
+    chatState.streamingMessage = {
+      role: 'assistant',
+      content: 'Final answer',
+      timestamp: 1710000101,
+    };
+
+    renderChat();
+
+    expect(chatMessageRenderSpy).toHaveBeenCalledTimes(1);
+  });
+
   it('uses desktop scrollbars for populated chat threads and subtle scrollbars only for the welcome shell', () => {
     const { container, rerender } = renderChat();
-    const populatedScrollShell = container.querySelector('.app-chat-shell > .chat-im-font');
+    const populatedScrollShell = container.querySelector('.app-chat-workspace-shell');
 
     expect(populatedScrollShell).toHaveClass('workspace-page-scroll-default');
     expect(populatedScrollShell).not.toHaveClass('subtle-scrollbar');
@@ -315,7 +348,7 @@ describe('chat render stability', () => {
       </MemoryRouter>,
     );
 
-    const emptyScrollShell = container.querySelector('.app-chat-shell > .chat-im-font');
+    const emptyScrollShell = container.querySelector('.app-chat-workspace-shell');
     expect(emptyScrollShell).toHaveClass('subtle-scrollbar');
   });
 
