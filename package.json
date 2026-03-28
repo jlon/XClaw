@@ -14,6 +14,9 @@
         ],
         "overrides": {
             "isbinaryfile": "^5.0.0"
+        },
+        "patchedDependencies": {
+            "openclaw@2026.3.13": "patches/openclaw@2026.3.13.patch"
         }
     },
     "description": "XClaw - Graphical AI Assistant based on OpenClaw",

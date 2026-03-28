@@ -301,6 +301,12 @@ describe('chat render stability', () => {
         timestamp: 1710000000,
       },
       {
+        id: 'runtime-approval-1',
+        role: 'assistant',
+        content: 'Exec approval allow-always submitted for 55fc94cf.\n\nThe pending command is now authorized and may continue asynchronously. Do not request approval again for this approval id unless a new id is generated.',
+        timestamp: 1710000001,
+      },
+      {
         id: 'm1',
         role: 'assistant',
         content: '正常助手回复',

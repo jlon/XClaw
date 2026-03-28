@@ -25,12 +25,21 @@ import { XClawWelcomeWordmark } from '@/components/common/XClawWelcomeWordmark';
 import { hostApiFetch } from '@/lib/host-api';
 import { buildChatExportFileName, buildChatMarkdown } from './export-markdown';
 import { ExecApprovalOverlay } from './ExecApprovalOverlay';
-import { submitExecApprovalDecision } from '@/stores/chat/exec-approval-submit';
+import { beginAwaitingExecApprovalCompletion, submitExecApprovalDecision } from '@/stores/chat/exec-approval-submit';
 import type { AgentSummary } from '@/types/agent';
 import type { SkillChatDraft } from '@/types/skill';
 
+const EXEC_APPROVAL_SUBMITTED_MESSAGE_PATTERN = /^(?:✅\s*)?Exec approval\s+(allow-once|allow-always|deny)\s+submitted for\s+\S+\.\s*(?:\n\n(?:The pending command is now authorized and may continue asynchronously\. Do not request approval again for this approval id unless a new id is generated\.|The pending command remains blocked\. Do not request approval again for this approval id unless a new id is generated\.))?\s*$/i;
+
+const isHiddenExecApprovalSubmittedMessage = (message: RawMessage): boolean => {
+  const role = typeof message.role === 'string' ? message.role.toLowerCase() : '';
+  if (role !== 'assistant') return false;
+  return EXEC_APPROVAL_SUBMITTED_MESSAGE_PATTERN.test(extractText(message).trim());
+};
+
 const messageVisualRole = (message: RawMessage, showThinking: boolean): 'assistant' | 'user' | null => {
   if (isSystemRuntimeMessage(message)) return null;
+  if (isHiddenExecApprovalSubmittedMessage(message)) return null;
   const role = typeof message.role === 'string' ? message.role.toLowerCase() : '';
   if (role === 'toolresult' || role === 'tool_result') return null;
   const hasText = extractText(message).trim().length > 0;
@@ -487,9 +496,12 @@ export function Chat() {
       setExecApprovalBusy(false);
       return;
     }
-    if (result.syncError) {
-      useChatStore.setState({ error: `Approval transcript sync failed: ${result.syncError}` });
-    }
+    beginAwaitingExecApprovalCompletion(
+      useChatStore.setState,
+      useChatStore.getState,
+      result.submittedAtMs,
+      result.transcriptSessionKey,
+    );
     setExecApprovalBusy(false);
   }, [activeExecApproval, currentSessionKey, execApprovalBusy]);
 

@@ -1,15 +1,17 @@
 # 聊天内本机执行审批流修复进度
 
-## 2026-03-22
+## 2026-03-28
 
 已完成：
 
-- 抽出共享审批提交器 `exec-approval-submit.ts`
-- `/approve` 成功后补 `chat.inject` transcript 同步
-- 聊天页新增桌面审批层 `ExecApprovalOverlay`
-- 补齐单测、lint、typecheck
+- 移除 `/approve` 成功后的本地伪造 transcript 注入。
+- 审批成功后统一进入真实完成等待态，不再展示误导性的 `submitted` 回执。
+- OpenClaw `2026.3.13` 的桌面审批相关 dist chunk 已补齐 patch。
+- internal/webchat 通道的审批成功噪音回执已抑制。
+- 跨 session 审批会切换到真正的 transcript session 再等待完成。
+- 补丁完整性测试与聊天运行态测试已补齐。
 
 当前判断：
 
-- XClaw 前端审批提交链路已从“局部补丁”提升为“桌面路径 + slash 兼容路径”双闭环
-- 但整个系统不能宣称 `100%`，因为 gateway 侧 async exec followup 还没有做真实端到端验收
+- 这条桌面聊天审批流已经形成完整闭环，可以作为当前版本的基线行为。
+- 后续若升级 OpenClaw 版本，应优先评估是否删除本地 patch，而不是继续叠加新补丁。

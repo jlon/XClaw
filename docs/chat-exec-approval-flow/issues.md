@@ -1,18 +1,16 @@
-# 聊天内本机执行审批流修复遗留问题
+# 聊天内本机执行审批流遗留问题
 
-## 仍需继续确认
+## 当前未关闭项
 
-1. transcript 中已经出现过 `✅ Exec approval ... submitted ...` 但没有后续 `Exec finished ...` 的情况。
-2. 这说明 gateway / agent 侧的 async exec followup 仍可能存在不稳定点。
-3. 当前修复已经把 XClaw 前端这层闭环补上，但还不能把 gateway 侧 followup 缺失归零。
+1. 本地 patch 仍然依赖 `openclaw@2026.3.13` 的编译产物结构。
+2. 如果上游 dist chunk 重新切分，当前 patch 仍需要重新核对目标文件列表。
 
 ## 风险
 
-1. 如果 `chat.inject` 失败，审批结果仍然可能只在 runtime 成功、但 transcript 不同步。
-2. 如果 gateway 自己没有把批准后的 exec 结果重新投递到会话里，用户仍可能在等待期间继续发自然语言，从而触发新的模型推理。
+1. 后续直接升级 OpenClaw 版本时，如果不同时更新 patch 和补丁护栏测试，审批流可能再次退化。
+2. 当前闭环依赖 transcript 正常回流；如果未来上游改变事件投递协议，需要重新确认 `pendingFinal` 等待链。
 
 ## 下一步候选
 
-1. 针对真实 transcript 样本补一条更接近现场的集成测试。
-2. 在聊天页加入“审批已提交，等待命令完成”的短暂状态提示。
-3. 继续排查 OpenClaw gateway 侧 `sendExecApprovalFollowupResult` 未落盘的真实原因。
+1. 评估升级到已包含上游修复的 OpenClaw 版本，逐步淘汰本地 patch。
+2. 增加更贴近真实 transcript 的端到端回归脚本。

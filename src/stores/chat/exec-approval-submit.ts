@@ -1,10 +1,8 @@
 import { removeExecApproval, resolvePendingExecApproval } from '@/lib/exec-approval-queue';
 import { useGatewayStore } from '@/stores/gateway';
-import {
-  formatApprovalCommandReply,
-  formatApprovalCommandSyncNote,
-  type ApprovalDecision,
-} from './approval-command';
+import { clearHistoryPoll, setHistoryPollTimer, setLastChatEventAt } from './helpers';
+import type { ChatGet, ChatSet } from './store-api';
+import { type ApprovalDecision } from './approval-command';
 
 type SubmitExecApprovalDecisionParams = {
   requestedId: string;
@@ -20,10 +18,70 @@ type SubmitExecApprovalDecisionResult =
       approvalId: string;
       approvalSlug: string;
       transcriptSessionKey: string;
-      reply: string;
-      syncInjected: boolean;
-      syncError: string | null;
+      submittedAtMs: number;
     };
+
+const APPROVAL_COMPLETION_POLL_START_MS = 350;
+const APPROVAL_COMPLETION_POLL_INTERVAL_MS = 1500;
+const APPROVAL_COMPLETION_TIMEOUT_MS = 45000;
+
+export function beginAwaitingExecApprovalCompletion(
+  set: ChatSet,
+  get: ChatGet,
+  submittedAtMs = Date.now(),
+  targetSessionKey?: string,
+): void {
+  const resolvedSessionKey = targetSessionKey?.trim();
+  if (resolvedSessionKey && resolvedSessionKey !== get().currentSessionKey) {
+    get().switchSession(resolvedSessionKey);
+  }
+  clearHistoryPoll();
+  setLastChatEventAt(submittedAtMs);
+  set({
+    sending: true,
+    activeRunId: null,
+    error: null,
+    streamingText: '',
+    streamingMessage: null,
+    streamingTools: [],
+    pendingFinal: true,
+    lastUserMessageAt: submittedAtMs,
+  });
+
+  const pollHistory = async (): Promise<void> => {
+    const state = get();
+    if (resolvedSessionKey && state.currentSessionKey !== resolvedSessionKey) {
+      clearHistoryPoll();
+      return;
+    }
+    if (!state.sending || !state.pendingFinal) {
+      clearHistoryPoll();
+      return;
+    }
+    await state.loadHistory(true);
+    const next = get();
+    if (!next.sending || !next.pendingFinal) {
+      clearHistoryPoll();
+      return;
+    }
+    if (Date.now() - submittedAtMs >= APPROVAL_COMPLETION_TIMEOUT_MS) {
+      clearHistoryPoll();
+      set({
+        sending: false,
+        pendingFinal: false,
+        error: 'Approved command is still running or did not report completion. Please retry or inspect the process output.',
+      });
+      return;
+    }
+    setHistoryPollTimer(setTimeout(() => {
+      void pollHistory();
+    }, APPROVAL_COMPLETION_POLL_INTERVAL_MS));
+  };
+
+  setHistoryPollTimer(setTimeout(() => {
+    void pollHistory();
+  }, APPROVAL_COMPLETION_POLL_START_MS));
+}
 
 export async function submitExecApprovalDecision(
   params: SubmitExecApprovalDecisionParams,
@@ -72,26 +130,11 @@ export async function submitExecApprovalDecision(
     execApprovalQueue: removeExecApproval(state.execApprovalQueue, approvalId),
   }));
 
-  let syncInjected = false;
-  let syncError: string | null = null;
-
-  try {
-    await gatewayState.rpc('chat.inject', {
-      sessionKey: transcriptSessionKey,
-      message: formatApprovalCommandSyncNote(approvalSlug, params.decision),
-    });
-    syncInjected = true;
-  } catch (error) {
-    syncError = String(error);
-  }
-
   return {
     ok: true,
     approvalId,
     approvalSlug,
     transcriptSessionKey,
-    reply: formatApprovalCommandReply(approvalSlug, params.decision),
-    syncInjected,
-    syncError,
+    submittedAtMs: Date.now(),
   };
 }

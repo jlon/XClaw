@@ -1,7 +1,7 @@
 import { useGatewayStore } from '@/stores/gateway';
 import { generateUuid } from '@/lib/uuid';
 import { parseApprovalCommand } from './approval-command';
-import { submitExecApprovalDecision } from './exec-approval-submit';
+import { beginAwaitingExecApprovalCompletion, submitExecApprovalDecision } from './exec-approval-submit';
 import {
   buildSlashHelpText,
   isStopCommand,
@@ -160,11 +160,12 @@ export async function executeLocalChatCommand(
       ));
       return true;
     }
-    set((state) => appendLocalAssistantReply(
-      state,
-      result.syncError ? `${result.reply}\n\nApproval transcript sync failed: ${result.syncError}` : result.reply,
-      { sending: false },
-    ));
+    beginAwaitingExecApprovalCompletion(
+      set,
+      get,
+      result.submittedAtMs,
+      result.transcriptSessionKey,
+    );
     return true;
   }
 

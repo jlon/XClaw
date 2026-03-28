@@ -13,11 +13,6 @@ export function createRuntimeEventActions(set: ChatSet, get: ChatGet): Pick<Runt
       // Only process events for the current session (when sessionKey is present)
       if (eventSessionKey != null && eventSessionKey !== currentSessionKey) return;
 
-      // Only process events for the active run (or if no active run set)
-      if (activeRunId && runId && runId !== activeRunId) return;
-
-      setLastChatEventAt(Date.now());
-
       // Defensive: if state is missing but we have a message, try to infer state.
       let resolvedState = eventState;
       if (!resolvedState && event.message && typeof event.message === 'object') {
@@ -29,6 +24,13 @@ export function createRuntimeEventActions(set: ChatSet, get: ChatGet): Pick<Runt
           resolvedState = 'delta';
         }
       }
+
+      const isInjectedFinal = resolvedState === 'final' && runId.startsWith('inject-');
+
+      // Only process events for the active run (or if no active run set)
+      if (activeRunId && runId && runId !== activeRunId && !isInjectedFinal) return;
+
+      setLastChatEventAt(Date.now());
 
       // Only pause the history poll when we receive actual streaming data.
       // The gateway sends "agent" events with { phase, startedAt } that carry

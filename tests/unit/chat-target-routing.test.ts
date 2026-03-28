@@ -386,21 +386,15 @@ describe('chat target routing', () => {
       id: '08d6b8cd-1111-2222-3333-444444444444',
       decision: 'allow-once',
     });
-    expect(gatewayRpcMock).toHaveBeenCalledWith('chat.inject', {
-      sessionKey: 'agent:main:main',
-      message: 'Exec approval allow-once submitted for 08d6b8cd.\n\nThe pending command is now authorized and may continue asynchronously. Do not request approval again for this approval id unless a new id is generated.',
-    });
     expect(
       gatewayRpcMock.mock.calls.find(([method]) => method === 'chat.send'),
     ).toBeUndefined();
-    expect(useChatStore.getState().messages).toEqual([
-      {
-        role: 'assistant',
-        content: 'Exec approval allow-once submitted for 08d6b8cd.',
-        timestamp: expect.any(Number),
-        id: expect.any(String),
-      },
-    ]);
+    expect(
+      gatewayRpcMock.mock.calls.find(([method]) => method === 'chat.inject'),
+    ).toBeUndefined();
+    expect(useChatStore.getState().messages).toEqual([]);
+    expect(useChatStore.getState().sending).toBe(true);
+    expect(useChatStore.getState().pendingFinal).toBe(true);
   });
 
   it('returns a local usage hint for malformed approval commands instead of sending them to the model', async () => {
@@ -465,13 +459,35 @@ describe('chat target routing', () => {
       id: '242f771b-1111-2222-3333-444444444444',
       decision: 'allow-once',
     });
-    expect(gatewayRpcMock).toHaveBeenCalledWith('chat.inject', {
-      sessionKey: 'agent:main:main',
-      message: 'Exec approval allow-once submitted for 242f771b.\n\nThe pending command is now authorized and may continue asynchronously. Do not request approval again for this approval id unless a new id is generated.',
-    });
-    expect(useChatStore.getState().messages.at(-1)?.content).toBe(
-      'Exec approval allow-once submitted for 242f771b.',
-    );
+    expect(
+      gatewayRpcMock.mock.calls.find(([method]) => method === 'chat.inject'),
+    ).toBeUndefined();
+    expect(useChatStore.getState().messages).toEqual([]);
+    expect(useChatStore.getState().sending).toBe(true);
+    expect(useChatStore.getState().pendingFinal).toBe(true);
+  });
+
+  it('switches to the approval transcript session before waiting for completion', async () => {
+    const useChatStore = await loadChatStoreWithBaseState();
+    gatewayStoreState.execApprovalQueue = [
+      {
+        id: '9999b8cd-1111-2222-3333-444444444444',
+        slug: '9999b8cd',
+        createdAtMs: 10,
+        expiresAtMs: Date.now() + 60_000,
+        request: {
+          command: 'find ~/Downloads -type f',
+          sessionKey: 'agent:research:desk',
+        },
+      },
+    ];
+
+    await useChatStore.getState().sendMessage('/approve 9999b8cd allow-once');
+
+    expect(useChatStore.getState().currentSessionKey).toBe('agent:research:desk');
+    expect(useChatStore.getState().currentAgentId).toBe('research');
+    expect(useChatStore.getState().sending).toBe(true);
+    expect(useChatStore.getState().pendingFinal).toBe(true);
   });
 
   it('shows slash command help locally instead of sending it to chat.send', async () => {

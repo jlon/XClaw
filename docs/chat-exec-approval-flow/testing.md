@@ -4,25 +4,24 @@
 
 已执行：
 
-- `pnpm exec vitest run tests/unit/chat-target-routing.test.ts tests/unit/chat-render-stability.test.tsx --reporter=dot`
-- `pnpm exec eslint src/stores/chat/exec-approval-submit.ts src/stores/chat/local-command-router.ts src/pages/Chat/index.tsx src/pages/Chat/ExecApprovalOverlay.tsx tests/unit/chat-target-routing.test.ts tests/unit/chat-render-stability.test.tsx --max-warnings=0`
+- `pnpm vitest run tests/unit/chat-target-routing.test.ts tests/unit/openclaw-exec-approval-patch.test.ts tests/unit/chat-runtime-event-actions.test.ts`
 - `pnpm run typecheck`
 
 结果：
 
-- `vitest` 通过，`33 passed`
-- `eslint` 通过
+- `vitest` 通过，`30 passed`
 - `typecheck` 通过
 
 ## 本次新增覆盖点
 
 ### 单测
 
-- `/approve` 不仅要调 `exec.approval.resolve`，还要调 `chat.inject`
-- stale slug fallback 时也要把同步消息写入 transcript
-- 聊天页在当前 session 存在 pending approval 时，必须渲染桌面审批层
+- `/approve` 成功后不再注入本地伪造 transcript 消息。
+- 跨 session 审批会切换到真实 transcript session 再等待完成。
+- OpenClaw patch 文件会校验所有目标 dist 文件的 follow-up hunk 与 internal-channel 抑制 hunk。
+- injected final completion 事件在旧 run 仍活跃时也不会被错误丢弃。
 
 ## 尚未覆盖
 
-- 真实 Electron 窗口里的审批层点击 smoke
-- 真 gateway + 真模型 + 真 async exec followup 的端到端人工复现
+- 真 Electron 窗口里的完整点击审批 smoke。
+- 真 Gateway + 真命令执行链的全自动 e2e。

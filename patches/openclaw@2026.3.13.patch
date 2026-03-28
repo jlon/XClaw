@@ -1,0 +1,402 @@
+diff --git a/dist/auth-profiles-DDVivXkv.js b/dist/auth-profiles-DDVivXkv.js
+index 9e57b20..3b7a044 100644
+--- a/dist/auth-profiles-DDVivXkv.js
++++ b/dist/auth-profiles-DDVivXkv.js
+@@ -65305,22 +65305,37 @@ function buildExecApprovalFollowupPrompt(resultText) {
+ 		"If it failed, explain what went wrong."
+ 	].join("\n");
+ }
++function buildExecApprovalFollowupMessage(resultText) {
++	return [
++		"Command update:",
++		"",
++		resultText.trim()
++	].join("\n");
++}
+ async function sendExecApprovalFollowup(params) {
+ 	const sessionKey = params.sessionKey?.trim();
+ 	const resultText = params.resultText.trim();
+ 	if (!sessionKey || !resultText) return false;
+ 	const channel = params.turnSourceChannel?.trim();
+ 	const to = params.turnSourceTo?.trim();
++	const canDeliverDirectly = Boolean(channel && to);
+ 	const threadId = params.turnSourceThreadId != null && params.turnSourceThreadId !== "" ? String(params.turnSourceThreadId) : void 0;
++	if (!canDeliverDirectly) {
++		await callGatewayTool("chat.inject", { timeoutMs: 6e4 }, {
++			sessionKey,
++			message: buildExecApprovalFollowupMessage(resultText)
++		});
++		return true;
++	}
+ 	await callGatewayTool("agent", { timeoutMs: 6e4 }, {
+ 		sessionKey,
+ 		message: buildExecApprovalFollowupPrompt(resultText),
+-		deliver: true,
+-		bestEffortDeliver: true,
+-		channel: channel && to ? channel : void 0,
+-		to: channel && to ? to : void 0,
+-		accountId: channel && to ? params.turnSourceAccountId?.trim() || void 0 : void 0,
+-		threadId: channel && to ? threadId : void 0,
++		deliver: canDeliverDirectly,
++		bestEffortDeliver: canDeliverDirectly,
++		channel: canDeliverDirectly ? channel : void 0,
++		to: canDeliverDirectly ? to : void 0,
++		accountId: canDeliverDirectly ? params.turnSourceAccountId?.trim() || void 0 : void 0,
++		threadId: canDeliverDirectly ? threadId : void 0,
+ 		idempotencyKey: `exec-approval-followup:${params.approvalId}`
+ 	}, { expectFinal: true });
+ 	return true;
+diff --git a/dist/auth-profiles-DRjqKE3G.js b/dist/auth-profiles-DRjqKE3G.js
+index a869785..3481472 100644
+--- a/dist/auth-profiles-DRjqKE3G.js
++++ b/dist/auth-profiles-DRjqKE3G.js
+@@ -61278,22 +61278,37 @@ function buildExecApprovalFollowupPrompt(resultText) {
+ 		"If it failed, explain what went wrong."
+ 	].join("\n");
+ }
++function buildExecApprovalFollowupMessage(resultText) {
++	return [
++		"Command update:",
++		"",
++		resultText.trim()
++	].join("\n");
++}
+ async function sendExecApprovalFollowup(params) {
+ 	const sessionKey = params.sessionKey?.trim();
+ 	const resultText = params.resultText.trim();
+ 	if (!sessionKey || !resultText) return false;
+ 	const channel = params.turnSourceChannel?.trim();
+ 	const to = params.turnSourceTo?.trim();
++	const canDeliverDirectly = Boolean(channel && to);
+ 	const threadId = params.turnSourceThreadId != null && params.turnSourceThreadId !== "" ? String(params.turnSourceThreadId) : void 0;
++	if (!canDeliverDirectly) {
++		await callGatewayTool("chat.inject", { timeoutMs: 6e4 }, {
++			sessionKey,
++			message: buildExecApprovalFollowupMessage(resultText)
++		});
++		return true;
++	}
+ 	await callGatewayTool("agent", { timeoutMs: 6e4 }, {
+ 		sessionKey,
+ 		message: buildExecApprovalFollowupPrompt(resultText),
+-		deliver: true,
+-		bestEffortDeliver: true,
+-		channel: channel && to ? channel : void 0,
+-		to: channel && to ? to : void 0,
+-		accountId: channel && to ? params.turnSourceAccountId?.trim() || void 0 : void 0,
+-		threadId: channel && to ? threadId : void 0,
++		deliver: canDeliverDirectly,
++		bestEffortDeliver: canDeliverDirectly,
++		channel: canDeliverDirectly ? channel : void 0,
++		to: canDeliverDirectly ? to : void 0,
++		accountId: canDeliverDirectly ? params.turnSourceAccountId?.trim() || void 0 : void 0,
++		threadId: canDeliverDirectly ? threadId : void 0,
+ 		idempotencyKey: `exec-approval-followup:${params.approvalId}`
+ 	}, { expectFinal: true });
+ 	return true;
+diff --git a/dist/discord-CcCLMjHw.js b/dist/discord-CcCLMjHw.js
+index 8ba5185..9e1bcb1 100644
+--- a/dist/discord-CcCLMjHw.js
++++ b/dist/discord-CcCLMjHw.js
+@@ -58683,22 +58683,37 @@ function buildExecApprovalFollowupPrompt(resultText) {
+ 		"If it failed, explain what went wrong."
+ 	].join("\n");
+ }
++function buildExecApprovalFollowupMessage(resultText) {
++	return [
++		"Command update:",
++		"",
++		resultText.trim()
++	].join("\n");
++}
+ async function sendExecApprovalFollowup(params) {
+ 	const sessionKey = params.sessionKey?.trim();
+ 	const resultText = params.resultText.trim();
+ 	if (!sessionKey || !resultText) return false;
+ 	const channel = params.turnSourceChannel?.trim();
+ 	const to = params.turnSourceTo?.trim();
++	const canDeliverDirectly = Boolean(channel && to);
+ 	const threadId = params.turnSourceThreadId != null && params.turnSourceThreadId !== "" ? String(params.turnSourceThreadId) : void 0;
++	if (!canDeliverDirectly) {
++		await callGatewayTool("chat.inject", { timeoutMs: 6e4 }, {
++			sessionKey,
++			message: buildExecApprovalFollowupMessage(resultText)
++		});
++		return true;
++	}
+ 	await callGatewayTool("agent", { timeoutMs: 6e4 }, {
+ 		sessionKey,
+ 		message: buildExecApprovalFollowupPrompt(resultText),
+-		deliver: true,
+-		bestEffortDeliver: true,
+-		channel: channel && to ? channel : void 0,
+-		to: channel && to ? to : void 0,
+-		accountId: channel && to ? params.turnSourceAccountId?.trim() || void 0 : void 0,
+-		threadId: channel && to ? threadId : void 0,
++		deliver: canDeliverDirectly,
++		bestEffortDeliver: canDeliverDirectly,
++		channel: canDeliverDirectly ? channel : void 0,
++		to: canDeliverDirectly ? to : void 0,
++		accountId: canDeliverDirectly ? params.turnSourceAccountId?.trim() || void 0 : void 0,
++		threadId: canDeliverDirectly ? threadId : void 0,
+ 		idempotencyKey: `exec-approval-followup:${params.approvalId}`
+ 	}, { expectFinal: true });
+ 	return true;
+diff --git a/dist/model-selection-46xMp11W.js b/dist/model-selection-46xMp11W.js
+index fdd1f3e..75c115a 100644
+--- a/dist/model-selection-46xMp11W.js
++++ b/dist/model-selection-46xMp11W.js
+@@ -66460,22 +66460,37 @@ function buildExecApprovalFollowupPrompt(resultText) {
+ 		"If it failed, explain what went wrong."
+ 	].join("\n");
+ }
++function buildExecApprovalFollowupMessage(resultText) {
++	return [
++		"Command update:",
++		"",
++		resultText.trim()
++	].join("\n");
++}
+ async function sendExecApprovalFollowup(params) {
+ 	const sessionKey = params.sessionKey?.trim();
+ 	const resultText = params.resultText.trim();
+ 	if (!sessionKey || !resultText) return false;
+ 	const channel = params.turnSourceChannel?.trim();
+ 	const to = params.turnSourceTo?.trim();
++	const canDeliverDirectly = Boolean(channel && to);
+ 	const threadId = params.turnSourceThreadId != null && params.turnSourceThreadId !== "" ? String(params.turnSourceThreadId) : void 0;
++	if (!canDeliverDirectly) {
++		await callGatewayTool("chat.inject", { timeoutMs: 6e4 }, {
++			sessionKey,
++			message: buildExecApprovalFollowupMessage(resultText)
++		});
++		return true;
++	}
+ 	await callGatewayTool("agent", { timeoutMs: 6e4 }, {
+ 		sessionKey,
+ 		message: buildExecApprovalFollowupPrompt(resultText),
+-		deliver: true,
+-		bestEffortDeliver: true,
+-		channel: channel && to ? channel : void 0,
+-		to: channel && to ? to : void 0,
+-		accountId: channel && to ? params.turnSourceAccountId?.trim() || void 0 : void 0,
+-		threadId: channel && to ? threadId : void 0,
++		deliver: canDeliverDirectly,
++		bestEffortDeliver: canDeliverDirectly,
++		channel: canDeliverDirectly ? channel : void 0,
++		to: canDeliverDirectly ? to : void 0,
++		accountId: canDeliverDirectly ? params.turnSourceAccountId?.trim() || void 0 : void 0,
++		threadId: canDeliverDirectly ? threadId : void 0,
+ 		idempotencyKey: `exec-approval-followup:${params.approvalId}`
+ 	}, { expectFinal: true });
+ 	return true;
+diff --git a/dist/model-selection-CU2b7bN6.js b/dist/model-selection-CU2b7bN6.js
+index dbc47c1..ddc5f4c 100644
+--- a/dist/model-selection-CU2b7bN6.js
++++ b/dist/model-selection-CU2b7bN6.js
+@@ -66070,6 +66070,13 @@ function buildExecApprovalFollowupPrompt(resultText) {
+ 		"If it failed, explain what went wrong."
+ 	].join("\n");
+ }
++function buildExecApprovalFollowupMessage(resultText) {
++	return [
++		"Command update:",
++		"",
++		resultText.trim()
++	].join("\n");
++}
+ async function sendExecApprovalFollowup(params) {
+ 	const sessionKey = params.sessionKey?.trim();
+ 	const resultText = params.resultText.trim();
+@@ -66078,6 +66085,13 @@ async function sendExecApprovalFollowup(params) {
+ 	const to = params.turnSourceTo?.trim();
+ 	const canDeliverDirectly = Boolean(channel && to);
+ 	const threadId = params.turnSourceThreadId != null && params.turnSourceThreadId !== "" ? String(params.turnSourceThreadId) : void 0;
++	if (!canDeliverDirectly) {
++		await callGatewayTool("chat.inject", { timeoutMs: 6e4 }, {
++			sessionKey,
++			message: buildExecApprovalFollowupMessage(resultText)
++		});
++		return true;
++	}
+ 	await callGatewayTool("agent", { timeoutMs: 6e4 }, {
+ 		sessionKey,
+ 		message: buildExecApprovalFollowupPrompt(resultText),
+diff --git a/dist/plugin-sdk/thread-bindings-SYAnWHuW.js b/dist/plugin-sdk/thread-bindings-SYAnWHuW.js
+index 28ab606..b826238 100644
+--- a/dist/plugin-sdk/thread-bindings-SYAnWHuW.js
++++ b/dist/plugin-sdk/thread-bindings-SYAnWHuW.js
+@@ -56750,6 +56750,13 @@ function buildExecApprovalFollowupPrompt(resultText) {
+ 		"If it failed, explain what went wrong."
+ 	].join("\n");
+ }
++function buildExecApprovalFollowupMessage(resultText) {
++	return [
++		"Command update:",
++		"",
++		resultText.trim()
++	].join("\n");
++}
+ async function sendExecApprovalFollowup(params) {
+ 	const sessionKey = params.sessionKey?.trim();
+ 	const resultText = params.resultText.trim();
+@@ -56758,6 +56765,13 @@ async function sendExecApprovalFollowup(params) {
+ 	const to = params.turnSourceTo?.trim();
+ 	const canDeliverDirectly = Boolean(channel && to);
+ 	const threadId = params.turnSourceThreadId != null && params.turnSourceThreadId !== "" ? String(params.turnSourceThreadId) : void 0;
++	if (!canDeliverDirectly) {
++		await callGatewayTool("chat.inject", { timeoutMs: 6e4 }, {
++			sessionKey,
++			message: buildExecApprovalFollowupMessage(resultText)
++		});
++		return true;
++	}
+ 	await callGatewayTool("agent", { timeoutMs: 6e4 }, {
+ 		sessionKey,
+ 		message: buildExecApprovalFollowupPrompt(resultText),
+diff --git a/dist/reply-Bm8VrLQh.js b/dist/reply-Bm8VrLQh.js
+index 61682d3..b01737b 100644
+--- a/dist/reply-Bm8VrLQh.js
++++ b/dist/reply-Bm8VrLQh.js
+@@ -64020,22 +64020,37 @@ function buildExecApprovalFollowupPrompt(resultText) {
+ 		"If it failed, explain what went wrong."
+ 	].join("\n");
+ }
++function buildExecApprovalFollowupMessage(resultText) {
++	return [
++		"Command update:",
++		"",
++		resultText.trim()
++	].join("\n");
++}
+ async function sendExecApprovalFollowup(params) {
+ 	const sessionKey = params.sessionKey?.trim();
+ 	const resultText = params.resultText.trim();
+ 	if (!sessionKey || !resultText) return false;
+ 	const channel = params.turnSourceChannel?.trim();
+ 	const to = params.turnSourceTo?.trim();
++	const canDeliverDirectly = Boolean(channel && to);
+ 	const threadId = params.turnSourceThreadId != null && params.turnSourceThreadId !== "" ? String(params.turnSourceThreadId) : void 0;
++	if (!canDeliverDirectly) {
++		await callGatewayTool("chat.inject", { timeoutMs: 6e4 }, {
++			sessionKey,
++			message: buildExecApprovalFollowupMessage(resultText)
++		});
++		return true;
++	}
+ 	await callGatewayTool("agent", { timeoutMs: 6e4 }, {
+ 		sessionKey,
+ 		message: buildExecApprovalFollowupPrompt(resultText),
+-		deliver: true,
+-		bestEffortDeliver: true,
+-		channel: channel && to ? channel : void 0,
+-		to: channel && to ? to : void 0,
+-		accountId: channel && to ? params.turnSourceAccountId?.trim() || void 0 : void 0,
+-		threadId: channel && to ? threadId : void 0,
++		deliver: canDeliverDirectly,
++		bestEffortDeliver: canDeliverDirectly,
++		channel: canDeliverDirectly ? channel : void 0,
++		to: canDeliverDirectly ? to : void 0,
++		accountId: canDeliverDirectly ? params.turnSourceAccountId?.trim() || void 0 : void 0,
++		threadId: canDeliverDirectly ? threadId : void 0,
+ 		idempotencyKey: `exec-approval-followup:${params.approvalId}`
+ 	}, { expectFinal: true });
+ 	return true;
+diff --git a/dist/reply-Bm8VrLQh.js b/dist/reply-Bm8VrLQh.js
+index b01737b..1fb2384 100644
+--- a/dist/reply-Bm8VrLQh.js
++++ b/dist/reply-Bm8VrLQh.js
+@@ -158635,6 +158635,9 @@ const handleApproveCommand = async (params, allowTextCommands) => {
+ 			reply: { text: `❌ Failed to submit approval: ${String(err)}` }
+ 		};
+ 	}
++	if (isInternalMessageChannel(params.command.channel)) return {
++		shouldContinue: false
++	};
+ 	return {
+ 		shouldContinue: false,
+ 		reply: { text: `✅ Exec approval ${parsed.decision} submitted for ${parsed.id}.` }
+diff --git a/dist/auth-profiles-DRjqKE3G.js b/dist/auth-profiles-DRjqKE3G.js
+index 3481472..69f9ba5 100644
+--- a/dist/auth-profiles-DRjqKE3G.js
++++ b/dist/auth-profiles-DRjqKE3G.js
+@@ -113686,6 +113686,9 @@ const handleApproveCommand = async (params, allowTextCommands) => {
+ 			reply: { text: `❌ Failed to submit approval: ${String(err)}` }
+ 		};
+ 	}
++	if (isInternalMessageChannel(params.command.channel)) return {
++		shouldContinue: false
++	};
+ 	return {
+ 		shouldContinue: false,
+ 		reply: { text: `✅ Exec approval ${parsed.decision} submitted for ${parsed.id}.` }
+diff --git a/dist/auth-profiles-DDVivXkv.js b/dist/auth-profiles-DDVivXkv.js
+index 3b7a044..6be32fc 100644
+--- a/dist/auth-profiles-DDVivXkv.js
++++ b/dist/auth-profiles-DDVivXkv.js
+@@ -116257,6 +116257,9 @@ const handleApproveCommand = async (params, allowTextCommands) => {
+ 			reply: { text: `❌ Failed to submit approval: ${String(err)}` }
+ 		};
+ 	}
++	if (isInternalMessageChannel(params.command.channel)) return {
++		shouldContinue: false
++	};
+ 	return {
+ 		shouldContinue: false,
+ 		reply: { text: `✅ Exec approval ${parsed.decision} submitted for ${parsed.id}.` }
+diff --git a/dist/discord-CcCLMjHw.js b/dist/discord-CcCLMjHw.js
+index 9e1bcb1..50b7ba5 100644
+--- a/dist/discord-CcCLMjHw.js
++++ b/dist/discord-CcCLMjHw.js
+@@ -109413,6 +109413,9 @@ const handleApproveCommand = async (params, allowTextCommands) => {
+ 			reply: { text: `❌ Failed to submit approval: ${String(err)}` }
+ 		};
+ 	}
++	if (isInternalMessageChannel(params.command.channel)) return {
++		shouldContinue: false
++	};
+ 	return {
+ 		shouldContinue: false,
+ 		reply: { text: `✅ Exec approval ${parsed.decision} submitted for ${parsed.id}.` }
+diff --git a/dist/model-selection-46xMp11W.js b/dist/model-selection-46xMp11W.js
+index 75c115a..3f3e93f 100644
+--- a/dist/model-selection-46xMp11W.js
++++ b/dist/model-selection-46xMp11W.js
+@@ -117083,6 +117083,9 @@ const handleApproveCommand = async (params, allowTextCommands) => {
+ 			reply: { text: `❌ Failed to submit approval: ${String(err)}` }
+ 		};
+ 	}
++	if (isInternalMessageChannel(params.command.channel)) return {
++		shouldContinue: false
++	};
+ 	return {
+ 		shouldContinue: false,
+ 		reply: { text: `✅ Exec approval ${parsed.decision} submitted for ${parsed.id}.` }
+diff --git a/dist/model-selection-CU2b7bN6.js b/dist/model-selection-CU2b7bN6.js
+index ddc5f4c..345c13a 100644
+--- a/dist/model-selection-CU2b7bN6.js
++++ b/dist/model-selection-CU2b7bN6.js
+@@ -116693,6 +116693,9 @@ const handleApproveCommand = async (params, allowTextCommands) => {
+ 			reply: { text: `❌ Failed to submit approval: ${String(err)}` }
+ 		};
+ 	}
++	if (isInternalMessageChannel(params.command.channel)) return {
++		shouldContinue: false
++	};
+ 	return {
+ 		shouldContinue: false,
+ 		reply: { text: `✅ Exec approval ${parsed.decision} submitted for ${parsed.id}.` }
+diff --git a/dist/plugin-sdk/thread-bindings-SYAnWHuW.js b/dist/plugin-sdk/thread-bindings-SYAnWHuW.js
+index b826238..f6f7db5 100644
+--- a/dist/plugin-sdk/thread-bindings-SYAnWHuW.js
++++ b/dist/plugin-sdk/thread-bindings-SYAnWHuW.js
+@@ -107298,6 +107298,9 @@ const handleApproveCommand = async (params, allowTextCommands) => {
+ 			reply: { text: `❌ Failed to submit approval: ${String(err)}` }
+ 		};
+ 	}
++	if (isInternalMessageChannel(params.command.channel)) return {
++		shouldContinue: false
++	};
+ 	return {
+ 		shouldContinue: false,
+ 		reply: { text: `✅ Exec approval ${parsed.decision} submitted for ${parsed.id}.` }
