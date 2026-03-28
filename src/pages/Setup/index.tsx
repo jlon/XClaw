@@ -36,6 +36,7 @@ import {
   loadSetupTakeoverState,
   loadTakeoverImportStatus,
   startTakeoverImport,
+  syncSetupOpenClawRootMode,
   type SetupInspectionSummary,
   type SetupMode,
   type SetupPlanSummary,
@@ -149,6 +150,7 @@ export function Setup() {
   const [takeoverStatus, setTakeoverStatus] = useState<TakeoverImportSummary | null>(null);
   const [exitDialogOpen, setExitDialogOpen] = useState(false);
   const takeoverActionLockRef = useRef(false);
+  const setupModeRef = useRef<SetupMode>('fresh');
   const [freshWorkspacePath, setFreshWorkspacePath] = useState('');
   const [freshGatewayPortInput, setFreshGatewayPortInput] = useState('');
   const [freshPlanLoading, setFreshPlanLoading] = useState(false);
@@ -234,7 +236,11 @@ export function Setup() {
     if (takeoverModeLocked) {
       return;
     }
+    setupModeRef.current = nextMode;
     setSetupMode(nextMode);
+    void syncSetupOpenClawRootMode(nextMode).catch((error) => {
+      console.error('Failed to sync setup OpenClaw root mode:', error);
+    });
   }, [takeoverModeLocked]);
 
   const loadSetupState = useCallback(async () => {
@@ -315,6 +321,26 @@ export function Setup() {
   useEffect(() => {
     void useGatewayStore.getState().init();
   }, []);
+
+  useEffect(() => {
+    setupModeRef.current = setupMode;
+  }, [setupMode]);
+
+  useEffect(() => {
+    if (setupStateLoading) {
+      return;
+    }
+
+    void syncSetupOpenClawRootMode(setupModeRef.current).catch((error) => {
+      console.error('Failed to sync setup OpenClaw root mode:', error);
+    });
+
+    return () => {
+      void syncSetupOpenClawRootMode(null).catch((error) => {
+        console.error('Failed to restore persisted OpenClaw root mode:', error);
+      });
+    };
+  }, [setupStateLoading]);
 
   useEffect(() => {
     if (!takeoverSubmitting) {

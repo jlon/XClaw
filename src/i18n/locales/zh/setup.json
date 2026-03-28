@@ -114,7 +114,7 @@
             "title": "新建运行配置",
             "description": "先确认默认工作区和网关端口，避免安装完成后再处理冲突。",
             "workspaceLabel": "默认工作区",
-            "workspacePlaceholder": "~/.openclaw/workspace",
+            "workspacePlaceholder": "/path/to/workspace",
             "workspaceHint": "支持绝对路径和 ~/... 展开。",
             "workspaceRequired": "工作区路径不能为空",
             "portLabel": "网关端口",

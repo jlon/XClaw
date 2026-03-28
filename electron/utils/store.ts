@@ -6,6 +6,7 @@
 import { randomBytes } from 'crypto';
 import { app } from 'electron';
 import { resolveSupportedLanguage } from '../../shared/language';
+import { setOpenClawRootMode, type OpenClawRootMode } from './paths';
 
 // Lazy-load electron-store (ESM module)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -35,6 +36,7 @@ export interface AppSettings {
   hasReportedInstall: boolean;
   setupComplete?: boolean;
   takeoverFingerprint?: string;
+  openClawRootMode: OpenClawRootMode;
 
   // Gateway
   gatewayAutoStart: boolean;
@@ -193,6 +195,7 @@ function createDefaultSettings(): AppSettings {
     telemetryEnabled: true,
     machineId: '',
     hasReportedInstall: false,
+    openClawRootMode: 'takeover',
 
     // Gateway
     gatewayAutoStart: true,
@@ -304,6 +307,9 @@ function normalizeImportedSettings(settings: Partial<AppSettings>): Partial<AppS
     settings.gatewayDesiredState,
     settings.gatewayAutoStart,
   );
+  const openClawRootMode = settings.openClawRootMode === 'fresh' || settings.openClawRootMode === 'takeover'
+    ? settings.openClawRootMode
+    : 'takeover';
   return {
     ...settings,
     gatewayDesiredState,
@@ -312,6 +318,7 @@ function normalizeImportedSettings(settings: Partial<AppSettings>): Partial<AppS
       settings.setupComplete,
     ),
     gatewayAutoStart: gatewayDesiredState === 'running',
+    openClawRootMode,
   };
 }
 
@@ -360,6 +367,11 @@ export async function setSetting<K extends keyof AppSettings>(
     });
     return;
   }
+  if (key === 'openClawRootMode') {
+    store.set(key, value);
+    setOpenClawRootMode(value);
+    return;
+  }
   store.set(key, value);
 }
 
@@ -373,8 +385,10 @@ export async function getAllSettings(): Promise<AppSettings> {
 
 export async function replaceAllSettings(settings: AppSettings): Promise<void> {
   const store = await getSettingsStore();
+  const normalized = normalizeImportedSettings(settings);
   store.clear();
-  store.set(normalizeImportedSettings(settings));
+  store.set(normalized);
+  setOpenClawRootMode(normalized.openClawRootMode ?? 'takeover');
 }
 
 /**
@@ -383,6 +397,7 @@ export async function replaceAllSettings(settings: AppSettings): Promise<void> {
 export async function resetSettings(): Promise<void> {
   const store = await getSettingsStore();
   store.clear();
+  setOpenClawRootMode('takeover');
 }
 
 /**
@@ -400,7 +415,9 @@ export async function importSettings(json: string): Promise<void> {
   try {
     const settings = JSON.parse(json);
     const store = await getSettingsStore();
-    store.set(normalizeImportedSettings(settings));
+    const normalized = normalizeImportedSettings(settings);
+    store.set(normalized);
+    setOpenClawRootMode(normalized.openClawRootMode ?? 'takeover');
   } catch {
     throw new Error('Invalid settings JSON');
   }

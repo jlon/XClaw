@@ -1,7 +1,6 @@
 import { constants } from 'fs';
 import { access, mkdir, readFile, rm, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
-import { homedir } from 'os';
 import type { BrowserWindow } from 'electron';
 import type { GatewayManager } from '../gateway/manager';
 import type { GatewayRuntimeController } from '../gateway/runtime-controller';
@@ -17,6 +16,7 @@ import { readOpenClawConfig, writeOpenClawConfig } from '../utils/channel-config
 import { withConfigLock } from '../utils/config-mutex';
 import { validateWorkspacePathInput } from '../utils/workspace-path';
 import { injectStarOfficePrompt } from '../studio/prompt-injector';
+import { getManagedOpenClawConfigDir, setOpenClawRootMode, getOpenClawDefaultWorkspaceDir } from '../utils/paths';
 
 type SetupActivationOptions = {
   gatewayManager: GatewayManager;
@@ -35,7 +35,8 @@ const describeError = (error: unknown): string => (
   error instanceof Error ? error.message : String(error)
 );
 
-const OPENCLAW_CONFIG_PATH = join(homedir(), '.openclaw', 'openclaw.json');
+const getFreshOpenClawConfigPath = (): string => join(getManagedOpenClawConfigDir(), 'openclaw.json');
+const getFreshDefaultWorkspacePath = (): string => join(getManagedOpenClawConfigDir(), 'workspace');
 
 type FreshSetupRollbackSnapshot = {
   settings: AppSettings;
@@ -84,12 +85,14 @@ async function applyFreshSetupSelections(
     throw new Error('网关端口必须是 1-65535 的整数');
   }
 
-  const requestedWorkspace = options.setup.workspacePath ?? join(homedir(), '.openclaw', 'workspace');
+  const requestedWorkspace = options.setup.workspacePath ?? getFreshDefaultWorkspacePath();
   const workspaceValidation = validateWorkspacePathInput(requestedWorkspace);
   if (!workspaceValidation.normalizedPath) {
     throw new Error(workspaceValidation.error ?? '工作区路径无效');
   }
 
+  setOpenClawRootMode('fresh');
+  await setSetting('openClawRootMode', 'fresh');
   await setSetting('gatewayPort', gatewayPort);
   options.gatewayManager.setPort(gatewayPort);
   await mkdir(workspaceValidation.normalizedPath, { recursive: true });
@@ -130,7 +133,7 @@ async function resolveConfiguredWorkspacePath(): Promise<string | null> {
     : {};
   const requestedWorkspace = typeof defaults.workspace === 'string' && defaults.workspace.trim()
     ? defaults.workspace.trim()
-    : join(homedir(), '.openclaw', 'workspace');
+    : getOpenClawDefaultWorkspaceDir();
   const workspaceValidation = validateWorkspacePathInput(requestedWorkspace);
   return workspaceValidation.normalizedPath;
 }
@@ -142,22 +145,23 @@ async function captureFreshSetupRollbackSnapshot(
     return null;
   }
 
-  const requestedWorkspace = options.setup.workspacePath ?? join(homedir(), '.openclaw', 'workspace');
+  const requestedWorkspace = options.setup.workspacePath ?? getFreshDefaultWorkspacePath();
   const workspaceValidation = validateWorkspacePathInput(requestedWorkspace);
   if (!workspaceValidation.normalizedPath) {
     throw new Error(workspaceValidation.error ?? '工作区路径无效');
   }
 
+  const openClawConfigPath = getFreshOpenClawConfigPath();
   const [settings, configExisted, workspaceExisted] = await Promise.all([
     getAllSettings(),
-    fileExists(OPENCLAW_CONFIG_PATH),
+    fileExists(openClawConfigPath),
     fileExists(workspaceValidation.normalizedPath),
   ]);
 
   return {
     settings,
     configExisted,
-    configRaw: configExisted ? await readFile(OPENCLAW_CONFIG_PATH, 'utf-8') : null,
+    configRaw: configExisted ? await readFile(openClawConfigPath, 'utf-8') : null,
     workspacePath: workspaceValidation.normalizedPath,
     workspaceExisted,
   };
@@ -172,13 +176,15 @@ async function restoreFreshSetupRollbackSnapshot(
   }
 
   await replaceAllSettings(snapshot.settings);
+  setOpenClawRootMode(snapshot.settings.openClawRootMode);
   options.gatewayManager.setPort(snapshot.settings.gatewayPort);
+  const openClawConfigPath = getFreshOpenClawConfigPath();
 
   if (snapshot.configExisted && snapshot.configRaw !== null) {
-    await mkdir(dirname(OPENCLAW_CONFIG_PATH), { recursive: true });
-    await writeFile(OPENCLAW_CONFIG_PATH, snapshot.configRaw, 'utf-8');
+    await mkdir(dirname(openClawConfigPath), { recursive: true });
+    await writeFile(openClawConfigPath, snapshot.configRaw, 'utf-8');
   } else {
-    await rm(OPENCLAW_CONFIG_PATH, { force: true });
+    await rm(openClawConfigPath, { force: true });
   }
 
   if (!snapshot.workspaceExisted) {
@@ -193,6 +199,8 @@ async function applyTakeoverSetupSelections(
     return;
   }
 
+  setOpenClawRootMode('takeover');
+  await setSetting('openClawRootMode', 'takeover');
   const configuredGatewayPort = normalizeRequestedGatewayPort(await getSetting('gatewayPort'));
   if (configuredGatewayPort !== null) {
     options.gatewayManager.setPort(configuredGatewayPort);

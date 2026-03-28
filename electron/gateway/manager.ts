@@ -54,6 +54,7 @@ import {
 import { classifyGatewayStderrMessage, recordGatewayStartupStderrLine } from './startup-stderr';
 import { runGatewayStartupSequence } from './startup-orchestrator';
 import { setSetting } from '../utils/store';
+import type { ManagedGatewayProcess } from './process-types';
 
 export interface GatewayStatus {
   state: GatewayLifecycleState;
@@ -111,7 +112,7 @@ type GatewayStopReason = 'user' | 'restart' | 'replace' | 'quit';
  * Handles starting, stopping, and communicating with the OpenClaw Gateway
  */
 export class GatewayManager extends EventEmitter {
-  private process: Electron.UtilityProcess | null = null;
+  private process: ManagedGatewayProcess | null = null;
   private processExitCode: number | null = null; // set by exit event, replaces exitCode/signalCode
   private ownsProcess = false;
   private ws: WebSocket | null = null;

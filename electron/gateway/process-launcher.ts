@@ -1,12 +1,14 @@
 import { app, utilityProcess } from 'electron';
 import { existsSync, writeFileSync } from 'fs';
-import { spawn } from 'node:child_process';
+import { spawn, type ChildProcess } from 'node:child_process';
 import path from 'path';
 import type { GatewayLaunchContext } from './config-sync';
 import type { GatewayLifecycleState } from './process-policy';
 import { logger } from '../utils/logger';
 import { appendNodeRequireToNodeOptions } from '../utils/paths';
+import { applyOpenClawLaunchEnv } from '../utils/openclaw-runtime';
 import { getGatewayHandoffMarkerPath, writeGatewayHandoffMarker } from './handoff-marker';
+import type { ManagedGatewayProcess } from './process-types';
 
 const GATEWAY_FETCH_PRELOAD_SOURCE = `'use strict';
 (function () {
@@ -157,8 +159,12 @@ function isPortFree(port) {
   const nextEnv = {
     ...process.env,
     ...payload.runtimeEnv,
-    ELECTRON_RUN_AS_NODE: '1',
   };
+  if (payload.useElectronRunAsNode) {
+    nextEnv.ELECTRON_RUN_AS_NODE = '1';
+  } else {
+    delete nextEnv.ELECTRON_RUN_AS_NODE;
+  }
   delete nextEnv.CLAWX_GATEWAY_HANDOFF_PAYLOAD;
 
   const child = spawn(payload.execPath, [payload.entryScript, ...payload.gatewayArgs], {
@@ -219,14 +225,17 @@ export async function launchGatewayProcess(options: {
   getShouldReconnect: () => boolean;
   onStderrLine: (line: string) => void;
   onSpawn: (pid: number | undefined) => void;
-  onExit: (child: Electron.UtilityProcess, code: number | null) => void;
+  onExit: (child: ManagedGatewayProcess, code: number | null) => void;
   onError: (error: Error) => void;
-}): Promise<{ child: Electron.UtilityProcess; lastSpawnSummary: string }> {
+}): Promise<{ child: ManagedGatewayProcess; lastSpawnSummary: string }> {
   const {
     openclawDir,
     entryScript,
     gatewayArgs,
     forkEnv,
+    execPath,
+    runtimeKind,
+    useElectronRunAsNode,
     mode,
     binPathExists,
     loadedProviderKeyCount,
@@ -235,18 +244,28 @@ export async function launchGatewayProcess(options: {
   } = options.launchContext;
 
   logger.info(
-    `Starting Gateway process (mode=${mode}, port=${options.port}, entry="${entryScript}", args="${options.sanitizeSpawnArgs(gatewayArgs).join(' ')}", cwd="${openclawDir}", bundledBin=${binPathExists ? 'yes' : 'no'}, providerKeys=${loadedProviderKeyCount}, channels=${channelStartupSummary}, proxy=${proxySummary})`,
+    `Starting Gateway process (mode=${mode}, runtime=${runtimeKind}, port=${options.port}, entry="${entryScript}", args="${options.sanitizeSpawnArgs(gatewayArgs).join(' ')}", cwd="${openclawDir}", bundledBin=${binPathExists ? 'yes' : 'no'}, providerKeys=${loadedProviderKeyCount}, channels=${channelStartupSummary}, proxy=${proxySummary})`,
   );
-  const lastSpawnSummary = `mode=${mode}, entry="${entryScript}", args="${options.sanitizeSpawnArgs(gatewayArgs).join(' ')}", cwd="${openclawDir}"`;
-  const runtimeEnv = buildGatewayRuntimeEnv(forkEnv);
+  const lastSpawnSummary = `mode=${mode}, runtime=${runtimeKind}, exec="${execPath}", entry="${entryScript}", args="${options.sanitizeSpawnArgs(gatewayArgs).join(' ')}", cwd="${openclawDir}"`;
+  const runtimeEnv = applyOpenClawLaunchEnv(
+    buildGatewayRuntimeEnv(forkEnv),
+    { useElectronRunAsNode },
+  );
 
-  return await new Promise<{ child: Electron.UtilityProcess; lastSpawnSummary: string }>((resolve, reject) => {
-    const child = utilityProcess.fork(entryScript, gatewayArgs, {
-      cwd: openclawDir,
-      stdio: 'pipe',
-      env: runtimeEnv as NodeJS.ProcessEnv,
-      serviceName: 'OpenClaw Gateway',
-    });
+  return await new Promise<{ child: ManagedGatewayProcess; lastSpawnSummary: string }>((resolve, reject) => {
+    const child: ManagedGatewayProcess = runtimeKind === 'node'
+      ? spawn(execPath, [entryScript, ...gatewayArgs], {
+        cwd: openclawDir,
+        stdio: ['ignore', 'pipe', 'pipe'],
+        env: runtimeEnv,
+        windowsHide: true,
+      })
+      : utilityProcess.fork(entryScript, gatewayArgs, {
+        cwd: openclawDir,
+        stdio: 'pipe',
+        env: runtimeEnv,
+        serviceName: 'OpenClaw Gateway',
+      });
 
     let settled = false;
     const resolveOnce = () => {
@@ -303,11 +322,12 @@ export async function launchGatewayHandoffProcess(options: {
     expiresAt: Date.now() + 75_000,
   });
   const payload = Buffer.from(JSON.stringify({
-    execPath: process.execPath,
+    execPath: options.launchContext.execPath,
     cwd: options.launchContext.openclawDir,
     entryScript: options.launchContext.entryScript,
     gatewayArgs: options.launchContext.gatewayArgs,
     runtimeEnv,
+    useElectronRunAsNode: options.launchContext.useElectronRunAsNode,
     waitForPid: options.waitForPid,
     waitTimeoutMs: 30_000,
     port: options.port,

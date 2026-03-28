@@ -41,18 +41,12 @@ export interface ClawHubInstalledSkillResult {
 }
 
 export class ClawHubService {
-    private workDir: string;
     private cliPath: string;
     private cliEntryPath: string;
     private useNodeRunner: boolean;
     private ansiRegex: RegExp;
 
     constructor() {
-        // Use the user's OpenClaw config directory (~/.openclaw) for skill management
-        // This avoids installing skills into the project's openclaw submodule
-        this.workDir = getOpenClawConfigDir();
-        ensureDir(this.workDir);
-
         const binPath = getClawHubCliBinPath();
         const entryPath = getClawHubCliEntryPath();
 
@@ -68,6 +62,12 @@ export class ClawHubService {
         const csi = String.fromCharCode(155);
         const pattern = `(?:${esc}|${csi})[[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]`;
         this.ansiRegex = new RegExp(pattern, 'g');
+    }
+
+    private getWorkDir(): string {
+        const workDir = getOpenClawConfigDir();
+        ensureDir(workDir);
+        return workDir;
     }
 
     private stripAnsi(line: string): string {
@@ -91,7 +91,7 @@ export class ClawHubService {
     }
 
     private resolveSkillDirByManifestName(candidates: string[]): string | null {
-        const skillsRoot = path.join(this.workDir, 'skills');
+        const skillsRoot = path.join(this.getWorkDir(), 'skills');
         if (!fs.existsSync(skillsRoot)) return null;
 
         const wanted = new Set(
@@ -128,6 +128,7 @@ export class ClawHubService {
      */
     private async runCommand(args: string[]): Promise<string> {
         return new Promise((resolve, reject) => {
+            const workDir = this.getWorkDir();
             if (this.useNodeRunner && !fs.existsSync(this.cliEntryPath)) {
                 reject(new Error(`ClawHub CLI entry not found at: ${this.cliEntryPath}`));
                 return;
@@ -156,11 +157,11 @@ export class ClawHubService {
             const spawnCmd = useShell ? quoteForCmd(this.cliPath) : this.cliPath;
             const spawnArgs = useShell ? commandArgs.map(a => quoteForCmd(a)) : commandArgs;
             const child = spawn(spawnCmd, spawnArgs, {
-                cwd: this.workDir,
+                cwd: workDir,
                 shell: useShell,
                 env: {
                     ...env,
-                    CLAWHUB_WORKDIR: this.workDir,
+                    CLAWHUB_WORKDIR: workDir,
                 },
                 windowsHide: true,
             });
@@ -319,16 +320,17 @@ export class ClawHubService {
      */
     async uninstall(params: ClawHubUninstallParams): Promise<void> {
         const fsPromises = fs.promises;
+        const workDir = this.getWorkDir();
 
         // 1. Delete the skill directory
-        const skillDir = path.join(this.workDir, 'skills', params.slug);
+        const skillDir = path.join(workDir, 'skills', params.slug);
         if (fs.existsSync(skillDir)) {
             console.log(`Deleting skill directory: ${skillDir}`);
             await fsPromises.rm(skillDir, { recursive: true, force: true });
         }
 
         // 2. Remove from lock.json
-        const lockFile = path.join(this.workDir, '.clawhub', 'lock.json');
+        const lockFile = path.join(workDir, '.clawhub', 'lock.json');
         if (fs.existsSync(lockFile)) {
             try {
                 const lockData = JSON.parse(fs.readFileSync(lockFile, 'utf8'));
@@ -363,7 +365,7 @@ export class ClawHubService {
                         slug,
                         version: match[2],
                         source: 'openclaw-managed',
-                        baseDir: path.join(this.workDir, 'skills', slug),
+                        baseDir: path.join(this.getWorkDir(), 'skills', slug),
                     };
                 }
                 return null;
@@ -383,7 +385,7 @@ export class ClawHubService {
             return preferredBaseDir.trim();
         }
         const directSkillDir = uniqueCandidates
-            .map((id) => path.join(this.workDir, 'skills', id))
+            .map((id) => path.join(this.getWorkDir(), 'skills', id))
             .find((dir) => fs.existsSync(dir));
         return directSkillDir || this.resolveSkillDirByManifestName(uniqueCandidates);
     }

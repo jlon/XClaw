@@ -6,6 +6,7 @@ import { PORTS } from '../utils/config';
 import { normalizeWorkspacePath, validateWorkspacePathInput } from '../utils/workspace-path';
 import { findSuggestedGatewayPort, isLocalGatewayPortAvailable } from '../gateway/port-utils';
 import { probeGatewayReady } from '../gateway/ws-client';
+import { getManagedOpenClawConfigDir } from '../utils/paths';
 import {
   detectLegacySetupFootprint,
   resolveSetupBootstrapState,
@@ -557,9 +558,8 @@ function parseRequestedGatewayPort(value: unknown): number | null {
 
 function buildSuggestedFreshWorkspacePath(
   configuredWorkspacePaths: string[],
-  defaultWorkspacePath: string,
 ): string {
-  const normalizedDefault = normalizeWorkspacePath(defaultWorkspacePath);
+  const normalizedDefault = normalizeWorkspacePath(join(getManagedOpenClawConfigDir(), 'workspace'));
   const existing = new Set(configuredWorkspacePaths.map((value) => normalizePathForFilesystemComparison(value)));
 
   if (!existing.has(normalizePathForFilesystemComparison(normalizedDefault))) {
@@ -797,8 +797,8 @@ export function buildSetupPlan(
     && !inspection.runtime.configChanging;
   const suggestedFreshWorkspacePath = buildSuggestedFreshWorkspacePath(
     inspection.configuredWorkspacePaths,
-    inspection.defaultWorkspacePath,
   );
+  const managedOpenClawDir = getManagedOpenClawConfigDir();
   const freshGatewayPort = request.gatewayPort !== undefined
     ? requestedGatewayPort
     : (inspection.runtime.portAvailable ? inspection.gatewayPort : inspection.runtime.suggestedGatewayPort);
@@ -892,8 +892,10 @@ export function buildSetupPlan(
     writes: {
       immediateTargets: mode === 'takeover'
         ? ['主进程 settings.setupComplete', 'XClaw provider 派生状态']
-        : ['主进程 settings.setupComplete', OPENCLAW_CONFIG_PATH],
-      deferredTargets: [OPENCLAW_SKILLS_DIR, OPENCLAW_EXTENSIONS_DIR, 'workspace bootstrap context'],
+        : ['主进程 settings.setupComplete', join(managedOpenClawDir, 'openclaw.json')],
+      deferredTargets: mode === 'takeover'
+        ? [OPENCLAW_SKILLS_DIR, OPENCLAW_EXTENSIONS_DIR, 'workspace bootstrap context']
+        : [join(managedOpenClawDir, 'skills'), join(managedOpenClawDir, 'extensions'), 'workspace bootstrap context'],
     },
   };
 }

@@ -1,8 +1,10 @@
 import { app, utilityProcess } from 'electron';
 import { existsSync } from 'node:fs';
+import { spawn } from 'node:child_process';
 import path from 'node:path';
-import { getOpenClawDir, getOpenClawEntryPath } from './paths';
+import { getOpenClawDir, getOpenClawEntryPath, getOpenClawRuntimeEnv } from './paths';
 import { logger } from './logger';
+import { applyOpenClawLaunchEnv, resolveOpenClawLaunchRuntime } from './openclaw-runtime';
 import { getUvMirrorEnv } from './uv-env';
 
 const OPENCLAW_DOCTOR_TIMEOUT_MS = 60_000;
@@ -102,16 +104,31 @@ async function runDoctorCommandWithArgs(
   );
 
   return await new Promise<OpenClawDoctorResult>((resolve) => {
-    const child = utilityProcess.fork(entryScript, args, {
-      cwd: openclawDir,
-      stdio: 'pipe',
-      env: {
+    const runtime = resolveOpenClawLaunchRuntime();
+    const child = runtime.kind === 'node'
+      ? spawn(runtime.execPath, [entryScript, ...args], {
+        cwd: openclawDir,
+        stdio: ['ignore', 'pipe', 'pipe'],
+        env: applyOpenClawLaunchEnv({
+          ...process.env,
+          ...getOpenClawRuntimeEnv(),
+          ...uvEnv,
+          PATH: finalPath,
+          OPENCLAW_NO_RESPAWN: '1',
+        }, runtime),
+        windowsHide: true,
+      })
+      : utilityProcess.fork(entryScript, args, {
+        cwd: openclawDir,
+        stdio: 'pipe',
+        env: applyOpenClawLaunchEnv({
         ...process.env,
+        ...getOpenClawRuntimeEnv(),
         ...uvEnv,
         PATH: finalPath,
         OPENCLAW_NO_RESPAWN: '1',
-      } as NodeJS.ProcessEnv,
-    });
+        }, runtime),
+      });
 
     let stdout = '';
     let stderr = '';

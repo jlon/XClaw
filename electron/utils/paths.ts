@@ -5,7 +5,7 @@
 import { app } from 'electron';
 import { join, normalize as normalizePath } from 'path';
 import { homedir } from 'os';
-import { existsSync, mkdirSync, readFileSync, realpathSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, realpathSync, renameSync } from 'fs';
 import { logger } from './logger';
 
 export {
@@ -16,6 +16,12 @@ export {
   appendNodeRequireToNodeOptions,
 } from './win-shell';
 
+export type OpenClawRootMode = 'fresh' | 'takeover';
+
+const OPENCLAW_ROOT_MODE_ENV = 'XCLAW_OPENCLAW_ROOT_MODE';
+const OPENCLAW_SETTINGS_FILE = 'settings.json';
+const MANAGED_OPENCLAW_DIRNAME = '.openclaw';
+
 /**
  * Expand ~ to home directory
  */
@@ -24,17 +30,136 @@ export function expandPath(value: string): string {
 }
 
 /**
- * Get OpenClaw config directory
+ * Get the legacy OpenClaw config directory
  */
-export function getOpenClawConfigDir(): string {
+export function getLegacyOpenClawConfigDir(): string {
   return join(homedir(), '.openclaw');
 }
 
 /**
- * Get OpenClaw skills directory
+ * Get the XClaw-managed OpenClaw home directory
  */
+export function getManagedOpenClawHomeDir(): string {
+  return app.getPath('userData');
+}
+
+function getLegacyManagedOpenClawConfigDir(): string {
+  return join(getManagedOpenClawHomeDir(), 'openclaw');
+}
+
+function migrateLegacyManagedOpenClawConfigDir(): void {
+  const nextDir = join(getManagedOpenClawHomeDir(), MANAGED_OPENCLAW_DIRNAME);
+  const legacyDir = getLegacyManagedOpenClawConfigDir();
+  if (!existsSync(legacyDir) || existsSync(nextDir)) {
+    return;
+  }
+  try {
+    renameSync(legacyDir, nextDir);
+  } catch (error) {
+    logger.warn('Failed to migrate legacy managed OpenClaw directory:', error);
+  }
+}
+
+/**
+ * Get the XClaw-managed OpenClaw config directory
+ */
+export function getManagedOpenClawConfigDir(): string {
+  migrateLegacyManagedOpenClawConfigDir();
+  return join(getManagedOpenClawHomeDir(), MANAGED_OPENCLAW_DIRNAME);
+}
+
+export function getOpenClawRuntimeEnv(mode: OpenClawRootMode = getOpenClawRootMode()): Record<string, string> {
+  const configDir = resolveOpenClawConfigDirForMode(mode);
+  const configPath = join(configDir, 'openclaw.json');
+  const runtimeEnv: Record<string, string> = {
+    OPENCLAW_STATE_DIR: configDir,
+    CLAWDBOT_STATE_DIR: configDir,
+    OPENCLAW_CONFIG_PATH: configPath,
+    CLAWDBOT_CONFIG_PATH: configPath,
+  };
+  if (mode === 'fresh') {
+    runtimeEnv.OPENCLAW_HOME = getManagedOpenClawHomeDir();
+  }
+  return runtimeEnv;
+}
+
+function readStoredOpenClawRootMode(): OpenClawRootMode | null {
+  try {
+    const raw = readFileSync(join(app.getPath('userData'), OPENCLAW_SETTINGS_FILE), 'utf-8');
+    const parsed = JSON.parse(raw) as { openClawRootMode?: unknown };
+    return parsed.openClawRootMode === 'fresh' || parsed.openClawRootMode === 'takeover'
+      ? parsed.openClawRootMode
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function resolveOpenClawConfigDirForMode(mode: OpenClawRootMode): string {
+  return mode === 'fresh' ? getManagedOpenClawConfigDir() : getLegacyOpenClawConfigDir();
+}
+
+export function getOpenClawRootMode(): OpenClawRootMode {
+  const envMode = process.env[OPENCLAW_ROOT_MODE_ENV];
+  if (envMode === 'fresh' || envMode === 'takeover') {
+    return envMode;
+  }
+  return readStoredOpenClawRootMode() ?? 'takeover';
+}
+
+export function setOpenClawRootMode(mode: OpenClawRootMode): void {
+  const runtimeEnv = getOpenClawRuntimeEnv(mode);
+  process.env[OPENCLAW_ROOT_MODE_ENV] = mode;
+  process.env.OPENCLAW_STATE_DIR = runtimeEnv.OPENCLAW_STATE_DIR;
+  process.env.CLAWDBOT_STATE_DIR = runtimeEnv.CLAWDBOT_STATE_DIR;
+  process.env.OPENCLAW_CONFIG_PATH = runtimeEnv.OPENCLAW_CONFIG_PATH;
+  process.env.CLAWDBOT_CONFIG_PATH = runtimeEnv.CLAWDBOT_CONFIG_PATH;
+  if (runtimeEnv.OPENCLAW_HOME) {
+    process.env.OPENCLAW_HOME = runtimeEnv.OPENCLAW_HOME;
+  } else {
+    delete process.env.OPENCLAW_HOME;
+  }
+}
+
+export function primeOpenClawRootMode(): OpenClawRootMode {
+  const mode = getOpenClawRootMode();
+  setOpenClawRootMode(mode);
+  return mode;
+}
+
+/**
+ * Get OpenClaw config directory
+ */
+export function getOpenClawConfigDir(): string {
+  return resolveOpenClawConfigDirForMode(getOpenClawRootMode());
+}
+
+export function getOpenClawConfigPath(): string {
+  return join(getOpenClawConfigDir(), 'openclaw.json');
+}
+
 export function getOpenClawSkillsDir(): string {
   return join(getOpenClawConfigDir(), 'skills');
+}
+
+export function getOpenClawExtensionsDir(): string {
+  return join(getOpenClawConfigDir(), 'extensions');
+}
+
+export function getOpenClawCredentialsDir(): string {
+  return join(getOpenClawConfigDir(), 'credentials');
+}
+
+export function getOpenClawAgentsDir(): string {
+  return join(getOpenClawConfigDir(), 'agents');
+}
+
+export function getOpenClawMediaDir(): string {
+  return join(getOpenClawConfigDir(), 'media');
+}
+
+export function getOpenClawDefaultWorkspaceDir(): string {
+  return join(getOpenClawConfigDir(), 'workspace');
 }
 
 /**

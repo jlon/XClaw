@@ -1,7 +1,9 @@
 import { app, utilityProcess } from 'electron';
+import { spawn } from 'node:child_process';
 import path from 'path';
 import { existsSync } from 'fs';
-import { getOpenClawDir, getOpenClawEntryPath } from '../utils/paths';
+import { getOpenClawDir, getOpenClawEntryPath, getOpenClawRuntimeEnv } from '../utils/paths';
+import { applyOpenClawLaunchEnv, resolveOpenClawLaunchRuntime } from '../utils/openclaw-runtime';
 import { getUvMirrorEnv } from '../utils/uv-env';
 import { isPythonReady, setupManagedPython } from '../utils/uv-setup';
 import { logger } from '../utils/logger';
@@ -13,6 +15,7 @@ import {
   readGatewayHandoffMarker,
 } from './handoff-marker';
 import { getSetting } from '../utils/store';
+import type { ManagedGatewayProcess } from './process-types';
 
 export function warmupManagedPythonReadiness(): void {
   void getSetting('setupComplete').then((setupComplete) => {
@@ -33,7 +36,7 @@ export function warmupManagedPythonReadiness(): void {
   });
 }
 
-export async function terminateOwnedGatewayProcess(child: Electron.UtilityProcess): Promise<void> {
+export async function terminateOwnedGatewayProcess(child: ManagedGatewayProcess): Promise<void> {
   let exited = false;
 
   await new Promise<void>((resolve) => {
@@ -375,17 +378,26 @@ export async function runOpenClawDoctorRepair(): Promise<boolean> {
   );
 
   return await new Promise<boolean>((resolve) => {
-    const forkEnv: Record<string, string | undefined> = {
+    const runtime = resolveOpenClawLaunchRuntime();
+    const forkEnv = applyOpenClawLaunchEnv({
       ...baseEnvPatched,
+      ...getOpenClawRuntimeEnv(),
       ...uvEnv,
       OPENCLAW_NO_RESPAWN: '1',
-    };
+    }, runtime);
 
-    const child = utilityProcess.fork(entryScript, doctorArgs, {
-      cwd: openclawDir,
-      stdio: 'pipe',
-      env: forkEnv as NodeJS.ProcessEnv,
-    });
+    const child: ManagedGatewayProcess = runtime.kind === 'node'
+      ? spawn(runtime.execPath, [entryScript, ...doctorArgs], {
+        cwd: openclawDir,
+        stdio: ['ignore', 'pipe', 'pipe'],
+        env: forkEnv,
+        windowsHide: true,
+      })
+      : utilityProcess.fork(entryScript, doctorArgs, {
+        cwd: openclawDir,
+        stdio: 'pipe',
+        env: forkEnv,
+      });
 
     let settled = false;
     const finish = (ok: boolean) => {

@@ -113,7 +113,7 @@
             "title": "新規セットアップの実行設定",
             "description": "完了前にデフォルトのワークスペースとゲートウェイポートを確認します。",
             "workspaceLabel": "デフォルトワークスペース",
-            "workspacePlaceholder": "~/.openclaw/workspace",
+            "workspacePlaceholder": "/path/to/workspace",
             "workspaceHint": "絶対パスと ~/... 展開を利用できます。",
             "workspaceRequired": "ワークスペースのパスを入力してください",
             "portLabel": "ゲートウェイポート",

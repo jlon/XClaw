@@ -13,7 +13,7 @@ import {
 import { getTakeoverImportStatus, resetTakeoverImportStatus, runTakeoverImport } from '../../main/takeover-import';
 import { runSetupActivationSideEffects } from '../../main/setup-activation';
 import { getAllSettings, getSetting, replaceAllSettings, setSetting } from '../../utils/store';
-import { getOpenClawStatus } from '../../utils/paths';
+import { getOpenClawStatus, primeOpenClawRootMode, setOpenClawRootMode } from '../../utils/paths';
 
 const hasTakeoverFingerprint = async (): Promise<boolean> => {
   const fingerprint = await getSetting('takeoverFingerprint');
@@ -89,6 +89,18 @@ export async function handleAppRoutes(
 
   if (url.pathname === '/api/app/setup-environment-cancel' && req.method === 'POST') {
     sendJson(res, 200, await cancelSetupEnvironmentTask());
+    return true;
+  }
+
+  if (url.pathname === '/api/app/setup-root-mode' && req.method === 'POST') {
+    const body = await parseJsonBody<{ mode?: 'fresh' | 'takeover' | null }>(req);
+    const mode = body.mode;
+    if (mode === 'fresh' || mode === 'takeover') {
+      setOpenClawRootMode(mode);
+      sendJson(res, 200, { success: true, mode });
+      return true;
+    }
+    sendJson(res, 200, { success: true, mode: primeOpenClawRootMode() });
     return true;
   }
 

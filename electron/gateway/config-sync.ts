@@ -1,12 +1,12 @@
 import { app } from 'electron';
 import path from 'path';
 import { existsSync, readFileSync, cpSync, mkdirSync, rmSync } from 'fs';
-import { homedir } from 'os';
 import { join } from 'path';
 import { getAllSettings } from '../utils/store';
 import { getApiKey, getDefaultProvider, getProvider } from '../utils/secure-storage';
 import { getProviderEnvVar, getKeyableProviderTypes } from '../utils/provider-registry';
-import { getOpenClawDir, getOpenClawEntryPath, isOpenClawPresent } from '../utils/paths';
+import { getOpenClawConfigDir, getOpenClawDir, getOpenClawEntryPath, getOpenClawExtensionsDir, getOpenClawRuntimeEnv, isOpenClawPresent } from '../utils/paths';
+import { resolveOpenClawLaunchRuntime } from '../utils/openclaw-runtime';
 import { getUvMirrorEnv } from '../utils/uv-env';
 import { listConfiguredChannels } from '../utils/channel-config';
 import { syncGatewayTokenToConfig, syncBrowserConfigToOpenClaw, syncSessionIdleMinutesToOpenClaw, sanitizeOpenClawConfig } from '../utils/openclaw-auth';
@@ -14,7 +14,7 @@ import { buildProxyEnv, resolveProxySettings } from '../utils/proxy';
 import { syncProxyConfigToOpenClaw } from '../utils/openclaw-proxy';
 import { logger } from '../utils/logger';
 import { prependPathEntry } from '../utils/env-path';
-import { copyPluginFromNodeModules, fixupPluginManifest } from '../utils/plugin-install';
+import { copyPluginFromNodeModules, fixupPluginManifest, repairInstalledPluginMirrors } from '../utils/plugin-install';
 
 export interface GatewayLaunchContext {
   appSettings: Awaited<ReturnType<typeof getAllSettings>>;
@@ -22,6 +22,9 @@ export interface GatewayLaunchContext {
   entryScript: string;
   gatewayArgs: string[];
   forkEnv: Record<string, string | undefined>;
+  execPath: string;
+  runtimeKind: 'node' | 'utility-process';
+  useElectronRunAsNode: boolean;
   mode: 'dev' | 'packaged';
   binPathExists: boolean;
   loadedProviderKeyCount: number;
@@ -40,8 +43,9 @@ const CHANNEL_PLUGIN_MAP: Record<string, { dirName: string; npmName: string; leg
 };
 
 function cleanupLegacyPluginDirs(channelType: string, legacyDirNames: string[]): void {
+  const extensionsDir = getOpenClawExtensionsDir();
   for (const legacyDirName of legacyDirNames) {
-    const legacyDir = join(homedir(), '.openclaw', 'extensions', legacyDirName);
+    const legacyDir = join(extensionsDir, legacyDirName);
     if (!existsSync(legacyDir)) continue;
     try {
       rmSync(legacyDir, { recursive: true, force: true });
@@ -81,12 +85,13 @@ function buildBundledPluginSources(pluginDirName: string): string[] {
  * - Dev mode: falls back to node_modules/ with pnpm-aware dep collection
  */
 function ensureConfiguredPluginsUpgraded(configuredChannels: string[]): void {
+  const extensionsDir = getOpenClawExtensionsDir();
   for (const channelType of configuredChannels) {
     const pluginInfo = CHANNEL_PLUGIN_MAP[channelType];
     if (!pluginInfo) continue;
     const { dirName, npmName, legacyDirNames = [] } = pluginInfo;
 
-    const targetDir = join(homedir(), '.openclaw', 'extensions', dirName);
+    const targetDir = join(extensionsDir, dirName);
     const targetManifest = join(targetDir, 'openclaw.plugin.json');
     const isInstalled = existsSync(targetManifest);
     const installedVersion = isInstalled ? readPluginVersion(join(targetDir, 'package.json')) : null;
@@ -101,7 +106,7 @@ function ensureConfiguredPluginsUpgraded(configuredChannels: string[]): void {
       if (!isInstalled || (sourceVersion && installedVersion && sourceVersion !== installedVersion)) {
         logger.info(`[plugin] ${isInstalled ? 'Auto-upgrading' : 'Installing'} ${channelType} plugin${isInstalled ? `: ${installedVersion} → ${sourceVersion}` : `: ${sourceVersion}`} (bundled)`);
         try {
-          mkdirSync(join(homedir(), '.openclaw', 'extensions'), { recursive: true });
+          mkdirSync(extensionsDir, { recursive: true });
           rmSync(targetDir, { recursive: true, force: true });
           cpSync(bundledDir, targetDir, { recursive: true, dereference: true });
           fixupPluginManifest(targetDir);
@@ -142,7 +147,7 @@ function ensureConfiguredPluginsUpgraded(configuredChannels: string[]): void {
 
       logger.info(`[plugin] ${isInstalled ? 'Auto-upgrading' : 'Installing'} ${channelType} plugin${isInstalled ? `: ${installedVersion} → ${sourceVersion}` : `: ${sourceVersion}`} (dev/node_modules)`);
       try {
-        mkdirSync(join(homedir(), '.openclaw', 'extensions'), { recursive: true });
+        mkdirSync(extensionsDir, { recursive: true });
         copyPluginFromNodeModules(npmPkgPath, targetDir, npmName);
         fixupPluginManifest(targetDir);
         cleanupLegacyPluginDirs(channelType, legacyDirNames);
@@ -175,6 +180,12 @@ export async function syncGatewayConfigBeforeLaunch(
     ensureConfiguredPluginsUpgraded(configuredChannels);
   } catch (err) {
     logger.warn('Failed to auto-upgrade plugins:', err);
+  }
+
+  try {
+    repairInstalledPluginMirrors();
+  } catch (err) {
+    logger.warn('Failed to repair installed plugin mirrors:', err);
   }
 
   try {
@@ -280,6 +291,7 @@ export async function prepareGatewayLaunchContext(port: number): Promise<Gateway
 
   const gatewayArgs = ['gateway', '--port', String(port), '--token', appSettings.gatewayToken, '--allow-unconfigured'];
   const mode = app.isPackaged ? 'packaged' : 'dev';
+  const runtime = resolveOpenClawLaunchRuntime();
 
   const platform = process.platform;
   const arch = process.arch;
@@ -308,6 +320,7 @@ export async function prepareGatewayLaunchContext(port: number): Promise<Gateway
     ...providerEnv,
     ...uvEnv,
     ...proxyEnv,
+    ...getOpenClawRuntimeEnv(),
     OPENCLAW_GATEWAY_TOKEN: appSettings.gatewayToken,
     OPENCLAW_SKIP_CHANNELS: skipChannels ? '1' : '',
     CLAWDBOT_SKIP_CHANNELS: skipChannels ? '1' : '',
@@ -320,6 +333,9 @@ export async function prepareGatewayLaunchContext(port: number): Promise<Gateway
     entryScript,
     gatewayArgs,
     forkEnv,
+    execPath: runtime.execPath,
+    runtimeKind: runtime.kind,
+    useElectronRunAsNode: runtime.useElectronRunAsNode,
     mode,
     binPathExists,
     loadedProviderKeyCount,

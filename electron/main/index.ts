@@ -46,6 +46,7 @@ import { runSetupActivationSideEffects } from './setup-activation';
 import { applyUserDataDirOverride } from './user-data-override';
 import { createBeforeQuitHandler } from './quit-handoff';
 import { StudioService } from '../studio/service';
+import { primeOpenClawRootMode } from '../utils/paths';
 
 const WINDOWS_APP_USER_MODEL_ID = 'app.XClaw.desktop';
 const isHeadlessDevBackend = process.env.XCLAW_HEADLESS_DEV_BACKEND === '1' && Boolean(process.env.VITE_DEV_SERVER_URL);
@@ -85,6 +86,7 @@ applyUserDataDirOverride({
   app,
   logger,
 });
+primeOpenClawRootMode();
 
 // Global references
 let mainWindow: BrowserWindow | null = null;

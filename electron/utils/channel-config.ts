@@ -7,15 +7,12 @@
 import { access, mkdir, readFile, writeFile, readdir, stat, rm } from 'fs/promises';
 import { constants } from 'fs';
 import { join } from 'path';
-import { homedir } from 'os';
-import { getOpenClawResolvedDir } from './paths';
+import { getOpenClawConfigDir, getOpenClawConfigPath, getOpenClawCredentialsDir, getOpenClawExtensionsDir, getOpenClawResolvedDir } from './paths';
 import * as logger from './logger';
 import { proxyAwareFetch } from './proxy-fetch';
 import { withConfigLock } from './config-mutex';
 
-const OPENCLAW_DIR = join(homedir(), '.openclaw');
-const CONFIG_FILE = join(OPENCLAW_DIR, 'openclaw.json');
-const CREDENTIALS_DIR = join(OPENCLAW_DIR, 'credentials');
+const getCredentialsDir = (): string => getOpenClawCredentialsDir();
 const WECOM_PLUGIN_ID = 'wecom';
 const WEIXIN_PLUGIN_ID = 'openclaw-weixin';
 const FEISHU_PLUGIN_ID_CANDIDATES = ['openclaw-lark', 'feishu-openclaw-plugin'] as const;
@@ -56,7 +53,7 @@ function normalizeCredentialValue(value: string): string {
 }
 
 async function resolveFeishuPluginId(): Promise<string> {
-    const extensionRoot = join(homedir(), '.openclaw', 'extensions');
+    const extensionRoot = getOpenClawExtensionsDir();
     for (const dirName of FEISHU_PLUGIN_ID_CANDIDATES) {
         const manifestPath = join(extensionRoot, dirName, 'openclaw.plugin.json');
         try {
@@ -99,20 +96,22 @@ export interface OpenClawConfig {
 // ── Config I/O ───────────────────────────────────────────────────
 
 async function ensureConfigDir(): Promise<void> {
-    if (!(await fileExists(OPENCLAW_DIR))) {
-        await mkdir(OPENCLAW_DIR, { recursive: true });
+    const openClawDir = getOpenClawConfigDir();
+    if (!(await fileExists(openClawDir))) {
+        await mkdir(openClawDir, { recursive: true });
     }
 }
 
 export async function readOpenClawConfig(): Promise<OpenClawConfig> {
     await ensureConfigDir();
+    const configFile = getOpenClawConfigPath();
 
-    if (!(await fileExists(CONFIG_FILE))) {
+    if (!(await fileExists(configFile))) {
         return {};
     }
 
     try {
-        const content = await readFile(CONFIG_FILE, 'utf-8');
+        const content = await readFile(configFile, 'utf-8');
         return JSON.parse(content) as OpenClawConfig;
     } catch (error) {
         logger.error('Failed to read OpenClaw config', error);
@@ -123,6 +122,7 @@ export async function readOpenClawConfig(): Promise<OpenClawConfig> {
 
 export async function writeOpenClawConfig(config: OpenClawConfig): Promise<void> {
     await ensureConfigDir();
+    const configFile = getOpenClawConfigPath();
 
     try {
         // Enable graceful in-process reload authorization for SIGUSR1 flows.
@@ -133,7 +133,7 @@ export async function writeOpenClawConfig(config: OpenClawConfig): Promise<void>
         commands.restart = true;
         config.commands = commands;
 
-        await writeFile(CONFIG_FILE, JSON.stringify(config, null, 2), 'utf-8');
+        await writeFile(configFile, JSON.stringify(config, null, 2), 'utf-8');
     } catch (error) {
         logger.error('Failed to write OpenClaw config', error);
         console.error('Failed to write OpenClaw config:', error);
@@ -524,7 +524,7 @@ export async function saveChannelConfig(
             await writeOpenClawConfig(currentConfig);
             logger.info('Plugin channel config saved', {
                 channelType,
-                configFile: CONFIG_FILE,
+                configFile: getOpenClawConfigPath(),
                 path: `plugins.entries.${channelType}`,
             });
             console.log(`Saved plugin channel config for ${channelType}`);
@@ -578,7 +578,7 @@ export async function saveChannelConfig(
         logger.info('Channel config saved', {
             channelType,
             accountId: resolvedAccountId,
-            configFile: CONFIG_FILE,
+            configFile: getOpenClawConfigPath(),
             rawKeys: Object.keys(config),
             transformedKeys: Object.keys(transformedConfig),
         });
@@ -598,7 +598,7 @@ export async function ensureChannelPluginEnabled(channelType: string): Promise<b
         await writeOpenClawConfig(currentConfig);
         logger.info('Ensured channel plugin allowlist', {
             channelType,
-            configFile: CONFIG_FILE,
+            configFile: getOpenClawConfigPath(),
         });
         return true;
     });
@@ -730,9 +730,10 @@ function uniqueRecipientIds(values: unknown[]): string[] {
 
 function buildPairingHintPaths(channelType: string, accountId?: string): string[] {
     const resolvedAccountId = typeof accountId === 'string' && accountId.trim().length > 0 ? accountId.trim() : DEFAULT_ACCOUNT_ID;
+    const credentialsDir = getCredentialsDir();
     return [
-        join(CREDENTIALS_DIR, `${channelType}-${resolvedAccountId}-allowFrom.json`),
-        ...(resolvedAccountId === DEFAULT_ACCOUNT_ID ? [join(CREDENTIALS_DIR, `${channelType}-allowFrom.json`)] : []),
+        join(credentialsDir, `${channelType}-${resolvedAccountId}-allowFrom.json`),
+        ...(resolvedAccountId === DEFAULT_ACCOUNT_ID ? [join(credentialsDir, `${channelType}-allowFrom.json`)] : []),
     ];
 }
 
@@ -932,7 +933,7 @@ export async function deleteChannelConfig(channelType: string): Promise<void> {
 
         if (channelType === 'whatsapp') {
             try {
-                const whatsappDir = join(homedir(), '.openclaw', 'credentials', 'whatsapp');
+                const whatsappDir = join(getCredentialsDir(), 'whatsapp');
                 if (await fileExists(whatsappDir)) {
                     await rm(whatsappDir, { recursive: true, force: true });
                     console.log('Deleted WhatsApp credentials directory');
@@ -967,7 +968,7 @@ export async function listConfiguredChannels(): Promise<string[]> {
     }
 
     try {
-        const whatsappDir = join(homedir(), '.openclaw', 'credentials', 'whatsapp');
+        const whatsappDir = join(getCredentialsDir(), 'whatsapp');
         if (await fileExists(whatsappDir)) {
             const entries = await readdir(whatsappDir);
             const hasSession = await (async () => {

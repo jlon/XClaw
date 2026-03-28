@@ -8,9 +8,9 @@
 import { app } from 'electron';
 import path from 'node:path';
 import { existsSync, cpSync, mkdirSync, rmSync, readFileSync, writeFileSync, readdirSync, realpathSync } from 'node:fs';
-import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { logger } from './logger';
+import { getOpenClawExtensionsDir } from './paths';
 
 // ── Known plugin-ID corrections ─────────────────────────────────────────────
 // Some npm packages ship with an openclaw.plugin.json whose "id" field
@@ -135,6 +135,27 @@ export function fixupPluginManifest(targetDir: string): boolean {
   }
 
   return modified;
+}
+
+function listInstalledPluginDirs(rootDir = getOpenClawExtensionsDir()): string[] {
+  if (!existsSync(rootDir)) {
+    return [];
+  }
+
+  return readdirSync(rootDir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => join(rootDir, entry.name))
+    .filter((dir) => existsSync(join(dir, 'package.json')) || existsSync(join(dir, 'openclaw.plugin.json')));
+}
+
+export function repairInstalledPluginMirrors(rootDir = getOpenClawExtensionsDir()): void {
+  for (const targetDir of listInstalledPluginDirs(rootDir)) {
+    try {
+      fixupPluginManifest(targetDir);
+    } catch (error) {
+      logger.warn(`[plugin] Failed to repair installed plugin mirror: ${targetDir}`, error);
+    }
+  }
 }
 
 function patchWeixinPluginSdkImport(targetDir: string): boolean {
@@ -410,8 +431,8 @@ export function ensurePluginInstalled(
   pluginLabel: string,
   legacyPluginDirNames: string[] = [],
 ): { installed: boolean; warning?: string; changed?: boolean } {
-  const extensionsRoot = join(homedir(), '.openclaw', 'extensions');
-  const targetDir = join(homedir(), '.openclaw', 'extensions', pluginDirName);
+  const extensionsRoot = getOpenClawExtensionsDir();
+  const targetDir = join(extensionsRoot, pluginDirName);
   const targetManifest = join(targetDir, 'openclaw.plugin.json');
   const targetPkgJson = join(targetDir, 'package.json');
   const cleanupLegacyPluginDirs = (): void => {
@@ -459,7 +480,7 @@ export function ensurePluginInstalled(
   // Fresh install or upgrade — try bundled/build sources first
   if (sourceDir) {
     try {
-      mkdirSync(join(homedir(), '.openclaw', 'extensions'), { recursive: true });
+      mkdirSync(extensionsRoot, { recursive: true });
       rmSync(targetDir, { recursive: true, force: true });
       cpSync(sourceDir, targetDir, { recursive: true, dereference: true });
       if (!existsSync(join(targetDir, 'openclaw.plugin.json'))) {
@@ -488,7 +509,7 @@ export function ensurePluginInstalled(
             `${installedVersion ? `: ${installedVersion} → ${sourceVersion}` : `: ${sourceVersion}`} (dev/node_modules)`,
           );
           try {
-            mkdirSync(join(homedir(), '.openclaw', 'extensions'), { recursive: true });
+            mkdirSync(extensionsRoot, { recursive: true });
             copyPluginFromNodeModules(npmPkgPath, targetDir, npmName);
             fixupPluginManifest(targetDir);
             if (existsSync(join(targetDir, 'openclaw.plugin.json'))) {

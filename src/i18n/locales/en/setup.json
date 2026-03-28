@@ -113,7 +113,7 @@
             "title": "Fresh Runtime Settings",
             "description": "Confirm the default workspace and gateway port before finishing setup.",
             "workspaceLabel": "Default Workspace",
-            "workspacePlaceholder": "~/.openclaw/workspace",
+            "workspacePlaceholder": "/path/to/workspace",
             "workspaceHint": "Absolute paths and ~/... expansion are supported.",
             "workspaceRequired": "Workspace path is required",
             "portLabel": "Gateway Port",

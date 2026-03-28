@@ -1,8 +1,8 @@
 import type { IncomingMessage, ServerResponse } from 'http';
-import { homedir } from 'os';
 import { join } from 'path';
 import { normalizeClawHubCatalogItem, searchSkillHubSkills } from '../../gateway/skillhub';
 import { getAllSkillConfigs, readPreinstalledManifest, readPreinstalledMarker, updateSkillConfig } from '../../utils/skill-config';
+import { getOpenClawSkillsDir } from '../../utils/paths';
 import { resolveSkillProvenance } from '../../utils/skill-provenance';
 import type { HostApiContext } from '../context';
 import { parseJsonBody, sendJson } from '../route-utils';
@@ -148,7 +148,7 @@ async function buildLocalSkillsCatalog(ctx: HostApiContext) {
 
   const catalog = await Promise.all(
     [...combinedSkills.values()].map(async (skill) => {
-      const markerPath = join(skill.baseDir || join(homedir(), '.openclaw', 'skills', skill.slug), PREINSTALLED_MARKER_FILE);
+      const markerPath = join(skill.baseDir || join(getOpenClawSkillsDir(), skill.slug), PREINSTALLED_MARKER_FILE);
       const marker = await readPreinstalledMarker(markerPath);
       const provenance = resolveSkillProvenance({
         slug: skill.slug,

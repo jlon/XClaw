@@ -109,6 +109,15 @@ export const loadSetupPlan = async (
   })
 );
 
+export const syncSetupOpenClawRootMode = async (
+  mode?: SetupMode | null,
+): Promise<{ success: boolean; mode: SetupMode }> => (
+  hostApiFetch<{ success: boolean; mode: SetupMode }>('/api/app/setup-root-mode', {
+    method: 'POST',
+    body: JSON.stringify({ mode }),
+  })
+);
+
 export const startTakeoverImport = async (): Promise<TakeoverImportSummary> => (
   hostApiFetch<TakeoverImportSummary>('/api/app/takeover-import', {
     method: 'POST',
