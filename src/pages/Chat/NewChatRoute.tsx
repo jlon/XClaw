@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Chat } from './index';
 import { useChatStore } from '@/stores/chat';
 
 export function NewChatRoute() {
@@ -21,5 +20,5 @@ export function NewChatRoute() {
     navigate('/', { replace: true, state: location.state });
   }, [agentId, currentAgentId, location.key, location.state, navigate, newSession]);
 
-  return <Chat />;
+  return null;
 }

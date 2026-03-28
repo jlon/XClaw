@@ -38,6 +38,7 @@ describe('new chat route', () => {
       expect(chatState.newSession).toHaveBeenCalledWith('research');
       expect(screen.getByTestId('home-screen')).toBeInTheDocument();
     });
+    expect(screen.queryByTestId('chat-screen')).not.toBeInTheDocument();
   });
 
   it('falls back to the current agent when /new has no explicit agent segment', async () => {
@@ -54,5 +55,6 @@ describe('new chat route', () => {
       expect(chatState.newSession).toHaveBeenCalledWith('main');
       expect(screen.getByTestId('home-screen')).toBeInTheDocument();
     });
+    expect(screen.queryByTestId('chat-screen')).not.toBeInTheDocument();
   });
 });
