@@ -22,7 +22,6 @@ export function MainLayout() {
   const isChatRoute = isChatRoutePath(location.pathname);
   const isChatSurfaceRoute = isChatSurfaceRoutePath(location.pathname);
   const isStudioRoute = isStudioRoutePath(location.pathname);
-  const sidebarCollapsed = useSettingsStore((state) => state.sidebarCollapsed);
   const sidebarWidth = useSettingsStore((state) => state.sidebarWidth);
   const setSidebarWidth = useSettingsStore((state) => state.setSidebarWidth);
   const chatFocusMode = useSettingsStore((state) => ('chatFocusMode' in state ? state.chatFocusMode : false));
@@ -40,7 +39,6 @@ export function MainLayout() {
 
   const showChatSessionsPane = isChatSurfaceRoute && !chatFocusMode;
   const showWorkspaceSidebar = !isChatSurfaceRoute;
-  const showSidebarResizeHandle = !sidebarCollapsed && (showChatSessionsPane || showWorkspaceSidebar);
   const workspaceRadiusClass = isMacDesktop ? 'rounded-bl-[12px]' : 'rounded-l-[12px]';
   const shellStyle = {
     '--desktop-sidebar-width': `${sidebarWidth}px`,
@@ -54,10 +52,6 @@ export function MainLayout() {
   }, [isChatRoute, location.pathname]);
 
   const handleSidebarResizeStart = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
-    if (!showSidebarResizeHandle) {
-      return;
-    }
-
     event.preventDefault();
     const startX = event.clientX;
     const startWidth = sidebarWidth;
@@ -84,7 +78,7 @@ export function MainLayout() {
 
     document.addEventListener('mousemove', handlePointerMove);
     document.addEventListener('mouseup', handlePointerUp);
-  }, [setSidebarWidth, showSidebarResizeHandle, sidebarWidth]);
+  }, [setSidebarWidth, sidebarWidth]);
 
   return (
     <div
@@ -122,13 +116,11 @@ export function MainLayout() {
             className="desktop-app-shell-sidebar"
           />
         )}
-        {showSidebarResizeHandle ? (
-          <div
-            data-testid="desktop-shell-resize-handle"
-            className="desktop-app-shell-resize-handle"
-            onMouseDown={handleSidebarResizeStart}
-          />
-        ) : null}
+        <SidebarResizeHandle
+          showChatSessionsPane={showChatSessionsPane}
+          showWorkspaceSidebar={showWorkspaceSidebar}
+          onMouseDown={handleSidebarResizeStart}
+        />
         <main className={isChatSurfaceRoute ? `desktop-app-workspace flex flex-1 min-w-0 flex-col overflow-hidden ${workspaceRadiusClass} ${isMacDesktop ? 'pt-12' : ''} px-0 py-0 bg-background mac-workspace-main` : `desktop-app-workspace flex flex-1 min-w-0 flex-col overflow-hidden ${workspaceRadiusClass} ${isMacDesktop ? 'pt-12' : ''} px-3 py-0 xl:px-4 bg-background mac-workspace-main`}>
           <div aria-hidden="true" className="desktop-app-workspace-tint" />
           {isChatSurfaceRoute ? (
@@ -161,5 +153,30 @@ export function MainLayout() {
         </main>
       </div>
     </div>
+  );
+}
+
+function SidebarResizeHandle({
+  showChatSessionsPane,
+  showWorkspaceSidebar,
+  onMouseDown,
+}: {
+  showChatSessionsPane: boolean;
+  showWorkspaceSidebar: boolean;
+  onMouseDown: (event: ReactMouseEvent<HTMLDivElement>) => void;
+}) {
+  const sidebarCollapsed = useSettingsStore((state) => state.sidebarCollapsed);
+  const visible = !sidebarCollapsed && (showChatSessionsPane || showWorkspaceSidebar);
+
+  if (!visible) {
+    return null;
+  }
+
+  return (
+    <div
+      data-testid="desktop-shell-resize-handle"
+      className="desktop-app-shell-resize-handle"
+      onMouseDown={onMouseDown}
+    />
   );
 }

@@ -190,17 +190,23 @@ function MacChatTitleBar({ chatSidebarVisible }: { chatSidebarVisible: boolean }
   return (
     <div className={`desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--mac relative flex ${MAC_TITLEBAR_HEIGHT_CLASS} shrink-0`}>
       <MacWindowDragBar />
-      <MacTitlebarControlRail testId="chat-titlebar-control-rail">
-        <ChatSessionHeaderControls compact surface="titlebar" />
-      </MacTitlebarControlRail>
       <div className="pointer-events-none flex h-full w-full">
         {chatSidebarVisible ? (
           <div
-            aria-hidden="true"
-            className="desktop-app-titlebar-sidebar-slot desktop-app-titlebar-sidebar-slot--chat w-[var(--desktop-sidebar-width)] shrink-0"
-          />
+            data-testid="chat-titlebar-session-slot"
+            className="desktop-app-titlebar-sidebar-slot desktop-app-titlebar-sidebar-slot--chat flex h-full w-[var(--desktop-sidebar-width)] shrink-0 items-center justify-end pr-3"
+          >
+            <div className="pointer-events-auto no-drag z-10 flex items-center">
+              <ChatSessionHeaderControls compact surface="titlebar" />
+            </div>
+          </div>
         ) : (
-          <MacTitlebarLeadingSpace />
+          <>
+            <MacTitlebarLeadingSpace />
+            <MacTitlebarControlRail testId="chat-titlebar-control-rail">
+              <ChatSessionHeaderControls compact surface="titlebar" showNewChat={false} />
+            </MacTitlebarControlRail>
+          </>
         )}
         <MacTitlebarMainSurface>
           <div className="min-w-0 flex-1 h-full" />
@@ -316,7 +322,9 @@ function BrowserTitleBar({
         >
           <div className="z-10 flex items-center">
             {isChatRoute ? (
-              <ChatSessionHeaderControls compact={false} surface="titlebar" />
+              chatSidebarVisible
+                ? <ChatSessionHeaderControls compact={false} surface="titlebar" />
+                : <ChatSessionHeaderControls compact={false} surface="titlebar" showNewChat={false} />
             ) : isStudioRoute ? (
               <WorkspaceSidebarToggleButton
                 aria-label={workspaceSidebarLabel}
@@ -425,7 +433,9 @@ function WindowsTitleBar({
           }
         >
           <div className="z-10" style={noDragStyle}>
-            <ChatSessionHeaderControls compact surface="titlebar" />
+            {chatSidebarVisible
+              ? <ChatSessionHeaderControls compact surface="titlebar" />
+              : <ChatSessionHeaderControls compact surface="titlebar" showNewChat={false} />}
           </div>
         </div>
       ) : isStudioRoute ? (

@@ -44,9 +44,13 @@ function QClawNewChatIcon({ className }: { className?: string }) {
 export function ChatSessionHeaderControls({
   compact = false,
   surface = 'titlebar',
+  showSessionPaneToggle = true,
+  showNewChat = true,
 }: {
   compact?: boolean;
   surface?: 'pane' | 'titlebar';
+  showSessionPaneToggle?: boolean;
+  showNewChat?: boolean;
 }) {
   const navigate = useNavigate();
   const currentAgentId = useChatStore((s) => ('currentAgentId' in s ? s.currentAgentId : ''));
@@ -116,71 +120,75 @@ export function ChatSessionHeaderControls({
         surface === 'pane' && 'ml-auto',
       )}
     >
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <WorkspaceSidebarToggleButton
-            className={buttonClassName}
-            iconClassName={iconClassName}
-            onClick={() => setChatFocusMode(!chatFocusMode)}
-            aria-pressed={chatFocusMode}
-            aria-label={sessionPaneLabel}
-            data-testid={`chat-session-pane-toggle-${surface}`}
-          />
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>{sessionPaneLabel}</p>
-        </TooltipContent>
-      </Tooltip>
-
-      <div ref={newMenuRef} className="relative flex h-full shrink-0 items-center">
+      {showSessionPaneToggle ? (
         <Tooltip>
           <TooltipTrigger asChild>
-            <button
-              type="button"
+            <WorkspaceSidebarToggleButton
               className={buttonClassName}
-              onClick={() => {
-                if (orderedAgents.length <= 1) {
-                  handleCreateNewChat(currentAgentId);
-                  return;
-                }
-                setNewMenuOpen((open) => !open);
-              }}
-              aria-label={newChatLabel}
-              data-testid={`chat-new-chat-${surface}`}
-            >
-              <QClawNewChatIcon className={iconClassName} />
-            </button>
+              iconClassName={iconClassName}
+              onClick={() => setChatFocusMode(!chatFocusMode)}
+              aria-pressed={chatFocusMode}
+              aria-label={sessionPaneLabel}
+              data-testid={`chat-session-pane-toggle-${surface}`}
+            />
           </TooltipTrigger>
           <TooltipContent>
-            <p>{newChatLabel}</p>
+            <p>{sessionPaneLabel}</p>
           </TooltipContent>
         </Tooltip>
+      ) : null}
 
-        {newMenuOpen ? (
-          <div className="absolute right-0 top-[calc(100%+6px)] z-30 min-w-[168px] rounded-lg border border-border/80 bg-[hsl(var(--surface-elevated)/0.995)] p-1 shadow-md">
-            <div className="px-2 py-1 text-[10px] font-medium tracking-tight text-muted-foreground/56">
-              {t('chat:sessionPane.newAgentTitle')}
+      {showNewChat ? (
+        <div ref={newMenuRef} className="relative flex h-full shrink-0 items-center">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                className={buttonClassName}
+                onClick={() => {
+                  if (orderedAgents.length <= 1) {
+                    handleCreateNewChat(currentAgentId);
+                    return;
+                  }
+                  setNewMenuOpen((open) => !open);
+                }}
+                aria-label={newChatLabel}
+                data-testid={`chat-new-chat-${surface}`}
+              >
+                <QClawNewChatIcon className={iconClassName} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{newChatLabel}</p>
+            </TooltipContent>
+          </Tooltip>
+
+          {newMenuOpen ? (
+            <div className="absolute right-0 top-[calc(100%+6px)] z-30 min-w-[168px] rounded-lg border border-border/80 bg-[hsl(var(--surface-elevated)/0.995)] p-1 shadow-md">
+              <div className="px-2 py-1 text-[10px] font-medium tracking-tight text-muted-foreground/56">
+                {t('chat:sessionPane.newAgentTitle')}
+              </div>
+              <div className="space-y-0.5">
+                {orderedAgents.map((agent) => (
+                  <button
+                    key={agent.id}
+                    type="button"
+                    className="flex w-full items-center justify-between rounded-[9px] px-2 py-1.5 text-left text-[12px] text-foreground/88 transition-[background-color,color] duration-150 hover:bg-[hsl(var(--foreground)/0.032)] hover:text-foreground"
+                    onClick={() => handleCreateNewChat(agent.id)}
+                  >
+                    <span className="truncate">{agent.name}</span>
+                    {agent.id === currentAgentId ? (
+                      <span className="ml-2 shrink-0 text-[10px] text-muted-foreground/52">
+                        {t('chat:sessionPane.currentAgent')}
+                      </span>
+                    ) : null}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="space-y-0.5">
-              {orderedAgents.map((agent) => (
-                <button
-                  key={agent.id}
-                  type="button"
-                  className="flex w-full items-center justify-between rounded-[9px] px-2 py-1.5 text-left text-[12px] text-foreground/88 transition-[background-color,color] duration-150 hover:bg-[hsl(var(--foreground)/0.032)] hover:text-foreground"
-                  onClick={() => handleCreateNewChat(agent.id)}
-                >
-                  <span className="truncate">{agent.name}</span>
-                  {agent.id === currentAgentId ? (
-                    <span className="ml-2 shrink-0 text-[10px] text-muted-foreground/52">
-                      {t('chat:sessionPane.currentAgent')}
-                    </span>
-                  ) : null}
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : null}
-      </div>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }
