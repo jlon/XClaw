@@ -59,7 +59,7 @@ function TitleBarChrome({ pathname }: { pathname: string }) {
   const platform = resolvePlatform();
   const isChatRoute = isChatRoutePath(pathname);
   const isStudioRoute = isStudioRoutePath(pathname);
-  const isChatSurfaceRoute = isChatRoute || isStudioRoute;
+  const isChatSurfaceRoute = isChatRoute;
   const isSetupRoute = pathname.startsWith('/setup');
   const chatFocusMode = useSettingsStore((state) => ('chatFocusMode' in state ? state.chatFocusMode : false));
   const sidebarCollapsed = useSettingsStore((state) => state.sidebarCollapsed);
@@ -74,12 +74,11 @@ function TitleBarChrome({ pathname }: { pathname: string }) {
 
   if (!hasDesktopBridge) {
     return (
-      <BrowserTitleBar
-        isChatRoute={isChatRoute}
-        isStudioRoute={isStudioRoute}
-        isSetupRoute={isSetupRoute}
-        chatSidebarVisible={chatSidebarVisible}
-        workspaceSidebarExpanded={workspaceSidebarExpanded}
+    <BrowserTitleBar
+      isChatRoute={isChatRoute}
+      isSetupRoute={isSetupRoute}
+      chatSidebarVisible={chatSidebarVisible}
+      workspaceSidebarExpanded={workspaceSidebarExpanded}
         workspaceSidebarLabel={workspaceSidebarLabel}
         onToggleSidebar={handleWorkspaceSidebarToggle}
       />
@@ -90,7 +89,11 @@ function TitleBarChrome({ pathname }: { pathname: string }) {
     return isChatRoute ? (
       <MacChatTitleBar chatSidebarVisible={chatSidebarVisible} />
     ) : isStudioRoute ? (
-      <MacStudioTitleBar />
+      <MacWorkspaceTitleBar
+        sidebarExpanded={workspaceSidebarExpanded}
+        sidebarLabel={workspaceSidebarLabel}
+        onToggleSidebar={handleWorkspaceSidebarToggle}
+      />
     ) : isSetupRoute ? (
       <MacSetupTitleBar />
     ) : (
@@ -105,7 +108,6 @@ function TitleBarChrome({ pathname }: { pathname: string }) {
   return (
     <WindowsTitleBar
       isChatRoute={isChatRoute}
-      isStudioRoute={isStudioRoute}
       isSetupRoute={isSetupRoute}
       chatSidebarVisible={chatSidebarVisible}
       workspaceSidebarExpanded={workspaceSidebarExpanded}
@@ -274,26 +276,8 @@ function MacSetupTitleBar() {
   );
 }
 
-function MacStudioTitleBar() {
-  return (
-    <div className={`desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--mac relative flex ${MAC_TITLEBAR_HEIGHT_CLASS} shrink-0`}>
-      <MacWindowDragBar />
-      <div className="pointer-events-none flex h-full w-full">
-        <MacTitlebarLeadingSpace />
-        <MacTitlebarMainSurface>
-          <div className="min-w-0 flex-1 h-full" />
-          <div className="pointer-events-auto no-drag z-10 flex shrink-0 items-center gap-1.5">
-            <GlobalTitleBarUtilities compact />
-          </div>
-        </MacTitlebarMainSurface>
-      </div>
-    </div>
-  );
-}
-
 function BrowserTitleBar({
   isChatRoute,
-  isStudioRoute,
   isSetupRoute,
   chatSidebarVisible,
   workspaceSidebarExpanded,
@@ -301,14 +285,13 @@ function BrowserTitleBar({
   onToggleSidebar,
 }: {
   isChatRoute: boolean;
-  isStudioRoute: boolean;
   isSetupRoute: boolean;
   chatSidebarVisible: boolean;
   workspaceSidebarExpanded: boolean;
   workspaceSidebarLabel: string;
   onToggleSidebar: () => void;
 }) {
-  const isChatSurfaceRoute = isChatRoute || isStudioRoute;
+  const isChatSurfaceRoute = isChatRoute;
   return (
     <div className={`desktop-app-titlebar desktop-app-titlebar--browser ${isChatSurfaceRoute ? 'desktop-app-titlebar--chat' : ''} flex h-14 shrink-0 items-center pl-3 pr-4 bg-background border-b border-[hsl(var(--border-subtle))]`}>
       {isChatSurfaceRoute ? (
@@ -325,13 +308,6 @@ function BrowserTitleBar({
               chatSidebarVisible
                 ? <ChatSessionHeaderControls compact={false} surface="titlebar" />
                 : <ChatSessionHeaderControls compact={false} surface="titlebar" showNewChat={false} />
-            ) : isStudioRoute ? (
-              <WorkspaceSidebarToggleButton
-                aria-label={workspaceSidebarLabel}
-                title={workspaceSidebarLabel}
-                data-testid="workspace-sidebar-toggle-titlebar"
-                onClick={onToggleSidebar}
-              />
             ) : null}
           </div>
         </div>
@@ -361,7 +337,7 @@ function BrowserTitleBar({
       )}
       <div className="min-w-0 flex-1" />
       <div className="flex h-full items-center">
-        {isChatRoute || isStudioRoute ? (
+        {isChatRoute ? (
           <div className="mr-3 flex items-center h-full">
             <ChatToolbar compact={false} />
           </div>
@@ -378,7 +354,6 @@ function BrowserTitleBar({
 
 function WindowsTitleBar({
   isChatRoute,
-  isStudioRoute,
   isSetupRoute,
   chatSidebarVisible,
   workspaceSidebarExpanded,
@@ -386,7 +361,6 @@ function WindowsTitleBar({
   onToggleSidebar,
 }: {
   isChatRoute: boolean;
-  isStudioRoute: boolean;
   isSetupRoute: boolean;
   chatSidebarVisible: boolean;
   workspaceSidebarExpanded: boolean;
@@ -438,8 +412,6 @@ function WindowsTitleBar({
               : <ChatSessionHeaderControls compact surface="titlebar" showNewChat={false} />}
           </div>
         </div>
-      ) : isStudioRoute ? (
-        <div className="h-full w-0 shrink-0" />
       ) : isSetupRoute ? (
         <div className="h-full w-0 shrink-0" />
       ) : (

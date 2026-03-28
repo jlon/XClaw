@@ -40,6 +40,7 @@ import {
   waitForPortFree,
   warmupManagedPythonReadiness,
 } from './supervisor';
+import { findSuggestedGatewayPort, isLocalGatewayPortAvailable } from './port-utils';
 import { GatewayConnectionMonitor } from './connection-monitor';
 import { GatewayLifecycleController, LifecycleSupersededError } from './lifecycle-controller';
 import { launchGatewayHandoffProcess, launchGatewayProcess } from './process-launcher';
@@ -52,6 +53,7 @@ import {
 } from './reload-policy';
 import { classifyGatewayStderrMessage, recordGatewayStartupStderrLine } from './startup-stderr';
 import { runGatewayStartupSequence } from './startup-orchestrator';
+import { setSetting } from '../utils/store';
 
 export interface GatewayStatus {
   state: GatewayLifecycleState;
@@ -204,6 +206,15 @@ export class GatewayManager extends EventEmitter {
     const message = error instanceof Error ? error.message : String(error);
     return /unknown method:\s*system\.health/i.test(message);
   }
+
+  private async persistResolvedGatewayPort(nextPort: number, reason: string): Promise<void> {
+    if (this.status.port === nextPort) {
+      return;
+    }
+    logger.warn(`Gateway port conflict detected (${reason}); switching XClaw managed runtime to ${nextPort}`);
+    this.setPort(nextPort);
+    await setSetting('gatewayPort', nextPort);
+  }
   /**
    * Get current Gateway status
    */
@@ -300,13 +311,36 @@ export class GatewayManager extends EventEmitter {
         findExistingGateway: async (port, ownedPid) => {
           return await findExistingGatewayProcess({ port, ownedPid });
         },
+        isPortAvailable: async (port) => {
+          return await isLocalGatewayPortAvailable(port);
+        },
+        findSuggestedPort: async (preferredPort) => {
+          return await findSuggestedGatewayPort(preferredPort);
+        },
+        onPortConflict: async (currentPort, suggestedPort, reason) => {
+          await this.persistResolvedGatewayPort(
+            suggestedPort,
+            reason === 'external-auth-mismatch'
+              ? `external gateway auth mismatch on ${currentPort}`
+              : `listener already occupied on ${currentPort}`,
+          );
+        },
         connect: async (port, externalToken) => {
           await this.connect(port, externalToken);
         },
         onExistingGatewayConnectFailure: async (existing, error) => {
-          logger.warn(`Failed to attach existing Gateway on port ${existing.port}; replacing with managed process`, error);
+          if (!existing.owned) {
+            const nextPort = await findSuggestedGatewayPort(existing.port);
+            if (nextPort !== existing.port) {
+              await this.persistResolvedGatewayPort(nextPort, `external gateway attach failure on ${existing.port}`);
+              logger.warn(`Failed to attach external Gateway on port ${existing.port}; moving XClaw to ${nextPort}`, error);
+              return { action: 'switch-port', port: nextPort } as const;
+            }
+            return { action: 'fail' } as const;
+          }
+          logger.warn(`Failed to attach existing owned Gateway on port ${existing.port}; replacing with managed process`, error);
           await terminateGatewayProcessesListeningOnPort(existing.port);
-          return true;
+          return { action: 'replace-existing' } as const;
         },
         onConnectedToExistingGateway: (existing) => {
           const reattachedOwnedProcess = Boolean(existing.owned && existing.pid && this.process?.pid === existing.pid);

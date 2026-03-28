@@ -335,7 +335,7 @@ export async function findExistingGatewayProcess(options: {
     try {
       const pids = await getListeningProcessIds(port);
       if (pids.length > 0 && (!ownedPid || !pids.includes(String(ownedPid)))) {
-        await terminateOrphanedProcessIds(port, pids);
+        logger.info(`Detected a non-reusable listener on port ${port} (PIDs: ${pids.join(', ')}); leaving it in place`);
         return null;
       }
     } catch (err) {

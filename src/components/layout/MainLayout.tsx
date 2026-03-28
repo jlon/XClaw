@@ -87,7 +87,7 @@ export function MainLayout() {
         <TitleBar />
       </div>
       <div className="desktop-app-shell-body relative flex flex-1 min-h-0 overflow-hidden">
-        {isChatSurfaceRoute ? (
+        {isChatRoute ? (
           <ChatSurfaceNavShell visible={isChatRoute} />
         ) : (
           <Sidebar
@@ -97,7 +97,6 @@ export function MainLayout() {
         )}
         <SidebarResizeHandle
           isChatRoute={isChatRoute}
-          isChatSurfaceRoute={isChatSurfaceRoute}
           onMouseDown={handleSidebarResizeStart}
         />
         <main className={isChatSurfaceRoute ? `desktop-app-workspace flex flex-1 min-w-0 flex-col overflow-hidden ${workspaceRadiusClass} ${isMacDesktop ? 'pt-12' : ''} px-0 py-0 bg-background mac-workspace-main` : `desktop-app-workspace flex flex-1 min-w-0 flex-col overflow-hidden ${workspaceRadiusClass} ${isMacDesktop ? 'pt-12' : ''} px-3 py-0 xl:px-4 bg-background mac-workspace-main`}>
@@ -140,7 +139,10 @@ function ChatSurfaceNavShell({ visible }: { visible: boolean }) {
   const isVisible = visible && !chatFocusMode;
 
   return (
-    <div className="desktop-app-shell-nav relative flex min-h-0 shrink-0 self-stretch">
+    <div
+      className="desktop-app-shell-nav relative flex min-h-0 shrink-0 self-stretch"
+      data-chat-nav-visible={isVisible ? 'true' : 'false'}
+    >
       <div
         aria-hidden={!isVisible}
         className={cn(
@@ -156,16 +158,14 @@ function ChatSurfaceNavShell({ visible }: { visible: boolean }) {
 
 function SidebarResizeHandle({
   isChatRoute,
-  isChatSurfaceRoute,
   onMouseDown,
 }: {
   isChatRoute: boolean;
-  isChatSurfaceRoute: boolean;
   onMouseDown: (event: ReactMouseEvent<HTMLDivElement>) => void;
 }) {
   const sidebarCollapsed = useSettingsStore((state) => state.sidebarCollapsed);
   const chatFocusMode = useSettingsStore((state) => ('chatFocusMode' in state ? state.chatFocusMode : false));
-  const visible = isChatRoute ? !chatFocusMode : isChatSurfaceRoute ? false : !sidebarCollapsed;
+  const visible = isChatRoute ? !chatFocusMode : !sidebarCollapsed;
 
   if (!visible) {
     return null;

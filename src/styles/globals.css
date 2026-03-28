@@ -226,6 +226,7 @@
 .desktop-app-shell {
   --desktop-sidebar-width: 250px;
   --desktop-sidebar-rail-width: 44px;
+  --desktop-chat-content-gap: 16px;
   position: relative;
   background:
     linear-gradient(180deg, hsl(var(--chrome) / 0.98) 0%, hsl(var(--chrome-strong) / 0.99) 100%);
@@ -526,12 +527,14 @@
   background: transparent;
 }
 
+.app-chat-content-inset,
 .app-chat-empty-state-frame {
   transition: padding-inline-start 150ms ease-out;
 }
 
+.desktop-app-shell-nav[data-chat-nav-visible='true'] ~ .desktop-app-workspace .app-chat-content-inset,
 .app-chat-empty-state-frame--with-nav {
-  padding-inline-start: var(--desktop-sidebar-width);
+  padding-inline-start: calc(var(--desktop-sidebar-width) + var(--desktop-chat-content-gap));
 }
 
 .app-chat-welcome-stage {

@@ -450,7 +450,7 @@ export function Chat() {
               }}
             />
           ) : (
-            <div className="app-chat-workspace-frame flex min-h-full flex-col justify-end">
+            <div className="app-chat-content-inset app-chat-workspace-frame flex min-h-full flex-col justify-end">
               <div ref={contentRef} className="app-chat-thread-flow flex flex-col">
                 {renderedMessages.map(({ message, idx, showAvatar, isClusteredWithPrevious }, visibleIndex) => (
                   <div
@@ -516,7 +516,7 @@ export function Chat() {
         ) : null}
 
         {composerErrorCopy && (
-          <div className="app-chat-workspace-frame px-4 pb-2 md:px-6">
+          <div className="app-chat-content-inset app-chat-workspace-frame px-4 pb-2 md:px-6">
             <div className="flex justify-end">
               <div className="app-chat-composer-error" role="status" aria-live="polite">
                 <div className="flex min-w-0 items-center gap-2.5">
@@ -538,7 +538,7 @@ export function Chat() {
         )}
 
         {skillFlowRailCopy && (
-          <div className="app-chat-workspace-frame px-4 pb-2 md:px-6">
+          <div className="app-chat-content-inset app-chat-workspace-frame px-4 pb-2 md:px-6">
             <div className="flex justify-end">
               <div data-testid="chat-skill-flow-rail" className="app-chat-skill-flow-rail">
                 <div className="min-w-0 flex-1">
@@ -701,15 +701,10 @@ function ChatEmptyState({
   contentRef: React.Ref<HTMLElement>;
   onQuickAction: (draft: string) => void;
 }) {
-  const chatFocusMode = useSettingsStore((state) => ('chatFocusMode' in state ? state.chatFocusMode : false));
-
   return (
     <div
       ref={contentRef as React.Ref<HTMLDivElement>}
-      className={cn(
-        'app-chat-workspace-frame app-chat-empty-state-frame space-y-5',
-        !chatFocusMode && 'app-chat-empty-state-frame--with-nav',
-      )}
+      className="app-chat-content-inset app-chat-workspace-frame app-chat-empty-state-frame space-y-5"
     >
       <WelcomeScreen onQuickAction={onQuickAction} />
     </div>

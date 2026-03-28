@@ -188,12 +188,10 @@ export function ChatSessionsPane() {
   return (
     <aside className={cn('flex w-[var(--desktop-sidebar-width)] shrink-0 flex-col bg-transparent [font-family:var(--font-sidebar)]', isMacDesktop ? 'pt-12' : '')}>
       <div className="px-3 pb-2 pt-3">
-        {!isBrowserMode && (
-          <div className="pb-2">
-            <AppBrandLockup compact className="min-h-8" testIdPrefix="chat-sidebar-brand" />
-          </div>
-        )}
-        <div className="flex min-h-[32px] items-center">
+        <div className="flex min-h-[32px] items-center gap-2">
+          {!isBrowserMode && (
+            <AppBrandLockup compact className="min-h-8 shrink-0" testIdPrefix="chat-sidebar-brand" />
+          )}
           {searchOpen || searchQuery ? (
             <div className="app-chat-session-control app-chat-session-control--search relative flex h-[28px] min-w-0 flex-1 items-center rounded-[6px] px-3 transition-colors duration-[var(--motion-base)] ring-1 ring-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))]">
               <SessionToneIcon tone="search">

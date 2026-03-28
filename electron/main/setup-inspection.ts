@@ -2,9 +2,9 @@ import { access, readFile, readdir, stat } from 'fs/promises';
 import { constants } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
-import { createServer } from 'node:net';
 import { PORTS } from '../utils/config';
 import { normalizeWorkspacePath, validateWorkspacePathInput } from '../utils/workspace-path';
+import { findSuggestedGatewayPort, isLocalGatewayPortAvailable } from '../gateway/port-utils';
 import { probeGatewayReady } from '../gateway/ws-client';
 import {
   detectLegacySetupFootprint,
@@ -13,14 +13,14 @@ import {
 } from './setup-bootstrap';
 import { getProviderDefinition } from '../shared/providers/registry';
 
+export { isLocalGatewayPortAvailable } from '../gateway/port-utils';
+
 const OPENCLAW_DIR = join(homedir(), '.openclaw');
 const OPENCLAW_CONFIG_PATH = join(OPENCLAW_DIR, 'openclaw.json');
 const OPENCLAW_SKILLS_DIR = join(OPENCLAW_DIR, 'skills');
 const OPENCLAW_EXTENSIONS_DIR = join(OPENCLAW_DIR, 'extensions');
 const OPENCLAW_AGENTS_DIR = join(OPENCLAW_DIR, 'agents');
 const CONFIG_STABILITY_SAMPLE_MS = 120;
-const PORT_SCAN_WINDOW = 10;
-const LOCALHOST_HOSTS = ['127.0.0.1', '::1'] as const;
 
 type SetupMode = 'fresh' | 'takeover';
 type ProviderImportSource = 'supported' | 'custom' | 'unsupported';
@@ -479,50 +479,8 @@ async function defaultStatPath(path: string): Promise<StatLike> {
   return stat(path);
 }
 
-export async function isLocalGatewayPortAvailable(port: number): Promise<boolean> {
-  for (const host of LOCALHOST_HOSTS) {
-    const available = await new Promise<boolean>((resolve) => {
-      const server = createServer();
-      const cleanup = (): void => {
-        server.removeAllListeners();
-      };
-
-      server.once('error', (error: NodeJS.ErrnoException) => {
-        cleanup();
-        if (host === '::1' && (error.code === 'EAFNOSUPPORT' || error.code === 'EADDRNOTAVAIL')) {
-          resolve(true);
-          return;
-        }
-        resolve(false);
-      });
-
-      server.once('listening', () => {
-        server.close(() => {
-          cleanup();
-          resolve(true);
-        });
-      });
-
-      server.listen(port, host);
-    });
-
-    if (!available) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
 async function defaultFindSuggestedPort(preferredPort: number): Promise<number> {
-  for (let offset = 0; offset < PORT_SCAN_WINDOW; offset += 1) {
-    const candidate = preferredPort + offset;
-    if (await isLocalGatewayPortAvailable(candidate)) {
-      return candidate;
-    }
-  }
-
-  return preferredPort;
+  return await findSuggestedGatewayPort(preferredPort);
 }
 
 async function defaultDetectExternalGateway(port: number): Promise<boolean> {
