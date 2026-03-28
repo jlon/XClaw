@@ -511,7 +511,7 @@ export function Chat() {
         <div
           ref={scrollRef}
           className={cn(
-            'chat-im-font app-chat-workspace-shell flex-1 min-w-0 overflow-y-auto px-4 py-3 md:px-6 md:py-4',
+            'chat-im-font app-chat-workspace-shell flex-1 min-w-0 overflow-y-auto px-3 py-3 md:px-4 md:py-4',
             scrollChromeClass,
           )}
         >
@@ -590,7 +590,7 @@ export function Chat() {
         ) : null}
 
         {composerErrorCopy && (
-          <div className="app-chat-content-inset app-chat-workspace-frame px-4 pb-2 md:px-6">
+          <div className="app-chat-content-inset app-chat-workspace-frame px-3 pb-2 md:px-4">
             <div className="flex justify-end">
               <div className="app-chat-composer-error" role="status" aria-live="polite">
                 <div className="flex min-w-0 items-center gap-2.5">
@@ -612,7 +612,7 @@ export function Chat() {
         )}
 
         {skillFlowRailCopy && (
-          <div className="app-chat-content-inset app-chat-workspace-frame px-4 pb-2 md:px-6">
+          <div className="app-chat-content-inset app-chat-workspace-frame px-3 pb-2 md:px-4">
             <div className="flex justify-end">
               <div data-testid="chat-skill-flow-rail" className="app-chat-skill-flow-rail">
                 <div className="min-w-0 flex-1">

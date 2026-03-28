@@ -836,7 +836,7 @@ export const ChatInput = memo(function ChatInput({
   return (
     <div
       className={cn(
-        'chat-im-font app-chat-composer-shell app-chat-content-inset relative px-4 pb-4 md:px-6',
+        'chat-im-font app-chat-composer-shell app-chat-content-inset relative px-3 pb-4 md:px-4',
         isEmpty ? 'pt-4.5' : 'pt-3.5',
       )}
       onDragOver={handleDragOver}

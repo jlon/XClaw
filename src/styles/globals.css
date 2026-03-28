@@ -226,7 +226,7 @@
 .desktop-app-shell {
   --desktop-sidebar-width: 250px;
   --desktop-sidebar-rail-width: 44px;
-  --desktop-chat-content-gap: 16px;
+  --desktop-chat-content-gap: 8px;
   position: relative;
   background:
     linear-gradient(180deg, hsl(var(--chrome) / 0.98) 0%, hsl(var(--chrome-strong) / 0.99) 100%);
@@ -2096,7 +2096,7 @@
   min-width: 0;
   max-width: none;
   margin: 0;
-  padding: 16px 22px 8px;
+  padding: 14px 12px 8px;
   flex-direction: column;
 }
 

@@ -61,20 +61,21 @@ type ClawHubInstalledSkillResult = {
 
 const PREINSTALLED_MARKER_FILE = '.XClaw-preinstalled.json';
 
-async function buildLocalSkillsCatalog(ctx: HostApiContext) {
-  const [manifestSkills, configEntries, installedSkills] = await Promise.all([
-    readPreinstalledManifest(),
-    getAllSkillConfigs(),
-    ctx.clawHubService.listInstalled().catch(() => [] as ClawHubInstalledSkillResult[]),
-  ]);
-
-  let gatewaySkills: GatewaySkillStatus[];
+async function getGatewaySkillsStatus(ctx: HostApiContext): Promise<GatewaySkillStatus[]> {
   try {
     const gatewayData = await ctx.gatewayManager.rpc<GatewaySkillsStatusResult>('skills.status');
-    gatewaySkills = gatewayData.skills || [];
+    return gatewayData.skills || [];
   } catch {
-    gatewaySkills = [];
+    return [];
   }
+}
+
+async function buildLocalSkillsCatalog(ctx: HostApiContext) {
+  const [manifestSkills, configEntries, gatewaySkills] = await Promise.all([
+    readPreinstalledManifest(),
+    getAllSkillConfigs(),
+    getGatewaySkillsStatus(ctx),
+  ]);
 
   const combinedSkills = new Map<string, {
     id: string;
@@ -116,6 +117,10 @@ async function buildLocalSkillsCatalog(ctx: HostApiContext) {
       filePath: skill.filePath,
     });
   }
+
+  const installedSkills = combinedSkills.size === 0
+    ? await ctx.clawHubService.listInstalled().catch(() => [] as ClawHubInstalledSkillResult[])
+    : [];
 
   for (const installedSkill of installedSkills) {
     const id = installedSkill.slug;
