@@ -526,6 +526,14 @@
   background: transparent;
 }
 
+.app-chat-empty-state-frame {
+  transition: padding-inline-start 150ms ease-out;
+}
+
+.app-chat-empty-state-frame--with-nav {
+  padding-inline-start: var(--desktop-sidebar-width);
+}
+
 .app-chat-welcome-stage {
   margin-inline: auto;
   display: flex;

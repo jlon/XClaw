@@ -193,7 +193,17 @@ function createWindow(): BrowserWindow {
 
   // Load the app
   if (process.env.VITE_DEV_SERVER_URL) {
-    const targetUrl = process.env.VITE_DEV_SERVER_URL;
+    const targetUrl = (() => {
+      try {
+        const candidate = new URL(process.env.VITE_DEV_SERVER_URL);
+        if (candidate.hostname === 'localhost') {
+          candidate.hostname = '127.0.0.1';
+        }
+        return candidate.toString();
+      } catch {
+        return process.env.VITE_DEV_SERVER_URL;
+      }
+    })();
     logger.debug(`Main window requested dev load: ${targetUrl}`);
     void win.loadURL(targetUrl).then(() => {
       logger.debug(`Main window loadURL resolved: ${targetUrl}`);

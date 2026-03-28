@@ -86,9 +86,9 @@ export function MainLayout() {
       <div className={isMacDesktop ? 'absolute inset-x-0 top-0 z-30' : ''}>
         <TitleBar />
       </div>
-      <div className="desktop-app-shell-body flex flex-1 min-h-0 overflow-hidden">
+      <div className="desktop-app-shell-body relative flex flex-1 min-h-0 overflow-hidden">
         {isChatSurfaceRoute ? (
-          <ChatSurfaceNavShell />
+          <ChatSurfaceNavShell visible={isChatRoute} />
         ) : (
           <Sidebar
             key="app-sidebar"
@@ -96,6 +96,7 @@ export function MainLayout() {
           />
         )}
         <SidebarResizeHandle
+          isChatRoute={isChatRoute}
           isChatSurfaceRoute={isChatSurfaceRoute}
           onMouseDown={handleSidebarResizeStart}
         />
@@ -134,16 +135,17 @@ export function MainLayout() {
   );
 }
 
-function ChatSurfaceNavShell() {
+function ChatSurfaceNavShell({ visible }: { visible: boolean }) {
   const chatFocusMode = useSettingsStore((state) => ('chatFocusMode' in state ? state.chatFocusMode : false));
+  const isVisible = visible && !chatFocusMode;
 
   return (
     <div className="desktop-app-shell-nav relative flex min-h-0 shrink-0 self-stretch">
       <div
-        aria-hidden={chatFocusMode}
+        aria-hidden={!isVisible}
         className={cn(
-          'desktop-app-chat-nav-shell flex h-full min-h-0 overflow-hidden transition-[width,opacity] duration-150 ease-out',
-          chatFocusMode ? 'w-0 opacity-0 pointer-events-none' : 'w-[var(--desktop-sidebar-width)] opacity-100',
+          'desktop-app-chat-nav-shell absolute inset-y-0 left-0 z-20 flex h-full min-h-0 w-[var(--desktop-sidebar-width)] overflow-hidden transition-[transform,opacity] duration-150 ease-out',
+          isVisible ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 pointer-events-none',
         )}
       >
         <ChatSessionsPane />
@@ -153,15 +155,17 @@ function ChatSurfaceNavShell() {
 }
 
 function SidebarResizeHandle({
+  isChatRoute,
   isChatSurfaceRoute,
   onMouseDown,
 }: {
+  isChatRoute: boolean;
   isChatSurfaceRoute: boolean;
   onMouseDown: (event: ReactMouseEvent<HTMLDivElement>) => void;
 }) {
   const sidebarCollapsed = useSettingsStore((state) => state.sidebarCollapsed);
   const chatFocusMode = useSettingsStore((state) => ('chatFocusMode' in state ? state.chatFocusMode : false));
-  const visible = isChatSurfaceRoute ? !chatFocusMode : !sidebarCollapsed;
+  const visible = isChatRoute ? !chatFocusMode : isChatSurfaceRoute ? false : !sidebarCollapsed;
 
   if (!visible) {
     return null;
@@ -170,7 +174,10 @@ function SidebarResizeHandle({
   return (
     <div
       data-testid="desktop-shell-resize-handle"
-      className="desktop-app-shell-resize-handle"
+      className={cn(
+        'desktop-app-shell-resize-handle',
+        isChatRoute && 'absolute inset-y-0 left-[var(--desktop-sidebar-width)] z-[21]',
+      )}
       onMouseDown={onMouseDown}
     />
   );

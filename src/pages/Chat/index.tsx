@@ -442,14 +442,13 @@ export function Chat() {
           )}
         >
           {isEmpty ? (
-            <div ref={contentRef} className="app-chat-workspace-frame space-y-5">
-              <WelcomeScreen
-                onQuickAction={(nextDraft) => {
-                  setDraftSeed(nextDraft);
-                  setDraftSeedVersion((version) => version + 1);
-                }}
-              />
-            </div>
+            <ChatEmptyState
+              contentRef={contentRef}
+              onQuickAction={(nextDraft) => {
+                setDraftSeed(nextDraft);
+                setDraftSeedVersion((version) => version + 1);
+              }}
+            />
           ) : (
             <div className="app-chat-workspace-frame flex min-h-full flex-col justify-end">
               <div ref={contentRef} className="app-chat-thread-flow flex flex-col">
@@ -691,6 +690,28 @@ function WelcomeScreen({
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+function ChatEmptyState({
+  contentRef,
+  onQuickAction,
+}: {
+  contentRef: React.Ref<HTMLElement>;
+  onQuickAction: (draft: string) => void;
+}) {
+  const chatFocusMode = useSettingsStore((state) => ('chatFocusMode' in state ? state.chatFocusMode : false));
+
+  return (
+    <div
+      ref={contentRef as React.Ref<HTMLDivElement>}
+      className={cn(
+        'app-chat-workspace-frame app-chat-empty-state-frame space-y-5',
+        !chatFocusMode && 'app-chat-empty-state-frame--with-nav',
+      )}
+    >
+      <WelcomeScreen onQuickAction={onQuickAction} />
     </div>
   );
 }
