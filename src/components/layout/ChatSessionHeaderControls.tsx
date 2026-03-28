@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { startTransition, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useChatStore } from '@/stores/chat';
@@ -6,6 +6,7 @@ import { useAgentsStore } from '@/stores/agents';
 import { useSettingsStore } from '@/stores/settings';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import type { AgentSummary } from '@/types/agent';
 import {
   WorkspaceSidebarToggleButton,
 } from './WorkspaceSidebarToggleButton';
@@ -41,6 +42,166 @@ function QClawNewChatIcon({ className }: { className?: string }) {
   );
 }
 
+function orderAgents(agents: AgentSummary[], currentAgentId: string) {
+  const current = agents.find((agent) => agent.id === currentAgentId) ?? null;
+  const rest = agents.filter((agent) => agent.id !== currentAgentId);
+  return current ? [current, ...rest] : rest;
+}
+
+function SessionPaneToggleControl({
+  buttonClassName,
+  iconClassName,
+  showLabel,
+  hideLabel,
+  surface,
+}: {
+  buttonClassName: string;
+  iconClassName: string;
+  showLabel: string;
+  hideLabel: string;
+  surface: 'pane' | 'titlebar';
+}) {
+  const chatFocusMode = useSettingsStore((state) => ('chatFocusMode' in state ? state.chatFocusMode : false));
+  const setChatFocusMode = useSettingsStore((state) => ('setChatFocusMode' in state ? state.setChatFocusMode : (() => undefined)));
+  const sessionPaneLabel = chatFocusMode ? showLabel : hideLabel;
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <WorkspaceSidebarToggleButton
+          className={buttonClassName}
+          iconClassName={iconClassName}
+          onClick={() => setChatFocusMode(!chatFocusMode)}
+          aria-pressed={chatFocusMode}
+          aria-label={sessionPaneLabel}
+          data-testid={`chat-session-pane-toggle-${surface}`}
+        />
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{sessionPaneLabel}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+function NewChatControl({
+  buttonClassName,
+  iconClassName,
+  label,
+  menuTitle,
+  currentAgentLabel,
+  surface,
+}: {
+  buttonClassName: string;
+  iconClassName: string;
+  label: string;
+  menuTitle: string;
+  currentAgentLabel: string;
+  surface: 'pane' | 'titlebar';
+}) {
+  const navigate = useNavigate();
+  const [menuState, setMenuState] = useState<{ orderedAgents: AgentSummary[]; currentAgentId: string } | null>(null);
+  const newMenuRef = useRef<HTMLDivElement | null>(null);
+  const newMenuOpen = menuState !== null;
+
+  useEffect(() => {
+    if (!newMenuOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMenuState(null);
+      }
+    };
+    const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (!newMenuRef.current?.contains(target)) {
+        setMenuState(null);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('mousedown', handlePointerDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousedown', handlePointerDown);
+    };
+  }, [newMenuOpen]);
+
+  const navigateToNewChat = (agentId?: string | null, currentAgentId?: string) => {
+    setMenuState(null);
+    startTransition(() => {
+      if (agentId && agentId !== currentAgentId) {
+        navigate(`/new/${agentId}`);
+        return;
+      }
+      navigate('/new');
+    });
+  };
+
+  const handleOpenMenu = () => {
+    if (newMenuOpen) {
+      setMenuState(null);
+      return;
+    }
+
+    const currentAgentId = ('currentAgentId' in useChatStore.getState() ? useChatStore.getState().currentAgentId : '') || '';
+    const orderedAgents = orderAgents(useAgentsStore.getState().agents ?? [], currentAgentId);
+
+    if (orderedAgents.length <= 1) {
+      navigateToNewChat(currentAgentId, currentAgentId);
+      return;
+    }
+
+    startTransition(() => {
+      setMenuState({ orderedAgents, currentAgentId });
+    });
+  };
+
+  return (
+    <div ref={newMenuRef} className="relative flex h-full shrink-0 items-center">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            className={buttonClassName}
+            onClick={handleOpenMenu}
+            aria-label={label}
+            data-testid={`chat-new-chat-${surface}`}
+          >
+            <QClawNewChatIcon className={iconClassName} />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{label}</p>
+        </TooltipContent>
+      </Tooltip>
+
+      {menuState ? (
+        <div className="absolute right-0 top-[calc(100%+6px)] z-30 min-w-[168px] rounded-lg border border-border/80 bg-[hsl(var(--surface-elevated)/0.995)] p-1 shadow-md">
+          <div className="px-2 py-1 text-[10px] font-medium tracking-tight text-muted-foreground/56">
+            {menuTitle}
+          </div>
+          <div className="space-y-0.5">
+            {menuState.orderedAgents.map((agent) => (
+              <button
+                key={agent.id}
+                type="button"
+                className="flex w-full items-center justify-between rounded-[9px] px-2 py-1.5 text-left text-[12px] text-foreground/88 transition-[background-color,color] duration-150 hover:bg-[hsl(var(--foreground)/0.032)] hover:text-foreground"
+                onClick={() => navigateToNewChat(agent.id, menuState.currentAgentId)}
+              >
+                <span className="truncate">{agent.name}</span>
+                {agent.id === menuState.currentAgentId ? (
+                  <span className="ml-2 shrink-0 text-[10px] text-muted-foreground/52">
+                    {currentAgentLabel}
+                  </span>
+                ) : null}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function ChatSessionHeaderControls({
   compact = false,
   surface = 'titlebar',
@@ -52,58 +213,7 @@ export function ChatSessionHeaderControls({
   showSessionPaneToggle?: boolean;
   showNewChat?: boolean;
 }) {
-  const navigate = useNavigate();
-  const currentAgentId = useChatStore((s) => ('currentAgentId' in s ? s.currentAgentId : ''));
-  const agents = useAgentsStore((s) => s.agents);
-  const fetchAgents = useAgentsStore((s) => s.fetchAgents);
-  const chatFocusMode = useSettingsStore((s) => ('chatFocusMode' in s ? s.chatFocusMode : false));
-  const setChatFocusMode = useSettingsStore((s) => ('setChatFocusMode' in s ? s.setChatFocusMode : (() => undefined)));
   const { t } = useTranslation(['chat', 'common']);
-  const [newMenuOpen, setNewMenuOpen] = useState(false);
-  const newMenuRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    void fetchAgents();
-  }, [fetchAgents]);
-
-  useEffect(() => {
-    if (!newMenuOpen) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setNewMenuOpen(false);
-      }
-    };
-    const handlePointerDown = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (!newMenuRef.current?.contains(target)) {
-        setNewMenuOpen(false);
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('mousedown', handlePointerDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('mousedown', handlePointerDown);
-    };
-  }, [newMenuOpen]);
-
-  const orderedAgents = useMemo(() => {
-    const list = agents ?? [];
-    const current = list.find((agent) => agent.id === currentAgentId) ?? null;
-    const rest = list.filter((agent) => agent.id !== currentAgentId);
-    return current ? [current, ...rest] : rest;
-  }, [agents, currentAgentId]);
-
-  const handleCreateNewChat = (agentId?: string | null) => {
-    setNewMenuOpen(false);
-    if (agentId && agentId !== currentAgentId) {
-      navigate(`/new/${agentId}`);
-      return;
-    }
-    navigate('/new');
-  };
-
-  const sessionPaneLabel = chatFocusMode ? t('toolbar.showSessionPane') : t('toolbar.hideSessionPane');
   const newChatLabel = t('common:sidebar.newChat');
   const buttonClassName = surface === 'pane'
     ? 'inline-flex h-6 w-6 items-center justify-center rounded-[7px] p-0 leading-none text-foreground/90 transition-colors duration-150 hover:bg-transparent hover:text-foreground'
@@ -121,73 +231,24 @@ export function ChatSessionHeaderControls({
       )}
     >
       {showSessionPaneToggle ? (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <WorkspaceSidebarToggleButton
-              className={buttonClassName}
-              iconClassName={iconClassName}
-              onClick={() => setChatFocusMode(!chatFocusMode)}
-              aria-pressed={chatFocusMode}
-              aria-label={sessionPaneLabel}
-              data-testid={`chat-session-pane-toggle-${surface}`}
-            />
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{sessionPaneLabel}</p>
-          </TooltipContent>
-        </Tooltip>
+        <SessionPaneToggleControl
+          buttonClassName={buttonClassName}
+          iconClassName={iconClassName}
+          showLabel={t('toolbar.showSessionPane')}
+          hideLabel={t('toolbar.hideSessionPane')}
+          surface={surface}
+        />
       ) : null}
 
       {showNewChat ? (
-        <div ref={newMenuRef} className="relative flex h-full shrink-0 items-center">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                className={buttonClassName}
-                onClick={() => {
-                  if (orderedAgents.length <= 1) {
-                    handleCreateNewChat(currentAgentId);
-                    return;
-                  }
-                  setNewMenuOpen((open) => !open);
-                }}
-                aria-label={newChatLabel}
-                data-testid={`chat-new-chat-${surface}`}
-              >
-                <QClawNewChatIcon className={iconClassName} />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{newChatLabel}</p>
-            </TooltipContent>
-          </Tooltip>
-
-          {newMenuOpen ? (
-            <div className="absolute right-0 top-[calc(100%+6px)] z-30 min-w-[168px] rounded-lg border border-border/80 bg-[hsl(var(--surface-elevated)/0.995)] p-1 shadow-md">
-              <div className="px-2 py-1 text-[10px] font-medium tracking-tight text-muted-foreground/56">
-                {t('chat:sessionPane.newAgentTitle')}
-              </div>
-              <div className="space-y-0.5">
-                {orderedAgents.map((agent) => (
-                  <button
-                    key={agent.id}
-                    type="button"
-                    className="flex w-full items-center justify-between rounded-[9px] px-2 py-1.5 text-left text-[12px] text-foreground/88 transition-[background-color,color] duration-150 hover:bg-[hsl(var(--foreground)/0.032)] hover:text-foreground"
-                    onClick={() => handleCreateNewChat(agent.id)}
-                  >
-                    <span className="truncate">{agent.name}</span>
-                    {agent.id === currentAgentId ? (
-                      <span className="ml-2 shrink-0 text-[10px] text-muted-foreground/52">
-                        {t('chat:sessionPane.currentAgent')}
-                      </span>
-                    ) : null}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : null}
-        </div>
+        <NewChatControl
+          buttonClassName={buttonClassName}
+          iconClassName={iconClassName}
+          label={newChatLabel}
+          menuTitle={t('chat:sessionPane.newAgentTitle')}
+          currentAgentLabel={t('chat:sessionPane.currentAgent')}
+          surface={surface}
+        />
       ) : null}
     </div>
   );

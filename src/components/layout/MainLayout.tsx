@@ -24,7 +24,6 @@ export function MainLayout() {
   const isStudioRoute = isStudioRoutePath(location.pathname);
   const sidebarWidth = useSettingsStore((state) => state.sidebarWidth);
   const setSidebarWidth = useSettingsStore((state) => state.setSidebarWidth);
-  const chatFocusMode = useSettingsStore((state) => ('chatFocusMode' in state ? state.chatFocusMode : false));
   const settingsInitialized = useSettingsStore((state) => ('initialized' in state ? state.initialized === true : true));
   const setupComplete = useSettingsStore((state) => ('setupComplete' in state ? state.setupComplete === true : true));
   const cachedChatOutletRef = useRef(outlet);
@@ -37,8 +36,6 @@ export function MainLayout() {
     }
   }, [isChatRoute, outlet]);
 
-  const showChatSessionsPane = isChatSurfaceRoute && !chatFocusMode;
-  const showWorkspaceSidebar = !isChatSurfaceRoute;
   const workspaceRadiusClass = isMacDesktop ? 'rounded-bl-[12px]' : 'rounded-l-[12px]';
   const shellStyle = {
     '--desktop-sidebar-width': `${sidebarWidth}px`,
@@ -91,25 +88,7 @@ export function MainLayout() {
       </div>
       <div className="desktop-app-shell-body flex flex-1 min-h-0 overflow-hidden">
         {isChatSurfaceRoute ? (
-          <div className="desktop-app-shell-nav relative flex min-h-0 shrink-0 self-stretch">
-            <div
-              aria-hidden={!showChatSessionsPane}
-              style={showChatSessionsPane ? undefined : { display: 'none' }}
-              className="desktop-app-chat-nav-shell flex h-full min-h-0"
-            >
-              <ChatSessionsPane />
-            </div>
-            <div
-              aria-hidden={!showWorkspaceSidebar}
-              style={showWorkspaceSidebar ? undefined : { display: 'none' }}
-              className="flex h-full min-h-0"
-            >
-              <Sidebar
-                key="app-sidebar"
-                className="desktop-app-shell-sidebar"
-              />
-            </div>
-          </div>
+          <ChatSurfaceNavShell />
         ) : (
           <Sidebar
             key="app-sidebar"
@@ -117,8 +96,7 @@ export function MainLayout() {
           />
         )}
         <SidebarResizeHandle
-          showChatSessionsPane={showChatSessionsPane}
-          showWorkspaceSidebar={showWorkspaceSidebar}
+          isChatSurfaceRoute={isChatSurfaceRoute}
           onMouseDown={handleSidebarResizeStart}
         />
         <main className={isChatSurfaceRoute ? `desktop-app-workspace flex flex-1 min-w-0 flex-col overflow-hidden ${workspaceRadiusClass} ${isMacDesktop ? 'pt-12' : ''} px-0 py-0 bg-background mac-workspace-main` : `desktop-app-workspace flex flex-1 min-w-0 flex-col overflow-hidden ${workspaceRadiusClass} ${isMacDesktop ? 'pt-12' : ''} px-3 py-0 xl:px-4 bg-background mac-workspace-main`}>
@@ -156,17 +134,34 @@ export function MainLayout() {
   );
 }
 
+function ChatSurfaceNavShell() {
+  const chatFocusMode = useSettingsStore((state) => ('chatFocusMode' in state ? state.chatFocusMode : false));
+
+  return (
+    <div className="desktop-app-shell-nav relative flex min-h-0 shrink-0 self-stretch">
+      <div
+        aria-hidden={chatFocusMode}
+        className={cn(
+          'desktop-app-chat-nav-shell flex h-full min-h-0 overflow-hidden transition-[width,opacity] duration-150 ease-out',
+          chatFocusMode ? 'w-0 opacity-0 pointer-events-none' : 'w-[var(--desktop-sidebar-width)] opacity-100',
+        )}
+      >
+        <ChatSessionsPane />
+      </div>
+    </div>
+  );
+}
+
 function SidebarResizeHandle({
-  showChatSessionsPane,
-  showWorkspaceSidebar,
+  isChatSurfaceRoute,
   onMouseDown,
 }: {
-  showChatSessionsPane: boolean;
-  showWorkspaceSidebar: boolean;
+  isChatSurfaceRoute: boolean;
   onMouseDown: (event: ReactMouseEvent<HTMLDivElement>) => void;
 }) {
   const sidebarCollapsed = useSettingsStore((state) => state.sidebarCollapsed);
-  const visible = !sidebarCollapsed && (showChatSessionsPane || showWorkspaceSidebar);
+  const chatFocusMode = useSettingsStore((state) => ('chatFocusMode' in state ? state.chatFocusMode : false));
+  const visible = isChatSurfaceRoute ? !chatFocusMode : !sidebarCollapsed;
 
   if (!visible) {
     return null;

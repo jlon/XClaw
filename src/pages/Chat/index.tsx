@@ -80,8 +80,6 @@ export function Chat() {
   const clearError = useChatStore((s) => s.clearError);
   const pendingSlashAction = useChatStore((s) => ('pendingSlashAction' in s ? s.pendingSlashAction : null));
   const agents = useAgentsStore((s) => s.agents);
-  const chatFocusMode = useSettingsStore((s) => ('chatFocusMode' in s ? s.chatFocusMode : false));
-  const setChatFocusMode = useSettingsStore((s) => ('setChatFocusMode' in s ? s.setChatFocusMode : (() => undefined)));
 
   const cleanupEmptySession = useChatStore((s) => s.cleanupEmptySession);
 
@@ -371,7 +369,9 @@ export function Chat() {
     useChatStore.setState({ pendingSlashAction: null });
 
     if (pendingSlashAction.kind === 'toggle-focus') {
-      setChatFocusMode(!chatFocusMode);
+      const settingsState = useSettingsStore.getState();
+      const nextChatFocusMode = !('chatFocusMode' in settingsState ? settingsState.chatFocusMode : false);
+      ('setChatFocusMode' in settingsState ? settingsState.setChatFocusMode : (() => undefined))(nextChatFocusMode);
       return;
     }
 
@@ -394,12 +394,10 @@ export function Chat() {
     }
   }, [
     assistantAvatar.name,
-    chatFocusMode,
     currentAgentName,
     currentSessionLabel,
     messages,
     pendingSlashAction,
-    setChatFocusMode,
   ]);
 
   const handleExecApprovalDecision = useCallback(async (decision: 'allow-once' | 'allow-always' | 'deny') => {
