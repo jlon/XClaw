@@ -51,3 +51,21 @@
 
 - 发布前先执行一次 `--dry-run`
 - 资产命名规则变化时优先更新 `scripts/sync-release-downloads.sh`
+
+## 5. `openclaw` 安装阶段补丁会卡死 CI 打包
+
+之前仓库通过 `pnpm.patchedDependencies` 在 `pnpm install` 阶段给 `openclaw@2026.3.13` 打补丁。实测在 `pnpm v10.31.0` 下，这条链会出现两类问题：
+
+- `pnpm-lock.yaml` 中的 patch hash 很容易和磁盘 patch 文件失配，直接导致 `ERR_PNPM_LOCKFILE_CONFIG_MISMATCH`
+- 即使 lockfile hash 对齐，`ERR_PNPM_PATCH_FAILED` 仍可能在安装阶段出现，阻断 GitHub Actions 的 `package-beta` 工作流
+
+当前处理方式：
+
+- 不再依赖 `patchedDependencies`
+- 改为在 `dev / build / package` 之前显式执行 `node scripts/apply-openclaw-patch.mjs`
+- 使用系统 `patch -p1` 对 `node_modules/openclaw` 做幂等补丁
+
+建议：
+
+- 如果以后升级 `openclaw` 版本，先验证这份补丁是否仍然需要
+- 如果上游已修复，应优先删除本地补丁脚本，而不是继续叠补丁

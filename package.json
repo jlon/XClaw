@@ -14,9 +14,6 @@
         ],
         "overrides": {
             "isbinaryfile": "^5.0.0"
-        },
-        "patchedDependencies": {
-            "openclaw@2026.3.13": "patches/openclaw@2026.3.13.patch"
         }
     },
     "description": "XClaw - Graphical AI Assistant based on OpenClaw",
@@ -26,11 +23,12 @@
     "private": true,
     "scripts": {
         "init": "pnpm install && pnpm run uv:download",
-        "predev": "zx scripts/prepare-preinstalled-skills-dev.mjs",
+        "prepare:openclaw": "node scripts/apply-openclaw-patch.mjs",
+        "predev": "node scripts/apply-openclaw-patch.mjs && zx scripts/prepare-preinstalled-skills-dev.mjs",
         "dev": "node scripts/dev-vite.mjs",
         "website:dev": "vite --open /website/",
         "website:preview": "vite preview --open /website/",
-        "build": "node scripts/version-date.mjs && vite build && zx scripts/bundle-openclaw.mjs && zx scripts/bundle-openclaw-plugins.mjs && zx scripts/bundle-preinstalled-skills.mjs && electron-builder -c config/build/electron-builder.config.cjs",
+        "build": "node scripts/version-date.mjs && node scripts/apply-openclaw-patch.mjs && vite build && zx scripts/bundle-openclaw.mjs && zx scripts/bundle-openclaw-plugins.mjs && zx scripts/bundle-preinstalled-skills.mjs && electron-builder -c config/build/electron-builder.config.cjs",
         "build:vite": "vite build",
         "bundle:openclaw-plugins": "zx scripts/bundle-openclaw-plugins.mjs",
         "bundle:preinstalled-skills": "zx scripts/bundle-preinstalled-skills.mjs",
@@ -49,7 +47,7 @@
         "uv:download:linux": "zx scripts/download-bundled-uv.mjs --platform=linux",
         "uv:download:all": "zx scripts/download-bundled-uv.mjs --all",
         "icons": "zx scripts/generate-icons.mjs",
-        "package": "node scripts/version-date.mjs && vite build && zx scripts/bundle-openclaw.mjs && zx scripts/bundle-openclaw-plugins.mjs && zx scripts/bundle-preinstalled-skills.mjs",
+        "package": "node scripts/version-date.mjs && node scripts/apply-openclaw-patch.mjs && vite build && zx scripts/bundle-openclaw.mjs && zx scripts/bundle-openclaw-plugins.mjs && zx scripts/bundle-preinstalled-skills.mjs",
         "package:mac": "pnpm run package && electron-builder -c config/build/electron-builder.config.cjs --mac --publish never",
         "package:mac:adhoc": "node scripts/package-mac-adhoc.mjs",
         "package:mac:local": "node scripts/package-mac-local.mjs",

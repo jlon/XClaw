@@ -26,6 +26,8 @@
 ## 发布流程验证
 
 - 验证本地 `pnpm run build:vite` 能生成官网构建产物
+- 验证 `pnpm install --frozen-lockfile --ignore-scripts` 能通过，不再卡在 `openclaw` 补丁安装
+- 验证 `node scripts/apply-openclaw-patch.mjs` 可幂等执行，并能把补丁落到 `node_modules/openclaw`
 - 验证官网发布后 `nginx -t` 成功
 - 验证回滚目录存在且可重新 rsync 到 `current/`
 
