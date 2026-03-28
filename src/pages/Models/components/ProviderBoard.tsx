@@ -1,3 +1,4 @@
+import { PanelRightOpen } from 'lucide-react';
 import type { ProviderAccount } from '@/lib/providers';
 import { cn } from '@/lib/utils';
 import type { ProviderUsageSummary } from '../workbench-view-model';
@@ -98,6 +99,9 @@ export const ProviderBoard = ({
   const selectedAccount = selectedAccountId
     ? accounts.find((account) => account.id === selectedAccountId) ?? null
     : null;
+  const selectedPrimaryAccountId = selectedSummary
+    ? resolvePrimaryAccountId(selectedSummary, accounts, defaultAccountId)
+    : null;
 
   if (presentation === 'header' && selectedSummary) {
     return (
@@ -126,13 +130,26 @@ export const ProviderBoard = ({
                 {[selectedAccount?.id, selectedSummary.runtimeProviderKey].filter(Boolean).join(' · ')}
               </p>
             </div>
-            <button
-              type="button"
-              className="shrink-0 rounded-full border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-base)/0.9)] px-3 py-1 text-[12px] font-medium text-foreground/76 transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)] hover:text-foreground"
-              onClick={onClearSelection}
-            >
-              {clearLabel}
-            </button>
+            <div className="flex shrink-0 items-center gap-2">
+              {selectedPrimaryAccountId ? (
+                <button
+                  type="button"
+                  className="desktop-focus-ring inline-flex h-8 w-8 items-center justify-center rounded-full border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-base)/0.9)] text-foreground/76 transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)] hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0"
+                  aria-label={resolveOpenInspectorLabel(openInspectorLabel, selectedAccount?.label || selectedSummary.label)}
+                  data-testid="models-provider-focus-details"
+                  onClick={() => onOpenInspector(selectedPrimaryAccountId)}
+                >
+                  <PanelRightOpen className="h-3.5 w-3.5" />
+                </button>
+              ) : null}
+              <button
+                type="button"
+                className="shrink-0 rounded-full border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-base)/0.9)] px-3 py-1 text-[12px] font-medium text-foreground/76 transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)] hover:text-foreground"
+                onClick={onClearSelection}
+              >
+                {clearLabel}
+              </button>
+            </div>
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-muted-foreground">
             <span>{tokensLabel}: {Intl.NumberFormat().format(selectedSummary.totalTokens)}</span>
@@ -158,13 +175,26 @@ export const ProviderBoard = ({
           <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/66">
             {activeScopeLabel}
           </p>
-          <button
-            type="button"
-            className="rounded-full border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-base)/0.9)] px-3 py-1 text-[12px] font-medium text-foreground/76 transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)] hover:text-foreground"
-            onClick={onClearSelection}
-          >
-            {clearLabel}
-          </button>
+          <div className="flex items-center gap-2">
+            {selectedPrimaryAccountId ? (
+              <button
+                type="button"
+                className="desktop-focus-ring inline-flex h-8 w-8 items-center justify-center rounded-full border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-base)/0.9)] text-foreground/76 transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)] hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0"
+                aria-label={resolveOpenInspectorLabel(openInspectorLabel, selectedAccount?.label || selectedSummary?.label || '')}
+                data-testid="models-provider-rail-details"
+                onClick={() => onOpenInspector(selectedPrimaryAccountId)}
+              >
+                <PanelRightOpen className="h-3.5 w-3.5" />
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="rounded-full border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-base)/0.9)] px-3 py-1 text-[12px] font-medium text-foreground/76 transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)] hover:text-foreground"
+              onClick={onClearSelection}
+            >
+              {clearLabel}
+            </button>
+          </div>
         </div>
         <div className={railListClass} data-testid="models-provider-rail">
           {summaries.map((summary) => {

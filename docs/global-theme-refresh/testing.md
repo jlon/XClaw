@@ -38,6 +38,8 @@
 - `pnpm exec vitest run tests/unit/chat-layout.test.tsx -t "shows a dedicated chats pane on the chat route" --testTimeout=15000`
 - `pnpm exec vitest run tests/unit/chat-layout.test.tsx -t "does not mount the studio surface before setup is complete" --testTimeout=15000`
 - `pnpm exec eslint src/components/layout/TitleBar.tsx src/components/layout/ChatSessionHeaderControls.tsx src/components/layout/GlobalTitleBarUtilities.tsx src/pages/Chat/index.tsx src/pages/Chat/ChatInput.tsx src/pages/Chat/ChatMessage.tsx tests/unit/workspace-page-layout.test.tsx tests/unit/chat-layout.test.tsx tests/unit/chat-theme-shell.test.ts tests/unit/chat-input.test.tsx tests/unit/chat-message.test.tsx --max-warnings=0`
+- `pnpm exec vitest run tests/unit/models-page.test.tsx --reporter=dot --testNamePattern='caps provider board columns|uses an auto-fit provider grid|lets the default board grow beyond four columns'`
+- `pnpm exec vitest run tests/unit/models-page.test.tsx tests/unit/models-workbench-render.test.tsx --reporter=dot --testNamePattern='keeps breakdown focused on models after selecting a provider|reveals breakdown and recent requests after entering provider focus|keeps provider focus stable when a missing provider is requested from the light overview|renders provider inspector in edit mode after clicking edit|consumes workbench contracts in the production models page and follows the provider-first shell'`
 - `pnpm run typecheck`
 - `git diff --check`
 - `pnpm exec eslint src/components/layout/MainLayout.tsx src/components/layout/WorkspacePage.tsx src/components/layout/Sidebar.tsx src/components/layout/TitleBar.tsx src/components/layout/ChatSessionsPane.tsx src/components/channels/ChannelConfigModal.tsx src/components/settings/ProvidersSettings.tsx src/components/setup/SetupStartStage.tsx src/components/setup/SetupPreparationStage.tsx src/components/setup/SetupProviderStage.tsx src/components/setup/SetupCompleteStage.tsx src/components/ui/button.tsx src/components/ui/input.tsx src/components/ui/select.tsx src/components/ui/textarea.tsx src/components/ui/card.tsx src/components/ui/confirm-dialog.tsx src/pages/Agents/index.tsx src/pages/Cron/index.tsx src/pages/Skills/index.tsx src/pages/Models/index.tsx src/pages/Settings/index.tsx src/pages/Channels/index.tsx src/pages/Chat/ChatInput.tsx tests/unit/theme-application.test.tsx tests/unit/workspace-page-layout.test.tsx tests/unit/ui-primitives-theme.test.tsx tests/unit/chat-layout.test.tsx tests/unit/theme-second-wave-pages.test.ts tests/unit/channel-config-modal.test.tsx tests/unit/setup-wizard-layout.test.tsx tests/unit/channels-page.test.tsx tests/unit/chat-theme-shell.test.ts --max-warnings=0`
@@ -81,6 +83,7 @@
 4. 桌面壳层要能实际验证 `window-drag-bar / resize handle / workspace tint` 三个结构 hook，而不是只看配色
 4. modal / empty / stat panel 也必须共享同一套 desktop substrate
 5. hover / active / destructive 默认足够克制
+6. `Models` 页 provider 总览在宽窗口下必须连续扩列，不能再被固定断点锁死在 `4` 列以内；卡片最小宽度也必须稳定，不能为了追求更多列把内容压成窄条
 
 ### 4. 字体
 

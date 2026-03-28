@@ -116,7 +116,7 @@ function createAccount(overrides: Partial<ProviderAccount> = {}): ProviderAccoun
 
 function createEntry(overrides: Partial<UsageHistoryEntry> = {}): UsageHistoryEntry {
   return {
-    timestamp: '2026-03-20T12:00:00.000Z',
+    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
     sessionId: 'session-1',
     agentId: 'main',
     model: 'gpt-5',
@@ -399,7 +399,7 @@ describe('models page render contract', () => {
       if (path === '/api/usage/recent-token-history') {
         return [
           {
-            timestamp: '2026-03-20T12:00:00.000Z',
+            timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
             sessionId: 'session-1',
             agentId: 'main',
             model: 'gpt-5',
@@ -412,7 +412,7 @@ describe('models page render contract', () => {
             costUsd: 0.42,
           },
           {
-            timestamp: '2026-03-21T12:00:00.000Z',
+            timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
             sessionId: 'session-2',
             agentId: 'main',
             model: 'gpt-4.1',
@@ -585,7 +585,7 @@ describe('models page render contract', () => {
     expect(screen.getByText('凭证与验证')).toBeInTheDocument();
     expect(screen.getByLabelText('API Key')).toBeInTheDocument();
     expect(screen.getByTestId('models-provider-inspector-footer')).toBeInTheDocument();
-    expect(within(screen.getByTestId('models-provider-inspector')).queryByRole('link')).not.toBeInTheDocument();
+    expect(within(screen.getByTestId('models-provider-inspector')).getByRole('link')).toHaveAttribute('href', 'https://platform.openai.com/api-keys');
   });
 
   it('uses modal below ultrawide and pane at ultrawide for the provider inspector', async () => {
@@ -737,7 +737,7 @@ describe('models page render contract', () => {
             costUsd: 0.2,
             model: 'claude-sonnet',
             sessionId: 'session-2',
-            timestamp: '2026-03-21T12:00:00.000Z',
+            timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
           }),
         ] satisfies UsageHistoryEntry[];
       }

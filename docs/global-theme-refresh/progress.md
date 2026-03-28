@@ -26,6 +26,8 @@
 - [x] 重写主题主线：从“品牌配色方案”切换为 `QClaw substrate, XClaw accent`
 - [x] 将“全局只保留一套冷中性 desktop substrate”写成最高准则，明确它不是模仿外观，而是吸收 `QClaw` 已验证的桌面基底规律
 - [x] 完成 `design-v3` 当前最高收益的一批桌面化收口：`WorkspacePage` 默认退出居中定宽壳，`Chat` 退出 centered workbench / thread canvas / `transition-all` composer，shared primitive 焦点语法统一到 `desktop-focus-ring`
+- [x] 将 `Models` 页 provider 总览从固定断点列改为 `auto-fit + minmax(14rem, 1fr)` 自适应栅格，中等桌面窗口即可稳定落到 `4` 列，宽窗口可自然扩到 `5 / 6` 列，避免继续浪费横向空间
+- [x] 将 `Models` 页 provider 卡片交互拆成“主点击切换下方用量分析，独立详情入口打开 provider inspector”，并为聚焦态 header / rail 补回详情入口，避免分析态与配置态继续混在一起
 
 ## 当前落地结果
 
@@ -125,6 +127,7 @@
 - 已将左侧导航宽度从固定 `w-56 / w-[250px]` 升级为共享 `sidebarWidth` 变量，聊天列表与全局侧栏统一用同一套宽度与收起语义
 - 已将 mac 标题栏左上交互区继续推进为固定 control rail：聊天 pane 切换与 workspace sidebar toggle 不再依赖 sidebar slot 居中逻辑，而是固定锚在 traffic lights 右侧的安全点击区
 - 已将 `Chat` 的 typing 行、tool chip 状态底色与深色代码块继续向 `nexu` 收口：typing dot 更轻、tool 状态退出透明空壳、代码块在深浅主题下统一回到 `#1e1e2e`
+- 已将 `Models` 页 provider board 从固定 `2 / 3 / 4` 断点列切到 `auto-fit` 自适应网格；默认总览在常规宽度下保持约 `3~4` 列，超宽窗口可扩到 `5+` 列，同时仍用最小卡宽守住桌面密度
 
 ## 完成判断
 

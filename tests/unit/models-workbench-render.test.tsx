@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ProviderAccount } from '@/lib/providers';
 import type { UsageHistoryEntry } from '@/pages/Models/usage-history';
 
@@ -133,7 +133,7 @@ describe('models workbench render chain', () => {
       if (path === '/api/usage/recent-token-history') {
         return [
           {
-            timestamp: '2026-03-20T12:00:00.000Z',
+            timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
             sessionId: 'session-1',
             agentId: 'main',
             model: 'gpt-5',
@@ -146,7 +146,7 @@ describe('models workbench render chain', () => {
             costUsd: 0.42,
           },
           {
-            timestamp: '2026-03-21T12:00:00.000Z',
+            timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
             sessionId: 'session-2',
             agentId: 'main',
             model: 'gpt-4.1',
@@ -210,9 +210,7 @@ describe('models workbench render chain', () => {
     expect(screen.queryAllByText('gpt-4.1')).toHaveLength(0);
     expect(screen.queryByTestId('models-provider-inspector')).not.toBeInTheDocument();
 
-    fireEvent.click(within(screen.getByTestId('models-provider-board')).getByText('全部提供商'));
-    await screen.findByTestId('models-provider-card-details-custom-prod');
-    fireEvent.click(screen.getByTestId('models-provider-card-details-custom-prod'));
+    fireEvent.click(screen.getByTestId('models-provider-focus-details'));
     await screen.findByTestId('models-provider-inspector');
     fireEvent.click(screen.getByRole('button', { name: '编辑 Custom Prod' }));
 
