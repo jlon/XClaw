@@ -1,7 +1,10 @@
 import type { ProviderAccount } from '@/lib/providers';
 import { cn } from '@/lib/utils';
 import type { ProviderUsageSummary } from '../workbench-view-model';
-import type { ProviderBoardPresentation } from '../workbench-layout';
+import {
+  MODELS_PROVIDER_BOARD_GRID_TEMPLATE,
+  type ProviderBoardPresentation,
+} from '../workbench-layout';
 import { ProviderBoardCard } from './ProviderBoardCard';
 
 interface ProviderBoardProps {
@@ -12,7 +15,7 @@ interface ProviderBoardProps {
   loading: boolean;
   defaultAccountId: string | null;
   presentation: ProviderBoardPresentation;
-  columns: 1 | 2 | 3 | 4;
+  columns: number;
   maxVisibleRows: number;
   configuredLabel: string;
   defaultLabel: string;
@@ -23,18 +26,13 @@ interface ProviderBoardProps {
   tokensLabel: string;
   requestsLabel: string;
   accountsLabel: string;
+  openInspectorLabel: ((label: string) => string) | string;
   clearLabel: string;
   activeScopeLabel: string;
   onSelect: (accountId: string) => void;
+  onOpenInspector: (accountId: string) => void;
   onClearSelection: () => void;
 }
-
-const gridClassMap = {
-  1: 'grid-cols-1',
-  2: 'md:grid-cols-2',
-  3: 'md:grid-cols-2 xl:grid-cols-3',
-  4: 'md:grid-cols-2 xl:grid-cols-4',
-} as const;
 
 const railListClass = 'space-y-2';
 const railRowClass = 'w-full rounded-md border border-[hsl(var(--border-subtle)/0.78)] bg-[hsl(var(--surface-elevated)/0.98)] px-3 py-2.5 text-left transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)]';
@@ -58,6 +56,15 @@ const resolvePrimaryAccountId = (
   );
 };
 
+const resolveOpenInspectorLabel = (
+  openInspectorLabel: ProviderBoardProps['openInspectorLabel'],
+  label: string,
+): string => (
+  typeof openInspectorLabel === 'function'
+    ? openInspectorLabel(label)
+    : openInspectorLabel || label
+);
+
 export const ProviderBoard = ({
   summaries,
   accounts,
@@ -77,9 +84,11 @@ export const ProviderBoard = ({
   tokensLabel,
   requestsLabel,
   accountsLabel,
+  openInspectorLabel,
   clearLabel,
   activeScopeLabel,
   onSelect,
+  onOpenInspector,
   onClearSelection,
 }: ProviderBoardProps) => {
   const shouldClampBoard = presentation === 'board' && summaries.length > columns * maxVisibleRows;
@@ -216,10 +225,11 @@ export const ProviderBoard = ({
       <div
         className={cn(
           'grid gap-3',
-          gridClassMap[columns],
           shouldClampBoard && 'max-h-[calc(2*11rem+0.75rem)] overflow-y-auto pr-1',
           summaries.length === 0 && 'hidden',
         )}
+        data-testid="models-provider-board-grid"
+        style={{ gridTemplateColumns: MODELS_PROVIDER_BOARD_GRID_TEMPLATE }}
       >
         {summaries.map((summary) => {
           const primaryAccountId = resolvePrimaryAccountId(summary, accounts, defaultAccountId);
@@ -239,7 +249,9 @@ export const ProviderBoard = ({
               tokensLabel={tokensLabel}
               requestsLabel={requestsLabel}
               accountsLabel={accountsLabel}
+              openInspectorLabel={resolveOpenInspectorLabel(openInspectorLabel, summary.label)}
               onSelect={onSelect}
+              onOpenInspector={onOpenInspector}
             />
           );
         })}

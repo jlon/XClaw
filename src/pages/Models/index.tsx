@@ -93,6 +93,7 @@ export function Models() {
   const [usagePage, setUsagePage] = useState(1);
   const [selectedUsageEntry, setSelectedUsageEntry] = useState<UsageHistoryEntry | null>(null);
   const [selectedProviderAccountId, setSelectedProviderAccountId] = useState<string | null>(null);
+  const [selectedInspectorAccountId, setSelectedInspectorAccountId] = useState<string | null>(null);
   const [editingProviderAccountId, setEditingProviderAccountId] = useState<string | null>(null);
   const [showAddProviderDialog, setShowAddProviderDialog] = useState(false);
   const [usageFetchDoneKey, setUsageFetchDoneKey] = useState<string | null>(null);
@@ -245,18 +246,14 @@ export function Models() {
     [providerAccounts, selectedRuntimeProviderKey],
   );
   const selectedProviderItem = useMemo(() => {
-    if (editingProviderAccountId) {
-      return providerItems.find((item) => item.account.id === editingProviderAccountId) ?? null;
-    }
+    const activeInspectorAccountId = editingProviderAccountId ?? selectedInspectorAccountId;
 
-    if (selectedInspectorAccountIds.length === 0) {
+    if (!activeInspectorAccountId || selectedInspectorAccountIds.length === 0) {
       return null;
     }
 
     return (
-      (selectedProviderAccountId
-        ? providerItems.find((item) => item.account.id === selectedProviderAccountId && selectedInspectorAccountIds.includes(item.account.id))
-        : undefined)
+      providerItems.find((item) => item.account.id === activeInspectorAccountId && selectedInspectorAccountIds.includes(item.account.id))
       || (
       (defaultProviderAccountId
         ? providerItems.find((item) => item.account.id === defaultProviderAccountId && selectedInspectorAccountIds.includes(item.account.id))
@@ -265,7 +262,30 @@ export function Models() {
       || providerItems.find((item) => selectedInspectorAccountIds.includes(item.account.id))
       || null
     );
-  }, [defaultProviderAccountId, editingProviderAccountId, providerItems, selectedInspectorAccountIds, selectedProviderAccountId]);
+  }, [defaultProviderAccountId, editingProviderAccountId, providerItems, selectedInspectorAccountId, selectedInspectorAccountIds]);
+  const selectedBoardAccountId = selectedInspectorAccountId ?? selectedProviderAccountId;
+  const selectedBoardRuntimeAccountIds = useMemo(
+    () => findProviderAccountsByRuntimeKey(providerAccounts, selectedRuntimeProviderKey).map((account) => account.id),
+    [providerAccounts, selectedRuntimeProviderKey],
+  );
+  const selectedBoardItem = useMemo(() => {
+    if (selectedBoardRuntimeAccountIds.length === 0) {
+      return null;
+    }
+
+    return (
+      (selectedBoardAccountId
+        ? providerItems.find((item) => item.account.id === selectedBoardAccountId && selectedBoardRuntimeAccountIds.includes(item.account.id))
+        : undefined)
+      || (
+      (defaultProviderAccountId
+        ? providerItems.find((item) => item.account.id === defaultProviderAccountId && selectedBoardRuntimeAccountIds.includes(item.account.id))
+        : undefined)
+      )
+      || providerItems.find((item) => selectedBoardRuntimeAccountIds.includes(item.account.id))
+      || null
+    );
+  }, [defaultProviderAccountId, providerItems, selectedBoardAccountId, selectedBoardRuntimeAccountIds]);
   const selectedInspectorItems = useMemo(
     () => providerItems.filter((item) => selectedInspectorAccountIds.includes(item.account.id)),
     [providerItems, selectedInspectorAccountIds],
@@ -345,6 +365,7 @@ export function Models() {
 
   const handleSelectProviderAccount = (accountId: string | null) => {
     setSelectedProviderAccountId(accountId);
+    setSelectedInspectorAccountId(null);
     setEditingProviderAccountId(null);
   };
 
@@ -369,12 +390,20 @@ export function Models() {
 
   const handleEditProvider = (accountId: string) => {
     setSelectedProviderAccountId(accountId);
+    setSelectedInspectorAccountId(accountId);
     setEditingProviderAccountId(accountId);
+  };
+
+  const handleOpenProviderInspector = (accountId: string) => {
+    setSelectedProviderAccountId(accountId);
+    setSelectedInspectorAccountId(accountId);
+    setEditingProviderAccountId(null);
   };
 
   const handleDeleteProvider = async (accountId: string) => {
     await removeAccount(accountId);
     setEditingProviderAccountId(null);
+    setSelectedInspectorAccountId((current) => (current === accountId ? null : current));
     setSelectedProviderAccountId((current) => (current === accountId ? null : current));
   };
 
@@ -389,6 +418,7 @@ export function Models() {
       payload.newApiKey
     );
     setEditingProviderAccountId(null);
+    setSelectedInspectorAccountId(selectedProviderItem.account.id);
   };
 
   const handleAddProvider = async (
@@ -410,6 +440,7 @@ export function Models() {
       });
       setShowAddProviderDialog(false);
       setSelectedProviderAccountId(accountId);
+      setSelectedInspectorAccountId(null);
       setEditingProviderAccountId(null);
       // Removed duplicate toast: toast.success(t('settings:aiProviders.toast.added', '已添加 Provider'));
     } catch (error) {
@@ -568,7 +599,7 @@ export function Models() {
               </div>
             ) : (
               <div className="app-insight-surface rounded-lg border border-[hsl(var(--border-subtle)/0.78)] px-3.5 py-3 text-[13px] text-muted-foreground">
-                {t('dashboard:models.selectProviderForDetails', '选择一个提供商，查看归因分布与最近请求。')}
+                {t('dashboard:models.selectProviderForUsage', '点击一个提供商卡片，查看归因分布与最近请求。')}
               </div>
             )}
           </div>
@@ -608,7 +639,7 @@ export function Models() {
                   summaries={providerUsageSummaries}
                   accounts={providerAccounts}
                   selectedRuntimeProviderKey={selectedRuntimeProviderKey}
-                  selectedAccountId={selectedProviderItem?.account.id ?? null}
+                  selectedAccountId={selectedBoardItem?.account.id ?? null}
                   loading={providerLoading}
                   defaultAccountId={defaultProviderAccountId}
                   presentation={providerBoardPresentation}
@@ -617,7 +648,7 @@ export function Models() {
                   clearLabel={t('dashboard:models.allProviders', '全部提供商')}
                   activeScopeLabel={t('dashboard:models.activeScope', '当前范围')}
                   boardTitle={t('dashboard:models.providersTitle', '模型提供商')}
-                  boardHint={t('dashboard:models.providersHint', '选择一个提供商，进入配置并联动下方用量分析')}
+                  boardHint={t('dashboard:models.providersHint', '点击提供商卡片联动下方用量分析，点详情图标查看配置')}
                   emptyTitle={t('dashboard:models.providersEmptyTitle', '还没有提供商')}
                   emptyHint={t('dashboard:models.providersEmptyHint', '先添加一个提供商，模型控制台才会显示可配置入口和联动分析。')}
                   configuredLabel={t('dashboard:models.configured', '已配置')}
@@ -625,7 +656,9 @@ export function Models() {
                   tokensLabel={t('dashboard:models.windowTokens', `${usageWindowLabel} tokens`)}
                   requestsLabel={t('dashboard:models.windowRequests', `${usageWindowLabel} requests`)}
                   accountsLabel={t('dashboard:models.accounts', '账号')}
+                  openInspectorLabel={(label) => t('dashboard:models.openInspector', { label, defaultValue: `查看详情 · ${label}` })}
                   onSelect={handleSelectProviderAccount}
+                  onOpenInspector={handleOpenProviderInspector}
                   onClearSelection={() => handleSelectProviderAccount(null)}
                 />
                 {tokenIntelligenceSection}
@@ -639,9 +672,9 @@ export function Models() {
                   scopeItems={selectedInspectorItems}
                   defaultAccountId={defaultProviderAccountId}
                   devModeUnlocked={devModeUnlocked}
-                  selectedAccountId={selectedProviderItem?.account.id ?? null}
+                  selectedAccountId={selectedProviderItem?.account.id ?? selectedBoardItem?.account.id ?? null}
                   onClose={() => {
-                    setSelectedProviderAccountId(null);
+                    setSelectedInspectorAccountId(null);
                     setEditingProviderAccountId(null);
                   }}
                   onEdit={() => {
@@ -661,6 +694,7 @@ export function Models() {
                   }}
                   onSelectAccount={(accountId) => {
                     setSelectedProviderAccountId(accountId);
+                    setSelectedInspectorAccountId(accountId);
                     setEditingProviderAccountId(null);
                   }}
                   onSave={(payload) => handleSaveProvider(payload)}
@@ -681,9 +715,9 @@ export function Models() {
           scopeItems={selectedInspectorItems}
           defaultAccountId={defaultProviderAccountId}
           devModeUnlocked={devModeUnlocked}
-          selectedAccountId={selectedProviderItem?.account.id ?? null}
+          selectedAccountId={selectedProviderItem?.account.id ?? selectedBoardItem?.account.id ?? null}
           onClose={() => {
-            setSelectedProviderAccountId(null);
+            setSelectedInspectorAccountId(null);
             setEditingProviderAccountId(null);
           }}
           onEdit={() => {
@@ -703,6 +737,7 @@ export function Models() {
           }}
           onSelectAccount={(accountId) => {
             setSelectedProviderAccountId(accountId);
+            setSelectedInspectorAccountId(accountId);
             setEditingProviderAccountId(null);
           }}
           onSave={(payload) => handleSaveProvider(payload)}

@@ -16,16 +16,12 @@ export interface ModelsWorkbenchLayoutInput {
 
 const MODELS_WORKBENCH_ULTRAWIDE_MIN_WIDTH = 1600;
 const MODELS_WORKBENCH_ULTRAWIDE_PINNED_MIN_WIDTH = 1680;
-
-const MODELS_PROVIDER_BOARD_COLUMN_BREAKPOINTS = {
-  1: 0,
-  2: 760,
-  3: 1160,
-  4: 1520,
-} as const satisfies Record<1 | 2 | 3 | 4, number>;
-
-const MODELS_PROVIDER_BOARD_COLUMNS_DESC = [4, 3, 2, 1] as const;
+const MODELS_PROVIDER_BOARD_CARD_MIN_WIDTH_PX = 224;
+const MODELS_PROVIDER_BOARD_COLUMN_GAP_PX = 12;
+const MODELS_PROVIDER_BOARD_MAX_COLUMNS = 6;
+const MODELS_PROVIDER_BOARD_PINNED_MAX_COLUMNS = 3;
 const MODELS_PROVIDER_INSPECTOR_PANE_MIN_WIDTH = 1600;
+export const MODELS_PROVIDER_BOARD_GRID_TEMPLATE = 'repeat(auto-fit, minmax(min(100%, 14rem), 1fr))';
 
 const getWorkbenchMinWidth = (inspectorPinned: boolean): number =>
   inspectorPinned ? MODELS_WORKBENCH_ULTRAWIDE_PINNED_MIN_WIDTH : MODELS_WORKBENCH_ULTRAWIDE_MIN_WIDTH;
@@ -44,16 +40,17 @@ export const getModelsWorkbenchMode = ({
 export const getProviderBoardColumns = ({
   contentWidth,
   inspectorPinned,
-}: Pick<ModelsWorkbenchLayoutInput, 'contentWidth' | 'inspectorPinned'>): 1 | 2 | 3 | 4 => {
-  const columnCount = MODELS_PROVIDER_BOARD_COLUMNS_DESC.find((candidate) => {
-    if (candidate === 4 && inspectorPinned) {
-      return false;
-    }
-    return contentWidth >= MODELS_PROVIDER_BOARD_COLUMN_BREAKPOINTS[candidate];
-  });
-
-  return columnCount ?? 1;
-};
+}: Pick<ModelsWorkbenchLayoutInput, 'contentWidth' | 'inspectorPinned'>): number =>
+  Math.max(
+    1,
+    Math.min(
+      inspectorPinned ? MODELS_PROVIDER_BOARD_PINNED_MAX_COLUMNS : MODELS_PROVIDER_BOARD_MAX_COLUMNS,
+      Math.floor(
+        (Math.max(contentWidth, MODELS_PROVIDER_BOARD_CARD_MIN_WIDTH_PX) + MODELS_PROVIDER_BOARD_COLUMN_GAP_PX)
+          / (MODELS_PROVIDER_BOARD_CARD_MIN_WIDTH_PX + MODELS_PROVIDER_BOARD_COLUMN_GAP_PX),
+      ),
+    ),
+  );
 
 export const getTokenIntelligenceLayout = ({
   contentWidth,

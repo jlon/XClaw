@@ -120,7 +120,7 @@ export function MainLayout() {
                   isStudioRoute ? 'relative' : 'hidden',
                 )}
               >
-                {canKeepStudioAlive ? <Studio /> : null}
+                {canKeepStudioAlive ? <Studio active={isStudioRoute} /> : null}
               </div>
             </div>
           ) : (

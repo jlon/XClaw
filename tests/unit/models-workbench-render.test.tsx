@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { ProviderAccount } from '@/lib/providers';
 import type { UsageHistoryEntry } from '@/pages/Models/usage-history';
 
@@ -190,7 +190,7 @@ describe('models workbench render chain', () => {
     expect(providerState.refreshProviderSnapshot).toHaveBeenCalled();
 
     expect(screen.getByTestId('models-page-root')).toHaveAttribute('data-workbench-mode', 'default');
-    expect(screen.getByTestId('models-provider-board')).toHaveAttribute('data-columns', '3');
+    expect(screen.getByTestId('models-provider-board')).toHaveAttribute('data-columns', '5');
     expect(screen.getByTestId('models-token-intelligence')).toHaveAttribute('data-layout', 'overview');
     expect(screen.getByTestId('models-token-summary-strip')).toBeInTheDocument();
     expect(screen.getByTestId('models-token-intelligence-header')).toBeInTheDocument();
@@ -200,7 +200,7 @@ describe('models workbench render chain', () => {
     expect(screen.queryByTestId('models-usage-kpis')).not.toBeInTheDocument();
     expect(screen.queryByTestId('models-provider-board-all')).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByTestId('models-provider-card-custom-prod'));
+    fireEvent.click(screen.getByTestId('models-provider-card-select-custom-prod'));
 
     await waitFor(() => {
       expect(screen.getByTestId('models-page-root')).toHaveAttribute('data-workbench-mode', 'focused');
@@ -208,7 +208,12 @@ describe('models workbench render chain', () => {
     expect(screen.getByTestId('models-provider-focus-header')).toHaveTextContent('Custom Prod');
     expect(screen.getAllByText('gpt-5').length).toBeGreaterThan(0);
     expect(screen.queryAllByText('gpt-4.1')).toHaveLength(0);
+    expect(screen.queryByTestId('models-provider-inspector')).not.toBeInTheDocument();
 
+    fireEvent.click(within(screen.getByTestId('models-provider-board')).getByText('全部提供商'));
+    await screen.findByTestId('models-provider-card-details-custom-prod');
+    fireEvent.click(screen.getByTestId('models-provider-card-details-custom-prod'));
+    await screen.findByTestId('models-provider-inspector');
     fireEvent.click(screen.getByRole('button', { name: '编辑 Custom Prod' }));
 
     await waitFor(() => {

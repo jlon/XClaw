@@ -56,7 +56,7 @@ function resolveBrowserStudioFrameUrl(resolvedUrl: string, focusedAgentId: strin
   }
 }
 
-export function Studio() {
+export function Studio({ active = true }: { active?: boolean }) {
   const { t } = useTranslation('studio');
   const currentAgentId = useChatStore((s) => s.currentAgentId);
   const [runtime, setRuntime] = useState<StudioRuntimeSnapshot | null>(null);
@@ -67,6 +67,7 @@ export function Studio() {
   const webviewRef = useRef<StudioWebViewElement | null>(null);
   const webviewDomReadyRef = useRef(false);
   const focusedAgentIdRef = useRef('');
+  const [surfaceReady, setSurfaceReady] = useState(active);
 
   const loadRuntime = useCallback(async () => {
     setLoading(true);
@@ -118,9 +119,30 @@ export function Studio() {
   const hasElectronRenderer = Boolean(window.electron?.ipcRenderer);
   const browserFrameUrl = resolveBrowserStudioFrameUrl(resolvedUrl, focusedAgentId);
   const canRenderRuntimeSurface = runtimeStatus === 'ready' && resolvedUrl.length > 0;
-  const canRenderWebview = canRenderRuntimeSurface && hasElectronRenderer;
-  const canRenderBrowserFrame = canRenderRuntimeSurface && !hasElectronRenderer;
+  const canRenderWebview = active && surfaceReady && canRenderRuntimeSurface && hasElectronRenderer;
+  const canRenderBrowserFrame = active && surfaceReady && canRenderRuntimeSurface && !hasElectronRenderer;
+  const showSurfacePrimingMask = active && !surfaceReady && canRenderRuntimeSurface;
   const showInitializingMask = retrying || runtimeStatus === 'starting' || runtimeStatus === 'restarting';
+
+  useEffect(() => {
+    if (!active) {
+      setSurfaceReady(false);
+      return;
+    }
+
+    let firstFrame = 0;
+    let secondFrame = 0;
+    firstFrame = window.requestAnimationFrame(() => {
+      secondFrame = window.requestAnimationFrame(() => {
+        setSurfaceReady(true);
+      });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(secondFrame);
+    };
+  }, [active, runtimeInstanceKey]);
 
   const statusLabel = (() => {
     if (loading && !runtime) {
@@ -245,17 +267,17 @@ export function Studio() {
           ref={runtimeShellRef}
           className="studio-runtime-shell relative flex min-h-0 flex-1 overflow-hidden rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated))] shadow-sm"
         >
-          {showInitializingMask ? (
+          {showInitializingMask || showSurfacePrimingMask ? (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-[hsl(var(--background)/0.9)] px-6">
               <div className="w-full max-w-[360px] rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated))] p-5 text-center shadow-lg">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-border/70 bg-[hsl(var(--surface-elevated)/0.94)] text-foreground/72">
                   <Loader2 className="h-5 w-5 animate-spin" />
                 </div>
                 <h2 className="mt-4 text-[18px] font-semibold tracking-tight text-foreground">
-                  {t('initializing.title')}
+                  {showSurfacePrimingMask ? t('runtime.loading') : t('initializing.title')}
                 </h2>
                 <p className="mt-2 text-[13px] font-medium leading-[1.7] text-foreground/62">
-                  {t('initializing.description')}
+                  {showSurfacePrimingMask ? t('empty.description') : t('initializing.description')}
                 </p>
               </div>
             </div>
@@ -285,7 +307,7 @@ export function Studio() {
               className="h-full w-full border-0"
               data-testid="studio-runtime-frame"
             />
-          ) : (
+          ) : active ? (
             <div data-testid="studio-empty-state" className="grid h-full min-h-[520px] w-full place-items-center px-6 py-8">
               <div className="mx-auto w-full max-w-[560px] rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated))] p-5 text-center shadow-md">
                 <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl border border-border/70 bg-[hsl(var(--surface-elevated)/0.94)] text-foreground/72">
@@ -332,7 +354,7 @@ export function Studio() {
                 </button>
               </div>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

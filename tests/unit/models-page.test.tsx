@@ -139,10 +139,12 @@ describe('models workbench mode contract', () => {
   });
 
   it('caps provider board columns when the inspector is pinned', () => {
-    expect(getProviderBoardColumns({ contentWidth: 759, inspectorPinned: false })).toBe(1);
-    expect(getProviderBoardColumns({ contentWidth: 760, inspectorPinned: false })).toBe(2);
-    expect(getProviderBoardColumns({ contentWidth: 1160, inspectorPinned: false })).toBe(3);
-    expect(getProviderBoardColumns({ contentWidth: 1520, inspectorPinned: false })).toBe(4);
+    expect(getProviderBoardColumns({ contentWidth: 459, inspectorPinned: false })).toBe(1);
+    expect(getProviderBoardColumns({ contentWidth: 460, inspectorPinned: false })).toBe(2);
+    expect(getProviderBoardColumns({ contentWidth: 700, inspectorPinned: false })).toBe(3);
+    expect(getProviderBoardColumns({ contentWidth: 960, inspectorPinned: false })).toBe(4);
+    expect(getProviderBoardColumns({ contentWidth: 1200, inspectorPinned: false })).toBe(5);
+    expect(getProviderBoardColumns({ contentWidth: 1600, inspectorPinned: false })).toBe(6);
     expect(getProviderBoardColumns({ contentWidth: 1520, inspectorPinned: true })).toBe(3);
   });
 
@@ -479,9 +481,7 @@ describe('models page render contract', () => {
     });
     expect(screen.getByTestId('models-provider-board')).toHaveAttribute('data-presentation', 'header');
     expect(screen.getByTestId('models-provider-focus-header')).toHaveTextContent('Custom Prod');
-    await waitFor(() => {
-      expect(screen.getByTestId('models-provider-inspector')).toHaveAttribute('data-mode', 'view');
-    });
+    expect(screen.queryByTestId('models-provider-inspector')).not.toBeInTheDocument();
   });
 
   it('switches the token intelligence metric between tokens and cost', async () => {
@@ -497,12 +497,14 @@ describe('models page render contract', () => {
     });
   });
 
-  it('renders provider inspector in view mode after selecting a provider', async () => {
+  it('renders provider inspector in view mode only after clicking the details icon', async () => {
     const { Models } = await import('@/pages/Models');
     render(<Models />);
 
     await screen.findByTestId('models-provider-card-select-openai');
-    fireEvent.click(screen.getByTestId('models-provider-card-select-openai'));
+    expect(screen.queryByTestId('models-provider-inspector')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId('models-provider-card-details-openai'));
 
     await waitFor(() => {
       expect(screen.getByTestId('models-provider-inspector')).toHaveAttribute('data-mode', 'view');
@@ -553,8 +555,8 @@ describe('models page render contract', () => {
     const { Models } = await import('@/pages/Models');
     render(<Models />);
 
-    await screen.findByTestId('models-provider-card-select-openai');
-    fireEvent.click(screen.getByTestId('models-provider-card-select-openai'));
+    await screen.findByTestId('models-provider-card-details-openai');
+    fireEvent.click(screen.getByTestId('models-provider-card-details-openai'));
     await screen.findByTestId('models-provider-inspector');
     expect(screen.getByTestId('models-provider-account-switcher')).toBeInTheDocument();
 
@@ -570,8 +572,8 @@ describe('models page render contract', () => {
     const { Models } = await import('@/pages/Models');
     render(<Models />);
 
-    await screen.findByTestId('models-provider-card-select-openai');
-    fireEvent.click(screen.getByTestId('models-provider-card-select-openai'));
+    await screen.findByTestId('models-provider-card-details-openai');
+    fireEvent.click(screen.getByTestId('models-provider-card-details-openai'));
     await screen.findByTestId('models-provider-inspector');
     fireEvent.click(screen.getByRole('button', { name: /(?:编辑|Edit) OpenAI/i }));
 
@@ -591,8 +593,8 @@ describe('models page render contract', () => {
     const { Models } = await import('@/pages/Models');
     const modalRender = render(<Models />);
 
-    await screen.findByTestId('models-provider-card-select-openai');
-    fireEvent.click(screen.getByTestId('models-provider-card-select-openai'));
+    await screen.findByTestId('models-provider-card-details-openai');
+    fireEvent.click(screen.getByTestId('models-provider-card-details-openai'));
     await screen.findByTestId('models-provider-inspector');
     fireEvent.click(screen.getByRole('button', { name: /(?:编辑|Edit) OpenAI/i }));
 
@@ -604,8 +606,8 @@ describe('models page render contract', () => {
     resizeObserverWidth.value = 860;
     const mediumRender = render(<Models />);
 
-    await screen.findByTestId('models-provider-card-select-openai');
-    fireEvent.click(screen.getByTestId('models-provider-card-select-openai'));
+    await screen.findByTestId('models-provider-card-details-openai');
+    fireEvent.click(screen.getByTestId('models-provider-card-details-openai'));
     await screen.findByTestId('models-provider-inspector');
     fireEvent.click(screen.getByRole('button', { name: /(?:编辑|Edit) OpenAI/i }));
 
@@ -617,8 +619,8 @@ describe('models page render contract', () => {
     resizeObserverWidth.value = 1680;
     render(<Models />);
 
-    await screen.findByTestId('models-provider-card-select-openai');
-    fireEvent.click(screen.getByTestId('models-provider-card-select-openai'));
+    await screen.findByTestId('models-provider-card-details-openai');
+    fireEvent.click(screen.getByTestId('models-provider-card-details-openai'));
     await screen.findByTestId('models-provider-inspector');
     fireEvent.click(screen.getByRole('button', { name: /(?:编辑|Edit) OpenAI/i }));
 
@@ -746,7 +748,7 @@ describe('models page render contract', () => {
     render(<Models />);
 
     await screen.findByTestId('models-provider-card-select-openai');
-    const selectProviderForScope = screen.getByText('选择一个提供商，查看归因分布与最近请求。');
+    const selectProviderForScope = screen.getByText('点击一个提供商卡片，查看归因分布与最近请求。');
     expect(selectProviderForScope).toBeInTheDocument();
 
     fireEvent.click(screen.getByTestId('models-provider-card-select-custom-prod'));
@@ -778,6 +780,32 @@ describe('models page render contract', () => {
       expect(screen.getByTestId('models-provider-board')).toHaveAttribute('data-presentation', 'rail');
       expect(screen.getByTestId('models-provider-rail')).toBeInTheDocument();
       expect(screen.getByTestId('models-token-intelligence')).toHaveAttribute('data-layout', 'split');
+    });
+  });
+
+  it('lets the default board grow beyond four columns on wide windows while keeping auto-fit card sizing', async () => {
+    resizeObserverWidth.value = 1200;
+    const { Models } = await import('@/pages/Models');
+    render(<Models />);
+
+    await screen.findByTestId('models-provider-card-select-openai');
+
+    expect(screen.getByTestId('models-provider-board')).toHaveAttribute('data-columns', '5');
+    expect(screen.getByTestId('models-provider-board-grid')).toHaveStyle({
+      gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 14rem), 1fr))',
+    });
+  });
+
+  it('keeps four provider columns on medium desktop widths instead of collapsing to two oversized cards', async () => {
+    resizeObserverWidth.value = 960;
+    const { Models } = await import('@/pages/Models');
+    render(<Models />);
+
+    await screen.findByTestId('models-provider-card-select-openai');
+
+    expect(screen.getByTestId('models-provider-board')).toHaveAttribute('data-columns', '4');
+    expect(screen.getByTestId('models-provider-board-grid')).toHaveStyle({
+      gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 14rem), 1fr))',
     });
   });
 });
