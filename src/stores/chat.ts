@@ -1468,10 +1468,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
           // Background: fetch first user message for every visible session to populate labels upfront.
           // Uses a small limit so it's cheap; runs in parallel and doesn't block anything.
-          const sessionsToLabel = sessionsWithCurrent;
-          if (sessionsToLabel.length > 0) {
+          const { sessionLabels, sessionLastActivity } = get();
+          const sessionsToHydrate = sessionsWithCurrent.filter((session) => {
+            const hasLabel = Boolean(sessionLabels[session.key]?.trim());
+            const hasActivity = Boolean(sessionLastActivity[session.key]);
+            return !hasLabel || !hasActivity;
+          });
+
+          if (sessionsToHydrate.length > 0) {
             void Promise.all(
-              sessionsToLabel.map(async (session) => {
+              sessionsToHydrate.map(async (session) => {
                 try {
                   const r = await useGatewayStore.getState().rpc<Record<string, unknown>>(
                     'chat.history',

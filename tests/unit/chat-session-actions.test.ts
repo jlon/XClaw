@@ -302,6 +302,43 @@ describe('chat session actions', () => {
     expect(h.read().sessionLastActivity['agent:main:main']).toBe(1773281710000);
   });
 
+  it('skips expensive history hydration for sessions that already have label and activity metadata', async () => {
+    const { createSessionActions } = await import('@/stores/chat/session-actions');
+    const h = makeHarness({
+      currentSessionKey: 'agent:main:main',
+      sessions: [{ key: 'agent:main:main' }],
+      sessionLabels: { 'agent:main:main': '已缓存标题' },
+      sessionLastActivity: { 'agent:main:main': 1773281700000 },
+    });
+    const actions = createSessionActions(h.set as never, h.get as never);
+
+    gatewayRpcMock.mockImplementation(async (method: string) => {
+      if (method === 'sessions.list') {
+        return {
+          sessions: [
+            {
+              key: 'agent:main:main',
+              displayName: 'Main',
+              updatedAt: 1773281700000,
+            },
+          ],
+        };
+      }
+      if (method === 'chat.history') {
+        throw new Error('chat.history should not be called for already hydrated sessions');
+      }
+      return {};
+    });
+
+    await actions.loadSessions();
+    await Promise.resolve();
+
+    expect(h.read().sessionLabels['agent:main:main']).toBe('已缓存标题');
+    expect(h.read().sessionLastActivity['agent:main:main']).toBe(1773281700000);
+    expect(gatewayRpcMock).toHaveBeenCalledTimes(1);
+    expect(gatewayRpcMock).toHaveBeenCalledWith('sessions.list', {});
+  });
+
   it('loads sessions through the gateway store rpc facade', async () => {
     const { createSessionActions } = await import('@/stores/chat/session-actions');
     const h = makeHarness();

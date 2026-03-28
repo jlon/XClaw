@@ -38,10 +38,15 @@ vi.mock('@/stores/gateway', () => ({
 }));
 
 vi.mock('@/stores/agents', () => ({
-  useAgentsStore: (selector?: (state: typeof agentsState) => unknown) => {
-    const state = agentsState;
-    return typeof selector === 'function' ? selector(state) : state;
-  },
+  useAgentsStore: Object.assign(
+    (selector?: (state: typeof agentsState) => unknown) => {
+      const state = agentsState;
+      return typeof selector === 'function' ? selector(state) : state;
+    },
+    {
+      getState: () => agentsState,
+    },
+  ),
 }));
 
 vi.mock('@/components/ui/confirm-dialog', () => ({
@@ -165,6 +170,16 @@ describe('cron agent targeting', () => {
       }
       return { success: true };
     });
+  });
+
+  it('does not preload channel accounts before the task dialog is opened', async () => {
+    render(<Cron />);
+
+    await waitFor(() => {
+      expect(agentsState.fetchAgents).toHaveBeenCalledTimes(1);
+    });
+
+    expect(hostApiFetchMock).not.toHaveBeenCalledWith('/api/channels/accounts');
   });
 
   it('requires an explicit agent target in the task dialog and submits it on create', async () => {

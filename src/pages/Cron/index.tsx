@@ -843,16 +843,28 @@ export function Cron() {
   }, []);
 
   useEffect(() => {
+    if (!showDialog) {
+      return;
+    }
+
+    let cancelled = false;
     const loadChannelGroups = async () => {
       try {
         const response = await hostApiFetch<ChannelAccountsResponse>('/api/channels/accounts');
-        setChannelGroups(response.channels || []);
+        if (!cancelled) {
+          setChannelGroups(response.channels || []);
+        }
       } catch {
-        setChannelGroups([]);
+        if (!cancelled) {
+          setChannelGroups([]);
+        }
       }
     };
 
     void loadChannelGroups();
+    return () => {
+      cancelled = true;
+    };
   }, [showDialog]);
 
   // Statistics

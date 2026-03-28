@@ -93,10 +93,16 @@ export function createSessionActions(
           get().loadHistory();
         }
 
-        const sessionsToLabel = sessionsWithCurrent;
-        if (sessionsToLabel.length > 0) {
+        const { sessionLabels, sessionLastActivity } = get();
+        const sessionsToHydrate = sessionsWithCurrent.filter((session) => {
+          const hasLabel = Boolean(sessionLabels[session.key]?.trim());
+          const hasActivity = Boolean(sessionLastActivity[session.key]);
+          return !hasLabel || !hasActivity;
+        });
+
+        if (sessionsToHydrate.length > 0) {
           void Promise.all(
-            sessionsToLabel.map(async (session) => {
+            sessionsToHydrate.map(async (session) => {
               try {
                 const result = await useGatewayStore.getState().rpc<Record<string, unknown>>(
                   'chat.history',

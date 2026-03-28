@@ -3,6 +3,8 @@ import { hostApiFetch } from '@/lib/host-api';
 import type { ChannelType } from '@/types/channel';
 import type { AgentSummary, AgentsSnapshot } from '@/types/agent';
 
+let fetchAgentsInFlight: Promise<void> | null = null;
+
 interface AgentsState {
   agents: AgentSummary[];
   defaultAgentId: string;
@@ -45,16 +47,26 @@ export const useAgentsStore = create<AgentsState>((set) => ({
   },
 
   fetchAgents: async () => {
-    set({ loading: true, error: null });
-    try {
-      const snapshot = await hostApiFetch<AgentsSnapshot & { success?: boolean }>('/api/agents');
-      set({
-        ...applySnapshot(snapshot),
-        loading: false,
-      });
-    } catch (error) {
-      set({ loading: false, error: String(error) });
+    if (fetchAgentsInFlight) {
+      return fetchAgentsInFlight;
     }
+
+    set({ loading: true, error: null });
+    fetchAgentsInFlight = (async () => {
+      try {
+        const snapshot = await hostApiFetch<AgentsSnapshot & { success?: boolean }>('/api/agents');
+        set({
+          ...applySnapshot(snapshot),
+          loading: false,
+        });
+      } catch (error) {
+        set({ loading: false, error: String(error) });
+      } finally {
+        fetchAgentsInFlight = null;
+      }
+    })();
+
+    return fetchAgentsInFlight;
   },
 
   createAgent: async (name: string, modelRef?: string | null) => {
