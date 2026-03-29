@@ -40,4 +40,11 @@ describe('beta package workflow', () => {
     expect(workflow).toContain("publish_release:");
     expect(workflow).toContain("default: true");
   });
+
+  it('prunes stale release assets before uploading a rerun over the same beta tag', () => {
+    const workflow = readFileSync(resolve(process.cwd(), '.github/workflows/package-beta.yml'), 'utf8');
+
+    expect(workflow).toContain('scripts/prune-release-assets.mjs');
+    expect(workflow).toContain('Prune stale beta release assets');
+  });
 });

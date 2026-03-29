@@ -288,6 +288,13 @@ systemctl reload nginx
 2. 选择 3 个安装包
 3. 同步到 `/var/www/xclaw/downloads/<tag>/`
 4. 生成 `/var/www/xclaw/downloads/latest.json`
+5. 如果同一个 beta tag 下有多轮重发资产，优先同步最新那一批安装包
+
+## GitHub Beta 打包注意
+
+- 手动触发 `.github/workflows/package-beta.yml` 时，默认会同时发布 GitHub Beta Release。
+- 如果只是验证打包、不想覆盖 GitHub Release，才需要显式把 `publish_release` 设为 `false`。
+- 同一个 beta tag 反复重发时，发布流程会先清理旧安装包资产，再上传新资产，避免官网同步脚本继续命中旧文件。
 
 ## 下载同步脚本行为说明
 

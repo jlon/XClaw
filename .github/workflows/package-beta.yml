@@ -200,6 +200,15 @@ jobs:
           node scripts/collect-release-assets.mjs release-artifacts >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
 
+      - name: Write desired release asset list
+        shell: bash
+        run: printf '%s\n' "${{ steps.release_assets.outputs.files }}" > /tmp/xclaw-release-assets.txt
+
+      - name: Prune stale beta release assets
+        run: node scripts/prune-release-assets.mjs --repo "${{ steps.branding.outputs.github_repository }}" --tag "v${{ needs.prepare.outputs.version }}" --files /tmp/xclaw-release-assets.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create GitHub beta prerelease
         uses: softprops/action-gh-release@v2
         with:
