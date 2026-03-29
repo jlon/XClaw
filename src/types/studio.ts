@@ -28,6 +28,20 @@ export type StudioRuntimeEventPayload =
       [key: string]: unknown;
     };
 
+export interface StudioSkinDescriptor {
+  key: string;
+  enabled: boolean;
+  selectable: boolean;
+  isDefaultFallback?: boolean;
+}
+
+export interface StudioSkinApplyResult {
+  ok: boolean;
+  appliedSkinKey: string | null;
+  fallbackApplied: boolean;
+  reason?: string | null;
+}
+
 declare global {
   namespace JSX {
     interface IntrinsicElements {
