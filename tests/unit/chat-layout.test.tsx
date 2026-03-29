@@ -340,7 +340,7 @@ describe('chat layout', () => {
     expect(studioMountSpy).toHaveBeenCalledTimes(1);
     expect(studioUnmountSpy).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByLabelText('Chat'));
+    fireEvent.click(screen.getByRole('link', { name: 'Chat' }));
 
     expect(screen.getByText('Chat body')).toBeInTheDocument();
     expect(studioUnmountSpy).not.toHaveBeenCalled();
@@ -404,12 +404,50 @@ describe('chat layout', () => {
 
     expect(chatUnmountSpy).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByLabelText('Chat'));
+    fireEvent.click(screen.getByRole('link', { name: 'Chat' }));
 
     expect(screen.getByTestId('chat-surface-probe')).toBeInTheDocument();
     expect(chatMountSpy).toHaveBeenCalledTimes(1);
     expect(chatUnmountSpy).not.toHaveBeenCalled();
     expect(chatState.loadSessions).toHaveBeenCalled();
+  });
+
+  it('keeps the chat surface mounted while toggling between chat and settings', () => {
+    function ChatProbe() {
+      useEffect(() => {
+        chatMountSpy();
+        return () => {
+          chatUnmountSpy();
+        };
+      }, []);
+
+      return <div data-testid="chat-surface-probe">Chat body</div>;
+    }
+
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <Routes>
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<ChatProbe />} />
+            <Route path="/settings" element={<div>Settings body</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(chatMountSpy).toHaveBeenCalledTimes(1);
+    expect(chatUnmountSpy).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+
+    expect(screen.getByText('Settings body')).toBeInTheDocument();
+    expect(chatUnmountSpy).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('link', { name: 'Chat' }));
+
+    expect(screen.getByTestId('chat-surface-probe')).toBeInTheDocument();
+    expect(chatMountSpy).toHaveBeenCalledTimes(1);
+    expect(chatUnmountSpy).not.toHaveBeenCalled();
   });
 
   it('applies low-saturation theme tones to chat session pane icons without tinting the labels', () => {

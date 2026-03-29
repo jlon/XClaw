@@ -42,13 +42,15 @@ export function MainLayout() {
   const globalWallpaperOpacity = useSettingsStore((state) => ('globalWallpaperOpacity' in state ? state.globalWallpaperOpacity : 0.36));
   const globalWallpaperAssetKey = useSettingsStore((state) => ('globalWallpaperAssetKey' in state ? state.globalWallpaperAssetKey : ''));
   const syncGlobalWallpaperState = useSettingsStore((state) => ('syncGlobalWallpaperState' in state ? state.syncGlobalWallpaperState : (() => undefined)));
-  const cachedChatOutletRef = useRef(outlet);
+  const cachedChatOutletRef = useRef<ReturnType<typeof useOutlet>>(isChatRoute ? outlet : null);
   const canKeepStudioAlive = settingsInitialized && setupComplete;
+  const [hasVisitedChatRoute, setHasVisitedChatRoute] = useState(isChatRoute);
   const [sidebarResizing, setSidebarResizing] = useState(false);
 
   useEffect(() => {
     if (isChatRoute && outlet) {
       cachedChatOutletRef.current = outlet;
+      setHasVisitedChatRoute(true);
     }
   }, [isChatRoute, outlet]);
 
@@ -101,6 +103,7 @@ export function MainLayout() {
     '--app-global-scrim-top-opacity': `${scrimTopOpacity}`,
     '--app-global-scrim-bottom-opacity': `${scrimBottomOpacity}`,
   } as CSSProperties;
+  const shouldRenderCachedChatSurface = hasVisitedChatRoute || isChatRoute;
 
   useEffect(() => {
     if (isChatRoute) {
@@ -177,9 +180,8 @@ export function MainLayout() {
         <TitleBar />
       </div>
       <div className="desktop-app-shell-body relative z-[1] flex flex-1 min-h-0 overflow-hidden">
-        {isChatRoute ? (
-          <ChatSurfaceNavShell visible={isChatRoute} />
-        ) : (
+        {shouldRenderCachedChatSurface ? <ChatSurfaceNavShell visible={isChatRoute} /> : null}
+        {isChatRoute ? null : (
           <Sidebar
             key="app-sidebar"
             className="desktop-app-shell-sidebar"
@@ -193,16 +195,18 @@ export function MainLayout() {
           <div aria-hidden="true" className="desktop-app-workspace-tint" />
           {isChatSurfaceRoute ? (
             <div className="relative z-[1] min-h-0 flex flex-1 flex-col">
-              <div
-                aria-hidden={!isChatRoute}
-                className={cn(
-                  'min-h-0 flex flex-1 flex-col',
-                  isChatRoute ? 'relative' : 'hidden',
-                )}
-              >
-                {/* eslint-disable-next-line react-hooks/refs */}
-                {isChatRoute ? outlet : cachedChatOutletRef.current}
-              </div>
+              {shouldRenderCachedChatSurface ? (
+                <div
+                  aria-hidden={!isChatRoute}
+                  className={cn(
+                    'min-h-0 flex flex-1 flex-col',
+                    isChatRoute ? 'relative' : 'hidden',
+                  )}
+                >
+                  {/* eslint-disable-next-line react-hooks/refs */}
+                  {isChatRoute ? outlet : cachedChatOutletRef.current}
+                </div>
+              ) : null}
               <div
                 aria-hidden={!isStudioRoute}
                 className={cn(
@@ -214,8 +218,19 @@ export function MainLayout() {
               </div>
             </div>
           ) : (
-            <div className="relative z-[1] min-h-0 flex-1">
-              {outlet}
+            <div className="relative z-[1] min-h-0 flex flex-1 flex-col">
+              {shouldRenderCachedChatSurface ? (
+                <div
+                  aria-hidden="true"
+                  className="hidden min-h-0 flex-1 flex-col"
+                >
+                  {/* eslint-disable-next-line react-hooks/refs */}
+                  {cachedChatOutletRef.current}
+                </div>
+              ) : null}
+              <div className="relative min-h-0 flex-1">
+                {outlet}
+              </div>
             </div>
           )}
         </main>
