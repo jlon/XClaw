@@ -109,17 +109,19 @@ export const ChatMessage = memo(function ChatMessage({
 
         {hasProcessContent && (
           <div className="app-chat-message-process">
-            {isStreaming && streamingTools.length > 0 && (
-              <ToolStatusBar tools={streamingTools} />
-            )}
+            <div data-testid="chat-process-timeline" className="app-chat-process-timeline">
+              {isStreaming && streamingTools.length > 0 && (
+                <ToolStatusBar tools={streamingTools} />
+              )}
 
-            {visibleThinking && (
-              <ThinkingBlock content={visibleThinking} />
-            )}
+              {visibleThinking && (
+                <ThinkingBlock content={visibleThinking} />
+              )}
 
-            {visibleTools.length > 0 && (
-              <ToolCallGroup tools={visibleTools} />
-            )}
+              {visibleTools.length > 0 && (
+                <ToolCallGroup tools={visibleTools} />
+              )}
+            </div>
           </div>
         )}
 
@@ -279,7 +281,7 @@ function ToolStatusBar({
   }>;
 }) {
   return (
-    <div className="app-chat-tool-chip-stack app-chat-secondary-block w-fit max-w-full flex flex-col gap-1.5">
+    <div className="app-chat-secondary-block w-fit max-w-full">
       {tools.map((tool) => {
         const duration = formatDuration(tool.durationMs);
         const isRunning = tool.status === 'running';
@@ -289,7 +291,7 @@ function ToolStatusBar({
             key={tool.toolCallId || tool.id || tool.name}
             data-state={tool.status}
             className={cn(
-              'app-chat-process-node app-chat-tool-chip inline-flex max-w-full items-center gap-1.5 rounded-full border border-[hsl(var(--border-subtle)/0.5)] bg-[hsl(var(--surface-elevated)/0.78)] px-2.5 py-1 text-[12px] leading-none shadow-none',
+              'app-chat-process-row app-chat-process-node inline-flex max-w-full items-center gap-1.5 text-[12px] leading-none',
               isRunning && 'text-foreground',
               !isRunning && !isError && 'text-muted-foreground',
               isError && 'text-destructive',
@@ -363,7 +365,7 @@ function MessageBubble({
       className={cn(
         'relative inline-block w-fit max-w-full text-[14px] leading-[1.6]',
         isUser
-          ? 'app-chat-bubble-user-v3 rounded-[18px] rounded-tr-[4px] border border-[hsl(var(--primary)/0.14)] bg-[hsl(var(--primary)/0.08)] px-[14px] py-[10px] text-foreground shadow-[0_8px_20px_rgba(15,23,42,0.04)] dark:border-[hsl(var(--primary)/0.24)] dark:bg-[hsl(var(--primary)/0.16)]'
+          ? 'app-chat-bubble-user-v3 rounded-[18px] rounded-tr-[4px] border border-[hsl(var(--primary)/0.12)] bg-[hsl(var(--primary)/0.07)] px-[14px] py-[10px] text-foreground shadow-none dark:border-[hsl(var(--primary)/0.18)] dark:bg-[hsl(var(--primary)/0.12)]'
           : 'app-chat-bubble-assistant-v3 px-0 py-0 border-transparent bg-transparent text-foreground/96 shadow-none',
       )}
       data-testid={isUser ? 'chat-user-bubble' : 'chat-assistant-bubble'}
@@ -428,7 +430,7 @@ function ThinkingBlock({ content }: { content: string }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="app-chat-thinking-card app-chat-process-rail app-chat-secondary-block w-fit max-w-full text-[14px]">
+    <div className="app-chat-thinking-card app-chat-secondary-block w-fit max-w-full text-[14px]">
       <button
         className="app-chat-secondary-toggle app-chat-process-toggle"
         onClick={() => setExpanded(!expanded)}

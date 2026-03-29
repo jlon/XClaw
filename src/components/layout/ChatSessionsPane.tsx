@@ -199,7 +199,7 @@ export function ChatSessionsPane() {
 
   const shouldPortalHeader = isMacDesktop && !isBrowserMode && !!titlebarHeaderTarget;
   const searchContent = searchOpen || searchQuery ? (
-    <div className="app-chat-session-control app-chat-session-control--search relative flex h-[28px] min-w-0 flex-1 items-center rounded-[6px] px-3 transition-colors duration-[var(--motion-base)] ring-1 ring-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))]">
+    <div className="app-chat-session-control app-chat-session-control--search relative flex h-[28px] min-w-0 flex-1 items-center rounded-[6px] px-3 transition-colors duration-[var(--motion-base)] ring-1 ring-[hsl(var(--border-subtle))]">
       <SessionToneIcon tone="search">
         <Search aria-hidden="true" className="pointer-events-none h-3.5 w-3.5 shrink-0 text-muted-foreground" />
       </SessionToneIcon>
@@ -226,7 +226,7 @@ export function ChatSessionsPane() {
     <button
       type="button"
       aria-label={t('chat:sessionPane.searchLabel')}
-      className="app-chat-session-control app-chat-session-control--search flex h-[28px] min-w-0 flex-1 items-center gap-2 rounded-[6px] px-2.5 text-left text-[13px] font-normal text-muted-foreground/62 transition-colors duration-[var(--motion-base)] hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground cursor-default focus-visible:outline-none border border-transparent shadow-none"
+      className="app-chat-session-control app-chat-session-control--search flex h-[28px] min-w-0 flex-1 items-center gap-2 rounded-[6px] px-2.5 text-left text-[13px] font-normal text-muted-foreground/62 transition-colors duration-[var(--motion-base)] cursor-default focus-visible:outline-none"
       onClick={() => setSearchOpen(true)}
     >
       <SessionToneIcon tone="search">
@@ -305,8 +305,8 @@ export function ChatSessionsPane() {
                           className={cn(
                             'app-chat-session-row flex h-[32px] w-full items-center gap-2.5 rounded-[6px] px-[10px] pr-8 text-left transition-colors duration-[var(--motion-base)] ease-out cursor-default',
                             isCurrent
-                              ? 'app-chat-session-row--active bg-[hsl(var(--surface-active)/0.8)] text-foreground font-medium border-transparent shadow-none'
-                              : 'text-foreground/84 hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground',
+                              ? 'app-chat-session-row--active text-foreground font-medium'
+                              : 'text-foreground/84',
                           )}
                         >
                           <AgentAvatar
@@ -358,7 +358,7 @@ export function ChatSessionsPane() {
           <div ref={workspaceMenuRef} className="relative min-w-0 flex-1">
             <button
               type="button"
-              className="app-chat-session-footer-action flex h-[32px] w-full items-center gap-2.5 rounded-[6px] px-2.5 text-left text-[13px] font-normal leading-5 text-foreground/68 transition-colors duration-[var(--motion-base)] hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground cursor-default"
+              className="app-chat-session-footer-action flex h-[32px] w-full items-center gap-2.5 rounded-[6px] px-2.5 text-left text-[13px] font-normal leading-5 text-foreground/68 transition-colors duration-[var(--motion-base)] cursor-default"
               onClick={() => setWorkspaceMenuOpen((open) => !open)}
             >
               <SessionToneIcon tone="workspace">
@@ -375,7 +375,7 @@ export function ChatSessionsPane() {
                       <button
                         key={item.to}
                         type="button"
-                        className="app-chat-session-workspace-item flex h-[32px] w-full items-center gap-2.5 rounded-[6px] px-2.5 text-left text-[12.5px] text-foreground/76 transition-colors duration-[var(--motion-base)] hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground cursor-default group"
+                        className="app-chat-session-workspace-item flex h-[32px] w-full items-center gap-2.5 rounded-[6px] px-2.5 text-left text-[12.5px] text-foreground/76 transition-colors duration-[var(--motion-base)] cursor-default group"
                         onClick={() => {
                           setWorkspaceMenuOpen(false);
                           navigate(item.to);
@@ -393,7 +393,7 @@ export function ChatSessionsPane() {
                   <div className="my-1 border-t border-[hsl(var(--border-subtle)/0.78)]" />
                   <button
                     type="button"
-                    className="app-chat-session-workspace-item flex h-[32px] w-full items-center gap-2.5 rounded-[6px] px-2.5 text-left text-[12.5px] text-foreground/68 transition-colors duration-[var(--motion-base)] hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground cursor-default group"
+                    className="app-chat-session-workspace-item flex h-[32px] w-full items-center gap-2.5 rounded-[6px] px-2.5 text-left text-[12.5px] text-foreground/68 transition-colors duration-[var(--motion-base)] cursor-default group"
                     onClick={() => {
                       setWorkspaceMenuOpen(false);
                       void openDevConsole();
@@ -415,7 +415,7 @@ export function ChatSessionsPane() {
             type="button"
             aria-label={t('common:sidebar.settings')}
             title={t('common:sidebar.settings')}
-            className="app-chat-session-utility-button flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-[6px] text-muted-foreground transition-colors duration-[var(--motion-base)] hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground cursor-default focus-visible:outline-none"
+            className="app-chat-session-utility-button flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-[6px] text-muted-foreground transition-colors duration-[var(--motion-base)] cursor-default focus-visible:outline-none"
             onClick={() => navigate('/settings')}
           >
             <SessionToneIcon tone="settings">

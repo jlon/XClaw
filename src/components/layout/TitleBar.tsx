@@ -180,7 +180,10 @@ export function TitleBar({ pathname }: TitleBarProps = {}) {
 
 function MacChatTitleBar({ chatSidebarVisible }: { chatSidebarVisible: boolean }) {
   return (
-    <div className={`desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--mac relative flex ${MAC_TITLEBAR_HEIGHT_CLASS} shrink-0`}>
+    <div
+      className={`desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--mac relative flex ${MAC_TITLEBAR_HEIGHT_CLASS} shrink-0`}
+      data-chat-sidebar-visible={chatSidebarVisible ? 'true' : 'false'}
+    >
       <div className="flex h-full w-full">
         {chatSidebarVisible ? (
           <div
@@ -282,14 +285,17 @@ function BrowserTitleBar({
 }) {
   const isChatSurfaceRoute = isChatRoute;
   return (
-    <div className={`desktop-app-titlebar desktop-app-titlebar--browser ${isChatSurfaceRoute ? 'desktop-app-titlebar--chat' : ''} flex h-14 shrink-0 items-center pl-3 pr-4 bg-background border-b border-[hsl(var(--border-subtle))]`}>
+    <div
+      className={`desktop-app-titlebar desktop-app-titlebar--browser ${isChatSurfaceRoute ? 'desktop-app-titlebar--chat' : ''} flex h-14 shrink-0 items-center pl-3 pr-4 bg-background border-b border-[hsl(var(--border-subtle))]`}
+      data-chat-sidebar-visible={isChatSurfaceRoute && chatSidebarVisible ? 'true' : 'false'}
+    >
       {isChatSurfaceRoute ? (
         <div
           data-testid="chat-titlebar-session-slot"
           className={
             chatSidebarVisible
-              ? 'flex h-full w-[var(--desktop-sidebar-width)] shrink-0 items-center justify-end pr-3'
-              : 'flex h-full w-auto shrink-0 items-center justify-start pl-24 pr-2'
+              ? 'desktop-app-titlebar-sidebar-slot desktop-app-titlebar-sidebar-slot--chat flex h-full w-[var(--desktop-sidebar-width)] shrink-0 items-center justify-end pr-3'
+              : 'desktop-app-titlebar-sidebar-slot desktop-app-titlebar-sidebar-slot--chat flex h-full w-auto shrink-0 items-center justify-start pl-24 pr-2'
           }
         >
           <div className="z-10 flex items-center">
@@ -307,8 +313,8 @@ function BrowserTitleBar({
           data-testid="workspace-titlebar-sidebar-slot"
           className={
             workspaceSidebarExpanded
-              ? 'flex h-full w-[var(--desktop-sidebar-width)] shrink-0 items-center justify-between pr-3'
-              : 'flex h-full w-[var(--desktop-sidebar-rail-width)] shrink-0 items-center justify-center'
+              ? 'desktop-app-titlebar-sidebar-slot desktop-app-titlebar-sidebar-slot--workspace flex h-full w-[var(--desktop-sidebar-width)] shrink-0 items-center justify-between pr-3'
+              : 'desktop-app-titlebar-sidebar-slot desktop-app-titlebar-sidebar-slot--workspace flex h-full w-[var(--desktop-sidebar-rail-width)] shrink-0 items-center justify-center'
           }
         >
           {workspaceSidebarExpanded && (
@@ -324,18 +330,20 @@ function BrowserTitleBar({
           </div>
         </div>
       )}
-      <div className="min-w-0 flex-1" />
-      <div className="flex h-full items-center">
-        {isChatRoute ? (
-          <div className="mr-3 flex items-center h-full">
-            <ChatToolbar compact={false} />
-          </div>
-        ) : null}
-        {!isSetupRoute ? (
-          <div className="flex items-center h-full">
-            <GlobalTitleBarUtilities compact={false} studioIconOnly />
-          </div>
-        ) : null}
+      <div className="desktop-app-titlebar-main-surface flex min-w-0 flex-1 items-center">
+        <div className="min-w-0 flex-1" />
+        <div className="flex h-full items-center">
+          {isChatRoute ? (
+            <div className="mr-3 flex h-full items-center">
+              <ChatToolbar compact={false} />
+            </div>
+          ) : null}
+          {!isSetupRoute ? (
+            <div className="flex h-full items-center">
+              <GlobalTitleBarUtilities compact={false} studioIconOnly />
+            </div>
+          ) : null}
+        </div>
       </div>
     </div>
   );
@@ -385,14 +393,17 @@ function WindowsTitleBar({
   };
 
   return (
-    <div className={`${dragRegionClassName} desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--win flex h-9 shrink-0 items-center pl-2`}>
+    <div
+      className={`${dragRegionClassName} desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--win flex h-9 shrink-0 items-center pl-2`}
+      data-chat-sidebar-visible={isChatRoute && chatSidebarVisible ? 'true' : 'false'}
+    >
       {isChatRoute ? (
         <div
           data-testid="chat-titlebar-session-slot"
           className={
             chatSidebarVisible
-              ? `${dragRegionClassName} flex h-full w-[var(--desktop-sidebar-width)] shrink-0 items-center justify-end pr-3`
-              : `${dragRegionClassName} flex h-full w-auto shrink-0 items-center justify-start pl-1 pr-2`
+              ? `${dragRegionClassName} desktop-app-titlebar-sidebar-slot desktop-app-titlebar-sidebar-slot--chat flex h-full w-[var(--desktop-sidebar-width)] shrink-0 items-center justify-end pr-3`
+              : `${dragRegionClassName} desktop-app-titlebar-sidebar-slot desktop-app-titlebar-sidebar-slot--chat flex h-full w-auto shrink-0 items-center justify-start pl-1 pr-2`
           }
         >
           <div className="z-10" style={noDragStyle}>
@@ -408,8 +419,8 @@ function WindowsTitleBar({
           data-testid="workspace-titlebar-sidebar-slot"
           className={
             workspaceSidebarExpanded
-              ? `${dragRegionClassName} flex h-full w-[var(--desktop-sidebar-width)] shrink-0 items-center justify-end pr-3`
-              : `${dragRegionClassName} flex h-full w-[var(--desktop-sidebar-rail-width)] shrink-0 items-center justify-center`
+              ? `${dragRegionClassName} desktop-app-titlebar-sidebar-slot desktop-app-titlebar-sidebar-slot--workspace flex h-full w-[var(--desktop-sidebar-width)] shrink-0 items-center justify-end pr-3`
+              : `${dragRegionClassName} desktop-app-titlebar-sidebar-slot desktop-app-titlebar-sidebar-slot--workspace flex h-full w-[var(--desktop-sidebar-rail-width)] shrink-0 items-center justify-center`
           }
         >
           <div className="z-10 flex items-center" style={noDragStyle}>
@@ -422,40 +433,42 @@ function WindowsTitleBar({
           </div>
         </div>
       )}
-      <div className="min-w-0 flex-1" />
-      <div className="flex h-full items-center" style={noDragStyle}>
-        {isChatRoute ? (
-          <div className="mr-1.5">
-            <ChatToolbar compact />
+      <div className={`${dragRegionClassName} desktop-app-titlebar-main-surface flex min-w-0 flex-1 items-center`}>
+        <div className="min-w-0 flex-1" />
+        <div className="flex h-full items-center" style={noDragStyle}>
+          {isChatRoute ? (
+            <div className="mr-1.5">
+              <ChatToolbar compact />
+            </div>
+          ) : null}
+          {!isSetupRoute ? (
+            <div className="mr-2">
+              <GlobalTitleBarUtilities compact />
+            </div>
+          ) : null}
+          <div className="flex h-full desktop-app-titlebar-controls">
+          <button
+            onClick={handleMinimize}
+            className="flex h-full w-10 items-center justify-center text-muted-foreground transition-colors hover:bg-[hsl(var(--foreground)/0.05)] hover:text-foreground"
+            title="Minimize"
+          >
+            <Minus className="h-4 w-4" />
+          </button>
+          <button
+            onClick={handleMaximize}
+            className="flex h-full w-10 items-center justify-center text-muted-foreground transition-colors hover:bg-[hsl(var(--foreground)/0.05)] hover:text-foreground"
+            title={maximized ? 'Restore' : 'Maximize'}
+          >
+            {maximized ? <Copy className="h-3.5 w-3.5" /> : <Square className="h-3.5 w-3.5" />}
+          </button>
+          <button
+            onClick={handleClose}
+            className="flex h-full w-10 items-center justify-center text-muted-foreground transition-colors hover:bg-destructive hover:text-destructive-foreground"
+            title="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
           </div>
-        ) : null}
-        {!isSetupRoute ? (
-          <div className="mr-2">
-            <GlobalTitleBarUtilities compact />
-          </div>
-        ) : null}
-        <div className="flex h-full desktop-app-titlebar-controls">
-        <button
-          onClick={handleMinimize}
-          className="flex h-full w-10 items-center justify-center text-muted-foreground transition-colors hover:bg-[hsl(var(--foreground)/0.05)] hover:text-foreground"
-          title="Minimize"
-        >
-          <Minus className="h-4 w-4" />
-        </button>
-        <button
-          onClick={handleMaximize}
-          className="flex h-full w-10 items-center justify-center text-muted-foreground transition-colors hover:bg-[hsl(var(--foreground)/0.05)] hover:text-foreground"
-          title={maximized ? 'Restore' : 'Maximize'}
-        >
-          {maximized ? <Copy className="h-3.5 w-3.5" /> : <Square className="h-3.5 w-3.5" />}
-        </button>
-        <button
-          onClick={handleClose}
-          className="flex h-full w-10 items-center justify-center text-muted-foreground transition-colors hover:bg-destructive hover:text-destructive-foreground"
-          title="Close"
-        >
-          <X className="h-4 w-4" />
-        </button>
         </div>
       </div>
     </div>

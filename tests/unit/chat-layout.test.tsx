@@ -323,6 +323,8 @@ describe('chat layout', () => {
     expect(searchControl).not.toHaveClass('rounded-full');
     expect(searchControl).not.toHaveClass('focus-within:ring-2');
     expect(searchTrigger).toHaveClass('rounded-[6px]');
+    expect(designReviewRow).toHaveClass('app-chat-session-row');
+    expect(designReviewRow).not.toHaveClass('shadow-none');
   });
 
   it('keeps the studio surface mounted while toggling between chat and studio', () => {

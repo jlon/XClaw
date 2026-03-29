@@ -170,6 +170,7 @@ export function MainLayout() {
         'desktop-app-shell relative flex h-screen flex-col overflow-hidden text-foreground mac-vibrancy-shell',
         hasGlobalWallpaper && 'desktop-app-shell--wallpaper',
       )}
+      data-shell-route={isChatSurfaceRoute ? 'chat' : 'workspace'}
       data-sidebar-resizing={sidebarResizing ? 'true' : 'false'}
       style={shellStyle}
     >

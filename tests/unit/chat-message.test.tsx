@@ -220,7 +220,9 @@ describe('ChatMessage', () => {
 
     const indicator = screen.getByTestId('chat-streaming-indicator');
     expect(indicator.children).toHaveLength(3);
-    expect(document.querySelectorAll('.app-chat-tool-chip')).toHaveLength(1);
+    expect(screen.getByTestId('chat-process-timeline')).toBeInTheDocument();
+    expect(document.querySelectorAll('.app-chat-process-row')).toHaveLength(1);
+    expect(document.querySelectorAll('.app-chat-tool-chip')).toHaveLength(0);
   });
 
   it('renders assistant process rails before the final answer body', () => {
@@ -240,6 +242,7 @@ describe('ChatMessage', () => {
     const relation = thinkingToggle.compareDocumentPosition(answer);
 
     expect((relation & Node.DOCUMENT_POSITION_FOLLOWING) !== 0).toBe(true);
+    expect(screen.getByTestId('chat-process-timeline')).toBeInTheDocument();
   });
 
   it('uses an invisible spacer instead of repeating the assistant avatar when chrome is suppressed', () => {

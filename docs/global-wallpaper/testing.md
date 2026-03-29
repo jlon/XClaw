@@ -26,6 +26,9 @@
 - `pnpm test tests/unit/models-workbench-render.test.tsx --testNamePattern="consumes workbench contracts in the production models page and follows the provider-first shell"`
 - `pnpm test tests/unit/skills-page-layout.test.tsx --testNamePattern="renders a qclaw-style desktop skills center with local search and card grid"`
 - `pnpm test tests/unit/cron-agent-targeting.test.tsx --testNamePattern="uses wallpaper-aware surfaces for cron cards and dialog inputs"`
+- `pnpm test tests/unit/chat-theme-shell.test.ts tests/unit/chat-message.test.tsx`
+- `pnpm test tests/unit/chat-theme-shell.test.ts tests/unit/chat-message.test.tsx tests/unit/chat-render-stability.test.tsx tests/unit/chat-layout.test.tsx`
+- `pnpm test tests/unit/chat-message.test.tsx tests/unit/chat-input.test.tsx tests/unit/chat-theme-shell.test.ts tests/unit/chat-layout.test.tsx tests/unit/chat-render-stability.test.tsx`
 - `pnpm run typecheck`
 - 真实 Electron 窗口截图验收 1 轮（聊天页，开启壁纸）
 
@@ -43,7 +46,11 @@
 - 已通过设置页回归验证：`网关` 与 `更新` 分区内部新增语义化 surface contract，不再依赖私有 `bg-[hsl(...)]` 面板背景
 - 已通过工作台回归验证：`Models / Agents / Channels / Skills / Cron` 的主卡片、主 pane 与核心检索控件已补齐共享 surface contract
 - 已通过工作台次级 surface 回归验证：频道账号行、Agent 人格文件空状态、模型卡片 badge、技能页 tab shell 与 provider 搜索结果卡片已补齐共享 surface contract
+- 已通过聊天过程层回归验证：`thinking / tool status / tool calls` 已统一挂入 `chat-process-timeline`，不再依赖逐条 `tool chip`
+- 已通过聊天渲染路径回归验证：消息过程层与次级块已移除 `content-visibility`，桌面模式下 `meta / toggle / tool` 不再逐条叠加 blur 玻璃
+- 已通过聊天主区层级回归验证：主区 `reading veil` 继续保持无边界，侧栏搜索与当前会话行回到更接近 source list 的节奏，composer 不再依赖重边框和重阴影抬层
 - 模型页、设置页、Studio 页仍建议继续做抽样肉眼检查，避免页面私有表面重新引入硬底
+- 已通过 `chat-input` 相关历史回归：agent target、slash 固定参数执行和暗色输入器文案对比度用例均已恢复通过
 
 ## 手工验证
 
@@ -82,6 +89,11 @@
 - 聊天侧栏头部不能再次拆回 titlebar 和 pane 两层，否则左上角会重新出现结构割裂
 - 品牌锁定点不能再被抬到 traffic lights 所在的标题栏行，否则会立刻产生格式错乱
 - 次级中性 badge、row 和 empty state 不应重新落回页面私有 `bg-[hsl(...)]`，否则会再次出现“主面统一、局部掉队”的观感断层
+- 聊天过程层不应重新回到多层 chip / 次级卡片堆叠，否则会再次放大滚动抖动与“过程区比答案更重”的问题
+- 聊天过程层不应再次把 `content-visibility` 直接挂在 message secondary 上，否则滚动长会话时会重新引入 reveal 抖动
+- 聊天路由不能只改 `main stage veil` 而不改 `titlebar main / workspace / sidebar slot`，否则用户仍会看到整窗几乎同色
+- 聊天路由右侧主区不应混入品牌暖色 wash，否则在浅色壁纸下会直接偏粉，背离 `qclaw` 的中性白阅读面
+- 聊天路由在壁纸开启时不应继续使用无壁纸的高不透明度白面，否则用户会感知为“壁纸功能在聊天页失效”
 
 ## 本轮验证命令
 
@@ -89,4 +101,8 @@
 - `pnpm test tests/unit/agents-workbench-layout.test.tsx --testNamePattern="keeps the current detail tab when switching between local agent cards"`
 - `pnpm test tests/unit/models-workbench-render.test.tsx --testNamePattern="consumes workbench contracts in the production models page and follows the provider-first shell"`
 - `pnpm test tests/unit/skills-page-layout.test.tsx --testNamePattern="renders a qclaw-style desktop skills center with local search and card grid|loads top 50 provider results by default and filters out already installed skills"`
+- `pnpm test tests/unit/chat-theme-shell.test.ts tests/unit/chat-message.test.tsx`
+- `pnpm test tests/unit/chat-theme-shell.test.ts tests/unit/chat-message.test.tsx tests/unit/chat-render-stability.test.tsx tests/unit/chat-layout.test.tsx`
+- `pnpm test tests/unit/chat-message.test.tsx tests/unit/chat-input.test.tsx tests/unit/chat-theme-shell.test.ts tests/unit/chat-layout.test.tsx tests/unit/chat-render-stability.test.tsx`
+- `pnpm test tests/unit/chat-theme-shell.test.ts tests/unit/chat-layout.test.tsx`
 - `pnpm run typecheck`

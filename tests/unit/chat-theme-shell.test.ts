@@ -24,7 +24,7 @@ describe('chat desktop shell theme', () => {
     expect(inputSource).not.toContain('app-chat-composer-surface');
     expect(inputSource).not.toContain('absolute inset-x-4 bottom-3.5 pointer-events-none');
     expect(messageSource).toContain('app-chat-message-meta');
-    expect(messageSource).toContain('app-chat-tool-chip');
+    expect(messageSource).toContain('app-chat-process-row');
     expect(messageSource).toContain('app-chat-bubble-user-v3');
     expect(messageSource).toContain('app-chat-bubble-assistant-v3');
   });
@@ -73,7 +73,7 @@ describe('chat desktop shell theme', () => {
     expect(messageSource).toContain('app-chat-bubble-user-v3');
     expect(messageSource).toContain('app-chat-bubble-assistant-v3');
     expect(messageSource).toContain('app-chat-message-meta');
-    expect(messageSource).toContain('app-chat-tool-chip');
+    expect(messageSource).toContain('app-chat-process-row');
     expect(pageSource).not.toContain('app-chat-workbench');
     expect(pageSource).not.toContain('app-chat-thread-canvas');
     expect(inputSource).not.toContain('app-chat-composer-surface');
@@ -90,7 +90,8 @@ describe('chat desktop shell theme', () => {
     expect(messageSource).toContain('app-chat-bubble-assistant-v3');
     expect(messageSource).toContain('app-chat-bubble-user-v3');
     expect(messageSource).toContain('app-chat-message-meta');
-    expect(messageSource).toContain('app-chat-tool-chip');
+    expect(messageSource).toContain('app-chat-process-timeline');
+    expect(messageSource).toContain('app-chat-process-row');
     expect(messageSource).toContain('app-chat-thinking-card');
     expect(messageSource).toContain('app-chat-message-primary');
     expect(messageSource).toContain('app-chat-message-secondary');
@@ -116,7 +117,7 @@ describe('chat desktop shell theme', () => {
     const messageSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/ChatMessage.tsx'), 'utf8');
 
     expect(pageSource).toContain('app-chat-typing-bubble');
-    expect(messageSource).toContain('app-chat-tool-chip');
+    expect(messageSource).toContain('app-chat-process-row');
     expect(messageSource).not.toContain('app-chat-tool-status w-fit rounded-md px-3 py-2 text-foreground');
   });
 
@@ -157,14 +158,66 @@ describe('chat desktop shell theme', () => {
 
   it('adds a dedicated chat reading plane and calmer chrome instead of reusing workbench glass directly', () => {
     const layoutSource = readFileSync(resolve(process.cwd(), 'src/components/layout/MainLayout.tsx'), 'utf8');
+    const titlebarSource = readFileSync(resolve(process.cwd(), 'src/components/layout/TitleBar.tsx'), 'utf8');
     const themeSource = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
 
     expect(layoutSource).toContain('--app-global-chat-stage-opacity');
     expect(layoutSource).toContain('--app-global-chat-composer-opacity');
+    expect(layoutSource).toContain("data-shell-route={isChatSurfaceRoute ? 'chat' : 'workspace'}");
+    expect(titlebarSource).toContain('desktop-app-titlebar-main-surface');
+    expect(titlebarSource).toContain('desktop-app-titlebar-sidebar-slot--chat');
+    expect(themeSource).toContain(".desktop-app-shell[data-shell-route='chat'] .desktop-app-shell-material-layer {");
     expect(themeSource).toContain('.desktop-app-shell .app-chat-main-stage::before {');
     expect(themeSource).toContain('.desktop-app-shell .app-chat-composer-surface,');
     expect(themeSource).toContain('.desktop-app-shell .app-chat-message-meta {');
     expect(themeSource).toContain('.desktop-app-shell .app-chat-secondary-toggle {');
+  });
+
+  it('keeps the chat reading plane as a seamless veil instead of an inset glass card', () => {
+    const themeSource = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
+
+    expect(themeSource).toContain('.desktop-app-shell .app-chat-main-stage::before {');
+    expect(themeSource).not.toContain('inset: -3rem 0.4rem 0.32rem;');
+    expect(themeSource).not.toContain('border-radius: 0 0 24px 24px;');
+    expect(themeSource).not.toContain('backdrop-filter: saturate(124%) blur(18px);');
+    expect(themeSource).not.toContain('-webkit-backdrop-filter: saturate(124%) blur(18px);');
+  });
+
+  it('keeps the main reading plane brighter than the source list without turning it into a white card', () => {
+    const themeSource = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
+
+    expect(themeSource).toContain(".desktop-app-shell[data-shell-route='chat'] .desktop-app-chat-nav-shell,");
+    expect(themeSource).toContain('linear-gradient(180deg, rgb(244 244 245 / 0.9) 0%, rgb(240 241 243 / 0.82) 100%)');
+    expect(themeSource).toContain(".desktop-app-shell[data-shell-route='chat'] .desktop-app-titlebar-main-surface,");
+    expect(themeSource).toContain('linear-gradient(180deg, rgb(255 255 255 / 0.92) 0%, rgb(250 250 251 / 0.84) 100%)');
+    expect(themeSource).toContain(".desktop-app-shell[data-shell-route='chat'] .app-chat-main-stage::before {");
+    expect(themeSource).toContain('linear-gradient(180deg, rgb(255 255 255 / 0.58) 0%, rgb(251 251 252 / 0.48) 100%)');
+    expect(themeSource).not.toContain('rgb(255 176 177 / 0.03)');
+    expect(themeSource).not.toContain('rgb(255 176 177 / 0.035)');
+    expect(themeSource).not.toContain('rgb(255 251 249 / 0.82)');
+    expect(themeSource).not.toContain('rgb(255 251 249 / 0.46)');
+    expect(themeSource).not.toContain('background: hsl(var(--background) / 0.96);');
+  });
+
+  it('keeps wallpaper visibility alive on the chat route instead of covering it with fixed white slabs', () => {
+    const themeSource = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
+
+    expect(themeSource).toContain(".desktop-app-shell--wallpaper[data-shell-route='chat'] .desktop-app-chat-nav-shell,");
+    expect(themeSource).toContain(".desktop-app-shell--wallpaper[data-shell-route='chat'] .desktop-app-titlebar-main-surface,");
+    expect(themeSource).toContain(".desktop-app-shell--wallpaper[data-shell-route='chat'] .app-chat-main-stage::before {");
+    expect(themeSource).toContain(".desktop-app-shell--wallpaper[data-shell-route='chat'] .app-chat-composer-surface,");
+  });
+
+  it('keeps the composer closer to the reading flow instead of a heavy blurred console dock', () => {
+    const inputSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/ChatInput.tsx'), 'utf8');
+    const themeSource = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
+
+    expect(inputSource).toContain('app-chat-composer-dock');
+    expect(inputSource).toContain('dark:text-black');
+    expect(inputSource).toContain('dark:caret-black');
+    expect(themeSource).toContain('.desktop-app-shell .app-chat-composer-surface,');
+    expect(themeSource).not.toContain('backdrop-filter: saturate(132%) blur(22px);');
+    expect(themeSource).not.toContain('-webkit-backdrop-filter: saturate(132%) blur(22px);');
   });
 
   it('keeps fallback typing and tool-processing indicators on assistant message rows instead of toolbar pills', () => {
@@ -179,7 +232,7 @@ describe('chat desktop shell theme', () => {
     expect(pageSource).not.toContain('app-chat-runtime-pill w-fit rounded-md px-3 py-2 text-foreground');
   });
 
-  it('isolates heavy chat secondary blocks and code blocks with content visibility hints', () => {
+  it('keeps heavy containment only on truly heavy media and code surfaces, not on the process rail itself', () => {
     const themeSource = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
 
     expect(themeSource).toContain('.app-chat-message-secondary');
@@ -187,11 +240,24 @@ describe('chat desktop shell theme', () => {
     expect(themeSource).toContain('.app-chat-media-card');
     expect(themeSource).toContain('.app-chat-file-card');
     expect(themeSource).toContain('.app-chat-code-block');
-    expect(themeSource).toContain('content-visibility: auto;');
-    expect(themeSource).toContain('contain-intrinsic-size: 0 120px;');
     expect(themeSource).toContain('contain-intrinsic-size: 0 144px;');
     expect(themeSource).toContain('contain-intrinsic-size: 0 56px;');
     expect(themeSource).toContain('contain-intrinsic-size: 0 140px;');
+    expect(themeSource).not.toContain('.app-chat-message-secondary {\n  display: flex;\n  min-width: 0;\n  width: 100%;\n  flex-direction: column;\n  gap: 0.34rem;\n  content-visibility: auto;');
+    expect(themeSource).not.toContain('.app-chat-secondary-block {\n  width: 100%;\n  content-visibility: auto;');
+  });
+
+  it('keeps desktop process chrome lightweight instead of stacking glass blur on every message affordance', () => {
+    const themeSource = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
+
+    expect(themeSource).toContain('.desktop-app-shell .app-chat-message-meta {');
+    expect(themeSource).toContain('.desktop-app-shell .app-chat-secondary-toggle {');
+    expect(themeSource).toContain('.desktop-app-shell .app-chat-tool-chip,');
+    expect(themeSource).not.toContain('.desktop-app-shell .app-chat-message-meta {\n  background:\n    linear-gradient(');
+    expect(themeSource).not.toContain('.desktop-app-shell .app-chat-secondary-toggle {\n  border-color: hsl(var(--chrome-divider) / 0.46);\n  background:\n    linear-gradient(');
+    expect(themeSource).not.toContain('.desktop-app-shell .app-chat-message-meta {\n  background:\n    linear-gradient(\n      180deg,');
+    expect(themeSource).not.toContain('backdrop-filter: saturate(124%) blur(14px);');
+    expect(themeSource).not.toContain('-webkit-backdrop-filter: saturate(124%) blur(14px);');
   });
 
   it('anchors chat errors near the composer instead of using a full-width destructive banner', () => {

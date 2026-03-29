@@ -8,6 +8,8 @@
 2. 快捷操作更顺手，但默认不吵。
 3. `thinking / tool / status / error` 具备统一语义。
 4. 不破坏第一阶段的滚动、流式、复制和输入链路。
+5. 主区比侧栏略亮，但不出现独立矩形色块。
+6. composer 继续可用，但不再像独立玻璃控制台。
 
 ## 自动化测试
 
@@ -29,6 +31,10 @@
    - 模型切换提示仍可用
    - @ 目标选择器仍可用
    - 默认态弱化、激活态增强
+4. 主区与侧栏层级测试
+   - `reading plane` 不能再是内缩玻璃卡片
+   - 侧栏搜索与当前会话行要保持 source list 节奏
+   - composer 不能再依赖重 blur
 
 ## 手工验证
 
@@ -42,7 +48,14 @@
 8. 打开空态首页，确认欢迎区更像启动工作区，而不是 landing page。
 9. 打开长会话，确认 meta row 和过程轨已经降低存在感，但 hover 仍然可发现。
 10. 检查代码块、附件卡和图片卡，确认它们已经更服从正文，不会重新抢走主视觉。
-8. 观察连续 assistant 输出，确认它们之间的间距比 user/assistant 切换更紧，不会仍然像独立大卡片一样断开。
+11. 观察连续 assistant 输出，确认它们之间的间距比 user/assistant 切换更紧，不会仍然像独立大卡片一样断开。
+12. 在有壁纸和无壁纸两种状态下检查聊天页，确认主区始终略亮于侧栏，但没有隐约矩形色块。
+13. 检查侧栏搜索、当前会话行和 composer，确认它们仍然服从主区更亮、侧栏更静的同一层级，而不是各自再抬成独立玻璃块。
+14. 如果用户主观上仍然感到“主区和侧栏一样亮”，必须补一次运行态计算样式核对，至少读取：
+   - `.desktop-app-chat-nav-shell`
+   - `.desktop-app-shell-material-layer`
+   - `.app-chat-main-stage::before`
+   不能只看 CSS 文本或静态截图。
 
 ## 命令
 
@@ -50,6 +63,10 @@
 
 ```bash
 pnpm exec vitest run tests/unit/chat-message.test.tsx tests/unit/chat-input.test.tsx tests/unit/chat-humanized-actions.test.tsx tests/unit/chat-theme-shell.test.ts tests/unit/chat-render-stability.test.tsx --reporter=dot
+```
+
+```bash
+pnpm test tests/unit/chat-message.test.tsx tests/unit/chat-input.test.tsx tests/unit/chat-theme-shell.test.ts tests/unit/chat-layout.test.tsx tests/unit/chat-render-stability.test.tsx
 ```
 
 ### 静态校验
@@ -91,3 +108,21 @@ pnpm run typecheck
    - 代码块边界收平后仍保留清晰的代码容器感
    - 附件卡和图片卡弱化后不影响预览与打开
    - 正文仍然是消息里的第一视觉焦点
+10. 本轮已执行：
+   - `pnpm test tests/unit/chat-message.test.tsx tests/unit/chat-input.test.tsx tests/unit/chat-theme-shell.test.ts tests/unit/chat-layout.test.tsx tests/unit/chat-render-stability.test.tsx`
+   - `pnpm run typecheck`
+   两项均通过。
+11. 本轮还补做了运行态核对：
+   - 侧栏计算样式约为 `0.48 / 0.42`
+   - 主区 veil 计算样式约为 `0.84`
+   用于确认最终层级已从“侧栏更亮”翻转为“主区更亮”。
+12. 本轮新增结构性验证：
+   - `pnpm test tests/unit/chat-theme-shell.test.ts tests/unit/chat-layout.test.tsx`
+   - `pnpm run typecheck`
+   均通过，用于确认 `titlebar main + workspace` 与 `sidebar slot` 的新分层结构没有破坏跨平台标题栏布局。
+13. 本轮新增颜色倾向验证：
+   - 聊天路由右侧主区应命中中性白梯度，不再包含 `rgb(255 176 177 / ...)` 这类暖色 wash
+   - 定向测试已用静态契约锁住“偏白而非偏粉”的主区阅读面
+14. 本轮新增壁纸兼容验证：
+   - 聊天路由在 `desktop-app-shell--wallpaper` 下必须拥有单独的主区、侧栏、veil、composer 材质分支
+   - 目标不是回退成工作台玻璃，而是在保留 `qclaw` 层次的前提下恢复壁纸可见性
