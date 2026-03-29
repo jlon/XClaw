@@ -130,8 +130,8 @@ describe('skills page layout', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText('技能管理')).toBeInTheDocument();
-    expect(screen.getByText('为你的智能体提供预封装且可重复的最佳实践与工具')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '技能库' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '我的技能' })).toBeInTheDocument();
     expect(screen.getByPlaceholderText('搜索已经安装的技能')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '添加技能' })).toBeInTheDocument();
     expect(screen.getByText('agent-mbti')).toBeInTheDocument();
@@ -313,6 +313,57 @@ describe('skills page layout', () => {
     expect(screen.getByTestId('route-probe-title')).toHaveTextContent('安装 Markdown Converter');
     expect(screen.getByTestId('route-probe-provider')).toHaveTextContent('skillhub');
     expect(screen.getByTestId('route-probe-message')).toHaveTextContent('请先检查是否已安装 SkillHub 商店');
+  }, 15000);
+
+  it('keeps provider actions visible and opens full details for long search summaries', async () => {
+    const fullDescription = '将用户讲稿一键生成布布斯风极简科技感竖屏HTML演示稿。当用户需要生成PPT、演示文稿、Slides、幻灯片，或者要求科技风、极简风、布布斯风排版时使用。';
+    hostApiFetchMock.mockImplementation(async (path: string) => {
+      if (path === '/api/skills/providers/skillhub/search') {
+        return {
+          success: true,
+          results: [
+            {
+              id: 'skillhub:ppt-master',
+              providerId: 'skillhub',
+              providerSkillId: 'ppt-master',
+              slug: 'ppt-master',
+              name: 'PPT Master',
+              description: fullDescription,
+              version: '2.0.0',
+              author: 'wwlyzzyorg',
+              sourceLabel: 'SkillHub',
+              installCapability: {
+                providerId: 'skillhub',
+                executionKind: 'chat-prompt',
+              },
+              metadata: {
+                sourceUrl: 'https://skillhub.tencent.com/',
+              },
+            },
+          ],
+        };
+      }
+      return { success: true };
+    });
+
+    render(
+      <MemoryRouter>
+        <Skills />
+      </MemoryRouter>,
+    );
+
+    fireEvent.pointerDown(screen.getByRole('button', { name: '添加技能' }));
+    fireEvent.click(await screen.findByRole('menuitem', { name: '从 SkillHub 搜索' }));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(await within(dialog).findByText('PPT Master')).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: '详情' })).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: '发送到聊天' })).toBeInTheDocument();
+
+    fireEvent.click(within(dialog).getByRole('button', { name: '详情' }));
+
+    const detailDialog = await screen.findAllByRole('dialog');
+    expect(detailDialog.at(-1)).toHaveTextContent(fullDescription);
   }, 15000);
 
   it('restores the local search query from the skills-to-chat return context', () => {

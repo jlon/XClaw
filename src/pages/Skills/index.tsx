@@ -658,6 +658,7 @@ interface ProviderSearchDialogProps {
   error: string | null;
   onOpenChange: (open: boolean) => void;
   onQueryChange: (query: string) => void;
+  onPreview: (item: SkillCatalogItem) => void;
   onInstall: (item: SkillCatalogItem) => void;
   onOpenSource: (item: SkillCatalogItem) => void;
   t: TFunction<'skills'>;
@@ -672,6 +673,7 @@ function ProviderSearchDialog({
   error,
   onOpenChange,
   onQueryChange,
+  onPreview,
   onInstall,
   onOpenSource,
   t,
@@ -775,26 +777,37 @@ function ProviderSearchDialog({
                   const description = resolveLocalizedSkillDescription(item, t);
                   return (
                     <div key={item.id} className={providerResultClasses}>
-                      <SkillCardGlyph skillId={item.id} tone={resolveSkillVisualTone({ providerId: item.providerId })} icon={item.icon} />
-                      <div className="min-w-0 flex-1">
-                        <div className="min-w-0">
-                          <div className="flex min-w-0 items-start gap-2">
-                            <h3 className="min-w-0 flex-1 truncate text-[15px] font-semibold tracking-tight text-foreground" title={item.name}>
-                              {item.name}
-                            </h3>
-                            {item.version ? <span className="shrink-0 pt-0.5 text-[11px] font-medium text-foreground/42">v{item.version}</span> : null}
+                      <div className="flex min-h-0 flex-col gap-4 md:grid md:grid-cols-[minmax(0,1fr)_136px] md:items-start">
+                        <button
+                          type="button"
+                          className="min-w-0 rounded-lg text-left outline-none transition-[background-color,box-shadow] duration-[var(--motion-fast)] ease-out hover:bg-[hsl(var(--surface-hover)/0.36)] focus-visible:ring-2 focus-visible:ring-[rgba(var(--glow-brand),0.25)] focus-visible:ring-offset-0"
+                          onClick={() => onPreview(item)}
+                        >
+                          <div className="flex min-w-0 items-start gap-4">
+                            <SkillCardGlyph skillId={item.id} tone={resolveSkillVisualTone({ providerId: item.providerId })} icon={item.icon} />
+                            <div className="min-w-0 flex-1 pr-0.5">
+                              <div className="flex min-w-0 items-start gap-2">
+                                <h3 className="min-w-0 flex-1 truncate text-[15px] font-semibold tracking-tight text-foreground" title={item.name}>
+                                  {item.name}
+                                </h3>
+                                {item.version ? <span className="shrink-0 pt-0.5 text-[11px] font-medium text-foreground/42">v{item.version}</span> : null}
+                              </div>
+                              <p className="mt-1.5 line-clamp-2 break-words text-[13px] font-medium leading-[1.55] text-foreground/56 [overflow-wrap:anywhere]">
+                                {description}
+                              </p>
+                              <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-foreground/42">
+                                <span>{item.sourceLabel || (item.providerId === 'clawhub' ? 'ClawHub' : 'SkillHub')}</span>
+                                {item.author ? <span>{item.author}</span> : null}
+                                {typeof item.downloads === 'number' ? <span>{item.downloads} downloads</span> : null}
+                              </div>
+                            </div>
                           </div>
-                          <p className="mt-1.5 line-clamp-2 text-[13px] font-medium leading-[1.55] text-foreground/56">
-                            {description}
-                          </p>
-                          <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-foreground/42">
-                            <span>{item.sourceLabel || (item.providerId === 'clawhub' ? 'ClawHub' : 'SkillHub')}</span>
-                            {item.author ? <span>{item.author}</span> : null}
-                            {typeof item.downloads === 'number' ? <span>{item.downloads} downloads</span> : null}
-                          </div>
-                        </div>
+                        </button>
 
-                        <div className="mt-3.5 flex flex-wrap items-center justify-end gap-2 border-t border-border/55 pt-3">
+                        <div className="flex shrink-0 flex-wrap items-center gap-2 border-t border-border/55 pt-3 md:w-[136px] md:flex-col md:items-stretch md:border-l md:border-t-0 md:border-border/55 md:pl-4 md:pt-0">
+                          <Button type="button" variant="outline" className="h-8 rounded-md px-3 text-[12px] font-semibold shadow-sm" onClick={() => onPreview(item)}>
+                            {t('providerSearch.details', { defaultValue: '详情' })}
+                          </Button>
                           {typeof item.metadata?.sourceUrl === 'string' && item.metadata.sourceUrl ? (
                             <Button type="button" variant="outline" className="h-8 rounded-md px-3 text-[12px] font-semibold shadow-sm" onClick={() => onOpenSource(item)}>
                               <Globe className="mr-1.5 h-3.5 w-3.5" />
@@ -1572,6 +1585,7 @@ export function Skills() {
           if (!open) setActiveTab('installed');
         }}
         onQueryChange={setProviderQuery}
+        onPreview={setSelectedLibrarySkill}
         onInstall={handleProviderInstall}
         onOpenSource={handleOpenProviderSource}
         t={t}
@@ -1613,7 +1627,7 @@ export function Skills() {
                   <DialogTitle className="text-[20px] font-semibold tracking-tight text-foreground">
                     {selectedLibrarySkill.name}
                   </DialogTitle>
-                  <DialogDescription className="mt-2 text-[13px] font-medium leading-[1.6] text-foreground/62">
+                  <DialogDescription className="mt-2 break-words text-[13px] font-medium leading-[1.6] text-foreground/62 [overflow-wrap:anywhere]">
                     {resolveLocalizedSkillDescription(selectedLibrarySkill, t)}
                   </DialogDescription>
                 </DialogHeader>
