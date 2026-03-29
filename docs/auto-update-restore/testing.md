@@ -16,7 +16,7 @@
    - 保持 Windows beta 仍走 `package:win:x64`
 4. feed 同步脚本：
    - 能选择 beta release
-   - 能同步 yml、zip、dmg、exe、blockmap
+   - 能同步 yml、dmg、exe、blockmap
    - 能把 channel 目录写成统一的 `latest*.yml`
    - 能输出 macOS 手动更新用的 `feed.json`
 

@@ -1265,6 +1265,24 @@ export async function sanitizeOpenClawConfig(): Promise<void> {
       }
     }
 
+    {
+      const tools = (config.tools as Record<string, unknown> | undefined) || {};
+      const web = (tools.web as Record<string, unknown> | undefined) || {};
+      const search = (web.search as Record<string, unknown> | undefined) || {};
+      const searchProvider = search.provider;
+      if (
+        typeof searchProvider === 'string'
+        && !['brave', 'perplexity', 'grok', 'gemini', 'kimi'].includes(searchProvider)
+      ) {
+        console.log(`[sanitize] Removing invalid tools.web.search.provider="${searchProvider}" from openclaw.json`);
+        delete search.provider;
+        web.search = search;
+        tools.web = web;
+        config.tools = tools;
+        modified = true;
+      }
+    }
+
     // ── tools.profile & sessions.visibility ───────────────────────
     // OpenClaw 3.8+ requires tools.profile = 'full' and tools.sessions.visibility = 'all'
     // for XClaw to properly integrate with its updated tool system.

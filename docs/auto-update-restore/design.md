@@ -97,7 +97,6 @@
 1. 从 GitHub release 选择最新 beta release。
 2. 下载该 release 对应的：
    - Windows 安装包
-   - macOS zip
    - macOS dmg
    - yml metadata
    - blockmap

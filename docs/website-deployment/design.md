@@ -172,6 +172,21 @@ ssh root@<server> 'chmod +x /usr/local/bin/xclaw-sync-downloads'
 ssh root@<server> '/usr/local/bin/xclaw-sync-downloads --dry-run'
 ```
 
+### 5. 安装更新 feed 同步脚本
+
+桌面应用内置更新依赖这一条脚本；如果不装，只同步下载按钮是不够的。
+
+```bash
+scp scripts/sync-update-feeds.sh root@<server>:/usr/local/bin/xclaw-sync-update-feeds
+ssh root@<server> 'chmod +x /usr/local/bin/xclaw-sync-update-feeds'
+```
+
+首次验证：
+
+```bash
+ssh root@<server> '/usr/local/bin/xclaw-sync-update-feeds --dry-run'
+```
+
 ## 每次官网发布流程
 
 下面是完整的标准发布步骤。
@@ -274,7 +289,7 @@ nginx -t
 systemctl reload nginx
 ```
 
-### 步骤 5：同步下载文件
+### 步骤 5：同步官网按钮下载文件
 
 在服务器执行：
 
@@ -289,6 +304,26 @@ systemctl reload nginx
 3. 同步到 `/var/www/xclaw/downloads/<tag>/`
 4. 生成 `/var/www/xclaw/downloads/latest.json`
 5. 如果同一个 beta tag 下有多轮重发资产，优先同步最新那一批安装包
+
+### 步骤 6：同步桌面更新 feed
+
+在服务器执行：
+
+```bash
+/usr/local/bin/xclaw-sync-update-feeds
+```
+
+这个步骤会：
+
+1. 从 GitHub Beta Release 选择最新的 updater 资产
+2. 同步 `latest.yml`、`latest-mac.yml`、`.blockmap`、Windows 安装包、macOS dmg`
+3. 写入 `/var/www/xclaw/downloads/updates/beta`
+4. 生成 `feed.json` 供 macOS 手动更新入口读取
+
+如果漏掉这一步，安装版启动时会出现：
+
+- Windows：`latest.yml` 404
+- macOS：`feed.json` 或安装包元数据缺失
 
 ## GitHub Beta 打包注意
 
@@ -395,6 +430,20 @@ curl -s https://www.xclaw.live/downloads/latest.json
 
 - 返回 `200`
 - JSON 中包含 `tag` 和 3 个下载项
+
+### 4.1 验证桌面更新 feed
+
+```bash
+curl -I https://www.xclaw.live/downloads/updates/beta/latest.yml
+curl -I https://www.xclaw.live/downloads/updates/beta/latest-mac.yml
+curl -I https://www.xclaw.live/downloads/updates/beta/feed.json
+```
+
+期望：
+
+- 都返回 `200`
+- `latest.yml` 和 `latest-mac.yml` 不是 HTML 404 页面
+- `feed.json` 中的版本和当前 beta tag 对得上
 
 ### 5. 验证三个安装包
 

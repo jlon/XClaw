@@ -15,4 +15,18 @@ describe('sync update feeds script', () => {
     expect(script).toContain('.blockmap');
     expect(script).toContain('.dmg');
   });
+
+  it('does not pass the full GitHub release payload through argv', () => {
+    const script = readFileSync(resolve(process.cwd(), 'scripts/sync-update-feeds.sh'), 'utf8');
+
+    expect(script).not.toContain('python3 - <<\'PY\' "$json"');
+    expect(script).toContain('api_json_path=');
+  });
+
+  it('writes the selected update payload to a temp file before reuse', () => {
+    const script = readFileSync(resolve(process.cwd(), 'scripts/sync-update-feeds.sh'), 'utf8');
+
+    expect(script).toContain('selection_json_path=');
+    expect(script).toContain('selection_path.write_text(');
+  });
 });

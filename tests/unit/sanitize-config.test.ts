@@ -70,6 +70,21 @@ async function sanitizeConfig(filePath: string): Promise<boolean> {
     }
   }
 
+  const tools = (config.tools as Record<string, unknown> | undefined) || {};
+  const web = (tools.web as Record<string, unknown> | undefined) || {};
+  const search = (web.search as Record<string, unknown> | undefined) || {};
+  const searchProvider = search.provider;
+  if (
+    typeof searchProvider === 'string'
+    && !['brave', 'perplexity', 'grok', 'gemini', 'kimi'].includes(searchProvider)
+  ) {
+    delete search.provider;
+    web.search = search;
+    tools.web = web;
+    config.tools = tools;
+    modified = true;
+  }
+
   if (modified) {
     await writeFile(filePath, JSON.stringify(config, null, 2), 'utf-8');
   }
@@ -293,5 +308,28 @@ describe('sanitizeOpenClawConfig (blocklist approach)', () => {
 
     const result = await readConfig();
     expect(result).toEqual(original);
+  });
+
+  it('removes invalid tools.web.search.provider values that current OpenClaw rejects', async () => {
+    await writeConfig({
+      tools: {
+        web: {
+          search: {
+            provider: 'tavily',
+            tavily: {
+              apiKey: 'legacy-key',
+            },
+          },
+        },
+      },
+    });
+
+    const modified = await sanitizeConfig(configPath);
+    expect(modified).toBe(true);
+
+    const result = await readConfig();
+    const search = (((result.tools as Record<string, unknown>).web as Record<string, unknown>).search as Record<string, unknown>);
+    expect(search).not.toHaveProperty('provider');
+    expect(search.tavily).toEqual({ apiKey: 'legacy-key' });
   });
 });

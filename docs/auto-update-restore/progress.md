@@ -22,6 +22,6 @@
 
 ### 下一步
 
-1. 触发一次新的 beta 打包，确认 release 资产里带齐 `latest*.yml`、`feed.json` 所需资产、zip、dmg、exe 和 blockmap。
+1. 触发一次新的 beta 打包，确认 release 资产里带齐 `latest*.yml`、`feed.json` 所需资产、dmg、exe 和 blockmap。
 2. 在官网服务器上部署 `scripts/sync-update-feeds.sh` 并校验 `/downloads/updates/beta/*` 可直接访问。
 3. 在 Windows 实机上验证检查、下载、安装闭环，在 macOS 实机上验证检查更新和手动下载安装入口。

@@ -17,7 +17,7 @@
 
 ## 待验证事项
 
-1. 当前线上 beta release 还缺少 `.blockmap` 和 mac `.zip` 资产，必须用修正后的 workflow 重新发布一次。
+1. 当前线上 beta release 是否持续产出 Windows updater 所需的 `latest.yml + .exe` 和 mac 手动更新所需的 `latest-mac.yml + .dmg + feed.json`，需要持续复核。
 2. beta 构建产物是否会生成完整通道 metadata，需要通过本地打包和 release artifact 共同确认。
 3. 官网服务器现有目录权限和 Nginx 映射是否允许直接托管新的 `/downloads/updates/beta/*` 静态目录。
 4. Windows 真实差分更新是否会命中 blockmap，而不是回退全量下载，需要用线上 feed 再验一次。

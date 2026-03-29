@@ -5,6 +5,10 @@ repo="${XCLAW_RELEASE_REPO:-jlon/XClaw}"
 target_dir="${XCLAW_UPDATE_FEED_DIR:-/var/www/xclaw/downloads/updates}"
 api_url="https://api.github.com/repos/${repo}/releases?per_page=30"
 dry_run="false"
+tmp_dir="$(mktemp -d)"
+trap 'rm -rf "$tmp_dir"' EXIT
+api_json_path="$tmp_dir/releases.json"
+selection_json_path="$tmp_dir/selection.json"
 
 file_size() {
   stat -c%s "$1" 2>/dev/null || stat -f%z "$1"
@@ -23,15 +27,16 @@ for arg in "$@"; do
   esac
 done
 
-json="$(curl -fsSL -H 'Accept: application/vnd.github+json' "$api_url")"
+curl -fsSL -H 'Accept: application/vnd.github+json' "$api_url" -o "$api_json_path"
 
-selection_json="$(
-  python3 - <<'PY' "$json"
+python3 - <<'PY' "$api_json_path" "$selection_json_path"
 import json
 import re
 import sys
+from pathlib import Path
 
-payload = json.loads(sys.argv[1])
+payload = json.loads(open(sys.argv[1], encoding="utf-8").read())
+selection_path = Path(sys.argv[2])
 if not payload:
     raise SystemExit("No releases were returned by GitHub.")
 
@@ -53,7 +58,6 @@ def is_required_asset(name: str) -> bool:
         name.endswith(".blockmap")
         or (name.endswith(".yml") and name != "builder-debug.yml")
         or re.search(r"-win-x64\.exe$", name) is not None
-        or re.search(r"-mac(?:-x64|-arm64)?\.zip$", name) is not None
         or re.search(r"-mac(?:-x64|-arm64)?\.dmg$", name) is not None
     )
 
@@ -79,8 +83,6 @@ if not any(asset["name"].endswith(".blockmap") for asset in assets):
     raise SystemExit("Missing blockmap assets for beta.")
 if not any(re.search(r"-win-x64\.exe$", asset["name"]) for asset in assets):
     raise SystemExit("Missing Windows installer for beta.")
-if not any(re.search(r"-mac(?:-x64|-arm64)?\.zip$", asset["name"]) for asset in assets):
-    raise SystemExit("Missing macOS zip for beta.")
 if not any(re.search(r"-mac(?:-x64|-arm64)?\.dmg$", asset["name"]) for asset in assets):
     raise SystemExit("Missing macOS dmg for beta.")
 
@@ -90,7 +92,7 @@ downloads = {
     "winX64": first_match(assets, [r"-win-x64\.exe$"]),
 }
 
-print(json.dumps({
+selection_path.write_text(json.dumps({
     "channel": "beta",
     "tag": release["tag_name"],
     "version": str(release["tag_name"]).removeprefix("v"),
@@ -114,26 +116,22 @@ print(json.dumps({
         }
         for key, asset in downloads.items()
     },
-}))
+}) + "\n", encoding="utf-8")
 PY
-)"
 
 if [[ "$dry_run" == "true" ]]; then
-  printf '%s\n' "$selection_json"
+  cat "$selection_json_path"
   exit 0
 fi
 
 mkdir -p "$target_dir"
-tmp_dir="$(mktemp -d "${target_dir%/}/.sync-updates.XXXXXX")"
-trap 'rm -rf "$tmp_dir"' EXIT
-
-python3 - <<'PY' "$selection_json" "$tmp_dir/selection.tsv" "$tmp_dir/feed.json"
+python3 - <<'PY' "$selection_json_path" "$tmp_dir/selection.tsv" "$tmp_dir/feed.json"
 import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-selection = json.loads(sys.argv[1])
+selection = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 selection_path = Path(sys.argv[2])
 feed_path = Path(sys.argv[3])
 
