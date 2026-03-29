@@ -29,7 +29,9 @@ export function ChatToolbar({ compact = false }: { compact?: boolean }) {
           <Button
             variant="ghost"
             size="icon"
-            className={cn('app-chat-toolbar-button rounded-md', compact ? 'h-7 w-7' : 'h-8 w-8')}
+            className={cn('app-chat-toolbar-button no-drag app-titlebar-utility-surface rounded-md', compact ? 'h-7 w-7' : 'h-8 w-8')}
+            type="button"
+            onMouseDown={(event) => event.stopPropagation()}
             onClick={() => refresh()}
             disabled={loading}
           >
@@ -48,10 +50,12 @@ export function ChatToolbar({ compact = false }: { compact?: boolean }) {
               variant="ghost"
               size="icon"
               className={cn(
-                'app-chat-toolbar-button rounded-md',
+                'app-chat-toolbar-button no-drag app-titlebar-utility-surface rounded-md',
                 compact ? 'h-7 w-7' : 'h-8 w-8',
                 showThinking && 'app-chat-toolbar-button--active',
               )}
+              type="button"
+              onMouseDown={(event) => event.stopPropagation()}
               onClick={toggleThinking}
               aria-pressed={showThinking}
               aria-label={showThinking ? t('toolbar.hideThinking') : t('toolbar.showThinking')}

@@ -211,6 +211,11 @@
   box-shadow: none;
 }
 
+.app-page-stage {
+  position: relative;
+  isolation: isolate;
+}
+
 .app-pane-surface {
   background: hsl(var(--surface-elevated) / 0.998);
   border: 1px solid hsl(var(--border-subtle) / 0.9);
@@ -227,33 +232,229 @@
   --desktop-sidebar-width: 250px;
   --desktop-sidebar-rail-width: 44px;
   --desktop-chat-content-gap: 8px;
+  --app-global-wallpaper-image: none;
+  --app-global-wallpaper-opacity: 0.36;
+  --app-global-shell-glass-opacity: 0.4;
+  --app-global-workspace-opacity: 0.18;
+  --app-global-pane-opacity: 0.52;
+  --app-global-field-opacity: 0.66;
+  --app-global-composer-opacity: 0.26;
+  --app-global-chat-stage-opacity: 0.62;
+  --app-global-chat-bubble-opacity: 0.74;
+  --app-global-chat-composer-opacity: 0.34;
+  --app-global-scrim-top-opacity: 0.05;
+  --app-global-scrim-bottom-opacity: 0.14;
   position: relative;
+  isolation: isolate;
   background:
+    radial-gradient(circle at top right, hsl(var(--surface-elevated) / 0.62) 0%, transparent 30%),
     linear-gradient(180deg, hsl(var(--chrome) / 0.98) 0%, hsl(var(--chrome-strong) / 0.99) 100%);
 }
 
-.desktop-app-shell-body {
+.desktop-app-global-wallpaper-layer,
+.desktop-app-global-wallpaper-scrim,
+.desktop-app-shell-material-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.desktop-app-global-wallpaper-layer {
+  z-index: 0;
+  background-image: var(--app-global-wallpaper-image);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  opacity: var(--app-global-wallpaper-opacity);
+  transform: scale(1.02);
+  transform-origin: center;
+  filter: saturate(1.04);
+}
+
+.desktop-app-global-wallpaper-scrim {
+  z-index: 0;
   background:
-    linear-gradient(180deg, hsl(var(--surface-base) / 0.98) 0%, hsl(var(--surface-panel) / 0.95) 100%);
+    linear-gradient(180deg, hsl(var(--surface-base) / var(--app-global-scrim-top-opacity)) 0%, hsl(var(--surface-panel) / var(--app-global-scrim-bottom-opacity)) 100%),
+    radial-gradient(circle at top, hsl(var(--background) / 0.07) 0%, transparent 56%);
+}
+
+.desktop-app-shell-material-layer {
+  z-index: 0;
+  background:
+    linear-gradient(
+      180deg,
+      hsl(var(--surface-elevated) / calc(var(--app-global-shell-glass-opacity) + 0.14)) 0%,
+      hsl(var(--chrome) / calc(var(--app-global-shell-glass-opacity) + 0.08)) 16%,
+      hsl(var(--background) / calc(var(--app-global-workspace-opacity) + 0.02)) 48%,
+      hsl(var(--surface-panel) / calc(var(--app-global-workspace-opacity) + 0.08)) 100%
+    ),
+    radial-gradient(circle at top right, hsl(var(--surface-elevated) / 0.16) 0%, transparent 26%),
+    radial-gradient(circle at top left, hsl(var(--background) / 0.1) 0%, transparent 24%);
+  box-shadow:
+    inset 0 1px 0 hsl(var(--surface-elevated) / 0.32),
+    inset 0 0 0 1px hsl(var(--background) / 0.08),
+    inset 0 -1px 0 hsl(var(--foreground) / 0.05);
+  backdrop-filter: saturate(165%) blur(28px);
+  -webkit-backdrop-filter: saturate(165%) blur(28px);
+}
+
+.desktop-app-shell--wallpaper {
+  background: hsl(var(--chrome) / 0.32);
+}
+
+.desktop-app-shell .app-page-stage {
+  background: transparent;
+}
+
+.desktop-app-shell .app-shell-surface {
+  background:
+    linear-gradient(
+      180deg,
+      hsl(var(--surface-elevated) / calc(var(--app-global-shell-glass-opacity) + 0.12)) 0%,
+      hsl(var(--chrome) / var(--app-global-shell-glass-opacity)) 100%
+    );
+  border-color: hsl(var(--chrome-divider) / calc(var(--app-global-shell-glass-opacity) + 0.04));
+  box-shadow:
+    inset 0 1px 0 hsl(var(--surface-elevated) / 0.28),
+    0 14px 32px hsl(var(--foreground) / 0.04);
+  backdrop-filter: saturate(145%) blur(18px);
+  -webkit-backdrop-filter: saturate(145%) blur(18px);
+}
+
+.desktop-app-shell .app-titlebar-utility-surface {
+  background:
+    linear-gradient(
+      180deg,
+      hsl(var(--surface-elevated) / calc(var(--app-global-shell-glass-opacity) + 0.14)) 0%,
+      hsl(var(--chrome) / calc(var(--app-global-shell-glass-opacity) + 0.06)) 100%
+    );
+  border-color: hsl(var(--chrome-divider) / calc(var(--app-global-shell-glass-opacity) + 0.08));
+  box-shadow:
+    inset 0 1px 0 hsl(var(--surface-elevated) / 0.34),
+    0 12px 28px hsl(var(--foreground) / 0.07);
+  backdrop-filter: saturate(158%) blur(18px);
+  -webkit-backdrop-filter: saturate(158%) blur(18px);
+}
+
+.desktop-app-shell .app-titlebar-utility-surface:hover {
+  background:
+    linear-gradient(
+      180deg,
+      hsl(var(--surface-elevated) / calc(var(--app-global-shell-glass-opacity) + 0.18)) 0%,
+      hsl(var(--chrome) / calc(var(--app-global-shell-glass-opacity) + 0.1)) 100%
+    );
+  border-color: hsl(var(--chrome-divider) / calc(var(--app-global-shell-glass-opacity) + 0.12));
+}
+
+.desktop-app-shell .app-titlebar-utility-surface.app-chat-toolbar-button--studio-current {
+  background:
+    linear-gradient(180deg, hsl(var(--primary) / 0.18) 0%, hsl(var(--primary) / 0.1) 100%);
+  border-color: hsl(var(--primary) / 0.3);
+  box-shadow:
+    inset 0 1px 0 hsl(var(--background) / 0.2),
+    0 10px 24px hsl(var(--primary) / 0.12);
+}
+
+.desktop-app-shell .app-titlebar-utility-surface.app-chat-toolbar-button--studio-current:hover {
+  background:
+    linear-gradient(180deg, hsl(var(--primary) / 0.22) 0%, hsl(var(--primary) / 0.13) 100%);
+  border-color: hsl(var(--primary) / 0.36);
+}
+
+.desktop-app-shell .app-panel-surface,
+.desktop-app-shell .app-panel-surface-elevated,
+.desktop-app-shell .app-pane-surface,
+.desktop-app-shell .app-empty-surface,
+.desktop-app-shell .app-insight-surface {
+  background:
+    linear-gradient(
+      180deg,
+      hsl(var(--surface-elevated) / calc(var(--app-global-pane-opacity) + 0.06)) 0%,
+      hsl(var(--surface-base) / var(--app-global-pane-opacity)) 100%
+    );
+  border-color: hsl(var(--border-subtle) / calc(var(--app-global-pane-opacity) + 0.02));
+  box-shadow:
+    inset 0 1px 0 hsl(var(--background) / 0.42),
+    0 18px 40px hsl(var(--foreground) / 0.06);
+  backdrop-filter: saturate(132%) blur(20px);
+  -webkit-backdrop-filter: saturate(132%) blur(20px);
+}
+
+.desktop-app-shell .app-field-surface {
+  background:
+    linear-gradient(
+      180deg,
+      hsl(var(--surface-elevated) / calc(var(--app-global-field-opacity) + 0.04)) 0%,
+      hsl(var(--surface-base) / var(--app-global-field-opacity)) 100%
+    );
+  border-color: hsl(var(--border-subtle) / calc(var(--app-global-field-opacity) + 0.02));
+  box-shadow:
+    inset 0 1px 0 hsl(var(--background) / 0.32),
+    0 10px 24px hsl(var(--foreground) / 0.04);
+  backdrop-filter: saturate(126%) blur(14px);
+  -webkit-backdrop-filter: saturate(126%) blur(14px);
+}
+
+.desktop-app-shell .app-modal-overlay {
+  background: hsl(var(--foreground) / 0.12);
+  backdrop-filter: blur(14px);
+}
+
+.desktop-app-shell .app-modal-surface {
+  background: hsl(var(--surface-elevated) / var(--app-global-pane-opacity));
+  border-color: hsl(var(--border-subtle) / calc(var(--app-global-pane-opacity) + 0.04));
+  box-shadow: 0 14px 34px hsl(var(--foreground) / 0.12);
+  backdrop-filter: saturate(140%) blur(20px);
+  -webkit-backdrop-filter: saturate(140%) blur(20px);
+}
+
+.desktop-app-shell-body {
+  background: transparent;
 }
 
 .desktop-app-shell-sidebar {
   backdrop-filter: none;
-  background: hsl(var(--chrome));
+  background: transparent;
+}
+
+.app-sidebar-chrome-surface {
+  background: transparent;
+}
+
+.desktop-app-shell .app-sidebar-chrome-surface,
+.desktop-app-shell .desktop-app-titlebar-main-surface,
+.desktop-app-shell .desktop-app-shell-sidebar,
+.desktop-app-shell .desktop-app-chat-nav-shell,
+.desktop-app-shell .desktop-app-titlebar-leading-space,
+.desktop-app-shell .desktop-app-titlebar-sidebar-slot--chat,
+.desktop-app-shell .desktop-app-titlebar-sidebar-slot--workspace,
+.desktop-app-shell .desktop-app-workspace {
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .desktop-app-shell-sidebar--rail {
-  background: hsl(var(--chrome) / 0.94);
+  background: transparent;
 }
 
 .desktop-app-chat-nav-shell {
-  background: hsl(var(--chrome));
+  background: transparent;
   border-right: 1px solid hsl(var(--chrome-divider) / 0.48);
   box-shadow: none;
 }
 
 .desktop-app-sidebar-surface {
-  background: hsl(var(--chrome));
+  background: transparent;
+}
+
+.app-sidebar-shell-divider {
+  border-right: 1px solid hsl(var(--chrome-divider) / 0.32);
+}
+
+.app-sidebar-utility-divider {
+  padding-top: 0.5rem;
 }
 
 .desktop-app-chat-nav-shell .desktop-app-shell-sidebar--rail,
@@ -264,11 +465,11 @@
 .desktop-app-workspace {
   position: relative;
   isolation: isolate;
-  background: hsl(var(--background));
+  background: transparent;
 }
 
 .desktop-app-titlebar-main-surface {
-  background: hsl(var(--background));
+  background: transparent;
 }
 
 .desktop-app-titlebar {
@@ -281,8 +482,8 @@
 }
 
 .desktop-app-titlebar--win {
-  background: hsl(var(--chrome));
-  border-bottom: 1px solid hsl(var(--chrome-divider));
+  background: transparent;
+  border-bottom: 1px solid hsl(var(--chrome-divider) / 0.46);
 }
 
 .desktop-app-titlebar--chat {
@@ -291,24 +492,46 @@
 }
 
 .desktop-app-titlebar-leading-space {
-  background: hsl(var(--chrome));
+  background: transparent;
 }
 
 .desktop-app-titlebar-sidebar-slot--chat {
-  background: hsl(var(--chrome));
+  background: transparent;
   border-right: 1px solid hsl(var(--chrome-divider) / 0.48);
 }
 
 .desktop-app-titlebar-sidebar-slot--workspace {
-  background: hsl(var(--chrome));
+  background: transparent;
+}
+
+.desktop-app-shell .app-sidebar-nav-link--active {
+  background: hsl(var(--background) / 0.16);
+  border: 1px solid hsl(var(--border-subtle) / 0.14);
+  box-shadow:
+    inset 0 1px 0 hsl(var(--background) / 0.26),
+    0 8px 18px hsl(var(--foreground) / 0.04);
+  backdrop-filter: saturate(120%) blur(14px);
+  -webkit-backdrop-filter: saturate(120%) blur(14px);
+}
+
+.desktop-app-shell .app-sidebar-nav-link--active:hover {
+  background: hsl(var(--background) / 0.22);
+}
+
+.desktop-app-shell .app-sidebar-shell-divider {
+  border-right-color: hsl(var(--chrome-divider) / 0.18);
 }
 
 .dark .desktop-app-shell {
   background: hsl(var(--chrome));
 }
 
+.dark .desktop-app-shell--wallpaper {
+  background: hsl(var(--chrome-strong) / 0.34);
+}
+
 .dark .desktop-app-shell-body {
-  background: linear-gradient(180deg, hsl(var(--chrome)) 0%, hsl(var(--chrome-strong)) 100%);
+  background: transparent;
 }
 
 .dark .desktop-app-shell-sidebar,
@@ -318,30 +541,92 @@
 .dark .desktop-app-titlebar-leading-space,
 .dark .desktop-app-titlebar-sidebar-slot--chat,
 .dark .desktop-app-titlebar-sidebar-slot--workspace {
-  background: hsl(var(--chrome));
+  background: transparent;
 }
 
 .dark .desktop-app-titlebar-main-surface {
-  background: hsl(var(--background));
+  background: transparent;
 }
 
 .dark .desktop-app-workspace {
-  background: hsl(var(--background));
+  background: transparent;
+}
+
+.dark .desktop-app-shell .desktop-app-shell-material-layer {
+  background:
+    linear-gradient(
+      180deg,
+      hsl(var(--chrome-strong) / calc(var(--app-global-shell-glass-opacity) + 0.22)) 0%,
+      hsl(var(--chrome) / calc(var(--app-global-shell-glass-opacity) + 0.12)) 18%,
+      hsl(var(--background) / calc(var(--app-global-workspace-opacity) + 0.12)) 48%,
+      hsl(var(--surface-panel) / calc(var(--app-global-workspace-opacity) + 0.12)) 100%
+    ),
+    radial-gradient(circle at top right, hsl(var(--foreground) / 0.1) 0%, transparent 28%),
+    radial-gradient(circle at top left, hsl(var(--background) / 0.1) 0%, transparent 22%);
+  box-shadow:
+    inset 0 1px 0 hsl(var(--background) / 0.22),
+    inset 0 0 0 1px hsl(var(--background) / 0.08),
+    inset 0 -1px 0 hsl(var(--foreground) / 0.08);
+}
+
+.dark .desktop-app-shell .app-shell-surface {
+  background:
+    linear-gradient(
+      180deg,
+      hsl(var(--surface-panel) / calc(var(--app-global-shell-glass-opacity) + 0.12)) 0%,
+      hsl(var(--chrome-strong) / calc(var(--app-global-shell-glass-opacity) + 0.06)) 100%
+    );
+  border-color: hsl(var(--chrome-divider) / calc(var(--app-global-shell-glass-opacity) + 0.08));
+}
+
+.dark .desktop-app-shell .app-panel-surface,
+.dark .desktop-app-shell .app-panel-surface-elevated,
+.dark .desktop-app-shell .app-pane-surface,
+.dark .desktop-app-shell .app-empty-surface,
+.dark .desktop-app-shell .app-insight-surface {
+  background:
+    linear-gradient(
+      180deg,
+      hsl(var(--surface-panel) / calc(var(--app-global-pane-opacity) + 0.12)) 0%,
+      hsl(var(--surface-elevated) / calc(var(--app-global-pane-opacity) + 0.04)) 100%
+    );
+  border-color: hsl(var(--border-subtle) / calc(var(--app-global-pane-opacity) + 0.04));
+}
+
+.dark .desktop-app-shell .app-field-surface {
+  background:
+    linear-gradient(
+      180deg,
+      hsl(var(--surface-panel) / calc(var(--app-global-field-opacity) + 0.08)) 0%,
+      hsl(var(--surface-base) / calc(var(--app-global-field-opacity) + 0.02)) 100%
+    );
+  border-color: hsl(var(--border-subtle) / calc(var(--app-global-field-opacity) + 0.02));
+}
+
+.dark .desktop-app-shell .app-sidebar-nav-link--active {
+  background: hsl(var(--surface-panel) / 0.34);
+  border-color: hsl(var(--border-subtle) / 0.14);
+  box-shadow:
+    inset 0 1px 0 hsl(var(--background) / 0.14),
+    0 8px 18px hsl(var(--foreground) / 0.14);
+}
+
+.dark .desktop-app-shell .app-sidebar-shell-divider {
+  border-right-color: hsl(var(--chrome-divider) / 0.26);
+}
+
+.dark .desktop-app-shell .app-modal-overlay {
+  background: hsl(var(--foreground) / 0.28);
+}
+
+.dark .desktop-app-shell .app-modal-surface {
+  background: hsl(var(--surface-elevated) / calc(var(--app-global-pane-opacity) + 0.08));
+  border-color: hsl(var(--border-subtle) / calc(var(--app-global-pane-opacity) + 0.04));
 }
 
 .dark .desktop-app-chat-nav-shell,
 .dark .desktop-app-titlebar-sidebar-slot--chat {
   border-right-color: hsl(var(--chrome-divider) / 0.58);
-}
-
-.window-drag-bar {
-  position: fixed;
-  top: 0;
-  left: 100px;
-  right: 0;
-  height: 38px;
-  z-index: 1;
-  -webkit-app-region: drag;
 }
 
 .desktop-app-shell-resize-handle {
@@ -503,7 +788,7 @@
 }
 
 .app-chat-shell {
-  background: hsl(var(--background));
+  background: transparent;
 }
 
 .app-chat-main-stage {
@@ -511,6 +796,36 @@
   width: 100%;
   min-width: 0;
   flex: 1 1 auto;
+}
+
+.desktop-app-shell .app-chat-main-stage {
+  isolation: isolate;
+}
+
+.desktop-app-shell .app-chat-main-stage::before {
+  content: "";
+  position: absolute;
+  inset: -3rem 0.4rem 0.32rem;
+  border-radius: 0 0 24px 24px;
+  background:
+    linear-gradient(
+      180deg,
+      hsl(var(--surface-elevated) / calc(var(--app-global-chat-stage-opacity) + 0.16)) 0%,
+      hsl(var(--surface-base) / var(--app-global-chat-stage-opacity)) 34%,
+      hsl(var(--surface-panel) / calc(var(--app-global-chat-stage-opacity) - 0.1)) 100%
+    ),
+    radial-gradient(circle at top center, hsl(var(--background) / 0.08) 0%, transparent 60%);
+  box-shadow: inset 0 1px 0 hsl(var(--background) / 0.42);
+  backdrop-filter: saturate(124%) blur(18px);
+  -webkit-backdrop-filter: saturate(124%) blur(18px);
+  pointer-events: none;
+}
+
+.desktop-app-shell .app-chat-workspace-shell,
+.desktop-app-shell .app-chat-main-stage > .app-chat-content-inset,
+.desktop-app-shell .app-chat-empty-state-frame {
+  position: relative;
+  z-index: 1;
 }
 
 .app-chat-shell-header {
@@ -1699,12 +2014,9 @@
 }
 
 .app-chat-toolbar-button {
-  background:
-    linear-gradient(180deg, hsl(var(--surface-elevated) / 1) 0%, hsl(var(--surface-base) / 0.992) 100%);
-  border: 1px solid hsl(var(--border-subtle) / 0.82);
-  box-shadow:
-    inset 0 1px 0 hsl(var(--surface-elevated) / 0.92),
-    0 8px 18px hsl(var(--foreground) / 0.04);
+  background: transparent;
+  border: 1px solid transparent;
+  box-shadow: none;
   color: hsl(var(--muted-foreground) / 0.82);
   transition:
     background-color var(--motion-fast) ease-out,
@@ -1715,9 +2027,8 @@
 }
 
 .app-chat-toolbar-button:hover {
-  background:
-    linear-gradient(180deg, hsl(var(--surface-elevated) / 1) 0%, hsl(var(--surface-base) / 1) 100%);
-  border-color: hsl(var(--border-subtle) / 1);
+  background: transparent;
+  border-color: transparent;
   color: hsl(var(--foreground) / 0.94);
   transform: translateY(-1px);
 }
@@ -1727,17 +2038,17 @@
 }
 
 .app-chat-toolbar-button--studio {
-  background: hsl(var(--surface-elevated));
-  border-color: hsl(var(--border-subtle));
-  box-shadow: var(--shadow-sm);
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
   color: hsl(var(--foreground) / 0.86);
   transition: all 100ms ease-out;
 }
 
 .app-chat-toolbar-button--studio:hover {
-  background: hsl(var(--surface-hover));
-  border-color: hsl(var(--border-subtle));
-  box-shadow: var(--shadow-sm);
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
   color: hsl(var(--foreground) / 0.96);
   transform: translateY(-1px);
 }
@@ -2146,8 +2457,35 @@
 .app-chat-composer-dock {
   border-radius: 14px;
   border: 1px solid hsl(var(--border-subtle) / 0.76);
-  background: hsl(var(--surface-elevated) / 0.985);
+  background: hsl(var(--surface-base) / 0.96);
   box-shadow: none;
+}
+
+.desktop-app-shell .app-chat-composer-surface,
+.desktop-app-shell .app-chat-composer-dock {
+  background:
+    linear-gradient(
+      180deg,
+      hsl(var(--surface-elevated) / calc(var(--app-global-chat-composer-opacity) + 0.12)) 0%,
+      hsl(var(--surface-panel) / var(--app-global-chat-composer-opacity)) 100%
+    );
+  border-color: hsl(var(--chrome-divider) / calc(var(--app-global-chat-composer-opacity) + 0.1));
+  box-shadow:
+    inset 0 1px 0 hsl(var(--background) / 0.42),
+    0 24px 48px hsl(var(--foreground) / 0.08);
+  backdrop-filter: saturate(132%) blur(22px);
+  -webkit-backdrop-filter: saturate(132%) blur(22px);
+}
+
+.dark .desktop-app-shell .app-chat-composer-surface,
+.dark .desktop-app-shell .app-chat-composer-dock {
+  background:
+    linear-gradient(
+      180deg,
+      hsl(var(--surface-panel) / calc(var(--app-global-chat-composer-opacity) + 0.12)) 0%,
+      hsl(var(--surface-base) / calc(var(--app-global-chat-composer-opacity) + 0.04)) 100%
+    );
+  border-color: hsl(var(--chrome-divider) / calc(var(--app-global-chat-composer-opacity) + 0.08));
 }
 
 .app-chat-composer-editor {
@@ -3109,6 +3447,86 @@
   background: hsl(var(--surface-elevated) / 0.92);
   border: 1px solid hsl(var(--border-subtle) / 0.48);
   box-shadow: 0 2px 8px hsl(var(--foreground) / 0.025);
+}
+
+.desktop-app-shell .app-chat-bubble-assistant-v3 {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  color: hsl(var(--foreground) / 0.94);
+}
+
+.desktop-app-shell .app-chat-assistant-markdown {
+  max-width: min(100%, 42rem);
+}
+
+.desktop-app-shell .app-chat-bubble-user-v3 {
+  background:
+    linear-gradient(
+      180deg,
+      hsl(var(--surface-elevated) / calc(var(--app-global-chat-bubble-opacity) + 0.06)) 0%,
+      hsl(var(--primary) / 0.1) 100%
+    );
+  border-color: hsl(var(--primary) / 0.18);
+  box-shadow: 0 12px 26px hsl(var(--foreground) / 0.05);
+}
+
+.desktop-app-shell .app-chat-message-meta {
+  background:
+    linear-gradient(
+      180deg,
+      hsl(var(--surface-elevated) / calc(var(--app-global-chat-bubble-opacity) + 0.12)) 0%,
+      hsl(var(--surface-panel) / calc(var(--app-global-chat-bubble-opacity) + 0.02)) 100%
+    );
+  border-color: hsl(var(--chrome-divider) / calc(var(--app-global-chat-bubble-opacity) - 0.18));
+  box-shadow:
+    inset 0 1px 0 hsl(var(--background) / 0.3),
+    0 10px 22px hsl(var(--foreground) / 0.05);
+  backdrop-filter: saturate(124%) blur(14px);
+  -webkit-backdrop-filter: saturate(124%) blur(14px);
+}
+
+.desktop-app-shell .app-chat-secondary-toggle {
+  border-color: hsl(var(--chrome-divider) / 0.46);
+  background:
+    linear-gradient(
+      180deg,
+      hsl(var(--surface-elevated) / calc(var(--app-global-chat-bubble-opacity) + 0.08)) 0%,
+      hsl(var(--surface-base) / calc(var(--app-global-chat-bubble-opacity) - 0.04)) 100%
+    );
+  color: hsl(var(--foreground) / 0.76);
+  box-shadow:
+    inset 0 1px 0 hsl(var(--background) / 0.26),
+    0 10px 22px hsl(var(--foreground) / 0.035);
+}
+
+.desktop-app-shell .app-chat-secondary-toggle:hover {
+  border-color: hsl(var(--chrome-divider) / 0.58);
+  background:
+    linear-gradient(
+      180deg,
+      hsl(var(--surface-elevated) / calc(var(--app-global-chat-bubble-opacity) + 0.12)) 0%,
+      hsl(var(--surface-panel) / calc(var(--app-global-chat-bubble-opacity) + 0.02)) 100%
+    );
+  color: hsl(var(--foreground) / 0.88);
+}
+
+.desktop-app-shell .app-chat-tool-chip,
+.desktop-app-shell .app-chat-file-card {
+  background:
+    linear-gradient(
+      180deg,
+      hsl(var(--surface-elevated) / calc(var(--app-global-chat-bubble-opacity) + 0.08)) 0%,
+      hsl(var(--surface-panel) / calc(var(--app-global-chat-bubble-opacity) - 0.02)) 100%
+    );
+  border-color: hsl(var(--chrome-divider) / 0.4);
+  box-shadow:
+    inset 0 1px 0 hsl(var(--background) / 0.24),
+    0 10px 22px hsl(var(--foreground) / 0.03);
+}
+
+.desktop-app-shell .app-chat-secondary-body {
+  border-left-color: hsl(var(--chrome-divider) / 0.36);
 }
 
 .app-chat-hoverbar--floating {
@@ -4829,8 +5247,13 @@
 }
 
 /* macOS transparent window base */
+html[data-platform="darwin"],
 html[data-platform="darwin"] body {
   background-color: transparent !important;
+}
+
+html[data-platform="darwin"] #root {
+  background: transparent !important;
 }
 
 /* Nexu-style vibrancy */
@@ -4845,7 +5268,11 @@ html[data-platform="darwin"].dark .mac-vibrancy-shell {
 }
 
 html[data-platform="darwin"] .desktop-app-shell {
-  background: hsl(var(--background));
+  background: transparent;
+}
+
+html[data-platform="darwin"] .desktop-app-shell--wallpaper {
+  background: transparent;
 }
 
 html[data-platform="darwin"] .desktop-app-shell-body {
@@ -4853,17 +5280,13 @@ html[data-platform="darwin"] .desktop-app-shell-body {
 }
 
 html[data-platform="darwin"] .desktop-app-titlebar,
-html[data-platform="darwin"] .desktop-app-titlebar-main-surface {
+html[data-platform="darwin"] .desktop-app-titlebar {
   background: transparent;
 }
 
-html[data-platform="darwin"] .desktop-app-shell-sidebar,
-html[data-platform="darwin"] .desktop-app-chat-nav-shell,
-html[data-platform="darwin"] .desktop-app-sidebar-surface,
-html[data-platform="darwin"] .desktop-app-titlebar-leading-space,
-html[data-platform="darwin"] .desktop-app-titlebar-sidebar-slot--chat,
-html[data-platform="darwin"] .desktop-app-titlebar-sidebar-slot--workspace {
-  background: hsl(var(--chrome));
+html[data-platform="darwin"] .app-sidebar-chrome-surface,
+html[data-platform="darwin"] .desktop-app-shell-sidebar {
+  background: transparent;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }

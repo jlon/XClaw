@@ -106,7 +106,7 @@ function NavItem({ to, icon, label, collapsed, tone }: NavItemProps) {
               ? 'mx-auto h-[32px] w-[32px] justify-center gap-0 px-0 hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground'
               : 'h-[32px] gap-2 hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground',
             isActive
-              ? 'bg-[hsl(var(--surface-active)/0.8)] text-foreground font-medium shadow-none border-transparent'
+              ? 'app-sidebar-nav-link--active text-foreground font-medium border-transparent'
               : 'border-transparent',
           )
         }
@@ -182,7 +182,7 @@ function UtilityItem({ label, icon, collapsed, tone, to, onClick, trailing }: Ut
           aria-label={collapsed ? label : undefined}
           className={({ isActive }) => cn(
             baseClass,
-            isActive && 'bg-[hsl(var(--surface-active)/0.8)] text-foreground font-medium shadow-none border-transparent'
+            isActive && 'app-sidebar-nav-link--active text-foreground font-medium border-transparent'
           )}
         >
           {({ isActive }) => content(isActive)}
@@ -226,7 +226,7 @@ export function Sidebar({ railOnly = false, className }: SidebarProps) {
     <aside
       data-sidebar-collapsed={collapsed ? 'true' : 'false'}
       className={cn(
-        'desktop-app-sidebar desktop-app-sidebar-surface flex shrink-0 flex-col overflow-hidden border-r border-border/55 [font-family:var(--font-sidebar)] transition-[width,background-color,border-color] duration-[var(--motion-slow)] ease-[cubic-bezier(0.16,1,0.3,1)]',
+        'desktop-app-sidebar desktop-app-sidebar-surface app-sidebar-chrome-surface app-sidebar-shell-divider flex shrink-0 flex-col overflow-hidden [font-family:var(--font-sidebar)] transition-[width,background-color,border-color] duration-[var(--motion-slow)] ease-[cubic-bezier(0.16,1,0.3,1)]',
         railOnly ? 'desktop-app-sidebar-rail' : 'desktop-app-sidebar-panel',
         collapsed ? 'w-[var(--desktop-sidebar-rail-width)]' : 'w-[var(--desktop-sidebar-width)]',
         isMacDesktop ? 'pt-12' : '',
@@ -246,7 +246,7 @@ export function Sidebar({ railOnly = false, className }: SidebarProps) {
       </nav>
 
       <div className="mt-auto px-2.5 pb-2.5 pt-2">
-        <div className={cn('border-t border-border/55 pt-2', collapsed ? 'space-y-1.5' : 'space-y-1')}>
+        <div className={cn('app-sidebar-utility-divider pt-2', collapsed ? 'space-y-1.5' : 'space-y-1')}>
           <UtilityItem
             to="/settings"
             icon={<SettingsIcon className="h-[16px] w-[16px]" strokeWidth={2} />}

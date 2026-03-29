@@ -35,7 +35,7 @@ export function GlobalTitleBarUtilities({
   const ThemeIcon = appliedTheme === 'dark' ? Sun : Moon;
 
   return (
-    <div className="no-drag flex items-center gap-1.5">
+    <div className="no-drag relative z-20 flex items-center gap-1.5">
       <StudioToggleButton compact={compact} iconOnly={studioIconOnly} />
 
       <Tooltip>
@@ -43,8 +43,10 @@ export function GlobalTitleBarUtilities({
           <Button
             variant="ghost"
             size="icon"
-            className={cn('app-chat-toolbar-button rounded-[10px]', compact ? 'h-7 w-7' : 'h-8 w-8')}
+            className={cn('app-chat-toolbar-button app-titlebar-utility-surface no-drag relative z-10 rounded-[10px]', compact ? 'h-7 w-7' : 'h-8 w-8')}
             aria-label={themeToggleLabel}
+            type="button"
+            onMouseDown={(event) => event.stopPropagation()}
             onClick={() => setTheme(appliedTheme === 'dark' ? 'light' : 'dark')}
           >
             <ThemeIcon className={compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} />
@@ -60,7 +62,7 @@ export function GlobalTitleBarUtilities({
           <div
             aria-label={t(gatewayUi.labelKey)}
             className={cn(
-              'app-chat-runtime-pill app-chat-connection-indicator flex items-center justify-center gap-1 rounded-[9px]',
+              'app-chat-runtime-pill app-chat-connection-indicator app-titlebar-utility-surface no-drag relative z-10 flex items-center justify-center gap-1 rounded-[9px]',
               compact ? 'h-6 min-w-[1.5rem] px-1.5' : 'h-7 px-2',
             )}
           >

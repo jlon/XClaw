@@ -364,7 +364,7 @@ function MessageBubble({
         'relative inline-block w-fit max-w-full text-[14px] leading-[1.6]',
         isUser
           ? 'app-chat-bubble-user-v3 rounded-[18px] rounded-tr-[4px] border border-[hsl(var(--primary)/0.14)] bg-[hsl(var(--primary)/0.08)] px-[14px] py-[10px] text-foreground shadow-[0_8px_20px_rgba(15,23,42,0.04)] dark:border-[hsl(var(--primary)/0.24)] dark:bg-[hsl(var(--primary)/0.16)]'
-          : 'app-chat-bubble-assistant-v3 rounded-[18px] rounded-tl-[4px] border border-[hsl(var(--border-subtle)/0.72)] bg-[hsl(var(--surface-elevated)/0.96)] px-[14px] py-[10px] text-foreground/96 shadow-[0_8px_20px_rgba(15,23,42,0.03)] dark:border-[hsl(var(--border-subtle)/0.82)] dark:bg-[hsl(var(--surface-elevated)/0.9)]',
+          : 'app-chat-bubble-assistant-v3 px-0 py-0 border-transparent bg-transparent text-foreground/96 shadow-none',
       )}
       data-testid={isUser ? 'chat-user-bubble' : 'chat-assistant-bubble'}
     >
@@ -372,7 +372,7 @@ function MessageBubble({
         <p className="whitespace-pre-wrap break-words text-[14px] leading-[1.6]">{text}</p>
       ) : (
         <div className={cn(
-          'chat-markdown prose prose-sm max-w-none break-words text-[14px] leading-[1.6] text-foreground/94 prose-headings:text-foreground prose-p:text-foreground/90 prose-strong:text-foreground prose-li:text-foreground/88 prose-ul:text-foreground/88 prose-ol:text-foreground/88 prose-code:text-foreground prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5 prose-li:my-1 prose-pre:my-2 prose-headings:mb-2 prose-headings:mt-4',
+          'app-chat-assistant-markdown chat-markdown prose prose-sm max-w-none break-words text-[14px] leading-[1.6] text-foreground/94 prose-headings:text-foreground prose-p:text-foreground/90 prose-strong:text-foreground prose-li:text-foreground/88 prose-ul:text-foreground/88 prose-ol:text-foreground/88 prose-code:text-foreground prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5 prose-li:my-1 prose-pre:my-2 prose-headings:mb-2 prose-headings:mt-4',
           isStreaming && 'app-chat-streaming-content',
         )}>
           <ReactMarkdown

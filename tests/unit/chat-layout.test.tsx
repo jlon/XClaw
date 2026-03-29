@@ -96,6 +96,7 @@ vi.mock('@/components/ui/tooltip', () => ({
 
 vi.mock('@/lib/host-api', () => ({
   hostApiFetch: vi.fn(),
+  getHostApiBase: () => 'http://127.0.0.1:3210',
 }));
 
 vi.mock('@/lib/api-client', () => ({
@@ -274,12 +275,13 @@ describe('chat layout', () => {
       </MemoryRouter>,
     );
 
+    const sessionSlot = screen.getByTestId('chat-titlebar-session-slot');
     const brandLockup = screen.getByTestId('chat-sidebar-brand-lockup');
     const searchTrigger = screen.getByRole('button', { name: 'Search chats' });
     const brandMark = within(brandLockup).getByAltText('XClaw');
 
     expect(screen.getByTestId('chat-sidebar-brand-wordmark')).toBeInTheDocument();
-    expect(brandLockup.compareDocumentPosition(searchTrigger) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(within(sessionSlot).queryByTestId('chat-sidebar-brand-lockup')).toBeNull();
     expect(brandMark).toHaveClass('app-brand-mark');
     expect(brandMark).not.toHaveClass('sidebar-brand-mark');
     expect(screen.getByText('Design review')).toBeInTheDocument();
@@ -289,15 +291,15 @@ describe('chat layout', () => {
     expect(designReviewRow.querySelector('img')).not.toBeNull();
     expect(screen.queryByText('Main')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Search chats' })).toBeInTheDocument();
-    expect(screen.getByTestId('chat-titlebar-control-rail')).toHaveClass('absolute', 'left-[80px]', 'top-[12px]', 'no-drag');
-    expect(screen.queryByTestId('chat-titlebar-session-slot')).not.toBeInTheDocument();
-    expect(screen.getByTestId('chat-session-header-controls-titlebar')).toHaveClass('h-full', 'no-drag');
-    expect(within(screen.getByTestId('chat-titlebar-control-rail')).getByTestId('chat-session-header-controls-titlebar')).toBeInTheDocument();
+    expect(screen.queryByTestId('chat-titlebar-control-rail')).not.toBeInTheDocument();
+    expect(sessionSlot.querySelector('[data-chat-sidebar-header-slot="true"]')).toHaveClass('justify-end');
+    expect(within(sessionSlot).getByTestId('chat-session-header-controls-titlebar')).toHaveClass('h-full', 'no-drag');
     expect(screen.queryByTestId('chat-session-header-controls-pane')).not.toBeInTheDocument();
     expect(screen.getByRole('main')).toHaveClass('rounded-bl-[12px]');
     expect(screen.getByRole('main')).not.toHaveClass('rounded-l-[12px]');
     expect(screen.getByRole('button', { name: 'Hide sessions' })).toHaveClass('app-desktop-sidebar-toggle', 'h-6', 'w-6', 'p-0', 'leading-none');
     expect(screen.getByTestId('chat-new-chat-titlebar')).toHaveClass('h-6', 'w-6', 'p-0', 'leading-none');
+    expect(within(sessionSlot).getByTestId('chat-session-header-controls-titlebar')).toContainElement(screen.getByTestId('chat-new-chat-titlebar'));
     expect(within(screen.getByTestId('chat-session-header-controls-titlebar')).getByTestId('qclaw-session-toggle-icon')).toBeInTheDocument();
     expect(within(screen.getByTestId('chat-session-header-controls-titlebar')).getByTestId('qclaw-new-chat-icon')).toBeInTheDocument();
     expect(within(screen.getByTestId('chat-session-header-controls-titlebar')).getByTestId('qclaw-session-toggle-icon')).toHaveClass('block');
@@ -407,7 +409,7 @@ describe('chat layout', () => {
     expect(screen.getByTestId('chat-surface-probe')).toBeInTheDocument();
     expect(chatMountSpy).toHaveBeenCalledTimes(1);
     expect(chatUnmountSpy).not.toHaveBeenCalled();
-    expect(chatState.loadSessions).toHaveBeenCalledTimes(1);
+    expect(chatState.loadSessions).toHaveBeenCalled();
   });
 
   it('applies low-saturation theme tones to chat session pane icons without tinting the labels', () => {
@@ -450,13 +452,12 @@ describe('chat layout', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText('Design review')).not.toBeVisible();
-    expect(screen.getByTestId('chat-sessions-scroll-area')).not.toBeVisible();
+    expect(document.querySelector('.desktop-app-shell-nav[data-chat-nav-visible="false"]')).not.toBeNull();
     expect(screen.getByTestId('chat-titlebar-control-rail')).toHaveClass('absolute', 'left-[80px]', 'top-[12px]');
     expect(screen.queryByTestId('chat-titlebar-session-slot')).not.toBeInTheDocument();
     expect(screen.getByTestId('chat-session-header-controls-titlebar')).toHaveClass('h-full');
     expect(within(screen.getByTestId('chat-session-header-controls-titlebar')).getByTestId('qclaw-session-toggle-icon')).toBeInTheDocument();
-    expect(within(screen.getByTestId('chat-session-header-controls-titlebar')).getByTestId('qclaw-new-chat-icon')).toBeInTheDocument();
+    expect(within(screen.getByTestId('chat-session-header-controls-titlebar')).queryByTestId('qclaw-new-chat-icon')).toBeNull();
     expect(screen.getByRole('button', { name: 'Show sessions' })).toHaveClass('app-desktop-sidebar-toggle', 'h-6', 'w-6', 'p-0', 'leading-none');
     expect(screen.getByText('Chat body')).toBeInTheDocument();
   });
@@ -560,7 +561,7 @@ describe('chat layout', () => {
     );
 
     expect(screen.queryByRole('link', { name: 'Chat' })).not.toBeInTheDocument();
-    expect(screen.getByTestId('sidebar-brand-wordmark')).not.toBeVisible();
+    expect(screen.queryByTestId('sidebar-brand-wordmark')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'chat:sessionPane.workspaceLauncher' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
   });

@@ -6,6 +6,7 @@
 import { randomBytes } from 'crypto';
 import { app } from 'electron';
 import { resolveSupportedLanguage } from '../../shared/language';
+import { getGlobalWallpaperAssetKey, isManagedGlobalWallpaperPath } from './global-wallpaper';
 import { setOpenClawRootMode, type OpenClawRootMode } from './paths';
 
 // Lazy-load electron-store (ESM module)
@@ -14,6 +15,8 @@ let settingsStoreInstance: any = null;
 
 export type GatewayDesiredState = 'running' | 'stopped';
 export type GatewayManagedMode = 'managed' | 'unmanaged';
+const GLOBAL_WALLPAPER_OPACITY_MIN = 0.12;
+const GLOBAL_WALLPAPER_OPACITY_MAX = 0.88;
 
 /**
  * Generate a random token for gateway authentication
@@ -32,6 +35,9 @@ export interface AppSettings {
   startMinimized: boolean;
   launchAtStartup: boolean;
   telemetryEnabled: boolean;
+  globalWallpaperEnabled: boolean;
+  globalWallpaperOpacity: number;
+  globalWallpaperAssetPath: string;
   machineId: string;
   hasReportedInstall: boolean;
   setupComplete?: boolean;
@@ -68,29 +74,32 @@ export interface AppSettings {
   disabledSkills: string[];
 }
 
-export type PublicAppSettings = Pick<AppSettings,
-  | 'theme'
-  | 'language'
-  | 'startMinimized'
-  | 'launchAtStartup'
-  | 'telemetryEnabled'
-  | 'setupComplete'
-  | 'gatewayAutoStart'
-  | 'gatewayDesiredState'
-  | 'gatewayManagedMode'
-  | 'gatewayPort'
-  | 'proxyEnabled'
-  | 'proxyServer'
-  | 'proxyHttpServer'
-  | 'proxyHttpsServer'
-  | 'proxyAllServer'
-  | 'proxyBypassRules'
-  | 'updateChannel'
-  | 'autoCheckUpdate'
-  | 'autoDownloadUpdate'
-  | 'sidebarCollapsed'
-  | 'devModeUnlocked'
->;
+export interface PublicAppSettings {
+  theme: AppSettings['theme'];
+  language: AppSettings['language'];
+  startMinimized: AppSettings['startMinimized'];
+  launchAtStartup: AppSettings['launchAtStartup'];
+  telemetryEnabled: AppSettings['telemetryEnabled'];
+  globalWallpaperEnabled: AppSettings['globalWallpaperEnabled'];
+  globalWallpaperOpacity: AppSettings['globalWallpaperOpacity'];
+  globalWallpaperAssetKey: string;
+  setupComplete: AppSettings['setupComplete'];
+  gatewayAutoStart: AppSettings['gatewayAutoStart'];
+  gatewayDesiredState: AppSettings['gatewayDesiredState'];
+  gatewayManagedMode: AppSettings['gatewayManagedMode'];
+  gatewayPort: AppSettings['gatewayPort'];
+  proxyEnabled: AppSettings['proxyEnabled'];
+  proxyServer: AppSettings['proxyServer'];
+  proxyHttpServer: AppSettings['proxyHttpServer'];
+  proxyHttpsServer: AppSettings['proxyHttpsServer'];
+  proxyAllServer: AppSettings['proxyAllServer'];
+  proxyBypassRules: AppSettings['proxyBypassRules'];
+  updateChannel: AppSettings['updateChannel'];
+  autoCheckUpdate: AppSettings['autoCheckUpdate'];
+  autoDownloadUpdate: AppSettings['autoDownloadUpdate'];
+  sidebarCollapsed: AppSettings['sidebarCollapsed'];
+  devModeUnlocked: AppSettings['devModeUnlocked'];
+}
 
 const rendererReadableSettingKeys = new Set<keyof PublicAppSettings>([
   'theme',
@@ -98,6 +107,8 @@ const rendererReadableSettingKeys = new Set<keyof PublicAppSettings>([
   'startMinimized',
   'launchAtStartup',
   'telemetryEnabled',
+  'globalWallpaperEnabled',
+  'globalWallpaperOpacity',
   'setupComplete',
   'gatewayAutoStart',
   'gatewayDesiredState',
@@ -122,6 +133,8 @@ const rendererWritableSettingKeys = new Set<keyof AppSettings>([
   'startMinimized',
   'launchAtStartup',
   'telemetryEnabled',
+  'globalWallpaperEnabled',
+  'globalWallpaperOpacity',
   'setupComplete',
   'gatewayAutoStart',
   'gatewayPort',
@@ -153,6 +166,9 @@ export function toPublicAppSettings(settings: AppSettings): PublicAppSettings {
     startMinimized: settings.startMinimized,
     launchAtStartup: settings.launchAtStartup,
     telemetryEnabled: settings.telemetryEnabled,
+    globalWallpaperEnabled: settings.globalWallpaperEnabled,
+    globalWallpaperOpacity: settings.globalWallpaperOpacity,
+    globalWallpaperAssetKey: getGlobalWallpaperAssetKey(settings.globalWallpaperAssetPath),
     setupComplete: settings.setupComplete,
     gatewayAutoStart: settings.gatewayAutoStart,
     gatewayDesiredState: settings.gatewayDesiredState,
@@ -193,6 +209,9 @@ function createDefaultSettings(): AppSettings {
     startMinimized: false,
     launchAtStartup: false,
     telemetryEnabled: true,
+    globalWallpaperEnabled: false,
+    globalWallpaperOpacity: 0.36,
+    globalWallpaperAssetPath: '',
     machineId: '',
     hasReportedInstall: false,
     openClawRootMode: 'takeover',
@@ -310,6 +329,15 @@ function normalizeImportedSettings(settings: Partial<AppSettings>): Partial<AppS
   const openClawRootMode = settings.openClawRootMode === 'fresh' || settings.openClawRootMode === 'takeover'
     ? settings.openClawRootMode
     : 'takeover';
+  const globalWallpaperOpacity = typeof settings.globalWallpaperOpacity === 'number'
+    ? Math.min(GLOBAL_WALLPAPER_OPACITY_MAX, Math.max(GLOBAL_WALLPAPER_OPACITY_MIN, settings.globalWallpaperOpacity))
+    : createDefaultSettings().globalWallpaperOpacity;
+  const globalWallpaperAssetPath = typeof settings.globalWallpaperAssetPath === 'string'
+    ? settings.globalWallpaperAssetPath.trim()
+    : '';
+  const normalizedWallpaperAssetPath = globalWallpaperAssetPath && isManagedGlobalWallpaperPath(globalWallpaperAssetPath)
+    ? globalWallpaperAssetPath
+    : '';
   return {
     ...settings,
     gatewayDesiredState,
@@ -318,6 +346,9 @@ function normalizeImportedSettings(settings: Partial<AppSettings>): Partial<AppS
       settings.setupComplete,
     ),
     gatewayAutoStart: gatewayDesiredState === 'running',
+    globalWallpaperEnabled: settings.globalWallpaperEnabled === true && normalizedWallpaperAssetPath.length > 0,
+    globalWallpaperOpacity,
+    globalWallpaperAssetPath: normalizedWallpaperAssetPath,
     openClawRootMode,
   };
 }
@@ -370,6 +401,23 @@ export async function setSetting<K extends keyof AppSettings>(
   if (key === 'openClawRootMode') {
     store.set(key, value);
     setOpenClawRootMode(value);
+    return;
+  }
+  if (key === 'globalWallpaperOpacity') {
+    const nextValue = typeof value === 'number'
+      ? Math.min(GLOBAL_WALLPAPER_OPACITY_MAX, Math.max(GLOBAL_WALLPAPER_OPACITY_MIN, value))
+      : createDefaultSettings().globalWallpaperOpacity;
+    store.set(key, nextValue as AppSettings[K]);
+    return;
+  }
+  if (key === 'globalWallpaperAssetPath') {
+    const nextValue = typeof value === 'string' ? value.trim() : '';
+    store.set(key, (nextValue && isManagedGlobalWallpaperPath(nextValue) ? nextValue : '') as AppSettings[K]);
+    return;
+  }
+  if (key === 'globalWallpaperEnabled') {
+    const assetPath = (await getSetting('globalWallpaperAssetPath')).trim();
+    store.set(key, Boolean(value) && assetPath.length > 0);
     return;
   }
   store.set(key, value);

@@ -14,7 +14,7 @@ export function WorkspacePageFrame({
   ...props
 }: PropsWithChildren<HTMLAttributes<HTMLDivElement>>) {
   return (
-    <div className={cn('workspace-page-frame desktop-workspace-frame flex h-full w-full flex-col overflow-hidden bg-background', className)} {...props}>
+    <div className={cn('workspace-page-frame desktop-workspace-frame app-page-stage flex h-full w-full flex-col overflow-hidden bg-transparent', className)} {...props}>
       {children}
     </div>
   );

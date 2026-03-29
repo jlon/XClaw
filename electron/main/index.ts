@@ -10,12 +10,6 @@ import { GatewayRuntimeController } from '../gateway/runtime-controller';
 import { registerIpcHandlers } from './ipc-handlers';
 import { createTray } from './tray';
 import { createMenu } from './menu';
-import {
-  DEFAULT_MAIN_WINDOW_HEIGHT,
-  DEFAULT_MAIN_WINDOW_MIN_HEIGHT,
-  DEFAULT_MAIN_WINDOW_MIN_WIDTH,
-  DEFAULT_MAIN_WINDOW_WIDTH,
-} from './window';
 
 import { appUpdater, registerUpdateHandlers } from './updater';
 import { logger } from '../utils/logger';
@@ -47,6 +41,7 @@ import { applyUserDataDirOverride } from './user-data-override';
 import { createBeforeQuitHandler } from './quit-handoff';
 import { StudioService } from '../studio/service';
 import { primeOpenClawRootMode } from '../utils/paths';
+import { resolveMainWindowOptions } from './window-options';
 
 const WINDOWS_APP_USER_MODEL_ID = 'app.XClaw.desktop';
 const isHeadlessDevBackend = process.env.XCLAW_HEADLESS_DEV_BACKEND === '1' && Boolean(process.env.VITE_DEV_SERVER_URL);
@@ -120,30 +115,12 @@ const handleBeforeQuit = createBeforeQuitHandler({
  */
 function createWindow(): BrowserWindow {
   const isMac = process.platform === 'darwin';
-  const macWindowBackground = '#1b1614';
 
-  const win = new BrowserWindow({
-    width: DEFAULT_MAIN_WINDOW_WIDTH,
-    height: DEFAULT_MAIN_WINDOW_HEIGHT,
-    minWidth: DEFAULT_MAIN_WINDOW_MIN_WIDTH,
-    minHeight: DEFAULT_MAIN_WINDOW_MIN_HEIGHT,
+  const win = new BrowserWindow(resolveMainWindowOptions({
+    isMac,
     icon: getWindowIcon(),
-    webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
-      nodeIntegration: false,
-      contextIsolation: true,
-      sandbox: false,
-      webviewTag: true, // Enable <webview> for embedding OpenClaw Control UI
-    },
-    titleBarStyle: isMac ? 'hiddenInset' : 'hidden',
-    trafficLightPosition: isMac ? { x: 18, y: 18 } : undefined,
-    transparent: false,
-    vibrancy: undefined,
-    visualEffectState: undefined,
-    frame: isMac,
-    show: false,
-    backgroundColor: isMac ? macWindowBackground : '#f8f8f9',
-  });
+    preloadPath: join(__dirname, '../preload/index.js'),
+  }));
 
   win.webContents.on('did-start-loading', () => {
     logger.debug(`Main window started loading: ${win.webContents.getURL() || '(pending url)'}`);

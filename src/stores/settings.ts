@@ -13,6 +13,19 @@ type Theme = 'light' | 'dark' | 'system';
 type UpdateChannel = 'stable' | 'beta' | 'dev';
 type GatewayDesiredState = 'running' | 'stopped';
 type GatewayManagedMode = 'managed' | 'unmanaged';
+type GlobalWallpaperStatePayload = {
+  globalWallpaperEnabled?: boolean;
+  globalWallpaperOpacity?: number;
+  globalWallpaperAssetKey?: string;
+  globalWallpaperAssetPath?: string;
+};
+type SettingsPayload = Partial<typeof defaultSettings> & {
+  gatewayDesiredState?: GatewayDesiredState;
+  gatewayManagedMode?: GatewayManagedMode;
+  globalWallpaperAssetPath?: string;
+};
+const GLOBAL_WALLPAPER_OPACITY_MIN = 0.12;
+const GLOBAL_WALLPAPER_OPACITY_MAX = 0.88;
 
 export const SIDEBAR_RAIL_WIDTH = 44;
 export const SIDEBAR_WIDTH_MIN = 200;
@@ -55,6 +68,34 @@ function resolveGatewayManagedMode(
   return setupComplete === true ? 'managed' : 'unmanaged';
 }
 
+function clampGlobalWallpaperOpacity(value: number) {
+  if (!Number.isFinite(value)) {
+    return 0.36;
+  }
+  return Math.min(GLOBAL_WALLPAPER_OPACITY_MAX, Math.max(GLOBAL_WALLPAPER_OPACITY_MIN, Math.round(value * 100) / 100));
+}
+
+function resolveGlobalWallpaperOpacity(value: unknown) {
+  return typeof value === 'number' ? clampGlobalWallpaperOpacity(value) : 0.36;
+}
+
+function resolveGlobalWallpaperAssetKey(value: unknown) {
+  return typeof value === 'string'
+    ? value.trim().split(/[\\/]/).filter(Boolean).pop() ?? ''
+    : '';
+}
+
+function resolveGlobalWallpaperAssetInputKey(payload: {
+  globalWallpaperAssetKey?: unknown;
+  globalWallpaperAssetPath?: unknown;
+}) {
+  return resolveGlobalWallpaperAssetKey(
+    typeof payload.globalWallpaperAssetKey === 'string' && payload.globalWallpaperAssetKey.trim().length > 0
+      ? payload.globalWallpaperAssetKey
+      : payload.globalWallpaperAssetPath,
+  );
+}
+
 interface SettingsState {
   // General
   theme: Theme;
@@ -62,6 +103,9 @@ interface SettingsState {
   startMinimized: boolean;
   launchAtStartup: boolean;
   telemetryEnabled: boolean;
+  globalWallpaperEnabled: boolean;
+  globalWallpaperOpacity: number;
+  globalWallpaperAssetKey: string;
 
   // Gateway
   gatewayAutoStart: boolean;
@@ -97,6 +141,9 @@ interface SettingsState {
   setStartMinimized: (value: boolean) => void;
   setLaunchAtStartup: (value: boolean) => void;
   setTelemetryEnabled: (value: boolean) => void;
+  setGlobalWallpaperEnabled: (value: boolean) => void;
+  setGlobalWallpaperOpacity: (value: number) => void;
+  syncGlobalWallpaperState: (value: GlobalWallpaperStatePayload) => void;
   setGatewayAutoStart: (value: boolean) => void;
   setGatewayPort: (port: number) => void;
   setProxyEnabled: (value: boolean) => void;
@@ -122,6 +169,9 @@ const defaultSettings = {
   startMinimized: false,
   launchAtStartup: false,
   telemetryEnabled: true,
+  globalWallpaperEnabled: false,
+  globalWallpaperOpacity: 0.36,
+  globalWallpaperAssetKey: '',
   gatewayAutoStart: true,
   gatewayDesiredState: 'running' as GatewayDesiredState,
   gatewayManagedMode: 'unmanaged' as GatewayManagedMode,
@@ -150,11 +200,12 @@ export const useSettingsStore = createWithEqualityFn<SettingsState>()(
 
       init: async () => {
         try {
-          const settings = await hostApiFetch<Partial<typeof defaultSettings>>('/api/settings');
+          const settings = await hostApiFetch<SettingsPayload>('/api/settings');
           const resolvedLanguage = settings.language
             ? resolveSupportedLanguage(settings.language)
             : undefined;
           const setupComplete = settings.setupComplete === true;
+          const globalWallpaperAssetKey = resolveGlobalWallpaperAssetInputKey(settings);
           const gatewayDesiredState = resolveGatewayDesiredState(
             settings.gatewayDesiredState,
             settings.gatewayAutoStart,
@@ -166,6 +217,10 @@ export const useSettingsStore = createWithEqualityFn<SettingsState>()(
           set((state) => ({
             ...state,
             ...settings,
+            globalWallpaperAssetKey,
+            globalWallpaperOpacity: resolveGlobalWallpaperOpacity(settings.globalWallpaperOpacity),
+            globalWallpaperEnabled: settings.globalWallpaperEnabled === true
+              && globalWallpaperAssetKey.length > 0,
             sidebarWidth: resolveSidebarWidth(settings.sidebarWidth ?? state.sidebarWidth),
             setupComplete,
             initialized: true,
@@ -184,7 +239,13 @@ export const useSettingsStore = createWithEqualityFn<SettingsState>()(
         }
       },
 
-      setTheme: (theme) => set({ theme }),
+      setTheme: (theme) => {
+        set({ theme });
+        void hostApiFetch('/api/settings/theme', {
+          method: 'PUT',
+          body: JSON.stringify({ value: theme }),
+        }).catch(() => { });
+      },
       setLanguage: (language) => {
         const resolvedLanguage = resolveSupportedLanguage(language);
         i18n.changeLanguage(resolvedLanguage);
@@ -209,6 +270,38 @@ export const useSettingsStore = createWithEqualityFn<SettingsState>()(
           body: JSON.stringify({ value: telemetryEnabled }),
         }).catch(() => { });
       },
+      setGlobalWallpaperEnabled: (globalWallpaperEnabled) => {
+        set((state) => ({
+          globalWallpaperEnabled: globalWallpaperEnabled && state.globalWallpaperAssetKey.length > 0,
+        }));
+        void hostApiFetch('/api/settings/globalWallpaperEnabled', {
+          method: 'PUT',
+          body: JSON.stringify({ value: globalWallpaperEnabled }),
+        }).catch(() => { });
+      },
+      setGlobalWallpaperOpacity: (globalWallpaperOpacity) => {
+        const nextOpacity = clampGlobalWallpaperOpacity(globalWallpaperOpacity);
+        set({ globalWallpaperOpacity: nextOpacity });
+        void hostApiFetch('/api/settings/globalWallpaperOpacity', {
+          method: 'PUT',
+          body: JSON.stringify({ value: nextOpacity }),
+        }).catch(() => { });
+      },
+      syncGlobalWallpaperState: (value) => set((state) => {
+        const globalWallpaperAssetKey = value.globalWallpaperAssetKey === undefined && value.globalWallpaperAssetPath === undefined
+          ? state.globalWallpaperAssetKey
+          : resolveGlobalWallpaperAssetInputKey(value);
+        const globalWallpaperOpacity = value.globalWallpaperOpacity === undefined
+          ? state.globalWallpaperOpacity
+          : resolveGlobalWallpaperOpacity(value.globalWallpaperOpacity);
+        return {
+          globalWallpaperAssetKey,
+          globalWallpaperOpacity,
+          globalWallpaperEnabled: value.globalWallpaperEnabled === undefined
+            ? state.globalWallpaperEnabled && globalWallpaperAssetKey.length > 0
+            : value.globalWallpaperEnabled === true && globalWallpaperAssetKey.length > 0,
+        };
+      }),
       setGatewayAutoStart: (gatewayAutoStart) => {
         set({
           gatewayAutoStart,

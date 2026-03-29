@@ -92,19 +92,21 @@ describe('chat desktop shell theme', () => {
     expect(messageSource).toContain('app-chat-message-meta');
     expect(messageSource).toContain('app-chat-tool-chip');
     expect(messageSource).toContain('app-chat-thinking-card');
-    expect(messageSource).toContain('app-chat-feedback');
     expect(messageSource).toContain('app-chat-message-primary');
     expect(messageSource).toContain('app-chat-message-secondary');
+    expect(messageSource).toContain('app-chat-secondary-toggle');
   });
 
-  it('keeps assistant messages document-like while user replies stay softly tinted', () => {
+  it('keeps assistant messages document-like on a neutral reading plane while user replies stay softly tinted', () => {
     const messageSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/ChatMessage.tsx'), 'utf8');
     const themeSource = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
 
     expect(messageSource).toContain("data-testid={isUser ? 'chat-user-bubble' : 'chat-assistant-bubble'}");
-    expect(messageSource).toContain("app-chat-bubble-user-v3 rounded-[20px] rounded-tr-[3px] border border-[hsl(var(--border-subtle)/0.72)] bg-[hsl(var(--surface-elevated)/0.9)] px-[14px] py-[10px] text-foreground shadow-[0_10px_24px_rgba(15,23,42,0.04)] dark:border-[hsl(var(--border-subtle)/0.78)] dark:bg-[hsl(var(--surface-elevated)/0.9)]");
-    expect(messageSource).toContain(": 'app-chat-bubble-assistant-v3 rounded-none border-transparent bg-transparent px-0 py-0 text-foreground/96 shadow-none'");
-    expect(themeSource).toContain('background: #1e1e2e;');
+    expect(messageSource).toContain("app-chat-bubble-user-v3 rounded-[18px] rounded-tr-[4px]");
+    expect(messageSource).toContain(": 'app-chat-bubble-assistant-v3 px-0 py-0 border-transparent bg-transparent text-foreground/96 shadow-none'");
+    expect(messageSource).not.toContain("app-chat-bubble-assistant-v3 rounded-[18px] rounded-tl-[4px]");
+    expect(themeSource).toContain('.desktop-app-shell .app-chat-main-stage::before {');
+    expect(themeSource).toContain('.desktop-app-shell .app-chat-bubble-assistant-v3 {');
     expect(messageSource).not.toContain('app-chat-bubble-user rounded');
     expect(messageSource).not.toContain('app-chat-bubble-assistant rounded');
   });
@@ -153,27 +155,16 @@ describe('chat desktop shell theme', () => {
     expect(messageSource).not.toContain("group/img app-chat-media-card relative h-32 w-32");
   });
 
-  it('keeps assistant feedback controls aligned with QClaw desktop-im affordance sizing', () => {
-    const messageSource = readFileSync(resolve(process.cwd(), 'src/pages/Chat/ChatMessage.tsx'), 'utf8');
+  it('adds a dedicated chat reading plane and calmer chrome instead of reusing workbench glass directly', () => {
+    const layoutSource = readFileSync(resolve(process.cwd(), 'src/components/layout/MainLayout.tsx'), 'utf8');
     const themeSource = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
-    const zhLocale = readFileSync(resolve(process.cwd(), 'src/i18n/locales/zh/chat.json'), 'utf8');
 
-    expect(messageSource).toContain("t('message.feedbackHelpful')");
-    expect(messageSource).toContain("t('message.feedbackNotHelpful')");
-    expect(messageSource).toContain("t('message.feedbackPanelTitle')");
-    expect(messageSource).toContain("t('message.feedbackPlaceholder')");
-    expect(messageSource).toContain("t('message.feedbackSubmit')");
-    expect(themeSource).toContain('.app-chat-feedback {\n  display: flex;\n  width: 100%;\n  max-width: 500px;');
-    expect(themeSource).toContain('.app-chat-feedback-actions {\n  display: flex;\n  align-items: center;\n  gap: 4px;');
-    expect(themeSource).toContain('.app-chat-feedback-button {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  width: 28px;\n  height: 28px;');
-    expect(themeSource).toContain('.app-chat-feedback-panel {\n  margin-top: 8px;\n  padding: 12px 16px;');
-    expect(themeSource).toContain('.app-chat-feedback-input-row {\n  display: flex;\n  align-items: center;\n  gap: 10px;\n  margin-top: 8px;');
-    expect(themeSource).toContain('.app-chat-feedback-submit {\n  flex-shrink: 0;\n  padding: 8px 28px;');
-    expect(zhLocale).toContain('"feedbackHelpful"');
-    expect(zhLocale).toContain('"feedbackNotHelpful"');
-    expect(zhLocale).toContain('"feedbackPanelTitle"');
-    expect(zhLocale).toContain('"feedbackPlaceholder"');
-    expect(zhLocale).toContain('"feedbackSubmit"');
+    expect(layoutSource).toContain('--app-global-chat-stage-opacity');
+    expect(layoutSource).toContain('--app-global-chat-composer-opacity');
+    expect(themeSource).toContain('.desktop-app-shell .app-chat-main-stage::before {');
+    expect(themeSource).toContain('.desktop-app-shell .app-chat-composer-surface,');
+    expect(themeSource).toContain('.desktop-app-shell .app-chat-message-meta {');
+    expect(themeSource).toContain('.desktop-app-shell .app-chat-secondary-toggle {');
   });
 
   it('keeps fallback typing and tool-processing indicators on assistant message rows instead of toolbar pills', () => {

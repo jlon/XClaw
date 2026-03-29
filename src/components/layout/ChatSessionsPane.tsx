@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { Bot, Clock, Cpu, LayoutGrid, Network, Puzzle, Search, Settings, Terminal, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AgentAvatar } from '@/components/agents/AgentAvatar';
@@ -10,8 +11,10 @@ import { hostApiFetch } from '@/lib/host-api';
 import { useAgentsStore } from '@/stores/agents';
 import { useChatStore } from '@/stores/chat';
 import { useGatewayStore } from '@/stores/gateway';
+import { useSettingsStore } from '@/stores/settings';
 import { useTranslation } from 'react-i18next';
 import { AppBrandLockup } from './AppBrandLockup';
+import { ChatSessionHeaderControls } from './ChatSessionHeaderControls';
 
 type SessionBucketKey =
   | 'today'
@@ -54,6 +57,8 @@ export function ChatSessionsPane() {
   const navigate = useNavigate();
   const isWindows = window.electron?.platform === 'win32';
   const isMacDesktop = window.electron?.platform === 'darwin';
+  const isBrowserMode = typeof window !== 'undefined' && !window.electron?.ipcRenderer;
+  const chatFocusMode = useSettingsStore((state) => ('chatFocusMode' in state ? state.chatFocusMode : false));
   const sessions = useChatStore((s) => s.sessions);
   const currentSessionKey = useChatStore((s) => s.currentSessionKey);
   const sessionLabels = useChatStore((s) => s.sessionLabels);
@@ -71,6 +76,7 @@ export function ChatSessionsPane() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
+  const [titlebarHeaderTarget, setTitlebarHeaderTarget] = useState<HTMLElement | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const workspaceMenuRef = useRef<HTMLDivElement | null>(null);
 
@@ -106,6 +112,14 @@ export function ChatSessionsPane() {
       document.removeEventListener('mousedown', handlePointerDown);
     };
   }, [workspaceMenuOpen]);
+
+  useLayoutEffect(() => {
+    if (!isMacDesktop || isBrowserMode) {
+      setTitlebarHeaderTarget(null);
+      return;
+    }
+    setTitlebarHeaderTarget(document.querySelector<HTMLElement>('[data-chat-sidebar-header-slot="true"]'));
+  }, [chatFocusMode, isBrowserMode, isMacDesktop]);
 
   useEffect(() => {
     void useAgentsStore.getState().fetchAgents();
@@ -183,53 +197,71 @@ export function ChatSessionsPane() {
     }
   };
 
-  const isBrowserMode = typeof window !== 'undefined' && !window.electron?.ipcRenderer;
+  const shouldPortalHeader = isMacDesktop && !isBrowserMode && !!titlebarHeaderTarget;
+  const searchContent = searchOpen || searchQuery ? (
+    <div className="app-chat-session-control app-chat-session-control--search relative flex h-[28px] min-w-0 flex-1 items-center rounded-[6px] px-3 transition-colors duration-[var(--motion-base)] ring-1 ring-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))]">
+      <SessionToneIcon tone="search">
+        <Search aria-hidden="true" className="pointer-events-none h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+      </SessionToneIcon>
+      <input
+        ref={searchInputRef}
+        aria-label={t('chat:sessionPane.searchLabel')}
+        value={searchQuery}
+        placeholder={t('chat:sessionPane.searchPlaceholder')}
+        onBlur={() => {
+          if (!searchQuery.trim()) {
+            setSearchOpen(false);
+          }
+        }}
+        onChange={(event) => setSearchQuery(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape' && !searchQuery.trim()) {
+            setSearchOpen(false);
+          }
+        }}
+        className="h-full min-w-0 flex-1 bg-transparent pl-2 pr-0 text-[13px] font-normal text-foreground outline-none placeholder:text-muted-foreground/58"
+      />
+    </div>
+  ) : (
+    <button
+      type="button"
+      aria-label={t('chat:sessionPane.searchLabel')}
+      className="app-chat-session-control app-chat-session-control--search flex h-[28px] min-w-0 flex-1 items-center gap-2 rounded-[6px] px-2.5 text-left text-[13px] font-normal text-muted-foreground/62 transition-colors duration-[var(--motion-base)] hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground cursor-default focus-visible:outline-none border border-transparent shadow-none"
+      onClick={() => setSearchOpen(true)}
+    >
+      <SessionToneIcon tone="search">
+        <Search aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
+      </SessionToneIcon>
+      <span className="truncate">{t('chat:sessionPane.searchPlaceholder')}</span>
+    </button>
+  );
+  const titlebarControlsContent = (
+    <div className="flex min-h-[32px] items-center">
+      <ChatSessionHeaderControls compact surface="titlebar" />
+    </div>
+  );
+  const paneHeaderContent = shouldPortalHeader ? (
+    !isBrowserMode ? (
+      <div className="flex min-h-[32px] items-center gap-2">
+        <AppBrandLockup compact className="min-h-8 shrink-0" testIdPrefix="chat-sidebar-brand" />
+        {searchContent}
+      </div>
+    ) : null
+  ) : (
+    <div className="flex min-h-[32px] items-center gap-2">
+      {!isBrowserMode ? (
+        <AppBrandLockup compact className="min-h-8 shrink-0" testIdPrefix="chat-sidebar-brand" />
+      ) : null}
+      {searchContent}
+      <ChatSessionHeaderControls compact surface="pane" />
+    </div>
+  );
 
   return (
     <aside className={cn('flex w-[var(--desktop-sidebar-width)] shrink-0 flex-col bg-transparent [font-family:var(--font-sidebar)]', isMacDesktop ? 'pt-12' : '')}>
+      {shouldPortalHeader ? createPortal(titlebarControlsContent, titlebarHeaderTarget) : null}
       <div className="px-3 pb-2 pt-1.5">
-        <div className="flex min-h-[32px] items-center gap-2">
-          {!isBrowserMode && (
-            <AppBrandLockup compact className="min-h-8 shrink-0" testIdPrefix="chat-sidebar-brand" />
-          )}
-          {searchOpen || searchQuery ? (
-            <div className="app-chat-session-control app-chat-session-control--search relative flex h-[28px] min-w-0 flex-1 items-center rounded-[6px] px-3 transition-colors duration-[var(--motion-base)] ring-1 ring-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))]">
-              <SessionToneIcon tone="search">
-                <Search aria-hidden="true" className="pointer-events-none h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              </SessionToneIcon>
-              <input
-                ref={searchInputRef}
-                aria-label={t('chat:sessionPane.searchLabel')}
-                value={searchQuery}
-                placeholder={t('chat:sessionPane.searchPlaceholder')}
-                onBlur={() => {
-                  if (!searchQuery.trim()) {
-                    setSearchOpen(false);
-                  }
-                }}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Escape' && !searchQuery.trim()) {
-                    setSearchOpen(false);
-                  }
-                }}
-                className="h-full min-w-0 flex-1 bg-transparent pl-2 pr-0 text-[13px] font-normal text-foreground outline-none placeholder:text-muted-foreground/58"
-              />
-            </div>
-          ) : (
-            <button
-              type="button"
-              aria-label={t('chat:sessionPane.searchLabel')}
-              className="app-chat-session-control app-chat-session-control--search flex h-[28px] min-w-0 flex-1 items-center gap-2 rounded-[6px] px-2.5 text-left text-[13px] font-normal text-muted-foreground/62 transition-colors duration-[var(--motion-base)] hover:bg-[hsl(var(--surface-hover)/0.9)] hover:text-foreground cursor-default focus-visible:outline-none border border-transparent shadow-none"
-              onClick={() => setSearchOpen(true)}
-            >
-              <SessionToneIcon tone="search">
-                <Search aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
-              </SessionToneIcon>
-              <span className="truncate">{t('chat:sessionPane.searchPlaceholder')}</span>
-            </button>
-          )}
-        </div>
+        {paneHeaderContent}
       </div>
 
       <div

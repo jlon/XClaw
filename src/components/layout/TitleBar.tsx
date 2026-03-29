@@ -36,7 +36,6 @@ type TitleBarProps = {
 };
 
 const MAC_TRAFFIC_LIGHT_CLEARANCE_PX = 100;
-const MAC_CONTROL_RAIL_LEFT_PX = 80;
 const MAC_TITLEBAR_HEIGHT_CLASS = 'h-12';
 const macTrafficLightClearanceStyle: CSSProperties = {
   width: `${MAC_TRAFFIC_LIGHT_CLEARANCE_PX}px`,
@@ -117,14 +116,6 @@ function TitleBarChrome({ pathname }: { pathname: string }) {
   );
 }
 
-function MacWindowDragBar() {
-  if (!hasNativeElectronShell()) {
-    return null;
-  }
-
-  return <div aria-hidden="true" className="window-drag-bar" />;
-}
-
 function MacTitlebarControlRail({
   children,
   testId,
@@ -135,10 +126,9 @@ function MacTitlebarControlRail({
   return (
     <div
       data-testid={testId}
-      className="pointer-events-none no-drag absolute top-[12px] z-20 flex h-8 items-center"
-      style={{ left: `${MAC_CONTROL_RAIL_LEFT_PX}px` }}
+      className="no-drag absolute left-[80px] top-[12px] z-20 flex h-8 items-center"
     >
-      <div className="pointer-events-auto no-drag flex items-center">{children}</div>
+      <div className="no-drag flex items-center">{children}</div>
     </div>
   );
 }
@@ -151,7 +141,7 @@ function MacTitlebarLeadingSpace({
   return (
     <div
       aria-hidden="true"
-      className={className ? `desktop-app-titlebar-leading-space shrink-0 ${className}` : 'desktop-app-titlebar-leading-space shrink-0'}
+      className={className ? `desktop-app-titlebar-leading-space app-sidebar-chrome-surface drag-region shrink-0 ${className}` : 'desktop-app-titlebar-leading-space app-sidebar-chrome-surface drag-region shrink-0'}
       style={macTrafficLightClearanceStyle}
     />
   );
@@ -163,7 +153,7 @@ function MacTitlebarMainSurface({
   children: ReactNode;
 }) {
   return (
-    <div className="desktop-app-titlebar-main-surface flex flex-1 min-w-0 items-center pr-2.5">
+    <div className="desktop-app-titlebar-main-surface app-sidebar-chrome-surface drag-region flex flex-1 min-w-0 items-center pr-2.5">
       {children}
     </div>
   );
@@ -191,16 +181,17 @@ export function TitleBar({ pathname }: TitleBarProps = {}) {
 function MacChatTitleBar({ chatSidebarVisible }: { chatSidebarVisible: boolean }) {
   return (
     <div className={`desktop-app-titlebar desktop-app-titlebar--chat desktop-app-titlebar--mac relative flex ${MAC_TITLEBAR_HEIGHT_CLASS} shrink-0`}>
-      <MacWindowDragBar />
-      <div className="pointer-events-none flex h-full w-full">
+      <div className="flex h-full w-full">
         {chatSidebarVisible ? (
           <div
             data-testid="chat-titlebar-session-slot"
-            className="desktop-app-titlebar-sidebar-slot desktop-app-titlebar-sidebar-slot--chat flex h-full w-[var(--desktop-sidebar-width)] shrink-0 items-center justify-end pr-3"
+            className="desktop-app-titlebar-sidebar-slot desktop-app-titlebar-sidebar-slot--chat app-sidebar-chrome-surface flex h-full w-[var(--desktop-sidebar-width)] shrink-0 items-center"
           >
-            <div className="pointer-events-auto no-drag z-10 flex items-center">
-              <ChatSessionHeaderControls compact surface="titlebar" />
-            </div>
+            <div aria-hidden="true" className="shrink-0" style={macTrafficLightClearanceStyle} />
+            <div
+              data-chat-sidebar-header-slot="true"
+              className="pointer-events-auto no-drag flex h-full min-w-0 flex-1 items-center justify-end px-3"
+            />
           </div>
         ) : (
           <>
@@ -212,7 +203,7 @@ function MacChatTitleBar({ chatSidebarVisible }: { chatSidebarVisible: boolean }
         )}
         <MacTitlebarMainSurface>
           <div className="min-w-0 flex-1 h-full" />
-          <div className="pointer-events-auto no-drag z-10 flex shrink-0 items-center gap-1.5">
+          <div className="pointer-events-auto no-drag relative z-20 flex shrink-0 items-center gap-1.5">
             <ChatToolbar compact />
             <GlobalTitleBarUtilities compact />
           </div>
@@ -233,7 +224,6 @@ function MacWorkspaceTitleBar({
 }) {
   return (
     <div className={`desktop-app-titlebar desktop-app-titlebar--mac relative flex ${MAC_TITLEBAR_HEIGHT_CLASS} shrink-0 w-full`}>
-      <MacWindowDragBar />
       <MacTitlebarControlRail testId="workspace-titlebar-control-rail">
         <WorkspaceSidebarToggleButton
           aria-label={sidebarLabel}
@@ -242,18 +232,18 @@ function MacWorkspaceTitleBar({
           onClick={onToggleSidebar}
         />
       </MacTitlebarControlRail>
-      <div className="pointer-events-none flex h-full w-full">
+      <div className="flex h-full w-full">
         {sidebarExpanded ? (
           <div
             aria-hidden="true"
-            className="desktop-app-titlebar-sidebar-slot desktop-app-titlebar-sidebar-slot--workspace w-[var(--desktop-sidebar-width)] shrink-0"
+            className="desktop-app-titlebar-sidebar-slot desktop-app-titlebar-sidebar-slot--workspace app-sidebar-chrome-surface drag-region w-[var(--desktop-sidebar-width)] shrink-0"
           />
         ) : (
           <MacTitlebarLeadingSpace />
         )}
         <MacTitlebarMainSurface>
           <div className="min-w-0 flex-1 h-full" />
-          <div className="pointer-events-auto no-drag z-10 shrink-0">
+          <div className="pointer-events-auto no-drag relative z-20 shrink-0">
             <GlobalTitleBarUtilities compact />
           </div>
         </MacTitlebarMainSurface>
@@ -265,8 +255,7 @@ function MacWorkspaceTitleBar({
 function MacSetupTitleBar() {
   return (
     <div className={`desktop-app-titlebar desktop-app-titlebar--mac relative flex ${MAC_TITLEBAR_HEIGHT_CLASS} shrink-0`}>
-      <MacWindowDragBar />
-      <div className="pointer-events-none flex h-full w-full">
+      <div className="flex h-full w-full">
         <MacTitlebarLeadingSpace />
         <MacTitlebarMainSurface>
           <div className="min-w-0 flex-1 h-full" />

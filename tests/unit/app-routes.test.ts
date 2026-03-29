@@ -13,6 +13,10 @@ const getAllSettingsMock = vi.fn();
 const replaceAllSettingsMock = vi.fn();
 const getSettingMock = vi.fn();
 const setSettingMock = vi.fn();
+const toPublicAppSettingsMock = vi.fn();
+const importGlobalWallpaperAssetMock = vi.fn();
+const clearGlobalWallpaperAssetMock = vi.fn();
+const readGlobalWallpaperAssetMock = vi.fn();
 const sendJsonMock = vi.fn();
 const sendNoContentMock = vi.fn();
 const studioServiceStartMock = vi.fn();
@@ -43,6 +47,13 @@ vi.mock('@electron/utils/store', () => ({
   getSetting: (...args: unknown[]) => getSettingMock(...args),
   replaceAllSettings: (...args: unknown[]) => replaceAllSettingsMock(...args),
   setSetting: (...args: unknown[]) => setSettingMock(...args),
+  toPublicAppSettings: (...args: unknown[]) => toPublicAppSettingsMock(...args),
+}));
+
+vi.mock('@electron/utils/global-wallpaper', () => ({
+  importGlobalWallpaperAsset: (...args: unknown[]) => importGlobalWallpaperAssetMock(...args),
+  clearGlobalWallpaperAsset: (...args: unknown[]) => clearGlobalWallpaperAssetMock(...args),
+  readGlobalWallpaperAsset: (...args: unknown[]) => readGlobalWallpaperAssetMock(...args),
 }));
 
 vi.mock('@electron/utils/paths', () => ({
@@ -68,6 +79,17 @@ describe('handleAppRoutes', () => {
     getSettingMock.mockResolvedValue(undefined);
     replaceAllSettingsMock.mockResolvedValue(undefined);
     setSettingMock.mockResolvedValue(undefined);
+    toPublicAppSettingsMock.mockImplementation((settings: { globalWallpaperAssetPath?: string } & Record<string, unknown>) => ({
+      theme: settings.theme,
+      globalWallpaperEnabled: settings.globalWallpaperEnabled,
+      globalWallpaperOpacity: settings.globalWallpaperOpacity,
+      globalWallpaperAssetKey: settings.globalWallpaperAssetPath
+        ? String(settings.globalWallpaperAssetPath).split('/').pop()
+        : '',
+    }));
+    importGlobalWallpaperAssetMock.mockResolvedValue('/tmp/xclaw/wallpaper/managed.png');
+    clearGlobalWallpaperAssetMock.mockResolvedValue(undefined);
+    readGlobalWallpaperAssetMock.mockResolvedValue(null);
     studioServiceStartMock.mockResolvedValue(undefined);
     getOpenClawStatusMock.mockReturnValue({
       packageExists: true,
@@ -213,6 +235,75 @@ describe('handleAppRoutes', () => {
     expect(handled).toBe(true);
     expect(getTakeoverImportStatusMock).toHaveBeenCalledTimes(1);
     expect(sendJsonMock).toHaveBeenCalledWith(expect.anything(), 200, { state: 'running', step: 'backup' });
+  });
+
+  it('imports a managed global wallpaper asset through the host api', async () => {
+    const { parseJsonBody } = await import('@electron/api/route-utils');
+    vi.mocked(parseJsonBody).mockResolvedValueOnce({ filePath: '/Users/test/Pictures/wallpaper.png' });
+    getSettingMock.mockResolvedValueOnce('/tmp/xclaw/wallpaper/old.png');
+    getAllSettingsMock.mockResolvedValueOnce({
+      theme: 'light',
+      globalWallpaperEnabled: true,
+      globalWallpaperOpacity: 0.42,
+      globalWallpaperAssetPath: '/tmp/xclaw/wallpaper/managed.png',
+    });
+    const { handleAppRoutes } = await import('@electron/api/routes/app');
+
+    const handled = await handleAppRoutes(
+      { method: 'POST' } as IncomingMessage,
+      {} as ServerResponse,
+      new URL('http://127.0.0.1:3210/api/app/global-wallpaper/import'),
+      {} as never,
+    );
+
+    expect(handled).toBe(true);
+    expect(importGlobalWallpaperAssetMock).toHaveBeenCalledWith(
+      '/Users/test/Pictures/wallpaper.png',
+      '/tmp/xclaw/wallpaper/old.png',
+    );
+    expect(setSettingMock).toHaveBeenCalledWith('globalWallpaperAssetPath', '/tmp/xclaw/wallpaper/managed.png');
+    expect(setSettingMock).toHaveBeenCalledWith('globalWallpaperEnabled', true);
+    expect(sendJsonMock).toHaveBeenCalledWith(expect.anything(), 200, {
+      success: true,
+      settings: {
+        theme: 'light',
+        globalWallpaperEnabled: true,
+        globalWallpaperOpacity: 0.42,
+        globalWallpaperAssetKey: 'managed.png',
+      },
+    });
+  });
+
+  it('clears the managed global wallpaper asset through the host api', async () => {
+    getSettingMock.mockResolvedValueOnce('/tmp/xclaw/wallpaper/managed.png');
+    getAllSettingsMock.mockResolvedValueOnce({
+      theme: 'light',
+      globalWallpaperEnabled: false,
+      globalWallpaperOpacity: 0.42,
+      globalWallpaperAssetPath: '',
+    });
+    const { handleAppRoutes } = await import('@electron/api/routes/app');
+
+    const handled = await handleAppRoutes(
+      { method: 'POST' } as IncomingMessage,
+      {} as ServerResponse,
+      new URL('http://127.0.0.1:3210/api/app/global-wallpaper/clear'),
+      {} as never,
+    );
+
+    expect(handled).toBe(true);
+    expect(clearGlobalWallpaperAssetMock).toHaveBeenCalledWith('/tmp/xclaw/wallpaper/managed.png');
+    expect(setSettingMock).toHaveBeenCalledWith('globalWallpaperAssetPath', '');
+    expect(setSettingMock).toHaveBeenCalledWith('globalWallpaperEnabled', false);
+    expect(sendJsonMock).toHaveBeenCalledWith(expect.anything(), 200, {
+      success: true,
+      settings: {
+        theme: 'light',
+        globalWallpaperEnabled: false,
+        globalWallpaperOpacity: 0.42,
+        globalWallpaperAssetKey: '',
+      },
+    });
   });
 
   it('runs setup activation side effects through the host api', async () => {

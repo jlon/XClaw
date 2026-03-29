@@ -50,7 +50,7 @@ type ControlUiInfo = {
 };
 
 const settingsPaneClass =
-  'space-y-3 rounded-xl border border-[hsl(var(--chrome-divider))] bg-[hsl(var(--surface-base))] p-4 shadow-sm';
+  'settings-pane-surface app-pane-surface space-y-3 rounded-xl p-4 shadow-none';
 const settingsLabelClass = 'text-[13px] font-medium text-foreground/84 select-none';
 const settingsChoiceButtonBaseClass =
   'workbench-motion-button h-[32px] flex-1 items-center justify-center gap-1.5 rounded-[6px] border px-3 text-[13px] font-medium shadow-none transition-colors duration-[var(--motion-fast)] md:flex-none select-none cursor-default';
@@ -59,11 +59,11 @@ const settingsChoiceButtonActiveClass =
 const settingsChoiceButtonIdleClass =
   'border-transparent bg-transparent text-muted-foreground hover:bg-[hsl(var(--surface-hover))] hover:text-foreground';
 const settingsInputClass =
-  'h-[32px] rounded-[6px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] px-3 py-1 text-[13px] text-foreground shadow-none placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(var(--glow-brand),0.25)] focus-visible:border-[hsl(var(--border-subtle))] transition-[border-color,box-shadow,background-color] duration-[var(--motion-fast)] ease-out';
+  'settings-input-surface app-field-surface h-[32px] rounded-[6px] px-3 py-1 text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(var(--glow-brand),0.25)] focus-visible:border-[hsl(var(--border-subtle))] transition-[border-color,box-shadow,background-color] duration-[var(--motion-fast)] ease-out';
 const settingsCodeInputClass =
-  'h-[32px] rounded-[6px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] px-3 py-1 font-mono text-[13px] text-foreground shadow-none placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(var(--glow-brand),0.25)] focus-visible:border-[hsl(var(--border-subtle))] transition-[border-color,box-shadow,background-color] duration-[var(--motion-fast)] ease-out tabular-nums';
+  'settings-input-surface app-field-surface h-[32px] rounded-[6px] px-3 py-1 font-mono text-[13px] text-foreground shadow-none placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(var(--glow-brand),0.25)] focus-visible:border-[hsl(var(--border-subtle))] transition-[border-color,box-shadow,background-color] duration-[var(--motion-fast)] ease-out tabular-nums';
 const settingsSegmentedShellClass =
-  'inline-flex w-full flex-wrap gap-[2px] md:w-fit rounded-[8px] bg-[hsl(var(--surface-panel))] p-[2px] border border-[hsl(var(--border-subtle))]';
+  'settings-segmented-surface app-shell-surface inline-flex w-full flex-wrap gap-[2px] md:w-fit rounded-[8px] p-[2px]';
 const settingsCompactControlRowClass =
   'grid gap-3 py-1.5 md:grid-cols-[minmax(0,160px)_minmax(0,1fr)] md:items-center';
 const settingsCompactRowTextClass = 'min-w-0 max-w-[220px] space-y-0 md:pr-2 select-none';
@@ -71,13 +71,13 @@ const settingsCompactRowLabelClass = 'text-[13px] font-medium text-foreground/86
 const settingsCompactToggleRowClass =
   'grid gap-3 py-1.5 md:grid-cols-[minmax(0,160px)_minmax(0,1fr)] md:items-center';
 const settingsGhostButtonClass =
-  'workbench-motion-button h-[32px] rounded-[6px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] px-4 text-[13px] font-medium text-foreground shadow-none hover:bg-[hsl(var(--surface-hover))] select-none cursor-default transition-colors duration-[var(--motion-fast)]';
+  'settings-ghost-surface app-field-surface workbench-motion-button h-[32px] rounded-[6px] px-4 text-[13px] font-medium text-foreground shadow-none hover:bg-[hsl(var(--surface-hover))] select-none cursor-default transition-colors duration-[var(--motion-fast)]';
 const settingsFactsStripClass =
-  'border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-panel)/0.82)] select-none rounded-[6px]';
+  'settings-facts-surface app-field-surface select-none rounded-[6px]';
 const settingsTabsSurfaceClass =
   'select-none';
 const settingsTabsListClass =
-  'inline-flex h-auto w-auto flex-wrap items-center rounded-[8px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-panel))] p-[2px] select-none';
+  'settings-tabs-surface app-shell-surface inline-flex h-auto w-auto flex-wrap items-center rounded-[8px] p-[2px] select-none';
 const settingsTabsTriggerClass =
   'workbench-motion-button h-[30px] rounded-[6px] border border-transparent bg-transparent px-4 text-[13px] font-semibold text-muted-foreground shadow-none hover:text-foreground data-[state=active]:border-transparent data-[state=active]:bg-[hsl(var(--surface-base))] data-[state=active]:text-foreground data-[state=active]:shadow-sm select-none cursor-default transition-[color,background-color,box-shadow,border-color] duration-[var(--motion-base)] ease-out';
 const settingsPaneDividerClass = 'border-t border-[hsl(var(--border-subtle))] pt-4';
@@ -93,6 +93,12 @@ export function Settings() {
     setTheme,
     language,
     setLanguage,
+    globalWallpaperEnabled,
+    setGlobalWallpaperEnabled,
+    globalWallpaperOpacity,
+    setGlobalWallpaperOpacity,
+    globalWallpaperAssetKey,
+    syncGlobalWallpaperState,
     launchAtStartup,
     setLaunchAtStartup,
     gatewayAutoStart,
@@ -132,6 +138,7 @@ export function Settings() {
   const [wsDiagnosticEnabled, setWsDiagnosticEnabled] = useState(false);
   const [showTelemetryViewer, setShowTelemetryViewer] = useState(false);
   const [telemetryEntries, setTelemetryEntries] = useState<UiTelemetryEntry[]>([]);
+  const [wallpaperAction, setWallpaperAction] = useState<'import' | 'clear' | null>(null);
 
   const isWindows =
     (window.electron?.platform ??
@@ -157,6 +164,8 @@ export function Settings() {
     error?: string;
   } | null>(null);
   const [activeSection, setActiveSection] = useState<SettingsSectionId>('appearance');
+  const hasGlobalWallpaperAsset = globalWallpaperAssetKey.trim().length > 0;
+  const wallpaperOpacityPercent = Math.round(globalWallpaperOpacity * 100);
 
   const handleShowLogs = async () => {
     try {
@@ -255,6 +264,66 @@ export function Settings() {
       });
     } finally {
       setDoctorRunningMode(null);
+    }
+  };
+
+  const handleImportGlobalWallpaper = async () => {
+    setWallpaperAction('import');
+    try {
+      const result = await invokeIpc('dialog:open', {
+        properties: ['openFile'],
+        filters: [
+          {
+            name: 'Images',
+            extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp', 'avif'],
+          },
+        ],
+      }) as { canceled?: boolean; filePaths?: string[] };
+      if (result.canceled || !result.filePaths?.length) {
+        return;
+      }
+      const response = await hostApiFetch<{
+        success: boolean;
+        settings?: {
+          globalWallpaperEnabled?: boolean;
+          globalWallpaperOpacity?: number;
+          globalWallpaperAssetKey?: string;
+          globalWallpaperAssetPath?: string;
+        };
+      }>('/api/app/global-wallpaper/import', {
+        method: 'POST',
+        body: JSON.stringify({ filePath: result.filePaths[0] }),
+      });
+      syncGlobalWallpaperState(response.settings ?? {});
+      toast.success(t('appearance.wallpaperImportSuccess'));
+    } catch (error) {
+      toast.error(toUserMessage(error) || t('appearance.wallpaperImportFailed'));
+    } finally {
+      setWallpaperAction(null);
+    }
+  };
+
+  const handleClearGlobalWallpaper = async () => {
+    setWallpaperAction('clear');
+    try {
+      const response = await hostApiFetch<{
+        success: boolean;
+        settings?: {
+          globalWallpaperEnabled?: boolean;
+          globalWallpaperOpacity?: number;
+          globalWallpaperAssetKey?: string;
+          globalWallpaperAssetPath?: string;
+        };
+      }>('/api/app/global-wallpaper/clear', {
+        method: 'POST',
+        body: JSON.stringify({}),
+      });
+      syncGlobalWallpaperState(response.settings ?? {});
+      toast.success(t('appearance.wallpaperClearSuccess'));
+    } catch (error) {
+      toast.error(toUserMessage(error) || t('appearance.wallpaperClearFailed'));
+    } finally {
+      setWallpaperAction(null);
     }
   };
 
@@ -747,6 +816,84 @@ export function Settings() {
                   </div>
                   <div className={settingsPaneDividerClass}>
                     <div className="space-y-3">
+                      <div className={settingsCompactToggleRowClass}>
+                        <div className="min-w-0 space-y-1.5 md:pr-2 select-none">
+                          <Label className={settingsCompactRowLabelClass}>{t('appearance.wallpaper')}</Label>
+                          <p className="text-[12px] leading-5 text-muted-foreground">
+                            {t('appearance.wallpaperDesc')}
+                          </p>
+                        </div>
+                        <div className={settingsControlDockClass}>
+                          <div className="flex w-full md:max-w-[320px] md:justify-end">
+                            <Switch
+                              id="global-wallpaper-enabled"
+                              aria-label={t('appearance.wallpaperEnabled')}
+                              checked={hasGlobalWallpaperAsset && globalWallpaperEnabled}
+                              disabled={!hasGlobalWallpaperAsset}
+                              onCheckedChange={setGlobalWallpaperEnabled}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="h-px bg-border/50" />
+                      <div className={settingsCompactControlRowClass}>
+                        <div className="min-w-0 space-y-1.5 md:pr-2 select-none">
+                          <Label className={settingsCompactRowLabelClass}>{t('appearance.wallpaper')}</Label>
+                          <p className="text-[12px] leading-5 text-muted-foreground">
+                            {hasGlobalWallpaperAsset ? t('appearance.wallpaperReady') : t('appearance.wallpaperEmpty')}
+                          </p>
+                        </div>
+                        <div className={settingsControlDockClass}>
+                          <div className="flex w-full flex-wrap items-center justify-start gap-2 md:max-w-[320px] md:justify-end">
+                            <Button
+                              variant="ghost"
+                              className={settingsGhostButtonClass}
+                              disabled={wallpaperAction !== null}
+                              onClick={handleImportGlobalWallpaper}
+                            >
+                              {wallpaperAction === 'import' ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
+                              {t('appearance.wallpaperUpload')}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              className={settingsGhostButtonClass}
+                              disabled={!hasGlobalWallpaperAsset || wallpaperAction !== null}
+                              onClick={handleClearGlobalWallpaper}
+                            >
+                              {wallpaperAction === 'clear' ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
+                              {t('appearance.wallpaperClear')}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="h-px bg-border/50" />
+                      <div className={settingsCompactControlRowClass}>
+                        <div className="min-w-0 space-y-1.5 md:pr-2 select-none">
+                          <Label htmlFor="global-wallpaper-opacity" className={settingsCompactRowLabelClass}>
+                            {t('appearance.wallpaperOpacity')}
+                          </Label>
+                        </div>
+                        <div className={settingsControlDockClass}>
+                          <div className="flex w-full items-center gap-3 md:max-w-[320px]">
+                            <input
+                              id="global-wallpaper-opacity"
+                              aria-label={t('appearance.wallpaperOpacity')}
+                              type="range"
+                              min="0.12"
+                              max="0.88"
+                              step="0.02"
+                              value={globalWallpaperOpacity}
+                              disabled={!hasGlobalWallpaperAsset}
+                              className="h-2 flex-1 cursor-pointer accent-[rgb(var(--glow-brand))] disabled:cursor-not-allowed disabled:opacity-50"
+                              onChange={(event) => setGlobalWallpaperOpacity(Number(event.target.value))}
+                            />
+                            <span className="w-12 text-right text-[12px] font-medium tabular-nums text-muted-foreground">
+                              {wallpaperOpacityPercent}%
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="h-px bg-border/50" />
                       <div className={settingsCompactToggleRowClass}>
                         <div className={settingsCompactRowTextClass}>
                           <Label className={settingsCompactRowLabelClass}>{t('appearance.launchAtStartup')}</Label>

@@ -12,7 +12,18 @@ import {
 } from '../../main/setup-environment-service';
 import { getTakeoverImportStatus, resetTakeoverImportStatus, runTakeoverImport } from '../../main/takeover-import';
 import { runSetupActivationSideEffects } from '../../main/setup-activation';
-import { getAllSettings, getSetting, replaceAllSettings, setSetting } from '../../utils/store';
+import {
+  clearGlobalWallpaperAsset,
+  importGlobalWallpaperAsset,
+  readGlobalWallpaperAsset,
+} from '../../utils/global-wallpaper';
+import {
+  getAllSettings,
+  getSetting,
+  replaceAllSettings,
+  setSetting,
+  toPublicAppSettings,
+} from '../../utils/store';
 import { getOpenClawStatus, primeOpenClawRootMode, setOpenClawRootMode } from '../../utils/paths';
 
 const hasTakeoverFingerprint = async (): Promise<boolean> => {
@@ -50,6 +61,58 @@ export async function handleAppRoutes(
 
   if (url.pathname === '/api/app/openclaw-status' && req.method === 'GET') {
     sendJson(res, 200, getOpenClawStatus());
+    return true;
+  }
+
+  if (url.pathname === '/api/app/global-wallpaper/import' && req.method === 'POST') {
+    const body = await parseJsonBody<{ filePath?: string }>(req);
+    const previousAssetPath = await getSetting('globalWallpaperAssetPath');
+    const nextAssetPath = await importGlobalWallpaperAsset(body.filePath ?? '', previousAssetPath);
+    await setSetting('globalWallpaperAssetPath', nextAssetPath);
+    await setSetting('globalWallpaperEnabled', true);
+    sendJson(res, 200, {
+      success: true,
+      settings: toPublicAppSettings(await getAllSettings()),
+    });
+    return true;
+  }
+
+  if (url.pathname === '/api/app/global-wallpaper/clear' && req.method === 'POST') {
+    const assetPath = await getSetting('globalWallpaperAssetPath');
+    await clearGlobalWallpaperAsset(assetPath);
+    await setSetting('globalWallpaperAssetPath', '');
+    await setSetting('globalWallpaperEnabled', false);
+    sendJson(res, 200, {
+      success: true,
+      settings: toPublicAppSettings(await getAllSettings()),
+    });
+    return true;
+  }
+
+  if (url.pathname === '/api/app/global-wallpaper/asset' && req.method === 'GET') {
+    const assetPath = await getSetting('globalWallpaperAssetPath');
+    if (!assetPath.trim()) {
+      setCorsHeaders(res);
+      res.writeHead(404, { 'Cache-Control': 'no-store' });
+      res.end();
+      return true;
+    }
+    const asset = await readGlobalWallpaperAsset(assetPath).catch(() => null);
+    if (!asset) {
+      await setSetting('globalWallpaperAssetPath', '');
+      await setSetting('globalWallpaperEnabled', false);
+      setCorsHeaders(res);
+      res.writeHead(404, { 'Cache-Control': 'no-store' });
+      res.end();
+      return true;
+    }
+    setCorsHeaders(res);
+    res.writeHead(200, {
+      'Content-Type': asset.mimeType,
+      'Content-Length': asset.buffer.byteLength,
+      'Cache-Control': 'no-store',
+    });
+    res.end(asset.buffer);
     return true;
   }
 

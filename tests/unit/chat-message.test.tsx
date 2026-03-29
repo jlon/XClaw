@@ -87,8 +87,12 @@ describe('ChatMessage', () => {
     expect(userBubble).toHaveClass('rounded-tr-[4px]');
     expect(userBubble).toHaveClass('border');
     expect(assistantBubble).toHaveClass('app-chat-bubble-assistant-v3');
-    expect(assistantBubble).toHaveClass('rounded-[18px]');
-    expect(assistantBubble).toHaveClass('rounded-tl-[4px]');
+    expect(assistantBubble).toHaveClass('px-0');
+    expect(assistantBubble).toHaveClass('py-0');
+    expect(assistantBubble).toHaveClass('bg-transparent');
+    expect(assistantBubble).toHaveClass('border-transparent');
+    expect(assistantBubble).not.toHaveClass('rounded-[18px]');
+    expect(assistantBubble).not.toHaveClass('rounded-tl-[4px]');
   });
 
   it('shows a lightweight copy action below both user and assistant messages', () => {

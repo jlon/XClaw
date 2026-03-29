@@ -506,7 +506,7 @@ export function Chat() {
   }, [activeExecApproval, currentSessionKey, execApprovalBusy]);
 
   return (
-    <div className={cn('app-chat-shell relative flex h-full flex-col transition-colors duration-500')}>
+    <div className={cn('app-chat-shell app-page-stage relative flex h-full flex-col transition-colors duration-500')}>
       <div className="app-chat-main-stage relative flex min-h-0 flex-1 flex-col">
         <div
           ref={scrollRef}

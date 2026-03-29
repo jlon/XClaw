@@ -20,7 +20,7 @@ describe('workspace page layout', () => {
     const source = readFileSync(resolve(process.cwd(), 'src/components/layout/MainLayout.tsx'), 'utf8');
 
     expect(source).toContain('relative flex min-h-0 shrink-0 self-stretch');
-    expect(source).toContain('desktop-app-chat-nav-shell flex h-full min-h-0');
+    expect(source).toContain('desktop-app-chat-nav-shell app-sidebar-chrome-surface absolute inset-y-0 left-0 z-20 flex h-full min-h-0');
   });
 
   it('uses semantic shell classes in Sidebar and avoids hardcoded panel colors', () => {
@@ -28,8 +28,12 @@ describe('workspace page layout', () => {
 
     expect(source).toContain('desktop-app-sidebar');
     expect(source).toContain('desktop-app-sidebar-surface');
+    expect(source).toContain('app-sidebar-shell-divider');
+    expect(source).toContain('app-sidebar-utility-divider');
     expect(source).toContain('desktop-app-sidebar-rail');
     expect(source).not.toMatch(/bg-\[#/);
+    expect(source).not.toContain('border-r border-border/55');
+    expect(source).not.toContain('border-t border-border/55');
   });
 
   it('keeps title bar chrome scoped to platform modifiers instead of theme forks', () => {
@@ -38,12 +42,12 @@ describe('workspace page layout', () => {
     expect(source).toContain('desktop-app-titlebar');
     expect(source).toContain('desktop-app-titlebar--mac');
     expect(source).toContain('desktop-app-titlebar--win');
-    expect(source).toContain('window-drag-bar');
     expect(source).toContain('chat-titlebar-control-rail');
     expect(source).toContain('workspace-titlebar-control-rail');
     expect(source).toContain('desktop-app-titlebar-sidebar-slot desktop-app-titlebar-sidebar-slot--chat');
     expect(source).toContain('desktop-app-titlebar-sidebar-slot desktop-app-titlebar-sidebar-slot--workspace');
     expect(source).toContain('left-[80px]');
+    expect(source).toContain('drag-region');
     expect(source).toContain('no-drag');
     expect(source).not.toContain('border-b border-border/70');
   });
@@ -61,14 +65,14 @@ describe('workspace page layout', () => {
 
     expect(shellSource).toContain('.desktop-app-shell {');
     expect(shellSource).toContain('hsl(var(--chrome) / 0.98)');
+    expect(shellSource).toContain('.desktop-app-shell-material-layer {');
     expect(shellSource).toContain('.desktop-app-shell-body {');
-    expect(shellSource).toContain('hsl(var(--surface-base) / 0.98)');
+    expect(shellSource).toContain('background: transparent;');
     expect(shellSource).toContain('.desktop-app-shell-sidebar {');
     expect(shellSource).toContain('.desktop-app-chat-nav-shell {');
-    expect(shellSource).toContain('hsl(var(--chrome-divider) / 0.82)');
+    expect(shellSource).toContain('hsl(var(--chrome-divider) / 0.48)');
     expect(shellSource).toContain('.desktop-app-workspace {');
-    expect(shellSource).toContain('hsl(var(--background))');
-    expect(source).toContain('.window-drag-bar {');
+    expect(shellSource).toContain('background: transparent;');
     expect(source).toContain('.desktop-app-shell-resize-handle {');
     expect(source).toContain('.desktop-app-shell-resize-handle:hover::after,');
     expect(source).toContain("data-sidebar-resizing='true']");
@@ -80,11 +84,10 @@ describe('workspace page layout', () => {
   it('lets the mac titlebar own the upper-left workspace corner to avoid seam leaks', () => {
     const source = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
     const macWorkspaceSource = source.match(/html\[data-platform="darwin"\] \.mac-workspace-main \{[\s\S]*?\}/u)?.[0] ?? '';
-    const darkMacWorkspaceSource = source.match(/html\[data-platform="darwin"\]\.dark \.mac-workspace-main \{[\s\S]*?\}/u)?.[0] ?? '';
 
     expect(macWorkspaceSource).toContain('border-top-left-radius: 0;');
     expect(macWorkspaceSource).toContain('border-bottom-left-radius: 12px;');
-    expect(darkMacWorkspaceSource).toContain('box-shadow: none;');
+    expect(macWorkspaceSource).toContain('box-shadow: none;');
   });
 
   it('marks workspace frame, shell, and scroll area with shared desktop classes', () => {

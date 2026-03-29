@@ -14,6 +14,12 @@ const {
     setTheme: vi.fn(),
     language: 'zh-CN',
     setLanguage: vi.fn(),
+    globalWallpaperEnabled: false,
+    setGlobalWallpaperEnabled: vi.fn(),
+    globalWallpaperOpacity: 0.36,
+    setGlobalWallpaperOpacity: vi.fn(),
+    globalWallpaperAssetKey: '',
+    syncGlobalWallpaperState: vi.fn(),
     launchAtStartup: false,
     setLaunchAtStartup: vi.fn(),
     gatewayAutoStart: true,
@@ -130,6 +136,14 @@ vi.mock('react-i18next', () => ({
       if (key === 'appearance.dark') return '深色';
       if (key === 'appearance.system') return '跟随系统';
       if (key === 'appearance.language') return '语言';
+      if (key === 'appearance.wallpaper') return '全局壁纸';
+      if (key === 'appearance.wallpaperDesc') return '让整窗内容共享同一张背景图，侧栏和标题栏会自动透出壁纸。';
+      if (key === 'appearance.wallpaperEnabled') return '启用全局壁纸';
+      if (key === 'appearance.wallpaperUpload') return '上传图片';
+      if (key === 'appearance.wallpaperClear') return '清除壁纸';
+      if (key === 'appearance.wallpaperEmpty') return '当前未设置壁纸';
+      if (key === 'appearance.wallpaperReady') return '已托管到本地应用目录';
+      if (key === 'appearance.wallpaperOpacity') return '透明度';
       if (key === 'appearance.launchAtStartup') return '开机自动启动';
       if (key === 'appearance.launchAtStartupDesc') return '登录系统后自动启动 XClaw';
       if (key === 'gateway.title') return '网关';
@@ -235,6 +249,20 @@ describe('settings layout', () => {
       expect(screen.getByText('代理')).toBeInTheDocument();
       expect(screen.queryByText('主题')).not.toBeInTheDocument();
     });
+  });
+
+  it('shows global wallpaper controls in the appearance pane', async () => {
+    const { container } = render(<Settings />);
+
+    await waitFor(() => {
+      expect(screen.getByText('让整窗内容共享同一张背景图，侧栏和标题栏会自动透出壁纸。')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '上传图片' })).toBeInTheDocument();
+      expect(screen.getByText('当前未设置壁纸')).toBeInTheDocument();
+      expect(screen.getByLabelText('启用全局壁纸')).toBeInTheDocument();
+      expect(screen.getByLabelText('透明度')).toBeInTheDocument();
+    });
+
+    expect(container.querySelector('.settings-pane-surface')).toHaveClass('app-pane-surface');
   });
 
   it('shows the beta-only updates pane with manual macOS download guidance', async () => {
