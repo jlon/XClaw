@@ -571,11 +571,33 @@
 }
 
 .app-chat-welcome-logo-shell::before {
-  content: none;
+  content: "";
+  position: absolute;
+  inset: -1.35rem -2.15rem -0.7rem;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 42%, rgb(255 108 96 / 0.24) 0%, rgb(255 108 96 / 0.14) 24%, transparent 64%),
+    radial-gradient(circle at 76% 34%, rgb(0 229 204 / 0.1) 0%, transparent 34%),
+    radial-gradient(circle at 26% 76%, rgb(255 196 176 / 0.15) 0%, transparent 38%);
+  filter: blur(18px);
+  opacity: 0.92;
+  z-index: 0;
+  pointer-events: none;
+  animation: app-chat-openclaw-ambient-breathe 6.4s ease-in-out infinite;
 }
 
 .app-chat-welcome-logo-shell::after {
-  content: none;
+  content: "";
+  position: absolute;
+  inset: auto 18% -0.25rem;
+  height: 1.45rem;
+  border-radius: 999px;
+  background: radial-gradient(ellipse at center, rgb(255 120 92 / 0.18) 0%, rgb(255 120 92 / 0.06) 38%, transparent 76%);
+  filter: blur(12px);
+  opacity: 0.6;
+  z-index: 0;
+  pointer-events: none;
+  animation: app-chat-openclaw-ground-breathe 5.2s ease-in-out infinite;
 }
 
 .app-chat-openclaw-atmosphere {
@@ -595,24 +617,73 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: clamp(9rem, 18vw, 13rem);
-  height: clamp(6.75rem, 13vw, 9rem);
+  width: clamp(9.5rem, 18.5vw, 13.5rem);
+  height: clamp(7.1rem, 13.4vw, 9.5rem);
   border-radius: 999px;
   background:
-    radial-gradient(circle at center, hsl(var(--surface-elevated) / 0.94) 0%, hsl(var(--background) / 0.82) 36%, transparent 78%);
+    radial-gradient(circle at center, rgb(255 255 255 / 0.96) 0%, rgb(255 245 238 / 0.88) 20%, rgb(255 105 96 / 0.16) 42%, transparent 74%),
+    radial-gradient(circle at 66% 36%, rgb(0 229 204 / 0.1) 0%, transparent 34%);
   transform: translate(-50%, -52%);
-  filter: blur(10px);
+  filter: blur(14px);
   z-index: 0;
+  animation: app-chat-openclaw-atmosphere-breathe 6.4s ease-in-out infinite reverse;
+}
+
+.app-chat-openclaw-atmosphere::after {
+  content: '';
+  position: absolute;
+  top: 56%;
+  left: 50%;
+  width: clamp(7.4rem, 15vw, 10rem);
+  height: clamp(5.2rem, 10vw, 6.8rem);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at center, rgb(255 96 96 / 0.16) 0%, rgb(255 96 96 / 0.08) 30%, transparent 72%);
+  transform: translate(-50%, -50%);
+  filter: blur(18px);
+  z-index: 0;
+  pointer-events: none;
+  animation: app-chat-openclaw-core-breathe 5.4s ease-in-out infinite;
 }
 
 .app-chat-openclaw-stars,
 .app-chat-openclaw-nebula {
-  display: none;
+  position: absolute;
+  inset: -1.4rem -2.4rem -0.8rem;
+  display: block;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app-chat-openclaw-stars {
+  background-image:
+    radial-gradient(2px 2px at 20px 30px, rgb(255 255 255 / 0.82), transparent),
+    radial-gradient(2px 2px at 44px 78px, rgb(255 255 255 / 0.54), transparent),
+    radial-gradient(1px 1px at 96px 46px, rgb(255 255 255 / 0.62), transparent),
+    radial-gradient(2px 2px at 146px 88px, rgb(255 255 255 / 0.42), transparent),
+    radial-gradient(1px 1px at 178px 124px, rgb(255 255 255 / 0.7), transparent),
+    radial-gradient(2px 2px at 218px 66px, rgb(0 229 204 / 0.52), transparent),
+    radial-gradient(1px 1px at 266px 148px, rgb(255 255 255 / 0.5), transparent),
+    radial-gradient(2px 2px at 312px 42px, rgb(255 95 95 / 0.34), transparent);
+  background-size: 22rem 12rem;
+  opacity: 0.72;
+  animation: app-chat-openclaw-twinkle 8s ease-in-out infinite alternate;
+}
+
+.app-chat-openclaw-nebula {
+  background:
+    radial-gradient(74% 54% at 24% 26%, rgb(255 95 95 / 0.12) 0%, transparent 56%),
+    radial-gradient(46% 42% at 76% 28%, rgb(0 229 204 / 0.08) 0%, transparent 54%),
+    radial-gradient(62% 40% at 50% 88%, rgb(255 182 150 / 0.12) 0%, transparent 62%);
+  filter: blur(8px);
+  opacity: 0.84;
+  animation: app-chat-openclaw-nebula-drift 12s ease-in-out infinite alternate;
 }
 
 .dark .app-chat-openclaw-atmosphere::before {
   background:
-    radial-gradient(circle at center, hsl(var(--surface-elevated) / 0.88) 0%, hsl(var(--background) / 0.58) 38%, transparent 78%);
+    radial-gradient(circle at center, hsl(var(--surface-elevated) / 0.82) 0%, rgb(255 96 96 / 0.18) 34%, transparent 74%),
+    radial-gradient(circle at 68% 36%, rgb(0 229 204 / 0.12) 0%, transparent 34%);
 }
 
 .app-chat-openclaw-lobster-icon {
@@ -622,9 +693,10 @@
   height: 100px;
   transform-origin: center 72%;
   transform-style: preserve-3d;
-  animation: none;
+  animation: app-chat-openclaw-float 4s ease-in-out infinite;
   cursor: pointer;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, filter 0.3s ease;
+  will-change: transform;
 }
 
 .app-chat-openclaw-lobster-icon::after {
@@ -641,7 +713,7 @@
   transform-origin: center;
   filter: blur(3px);
   opacity: 0.2;
-  animation: app-chat-openclaw-shadow-drift 17s ease-in-out infinite;
+  animation: app-chat-openclaw-shadow-drift 4s ease-in-out infinite;
   pointer-events: none;
 }
 
@@ -655,8 +727,10 @@
   height: 100%;
   transform-style: preserve-3d;
   transform-origin: center;
-  animation: none;
-  filter: drop-shadow(0 6px 16px rgb(255 77 77 / 0.24));
+  filter:
+    drop-shadow(0 10px 20px rgb(255 93 93 / 0.14))
+    drop-shadow(0 0 18px rgb(255 77 77 / 0.22))
+    drop-shadow(0 0 30px rgb(0 229 204 / 0.08));
   transition: filter 0.3s ease;
   will-change: transform, filter;
   shape-rendering: geometricPrecision;
@@ -669,25 +743,29 @@
 
 .app-chat-openclaw-lobster-icon:hover .app-chat-openclaw-lobster-svg {
   animation: none;
-  filter: drop-shadow(0 0 30px rgb(0 229 204 / 0.6));
+  filter:
+    drop-shadow(0 12px 22px rgb(255 93 93 / 0.2))
+    drop-shadow(0 0 24px rgb(255 77 77 / 0.34))
+    drop-shadow(0 0 34px rgb(0 229 204 / 0.16));
 }
 
 .app-chat-openclaw-eye-glow {
-  animation: none;
+  animation: app-chat-openclaw-blink 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px rgb(0 229 204 / 0.72));
 }
 
 .app-chat-openclaw-antenna {
-  animation: none;
+  animation: app-chat-openclaw-wiggle 2.2s ease-in-out infinite;
   transform-origin: center;
 }
 
 .app-chat-openclaw-claw-left {
-  animation: none;
+  animation: app-chat-openclaw-claw-snap 4s ease-in-out infinite;
   transform-origin: right center;
 }
 
 .app-chat-openclaw-claw-right {
-  animation: none;
+  animation: app-chat-openclaw-claw-snap 4s ease-in-out 0.2s infinite;
   transform-origin: left center;
 }
 
@@ -700,12 +778,28 @@
 }
 
 .app-chat-welcome-title {
+  position: relative;
   display: flex;
   width: min(100%, clamp(10rem, 18vw, 12.2rem));
   align-items: center;
   justify-content: center;
   color: color-mix(in srgb, hsl(var(--foreground)) 94%, #5f5a79 6%);
-  filter: none;
+  filter: drop-shadow(0 10px 22px rgb(255 94 94 / 0.08));
+  isolation: isolate;
+}
+
+.app-chat-welcome-title::before {
+  content: "";
+  position: absolute;
+  inset: 12% -10%;
+  background:
+    radial-gradient(circle at 24% 50%, rgb(255 96 96 / 0.14) 0%, transparent 34%),
+    radial-gradient(circle at 78% 50%, rgb(0 229 204 / 0.08) 0%, transparent 32%);
+  filter: blur(18px);
+  opacity: 0.72;
+  pointer-events: none;
+  z-index: 0;
+  animation: app-chat-openclaw-ambient-breathe 6.2s ease-in-out infinite;
 }
 
 .app-chat-welcome-wordmark-mark {
@@ -726,10 +820,25 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: color-mix(in srgb, hsl(var(--foreground)) 30%, #6d688a 70%);
-  opacity: 0.14;
+  background: linear-gradient(92deg, #ff5454 0%, #ff9688 32%, #85908d 64%, #29d7ca 100%);
+  background-size: 200% 200%;
+  opacity: 0.32;
   -webkit-mask: var(--welcome-wordmark-mask) no-repeat center / contain;
   mask: var(--welcome-wordmark-mask) no-repeat center / contain;
+  animation: app-chat-openclaw-gradient-shift 7s ease-in-out infinite;
+}
+
+.app-chat-welcome-wordmark-mark::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(92deg, #ff5c5c 0%, #ffa293 30%, #90aaa3 64%, #37d8cb 100%);
+  background-size: 200% 200%;
+  opacity: 0.16;
+  filter: blur(10px);
+  -webkit-mask: var(--welcome-wordmark-mask) no-repeat center / contain;
+  mask: var(--welcome-wordmark-mask) no-repeat center / contain;
+  animation: app-chat-openclaw-gradient-shift 7s ease-in-out infinite reverse;
 }
 
 .app-chat-welcome-wordmark-fallback {
@@ -1393,7 +1502,47 @@
 
 .dark .app-chat-welcome-title {
   color: color-mix(in srgb, hsl(var(--foreground)) 82%, #a9a5c3 18%);
-  filter: none;
+  filter: drop-shadow(0 12px 24px rgb(255 96 96 / 0.12));
+}
+
+.dark .app-chat-welcome-logo-shell::before {
+  opacity: 1;
+  background:
+    radial-gradient(circle at 50% 42%, rgb(255 102 92 / 0.28) 0%, rgb(255 102 92 / 0.16) 26%, transparent 62%),
+    radial-gradient(circle at 76% 34%, rgb(0 229 204 / 0.12) 0%, transparent 34%),
+    radial-gradient(circle at 26% 76%, rgb(255 188 160 / 0.16) 0%, transparent 38%);
+}
+
+.dark .app-chat-openclaw-stars {
+  opacity: 0.58;
+}
+
+.dark .app-chat-openclaw-nebula {
+  opacity: 0.92;
+}
+
+.dark .app-chat-openclaw-atmosphere::after {
+  background:
+    radial-gradient(circle at center, rgb(255 96 96 / 0.22) 0%, rgb(255 96 96 / 0.1) 32%, transparent 72%);
+}
+
+.dark .app-chat-openclaw-lobster-svg {
+  filter:
+    drop-shadow(0 12px 22px rgb(255 93 93 / 0.18))
+    drop-shadow(0 0 22px rgb(255 77 77 / 0.28))
+    drop-shadow(0 0 34px rgb(0 229 204 / 0.12));
+}
+
+.dark .app-chat-welcome-title::before {
+  opacity: 0.9;
+}
+
+.dark .app-chat-welcome-wordmark-mark::before {
+  opacity: 0.5;
+}
+
+.dark .app-chat-welcome-wordmark-mark::after {
+  opacity: 0.24;
 }
 
 .dark .app-chat-welcome-card::before {
@@ -4209,21 +4358,93 @@
 
 @keyframes app-chat-openclaw-twinkle {
   0% {
-    opacity: 0.4;
+    opacity: 0.42;
+    transform: translate3d(0, 0, 0) scale(1);
   }
 
   100% {
-    opacity: 0.7;
+    opacity: 0.78;
+    transform: translate3d(0, -4px, 0) scale(1.02);
   }
 }
 
 @keyframes app-chat-openclaw-float {
   0%, 100% {
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 
   50% {
-    transform: translateY(-8px);
+    transform: translateY(-8px) scale(1.01);
+  }
+}
+
+@keyframes app-chat-openclaw-nebula-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.98);
+    opacity: 0.76;
+  }
+
+  100% {
+    transform: translate3d(0, -6px, 0) scale(1.03);
+    opacity: 0.92;
+  }
+}
+
+@keyframes app-chat-openclaw-ambient-breathe {
+  0%, 100% {
+    opacity: 0.7;
+    transform: scale(0.96);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes app-chat-openclaw-atmosphere-breathe {
+  0%, 100% {
+    opacity: 0.7;
+    transform: translate(-50%, -52%) scale(0.96);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -52%) scale(1.04);
+  }
+}
+
+@keyframes app-chat-openclaw-core-breathe {
+  0%, 100% {
+    opacity: 0.68;
+    transform: translate(-50%, -50%) scale(0.96);
+  }
+
+  50% {
+    opacity: 0.92;
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+}
+
+@keyframes app-chat-openclaw-ground-breathe {
+  0%, 100% {
+    opacity: 0.48;
+    transform: scale(0.94);
+  }
+
+  50% {
+    opacity: 0.72;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes app-chat-openclaw-gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
   }
 }
 
@@ -4262,39 +4483,28 @@
 }
 
 @keyframes app-chat-openclaw-shadow-drift {
-  0%, 64%, 100% {
+  0%, 100% {
     transform: translate3d(-50%, 0, -28px) scale(0.84);
     opacity: 0.2;
   }
 
-  74% {
-    transform: translate3d(-50%, 7px, -28px) scale(0.72);
+  50% {
+    transform: translate3d(-50%, 8px, -28px) scale(0.72);
     opacity: 0.12;
-  }
-
-  78% {
-    transform: translate3d(-50%, 11px, -28px) scale(0.68);
-    opacity: 0.08;
-  }
-
-  86% {
-    transform: translate3d(-50%, 2px, -28px) scale(0.88);
-    opacity: 0.22;
-  }
-
-  94% {
-    transform: translate3d(-50%, 0, -28px) scale(0.84);
-    opacity: 0.2;
   }
 }
 
 @keyframes app-chat-openclaw-blink {
-  0%, 90%, 100% {
+  0%, 88%, 100% {
     opacity: 1;
   }
 
+  92% {
+    opacity: 0.22;
+  }
+
   95% {
-    opacity: 0.3;
+    opacity: 0.68;
   }
 }
 
@@ -4369,12 +4579,20 @@
 @media (prefers-reduced-motion: reduce) {
   .app-chat-welcome-stage,
   .app-chat-openclaw-stars,
+  .app-chat-openclaw-nebula,
   .app-chat-openclaw-lobster-icon,
   .app-chat-openclaw-lobster-svg,
   .app-chat-openclaw-eye-glow,
   .app-chat-openclaw-antenna,
   .app-chat-openclaw-claw-left,
-  .app-chat-openclaw-claw-right {
+  .app-chat-openclaw-claw-right,
+  .app-chat-openclaw-atmosphere::before,
+  .app-chat-openclaw-atmosphere::after,
+  .app-chat-welcome-logo-shell::before,
+  .app-chat-welcome-logo-shell::after,
+  .app-chat-welcome-title::before,
+  .app-chat-welcome-wordmark-mark::before,
+  .app-chat-welcome-wordmark-mark::after {
     animation: none;
   }
 
