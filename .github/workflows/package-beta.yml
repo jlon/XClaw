@@ -17,7 +17,7 @@ on:
       publish_release:
         description: '是否同时发布到 GitHub Beta Release'
         required: false
-        default: false
+        default: true
         type: boolean
 
 permissions:

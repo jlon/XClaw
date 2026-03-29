@@ -33,4 +33,11 @@ describe('beta package workflow', () => {
     expect(workflow).toContain('steps.release_assets.outputs.files');
     expect(workflow).not.toContain('release-artifacts/**/*.zip');
   });
+
+  it('defaults workflow dispatch to publish the beta prerelease', () => {
+    const workflow = readFileSync(resolve(process.cwd(), '.github/workflows/package-beta.yml'), 'utf8');
+
+    expect(workflow).toContain("publish_release:");
+    expect(workflow).toContain("default: true");
+  });
 });

@@ -25,41 +25,7 @@ done
 
 json="$(curl -fsSL -H 'Accept: application/vnd.github+json' "$api_url")"
 
-selection="$(
-  python3 - <<'PY' "$json"
-import json
-import re
-import sys
-
-payload = json.loads(sys.argv[1])
-if not payload:
-    raise SystemExit("No releases were returned by GitHub.")
-
-release = payload[0]
-assets = release.get("assets", [])
-
-rules = {
-    "macArm64": [r"-mac-arm64\.dmg$"],
-    "macX64": [r"-mac-x64\.dmg$"],
-    "win": [r"-win-x64\.exe$", r"-win\.exe$", r"-win-arm64\.exe$"],
-}
-
-picked = {}
-for stable_name, patterns in rules.items():
-    for pattern in patterns:
-        match = next((asset for asset in assets if re.search(pattern, asset["name"])), None)
-        if match:
-            picked[stable_name] = match
-            break
-    if stable_name not in picked:
-        raise SystemExit(f"Required asset was not found for {stable_name}.")
-
-print(release["tag_name"])
-for key in ("macArm64", "macX64", "win"):
-    asset = picked[key]
-    print("\t".join((key, asset["name"], str(asset["size"]), asset["updated_at"], asset["browser_download_url"])))
-PY
-)"
+selection="$(node scripts/select-release-download-assets.mjs "$json")"
 
 tag="$(printf '%s\n' "$selection" | sed -n '1p')"
 mapfile -t selected_assets < <(printf '%s\n' "$selection" | tail -n +2)
