@@ -9,7 +9,7 @@ interface UsageMetricToggleProps {
   costLabel: string;
 }
 
-const trackClass = 'inline-flex rounded-[8px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-panel))] p-[2px]';
+const trackClass = 'app-shell-surface inline-flex rounded-[8px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-panel))] p-[2px]';
 const activeClass = 'rounded-[6px] border-transparent bg-[hsl(var(--surface-base))] text-foreground shadow-sm';
 const idleClass = 'rounded-[6px] text-muted-foreground hover:text-foreground';
 

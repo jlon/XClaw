@@ -266,7 +266,7 @@ describe('settings layout', () => {
   });
 
   it('shows the beta-only updates pane with manual macOS download guidance', async () => {
-    render(<Settings />);
+    const { container } = render(<Settings />);
 
     const updatesTab = screen.getByRole('tab', { name: '更新' });
     fireEvent.mouseDown(updatesTab, { button: 0, ctrlKey: false });
@@ -282,6 +282,8 @@ describe('settings layout', () => {
     expect(screen.getByText('手动更新')).toBeInTheDocument();
     expect(screen.queryByText('自动下载更新')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '重启并安装' })).not.toBeInTheDocument();
+    expect(container.querySelector('.settings-updates-panel-surface')).toHaveClass('app-pane-surface');
+    expect(container.querySelector('.settings-updates-row-surface')).toHaveClass('app-field-surface');
   });
 
   it('exports a platform log bundle from the runtime pane', async () => {
@@ -306,5 +308,27 @@ describe('settings layout', () => {
         method: 'POST',
       }));
     });
+  });
+
+  it('uses wallpaper-aware surfaces in the runtime pane', async () => {
+    const { container } = render(<Settings />);
+
+    const runtimeTab = screen.getByRole('tab', { name: '网关' });
+    fireEvent.mouseDown(runtimeTab, { button: 0, ctrlKey: false });
+    fireEvent.click(runtimeTab);
+
+    await waitFor(() => {
+      expect(screen.getByText('代理')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '显示高级代理字段' }));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('gateway.proxyHttpServer')).toBeInTheDocument();
+    });
+
+    expect(container.querySelector('.settings-runtime-inline-shell')).toHaveClass('app-shell-surface');
+    expect(container.querySelector('.settings-runtime-proxy-surface')).toHaveClass('app-pane-surface');
+    expect(container.querySelector('.settings-runtime-proxy-advanced-surface')).toHaveClass('app-field-surface');
   });
 });

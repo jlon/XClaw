@@ -56,11 +56,11 @@ import {
 const DEFAULT_USAGE_FETCH_MAX_ATTEMPTS = 6;
 const WINDOWS_USAGE_FETCH_MAX_ATTEMPTS = 10;
 const USAGE_FETCH_RETRY_DELAY_MS = 1500;
-const toggleGroupClass = 'flex rounded-[8px] bg-[hsl(var(--surface-panel))] p-[2px] border border-[hsl(var(--border-subtle))] select-none';
+const toggleGroupClass = 'app-shell-surface flex rounded-[8px] bg-[hsl(var(--surface-panel))] p-[2px] border border-[hsl(var(--border-subtle))] select-none';
 const toggleActiveClass = 'rounded-[6px] border-transparent bg-[hsl(var(--surface-base))] text-foreground shadow-sm font-medium';
 const toggleIdleClass = 'rounded-[6px] text-muted-foreground hover:text-foreground border-transparent bg-transparent shadow-none';
 const emptyStateClass = 'flex items-center justify-center rounded-xl py-10 text-muted-foreground';
-const usageSurfaceClass = 'rounded-xl border border-[hsl(var(--chrome-divider))] bg-[hsl(var(--surface-base))] p-4 shadow-sm';
+const usageSurfaceClass = 'app-pane-surface rounded-xl border border-[hsl(var(--chrome-divider))] bg-[hsl(var(--surface-base))] p-4 shadow-sm';
 
 function normalizeUsageProviderKey(provider: string | null | undefined): string {
   return provider?.trim().toLowerCase() || 'unknown';

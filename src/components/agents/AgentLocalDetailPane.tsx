@@ -45,15 +45,15 @@ export interface AgentLocalDetailPaneProps {
 }
 
 const shellCardClasses =
-  'rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated)/0.995)] shadow-md';
+  'app-pane-surface rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated)/0.995)] shadow-md';
 const badgeClasses =
-  'h-5 rounded-sm border border-border/70 bg-background/75 px-2 text-[10px] font-medium text-foreground/68 shadow-none';
+  'app-field-surface h-5 rounded-sm border border-border/70 bg-background/75 px-2 text-[10px] font-medium text-foreground/68 shadow-none';
 const actionButtonClasses =
   'workbench-motion-button workbench-motion-button--lift h-8 rounded-md border-border/70 bg-transparent px-3.5 text-[12.5px] font-medium text-foreground/76 shadow-sm hover:bg-[hsl(var(--surface-hover)/0.46)] hover:text-foreground';
 const summaryLabelClasses = 'text-[11px] font-medium uppercase tracking-[0.08em] text-foreground/44';
 const tabButtonBaseClasses = 'workbench-motion-button h-8 rounded-md px-3 text-[12.5px] font-medium';
 const compactInsightSurfaceClasses =
-  'rounded-lg border border-border/55 bg-[hsl(var(--surface-panel)/0.95)] px-4 py-3 shadow-sm';
+  'app-insight-surface rounded-lg border border-border/55 bg-[hsl(var(--surface-panel)/0.95)] px-4 py-3 shadow-sm';
 
 const getPathLeaf = (value: string) => {
   const parts = value.split(/[/\\]/).filter(Boolean);
@@ -151,7 +151,7 @@ export function AgentLocalDetailPane({
                     variant="outline"
                     size="icon"
                     aria-label="更多操作"
-                    className="h-8 w-8 rounded-md border-border/60 bg-[hsl(var(--surface-panel)/0.92)] text-foreground/72 shadow-sm hover:bg-[hsl(var(--surface-hover)/0.42)] hover:text-foreground"
+                    className="app-field-surface h-8 w-8 rounded-md border-border/60 bg-[hsl(var(--surface-panel)/0.92)] text-foreground/72 shadow-sm hover:bg-[hsl(var(--surface-hover)/0.42)] hover:text-foreground"
                   >
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
@@ -178,13 +178,13 @@ export function AgentLocalDetailPane({
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2.5 text-[12.5px] text-foreground/62">
-            <div className="inline-flex min-w-0 items-center gap-2 rounded-full border border-border/60 bg-[hsl(var(--surface-panel)/0.88)] px-3 py-1.5">
+            <div className="app-field-surface inline-flex min-w-0 items-center gap-2 rounded-full border border-border/60 bg-[hsl(var(--surface-panel)/0.88)] px-3 py-1.5">
               <Cpu className="h-3.5 w-3.5 shrink-0 text-foreground/46" />
               <span className="text-foreground/52">{t('workbench.overview.modelLabel')}</span>
               <span className="truncate font-medium text-foreground">{agent.modelDisplay}</span>
               {agent.inheritedModel ? <span className="text-foreground/42">· {t('inherited')}</span> : null}
             </div>
-            <div className="inline-flex min-w-0 items-center gap-2 rounded-full border border-border/60 bg-[hsl(var(--surface-panel)/0.88)] px-3 py-1.5">
+            <div className="app-field-surface inline-flex min-w-0 items-center gap-2 rounded-full border border-border/60 bg-[hsl(var(--surface-panel)/0.88)] px-3 py-1.5">
               <Link2 className="h-3.5 w-3.5 shrink-0 text-foreground/46" />
               <span className="text-foreground/52">{t('workbench.overview.channelLabel')}</span>
               <span className="font-medium text-foreground">{t('workbench.agentCard.channelsMeta', { count: activeChannels.length })}</span>
@@ -192,7 +192,7 @@ export function AgentLocalDetailPane({
           </div>
         </div>
 
-        <div className="mt-4 flex h-10 items-center rounded-md border border-border/60 bg-[hsl(var(--surface-panel)/0.92)] p-1">
+        <div className="app-shell-surface mt-4 flex h-10 items-center rounded-md border border-border/60 bg-[hsl(var(--surface-panel)/0.92)] p-1">
           <button
             type="button"
             onClick={() => onTabChange('persona')}
@@ -237,15 +237,15 @@ export function AgentLocalDetailPane({
                 {activeChannels.map((channel) => (
                   <div
                     key={`${channel.channelType}-${channel.accountId}`}
-                    className="flex items-start gap-3 rounded-md border border-border/55 bg-[hsl(var(--surface-panel)/0.96)] px-4 py-3 shadow-sm"
+                    className="app-insight-surface flex items-start gap-3 rounded-md border border-border/55 bg-[hsl(var(--surface-panel)/0.96)] px-4 py-3 shadow-sm"
                   >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border/55 bg-[hsl(var(--surface-elevated)/0.96)] text-foreground/70">
+                    <div className="app-field-surface flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border/55 bg-[hsl(var(--surface-elevated)/0.96)] text-foreground/70">
                       <ChannelLogo type={channel.channelType} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="text-[13px] font-medium text-foreground">{channel.name}</p>
-                        <span className="inline-flex h-5 items-center rounded-full border border-border/55 bg-[hsl(var(--surface-panel)/0.9)] px-2 text-[10.5px] font-medium text-foreground/58 dark:bg-[hsl(var(--surface-elevated)/0.82)]">
+                        <span className="app-field-surface inline-flex h-5 items-center rounded-full border border-border/55 bg-[hsl(var(--surface-panel)/0.9)] px-2 text-[10.5px] font-medium text-foreground/58 dark:bg-[hsl(var(--surface-elevated)/0.82)]">
                           {channel.channelType}
                         </span>
                       </div>
@@ -256,7 +256,7 @@ export function AgentLocalDetailPane({
                 ))}
               </div>
             ) : (
-              <div className="mt-4 rounded-xl border border-dashed border-border/55 bg-[hsl(var(--surface-panel)/0.82)] px-4 py-6 text-[12.5px] leading-[1.65] text-foreground/54">
+              <div className="app-empty-surface mt-4 rounded-xl border border-dashed border-border/55 bg-[hsl(var(--surface-panel)/0.82)] px-4 py-6 text-[12.5px] leading-[1.65] text-foreground/54">
                 {t('workbench.overview.noChannels')}
               </div>
             )}
@@ -295,7 +295,7 @@ export function AgentLocalDetailPane({
                   <div
                     key={file.relativePath}
                     className={cn(
-                      'group flex items-center justify-between gap-3 rounded-lg border px-3.5 py-3 transition-[border-color,background-color,box-shadow,transform] motion-safe:duration-150 motion-safe:hover:-translate-y-[1px]',
+                      'app-field-surface group flex items-center justify-between gap-3 rounded-lg border px-3.5 py-3 transition-[border-color,background-color,box-shadow,transform] motion-safe:duration-150 motion-safe:hover:-translate-y-[1px]',
                       selected
                         ? 'border-[hsl(var(--primary)/0.16)] bg-[hsl(var(--surface-elevated)/0.985)] shadow-sm'
                         : 'border-border/55 bg-[hsl(var(--surface-panel)/0.92)] hover:border-border/70 hover:bg-[hsl(var(--surface-elevated)/0.965)] hover:shadow-sm',
@@ -313,7 +313,7 @@ export function AgentLocalDetailPane({
               })}
             </div>
           ) : (
-            <div className="mt-4 rounded-[16px] border border-dashed border-border/55 bg-[hsl(var(--surface-panel)/0.82)] px-4 py-6 text-[12.5px] leading-[1.65] text-foreground/54">
+            <div className="app-empty-surface mt-4 rounded-[16px] border border-dashed border-border/55 bg-[hsl(var(--surface-panel)/0.82)] px-4 py-6 text-[12.5px] leading-[1.65] text-foreground/54">
               {t('workbench.persona.emptyFiles')}
             </div>
           )}

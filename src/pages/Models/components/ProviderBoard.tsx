@@ -36,7 +36,7 @@ interface ProviderBoardProps {
 }
 
 const railListClass = 'space-y-2';
-const railRowClass = 'w-full rounded-md border border-[hsl(var(--border-subtle)/0.78)] bg-[hsl(var(--surface-elevated)/0.98)] px-3 py-2.5 text-left transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)]';
+const railRowClass = 'app-field-surface w-full rounded-md border border-[hsl(var(--border-subtle)/0.78)] bg-[hsl(var(--surface-elevated)/0.98)] px-3 py-2.5 text-left transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)]';
 const railRowActiveClass = 'border-[hsl(var(--border-strong)/0.34)] bg-[hsl(var(--surface-elevated)/1)]';
 
 const resolvePrimaryAccountId = (
@@ -115,7 +115,7 @@ export const ProviderBoard = ({
         data-overflow-mode="clamp"
       >
         <div
-          className="rounded-lg border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.985)] px-4 py-3"
+          className="app-pane-surface rounded-lg border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.985)] px-4 py-3"
           data-testid="models-provider-focus-header"
         >
           <div className="flex items-start justify-between gap-3">
@@ -134,7 +134,7 @@ export const ProviderBoard = ({
               {selectedPrimaryAccountId ? (
                 <button
                   type="button"
-                  className="desktop-focus-ring inline-flex h-8 w-8 items-center justify-center rounded-full border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-base)/0.9)] text-foreground/76 transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)] hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0"
+                  className="desktop-focus-ring app-field-surface inline-flex h-8 w-8 items-center justify-center rounded-full border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-base)/0.9)] text-foreground/76 transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)] hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0"
                   aria-label={resolveOpenInspectorLabel(openInspectorLabel, selectedAccount?.label || selectedSummary.label)}
                   data-testid="models-provider-focus-details"
                   onClick={() => onOpenInspector(selectedPrimaryAccountId)}
@@ -144,7 +144,7 @@ export const ProviderBoard = ({
               ) : null}
               <button
                 type="button"
-                className="shrink-0 rounded-full border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-base)/0.9)] px-3 py-1 text-[12px] font-medium text-foreground/76 transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)] hover:text-foreground"
+                className="app-field-surface shrink-0 rounded-full border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-base)/0.9)] px-3 py-1 text-[12px] font-medium text-foreground/76 transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)] hover:text-foreground"
                 onClick={onClearSelection}
               >
                 {clearLabel}
@@ -179,7 +179,7 @@ export const ProviderBoard = ({
             {selectedPrimaryAccountId ? (
               <button
                 type="button"
-                className="desktop-focus-ring inline-flex h-8 w-8 items-center justify-center rounded-full border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-base)/0.9)] text-foreground/76 transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)] hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0"
+                className="desktop-focus-ring app-field-surface inline-flex h-8 w-8 items-center justify-center rounded-full border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-base)/0.9)] text-foreground/76 transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)] hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0"
                 aria-label={resolveOpenInspectorLabel(openInspectorLabel, selectedAccount?.label || selectedSummary?.label || '')}
                 data-testid="models-provider-rail-details"
                 onClick={() => onOpenInspector(selectedPrimaryAccountId)}
@@ -189,7 +189,7 @@ export const ProviderBoard = ({
             ) : null}
             <button
               type="button"
-              className="rounded-full border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-base)/0.9)] px-3 py-1 text-[12px] font-medium text-foreground/76 transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)] hover:text-foreground"
+              className="app-field-surface rounded-full border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-base)/0.9)] px-3 py-1 text-[12px] font-medium text-foreground/76 transition-colors hover:bg-[hsl(var(--surface-hover)/0.72)] hover:text-foreground"
               onClick={onClearSelection}
             >
               {clearLabel}
@@ -218,7 +218,10 @@ export const ProviderBoard = ({
                     <p className="truncate text-[13px] font-semibold text-foreground">{summary.label}</p>
                     <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{summary.runtimeProviderKey}</p>
                   </div>
-                  <span className="rounded-full bg-[hsl(var(--surface-hover)/0.82)] px-2 py-0.5 text-[11px] font-medium text-foreground/74">
+                  <span
+                    data-testid={`models-provider-summary-total-${summary.runtimeProviderKey}`}
+                    className="app-field-surface rounded-full bg-[hsl(var(--surface-hover)/0.82)] px-2 py-0.5 text-[11px] font-medium text-foreground/74"
+                  >
                     {Intl.NumberFormat().format(summary.totalTokens)}
                   </span>
                 </div>
@@ -241,13 +244,13 @@ export const ProviderBoard = ({
       data-overflow-mode="clamp"
     >
       {loading && summaries.length === 0 ? (
-        <div className="rounded-lg border border-[hsl(var(--border-subtle)/0.72)] bg-[hsl(var(--surface-elevated)/0.72)] px-4 py-6">
+        <div className="app-pane-surface rounded-lg border border-[hsl(var(--border-subtle)/0.72)] bg-[hsl(var(--surface-elevated)/0.72)] px-4 py-6">
           <p className="text-[14px] font-semibold text-foreground">{boardTitle}</p>
           <p className="mt-1 text-[12px] text-muted-foreground">{boardHint}</p>
         </div>
       ) : null}
       {!loading && summaries.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-[hsl(var(--border-subtle)/0.76)] bg-[hsl(var(--surface-elevated)/0.72)] px-4 py-5">
+        <div className="app-empty-surface rounded-lg border border-dashed border-[hsl(var(--border-subtle)/0.76)] bg-[hsl(var(--surface-elevated)/0.72)] px-4 py-5">
           <p className="text-[14px] font-semibold text-foreground">{emptyTitle}</p>
           <p className="mt-1 text-[12px] text-muted-foreground">{emptyHint}</p>
         </div>

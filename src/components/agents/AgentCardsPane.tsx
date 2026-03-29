@@ -75,10 +75,10 @@ export function AgentCardsPane({
     <div className={className}>
       <section
         data-testid="agents-browser-rail"
-        className="rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated)/0.99)] px-4 py-3.5 shadow-sm"
+        className="app-pane-surface rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated)/0.99)] px-4 py-3.5 shadow-sm"
       >
         <div className="flex flex-wrap items-center gap-2.5">
-          <div className="workbench-motion-control flex h-10 min-w-0 flex-1 items-center gap-2.5 rounded-md border border-border/70 bg-[hsl(var(--surface-panel)/0.84)] px-3.5 hover:bg-[hsl(var(--surface-hover)/0.4)] focus-within:border-border/60 focus-within:bg-[hsl(var(--surface-elevated)/0.98)]">
+          <div className="app-field-surface workbench-motion-control flex h-10 min-w-0 flex-1 items-center gap-2.5 rounded-md border border-border/70 bg-[hsl(var(--surface-panel)/0.84)] px-3.5 hover:bg-[hsl(var(--surface-hover)/0.4)] focus-within:border-border/60 focus-within:bg-[hsl(var(--surface-elevated)/0.98)]">
             <Search className="h-4 w-4 shrink-0 text-foreground/34" />
             <Input
               value={searchValue}
@@ -105,7 +105,7 @@ export function AgentCardsPane({
                   onClick={() => onSelectAgent(agent)}
                   aria-pressed={selected}
                   className={cn(
-                    'workbench-motion-card group relative flex w-full flex-col overflow-hidden rounded-xl border px-4 py-4 text-left',
+                    'app-pane-surface workbench-motion-card group relative flex w-full flex-col overflow-hidden rounded-xl border px-4 py-4 text-left',
                     selected
                       ? 'border-[hsl(var(--primary)/0.18)] bg-[hsl(var(--surface-elevated))] shadow-sm'
                       : 'border-border/60 bg-[hsl(var(--surface-elevated))] shadow-sm hover:border-border/74 hover:shadow-md cursor-default',

@@ -87,7 +87,7 @@ type EditorValue = string | boolean | number | string[];
 const FALLBACK_ACCOUNT_ID = 'default';
 
 const paneSurfaceClass = 'app-pane-surface min-w-0 rounded-xl border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] shadow-none';
-const searchFieldClass = 'workbench-motion-control h-8 rounded-md border border-[hsl(var(--border-subtle)/0.48)] bg-[hsl(var(--surface-panel)/0.86)] pl-9 text-[12.5px] shadow-sm placeholder:text-muted-foreground/52 hover:border-[hsl(var(--border-subtle)/0.72)] hover:bg-[hsl(var(--surface-elevated)/0.98)] focus-visible:border-[hsl(var(--border-strong)/0.52)] focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
+const searchFieldClass = 'app-field-surface workbench-motion-control h-8 rounded-md border border-[hsl(var(--border-subtle)/0.48)] bg-[hsl(var(--surface-panel)/0.86)] pl-9 text-[12.5px] shadow-sm placeholder:text-muted-foreground/52 hover:border-[hsl(var(--border-subtle)/0.72)] hover:bg-[hsl(var(--surface-elevated)/0.98)] focus-visible:border-[hsl(var(--border-strong)/0.52)] focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-0';
 const railRowClass = 'workbench-motion-card group w-full rounded-md border border-transparent px-2.5 py-1.5 text-left select-none';
 const selectedRailCardClass = 'border-transparent bg-[hsl(var(--surface-active))] text-foreground shadow-none font-medium';
 const idleRailCardClass = 'bg-transparent hover:bg-[hsl(var(--surface-hover))]';

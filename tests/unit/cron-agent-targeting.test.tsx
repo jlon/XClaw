@@ -222,4 +222,36 @@ describe('cron agent targeting', () => {
     expect(hostApiFetchMock).toHaveBeenCalledWith('/api/channels/accounts');
     expect(hostApiFetchMock).toHaveBeenCalledWith('/api/channels/recipient-hints/feishu?accountId=bot2');
   }, 15000);
+
+  it('uses wallpaper-aware surfaces for cron cards and dialog inputs', async () => {
+    cronState.jobs = [
+      {
+        id: 'job-1',
+        name: '早报',
+        message: '发日报',
+        schedule: '0 9 * * *',
+        enabled: true,
+        agentId: 'main',
+        createdAt: '2026-03-23T10:00:00.000Z',
+        updatedAt: '2026-03-23T10:00:00.000Z',
+      },
+    ];
+
+    render(<Cron />);
+
+    await waitFor(() => {
+      expect(screen.getByText('早报')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('早报').closest('.app-cron-task-card')).toHaveClass('app-pane-surface');
+
+    fireEvent.click(screen.getByRole('button', { name: '新建任务' }));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('任务名称')).toBeInTheDocument();
+    });
+
+    expect(screen.getByLabelText('任务名称')).toHaveClass('app-field-surface');
+    expect(screen.getByLabelText('消息/提示词')).toHaveClass('app-field-surface');
+  });
 });

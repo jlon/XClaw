@@ -13,6 +13,9 @@
 - 已修复侧栏底部 utility 区硬边框泄露：`设置` 入口上方硬分隔线已移除，侧栏右边界改为更轻的语义化 chrome divider
 - 已完成聊天页阅读层收口：聊天主舞台新增中性 `reading plane`，助手消息回退为文档流表达，composer 改为聊天专属玻璃材质
 - 已完成聊天侧栏头部三次收口：titlebar 左槽位仅保留会话控制，品牌与搜索均已回到 pane 顶部
+- 已完成设置页补齐：`网关` 与 `更新` 分区已移除私有硬编码面板底色，统一接入桌面壁纸 surface token
+- 已完成工作台第二轮收口：`Models / Agents / Channels / Skills / Cron` 的主 pane、主卡片、检索条和关键 toggle 已补齐共享 surface token
+- 已完成工作台第三轮收口：频道账号行、Agent 详情空状态、模型卡片次级 badge、技能页 tab shell 与搜索/空状态已补齐次级 surface token
 
 ## 实施清单
 
@@ -30,6 +33,9 @@
 - [x] 将聊天侧栏头部通过 portal 收敛到 titlebar slot，消除双层头部
 - [x] 将聊天品牌从 titlebar 撤回侧栏内容区，修复左上角品牌错位
 - [x] 将聊天搜索从 titlebar 撤回侧栏内容区，修复与 traffic lights 的空间冲突
+- [x] 将设置页 `网关` / `更新` 内部子面板收敛到 `app-shell-surface` / `app-pane-surface` / `app-field-surface`
+- [x] 将其余工作台页的主承载面收敛到共享 surface token，而不是继续保留页面私有硬编码底色
+- [x] 将其余工作台页的次级中性 surface 收敛到共享 token，而不是继续散落在页面私有 badge / row / empty state 中
 
 ## 下一步
 
@@ -37,3 +43,4 @@
 - 补抽样检查模型页、设置页、Studio 页在真实壁纸下的玻璃一致性
 - 评估是否需要在后续版本增加更细的遮罩强度或局部对比保护
 - 补一轮真实 Electron 聊天页截图复核，重点确认不同侧栏宽度下品牌、搜索和 titlebar 控制的相对位置保持稳定
+- 继续按信息密度清理极少数三级装饰层，只在确实影响整窗统一感时再动，避免过度设计

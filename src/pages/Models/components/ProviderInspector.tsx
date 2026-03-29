@@ -140,7 +140,7 @@ export function ProviderInspector({
                       key={candidate.account.id}
                       type="button"
                       className={cn(
-                        'rounded-full border px-2.5 py-1 text-[11.5px] font-medium transition-colors',
+                        'app-field-surface rounded-full border px-2.5 py-1 text-[11.5px] font-medium transition-colors',
                         active
                           ? 'border-[hsl(var(--border-strong)/0.34)] bg-[hsl(var(--surface-elevated)/0.98)] text-primary'
                           : 'border-border/65 bg-[hsl(var(--surface-base)/0.78)] text-foreground/76 hover:bg-[hsl(var(--surface-hover)/0.82)] hover:text-foreground',

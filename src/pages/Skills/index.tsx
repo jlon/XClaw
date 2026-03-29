@@ -74,17 +74,17 @@ interface SkillDetailDialogProps {
 const compactOutlineButtonClasses =
   'workbench-motion-control h-[28px] rounded-[6px] border border-[hsl(var(--border-subtle))] bg-transparent px-3 text-[12px] font-medium text-foreground shadow-none hover:bg-[hsl(var(--surface-hover))] cursor-default transition-colors duration-[var(--motion-fast)]';
 const tokenInputClasses =
-  'appearance-none h-[32px] rounded-[6px] font-mono text-[13px] bg-[hsl(var(--surface-base))] border border-[hsl(var(--border-subtle))] text-foreground placeholder:text-muted-foreground shadow-none transition-[border-color,box-shadow,background-color] duration-[var(--motion-fast)] ease-out focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(var(--glow-brand),0.25)] focus-visible:ring-offset-0 tabular-nums';
+  'app-field-surface appearance-none h-[32px] rounded-[6px] font-mono text-[13px] bg-[hsl(var(--surface-base))] border border-[hsl(var(--border-subtle))] text-foreground placeholder:text-muted-foreground shadow-none transition-[border-color,box-shadow,background-color] duration-[var(--motion-fast)] ease-out focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(var(--glow-brand),0.25)] focus-visible:ring-offset-0 tabular-nums';
 const compactInputClasses =
-  'appearance-none h-[32px] rounded-[6px] font-mono text-[12px] bg-[hsl(var(--surface-base))] border border-[hsl(var(--border-subtle))] text-foreground/80 shadow-none transition-[border-color,box-shadow,background-color] duration-[var(--motion-fast)] ease-out focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(var(--glow-brand),0.25)] focus-visible:ring-offset-0 tabular-nums';
+  'app-field-surface appearance-none h-[32px] rounded-[6px] font-mono text-[12px] bg-[hsl(var(--surface-base))] border border-[hsl(var(--border-subtle))] text-foreground/80 shadow-none transition-[border-color,box-shadow,background-color] duration-[var(--motion-fast)] ease-out focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(var(--glow-brand),0.25)] focus-visible:ring-offset-0 tabular-nums';
 const badgeClasses =
   'rounded-md border border-[hsl(var(--border-subtle))] bg-transparent px-2.5 py-0.5 text-[11px] font-semibold text-foreground shadow-none transition-colors select-none';
 const searchFieldClasses =
-  'workbench-motion-control relative flex h-[32px] items-center rounded-[6px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] px-3.5 hover:bg-[hsl(var(--surface-hover))] focus-within:ring-2 focus-within:ring-[rgba(var(--glow-brand),0.25)] focus-within:border-[hsl(var(--border-subtle))] transition-[border-color,box-shadow,background-color] duration-[var(--motion-fast)] ease-out';
+  'app-field-surface workbench-motion-control relative flex h-[32px] items-center rounded-[6px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] px-3.5 hover:bg-[hsl(var(--surface-hover))] focus-within:ring-2 focus-within:ring-[rgba(var(--glow-brand),0.25)] focus-within:border-[hsl(var(--border-subtle))] transition-[border-color,box-shadow,background-color] duration-[var(--motion-fast)] ease-out';
 const skillCardClasses =
-  'app-skills-card workbench-motion-card group relative flex min-h-[160px] flex-col rounded-xl border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] px-4 py-4 shadow-sm motion-safe:hover:-translate-y-[1px] hover:border-[hsl(var(--border-strong))] hover:shadow-md cursor-default transition-[border-color,box-shadow,background-color,transform] duration-[var(--motion-base)] ease-[cubic-bezier(0.16,1,0.3,1)] ease-[cubic-bezier(0.16,1,0.3,1)]';
+  'app-skills-card app-pane-surface workbench-motion-card group relative flex min-h-[160px] flex-col rounded-xl border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] px-4 py-4 shadow-sm motion-safe:hover:-translate-y-[1px] hover:border-[hsl(var(--border-strong))] hover:shadow-md cursor-default transition-[border-color,box-shadow,background-color,transform] duration-[var(--motion-base)] ease-[cubic-bezier(0.16,1,0.3,1)] ease-[cubic-bezier(0.16,1,0.3,1)]';
 const providerResultClasses =
-  'app-skills-card workbench-motion-card group relative flex min-h-[160px] flex-col rounded-xl border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] px-4 py-4 shadow-sm motion-safe:hover:-translate-y-[1px] hover:border-[hsl(var(--border-strong))] hover:shadow-md cursor-default transition-[border-color,box-shadow,background-color,transform] duration-[var(--motion-base)] ease-[cubic-bezier(0.16,1,0.3,1)]';
+  'app-skills-card app-pane-surface workbench-motion-card group relative flex min-h-[160px] flex-col rounded-xl border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-base))] px-4 py-4 shadow-sm motion-safe:hover:-translate-y-[1px] hover:border-[hsl(var(--border-strong))] hover:shadow-md cursor-default transition-[border-color,box-shadow,background-color,transform] duration-[var(--motion-base)] ease-[cubic-bezier(0.16,1,0.3,1)]';
 const DEFAULT_PROVIDER_RESULT_LIMIT = 50;
 const SEARCH_PROVIDER_RESULT_LIMIT = 24;
 
@@ -712,7 +712,7 @@ function ProviderSearchDialog({
                     </Button>
                   ) : null}
                   {meta ? (
-                    <Badge variant="secondary" className="rounded-md border border-border/60 bg-[hsl(var(--surface-panel)/0.94)] px-3 py-1 text-[11px] font-semibold text-foreground/62 shadow-none select-none">
+                    <Badge variant="secondary" className="app-field-surface rounded-md border border-border/60 bg-[hsl(var(--surface-panel)/0.94)] px-3 py-1 text-[11px] font-semibold text-foreground/62 shadow-none select-none">
                       {meta.badge}
                     </Badge>
                   ) : null}
@@ -751,14 +751,14 @@ function ProviderSearchDialog({
             ) : null}
 
             {loading ? (
-              <div className="flex min-h-[280px] flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-[hsl(var(--surface-panel)/0.64)] text-foreground/54">
+              <div className="app-empty-surface flex min-h-[280px] flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-[hsl(var(--surface-panel)/0.64)] text-foreground/54">
                 <LoadingSpinner size="lg" />
                 <p className="mt-4 text-[13px] font-medium">{t('providerSearch.loading', { defaultValue: '正在搜索技能目录…' })}</p>
               </div>
             ) : null}
 
             {!loading && results.length === 0 ? (
-              <div className="flex min-h-[280px] flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-[hsl(var(--surface-panel)/0.64)] text-center text-foreground/54">
+              <div className="app-empty-surface flex min-h-[280px] flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-[hsl(var(--surface-panel)/0.64)] text-center text-foreground/54">
                 <Puzzle className="h-10 w-10 opacity-45" />
                 <p className="mt-4 text-[14px] font-semibold text-foreground/72">
                   {query.trim()
@@ -1302,7 +1302,7 @@ export function Skills() {
       <WorkspacePageShell className="app-skills-page-shell">
         <div className="flex flex-col pt-4 shrink-0 px-6 space-y-3 pb-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center rounded-[8px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-panel))] p-[2px]">
+            <div className="app-shell-surface flex items-center rounded-[8px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-panel))] p-[2px]">
               <button
                 type="button"
                 className={cn(
@@ -1461,7 +1461,7 @@ export function Skills() {
                           ) : null}
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex min-w-0 items-start gap-4">
-                              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-panel))] text-[22px] shadow-sm">
+                              <div className="app-field-surface flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-panel))] text-[22px] shadow-sm">
                                 {item.icon || '🧩'}
                               </div>
                               <div className="min-w-0 pt-0.5">
@@ -1527,7 +1527,7 @@ export function Skills() {
               ) : null}
 
               {filteredSkills.length === 0 ? (
-                <div className="flex min-h-[360px] flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-[hsl(var(--surface-panel)/0.62)] px-6 text-center">
+                <div className="app-empty-surface flex min-h-[360px] flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-[hsl(var(--surface-panel)/0.62)] px-6 text-center">
                   <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-[hsl(var(--primary)/0.18)] bg-[hsl(var(--primary)/0.1)] text-[24px] text-primary shadow-sm">
                     🧩
                   </div>

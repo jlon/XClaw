@@ -141,6 +141,9 @@ describe('skills page layout', () => {
     expect(screen.getByTestId('skills-card-glyph-arxiv-reader')).toBeInTheDocument();
     expect(screen.getByTestId('skills-card-grid')).toHaveClass('app-skills-card-grid');
     expect(screen.getByText('agent-mbti').closest('[role="button"]')).toHaveClass('app-skills-card');
+    expect(screen.getByText('agent-mbti').closest('[role="button"]')).toHaveClass('app-pane-surface');
+    expect(screen.getByPlaceholderText('搜索已经安装的技能').closest('div')).toHaveClass('app-field-surface');
+    expect(screen.getByRole('button', { name: '技能库' }).parentElement).toHaveClass('app-shell-surface');
     expect(skillsState.fetchSkills).toHaveBeenCalledTimes(1);
   });
 
@@ -241,6 +244,7 @@ describe('skills page layout', () => {
     expect(within(dialog).getByText('Ai Ppt Generator')).toBeInTheDocument();
     expect(within(dialog).queryByText('Installed already.')).not.toBeInTheDocument();
     expect(within(dialog).queryByText('agent-mbti')).not.toBeInTheDocument();
+    expect(within(dialog).getByText('Ai Ppt Generator').closest('.app-skills-card')).toHaveClass('app-pane-surface');
   });
 
   it('keeps the skillhub provider dialog scrollable and routes install into the current chat route with a deterministic draft', async () => {

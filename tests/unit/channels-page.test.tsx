@@ -665,6 +665,7 @@ describe('Channels page status refresh', () => {
     expect(within(availableCard).getByRole('button', { name: 'addChannel' })).toBeInTheDocument();
     expect(within(availableCard).getAllByText('dialog.token').length).toBeGreaterThan(0);
     expect(within(availableCard).getByTestId('channel-entry-indicator-discord')).toBeInTheDocument();
+    expect(configuredCard).toHaveClass('app-pane-surface');
   });
 
   it('enters a channel when clicking the card action or the card itself', async () => {
@@ -681,7 +682,9 @@ describe('Channels page status refresh', () => {
       expect(screen.getByTestId('channel-rail-item-telegram')).toHaveAttribute('aria-pressed', 'true');
     });
     expect(screen.getByTestId('channel-account-item-default')).toHaveTextContent('Telegram Account');
-  });
+    expect(screen.getByTestId('channel-account-item-default')).toHaveClass('app-field-surface');
+    expect(within(screen.getByTestId('channel-account-item-default')).getByText('account.default')).toHaveClass('app-field-surface');
+  }, 15000);
 
   it('filters the rail with the search box', async () => {
     render(<Channels />);
@@ -801,7 +804,7 @@ describe('Channels page status refresh', () => {
     expect(screen.getByTestId('channel-rail-item-feishu').className).toContain('shadow-none');
 
     expect(screen.getByPlaceholderText('searchPlaceholder').className).not.toContain('#f5f1e8');
-    expect(screen.getByPlaceholderText('searchPlaceholder').className).toContain('bg-[hsl(var(--surface-panel)/0.86)]');
+    expect(screen.getByPlaceholderText('searchPlaceholder').className).toContain('app-field-surface');
   });
 
   it('keeps the entry and workbench cards free of glossy desktop-web shadows', async () => {

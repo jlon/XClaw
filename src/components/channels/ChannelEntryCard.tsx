@@ -38,7 +38,7 @@ export function ChannelEntryCard({
           onSelect();
         }
       }}
-      className="workbench-motion-card group flex min-h-[184px] w-full flex-col rounded-xl border border-[hsl(var(--border-subtle)/0.72)] bg-[hsl(var(--surface-elevated)/0.98)] p-4 text-left shadow-sm hover:border-[hsl(var(--border-strong)/0.36)] hover:shadow-md cursor-default"
+      className="app-pane-surface workbench-motion-card group flex min-h-[184px] w-full flex-col rounded-xl border border-[hsl(var(--border-subtle)/0.72)] bg-[hsl(var(--surface-elevated)/0.98)] p-4 text-left shadow-sm hover:border-[hsl(var(--border-strong)/0.36)] hover:shadow-md cursor-default"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">

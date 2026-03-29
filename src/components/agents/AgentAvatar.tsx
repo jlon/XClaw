@@ -12,7 +12,7 @@ interface AgentAvatarProps {
 
 export function AgentAvatar({ agentId, profile, size = 40, className }: AgentAvatarProps) {
   const { i18n } = useTranslation();
-  const spec = buildAgentAvatarSpec({ seed: agentId, profile, locale: i18n.language });
+  const spec = buildAgentAvatarSpec({ seed: agentId, profile, locale: i18n?.language ?? 'en' });
 
   return (
     <span

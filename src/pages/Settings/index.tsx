@@ -83,6 +83,12 @@ const settingsTabsTriggerClass =
 const settingsPaneDividerClass = 'border-t border-[hsl(var(--border-subtle))] pt-4';
 const settingsControlDockClass = 'flex w-full items-center justify-start md:justify-end';
 const settingsControlTrackClass = 'w-full md:max-w-[320px]';
+const settingsRuntimeInlineShellClass =
+  'settings-runtime-inline-shell app-shell-surface inline-flex w-fit items-center gap-3 rounded-full px-3 py-1.5';
+const settingsRuntimeProxySurfaceClass =
+  'settings-runtime-proxy-surface app-pane-surface space-y-3 rounded-lg px-4 py-3';
+const settingsRuntimeProxyAdvancedSurfaceClass =
+  'settings-runtime-proxy-advanced-surface app-field-surface grid grid-cols-1 gap-4 rounded-md p-4 sm:grid-cols-2';
 
 type SettingsSectionId = 'appearance' | 'runtime' | 'updates' | 'developer';
 
@@ -967,7 +973,7 @@ export function Settings() {
                           {t('gateway.openFolder')}
                         </Button>
                       </div>
-                      <div className="inline-flex w-fit items-center gap-3 rounded-full border border-border/60 bg-[hsl(var(--surface-base)/0.88)] px-3 py-1.5">
+                      <div className={settingsRuntimeInlineShellClass}>
                         <p className="text-[12px] font-medium text-foreground/82">{t('gateway.autoStart')}</p>
                         <Switch checked={gatewayAutoStart} onCheckedChange={setGatewayAutoStart} />
                       </div>
@@ -976,7 +982,7 @@ export function Settings() {
 
                   <div className={settingsPaneDividerClass}>
                     <div className="space-y-3">
-                      <div className="space-y-3 rounded-lg border border-border/60 bg-[hsl(var(--surface-panel)/0.72)] px-4 py-3">
+                      <div className={settingsRuntimeProxySurfaceClass}>
                         <div className="flex items-center justify-between gap-4">
                           <div className="min-w-0">
                             <Label className={settingsCompactRowLabelClass}>{t('gateway.proxyTitle')}</Label>
@@ -1020,7 +1026,7 @@ export function Settings() {
                       </div>
 
                       {showAdvancedProxyFields && (
-                        <div className="grid grid-cols-1 gap-4 rounded-md border border-border/60 bg-[hsl(var(--surface-base)/0.88)] p-4 sm:grid-cols-2">
+                        <div className={settingsRuntimeProxyAdvancedSurfaceClass}>
                           <div className="space-y-2">
                             <Label htmlFor="proxy-http-server" className={settingsLabelClass}>{t('gateway.proxyHttpServer')}</Label>
                             <Input

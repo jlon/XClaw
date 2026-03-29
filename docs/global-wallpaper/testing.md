@@ -20,6 +20,12 @@
 - `pnpm test tests/unit/chat-layout.test.tsx tests/unit/chat-theme-shell.test.ts tests/unit/global-titlebar-utilities.test.tsx tests/unit/workspace-page-layout.test.tsx`
 - `pnpm test tests/unit/global-wallpaper-layout.test.tsx tests/unit/global-wallpaper-material-contract.test.ts tests/unit/global-titlebar-utilities.test.tsx tests/unit/sidebar-chrome-surfaces.test.tsx tests/unit/workspace-page-layout.test.tsx tests/unit/chat-theme-shell.test.ts tests/unit/chat-message.test.tsx`
 - `pnpm test tests/unit/global-wallpaper-layout.test.tsx tests/unit/global-wallpaper-material-contract.test.ts tests/unit/global-titlebar-utilities.test.tsx tests/unit/sidebar-chrome-surfaces.test.tsx tests/unit/workspace-page-layout.test.tsx tests/unit/chat-theme-shell.test.ts tests/unit/chat-message.test.tsx tests/unit/chat-layout.test.tsx`
+- `pnpm test tests/unit/settings-layout.test.tsx`
+- `pnpm test tests/unit/channels-page.test.tsx --testNamePattern="renders entry cards with icon, action, summary, and breathing indicator|uses theme-compatible surfaces instead of fixed warm-only fills"`
+- `pnpm test tests/unit/agents-workbench-layout.test.tsx --testNamePattern="renders adaptive my-agents browse mode with a separate detail workbench"`
+- `pnpm test tests/unit/models-workbench-render.test.tsx --testNamePattern="consumes workbench contracts in the production models page and follows the provider-first shell"`
+- `pnpm test tests/unit/skills-page-layout.test.tsx --testNamePattern="renders a qclaw-style desktop skills center with local search and card grid"`
+- `pnpm test tests/unit/cron-agent-targeting.test.tsx --testNamePattern="uses wallpaper-aware surfaces for cron cards and dialog inputs"`
 - `pnpm run typecheck`
 - 真实 Electron 窗口截图验收 1 轮（聊天页，开启壁纸）
 
@@ -34,6 +40,9 @@
 - 已在真实 Electron 窗口中检查设置页侧栏底部 `设置` 入口：上方硬分隔线已消失，utility 区不再穿出突兀横线
 - 已通过静态契约验证聊天页新材质：`app-chat-main-stage` 存在独立阅读底板，assistant bubble 已改为文档流，composer 改为聊天专属玻璃 token
 - 已通过聊天布局回归验证新头部职责：`chat-titlebar-session-slot` 仅承载会话控制，品牌与搜索保留在侧栏 pane 顶部，焦点模式下仅保留标题栏显隐切换
+- 已通过设置页回归验证：`网关` 与 `更新` 分区内部新增语义化 surface contract，不再依赖私有 `bg-[hsl(...)]` 面板背景
+- 已通过工作台回归验证：`Models / Agents / Channels / Skills / Cron` 的主卡片、主 pane 与核心检索控件已补齐共享 surface contract
+- 已通过工作台次级 surface 回归验证：频道账号行、Agent 人格文件空状态、模型卡片 badge、技能页 tab shell 与 provider 搜索结果卡片已补齐共享 surface contract
 - 模型页、设置页、Studio 页仍建议继续做抽样肉眼检查，避免页面私有表面重新引入硬底
 
 ## 手工验证
@@ -72,3 +81,12 @@
 - 聊天页不能把工作台 pane glass 直接复用到消息正文，否则会重新引入暖色污染和整块脏雾感
 - 聊天侧栏头部不能再次拆回 titlebar 和 pane 两层，否则左上角会重新出现结构割裂
 - 品牌锁定点不能再被抬到 traffic lights 所在的标题栏行，否则会立刻产生格式错乱
+- 次级中性 badge、row 和 empty state 不应重新落回页面私有 `bg-[hsl(...)]`，否则会再次出现“主面统一、局部掉队”的观感断层
+
+## 本轮验证命令
+
+- `pnpm test tests/unit/channels-page.test.tsx --testNamePattern="enters a channel when clicking the card action or the card itself"`
+- `pnpm test tests/unit/agents-workbench-layout.test.tsx --testNamePattern="keeps the current detail tab when switching between local agent cards"`
+- `pnpm test tests/unit/models-workbench-render.test.tsx --testNamePattern="consumes workbench contracts in the production models page and follows the provider-first shell"`
+- `pnpm test tests/unit/skills-page-layout.test.tsx --testNamePattern="renders a qclaw-style desktop skills center with local search and card grid|loads top 50 provider results by default and filters out already installed skills"`
+- `pnpm run typecheck`

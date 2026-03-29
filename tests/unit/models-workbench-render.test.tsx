@@ -192,13 +192,18 @@ describe('models workbench render chain', () => {
     expect(screen.getByTestId('models-page-root')).toHaveAttribute('data-workbench-mode', 'default');
     expect(screen.getByTestId('models-provider-board')).toHaveAttribute('data-columns', '5');
     expect(screen.getByTestId('models-token-intelligence')).toHaveAttribute('data-layout', 'overview');
+    expect(screen.getByTestId('models-token-intelligence')).toHaveClass('app-pane-surface');
     expect(screen.getByTestId('models-token-summary-strip')).toBeInTheDocument();
     expect(screen.getByTestId('models-token-intelligence-header')).toBeInTheDocument();
+    expect(screen.getByTestId('models-usage-metric-toggle')).toHaveClass('app-shell-surface');
+    expect(screen.getByTestId('models-usage-window-toggle')).toHaveClass('app-shell-surface');
     expect(screen.getByTestId('models-trend-chart')).toBeInTheDocument();
     expect(screen.queryByTestId('models-breakdown-chart')).not.toBeInTheDocument();
     expect(screen.queryByTestId('models-recent-requests')).not.toBeInTheDocument();
     expect(screen.queryByTestId('models-usage-kpis')).not.toBeInTheDocument();
     expect(screen.queryByTestId('models-provider-board-all')).not.toBeInTheDocument();
+    expect(screen.getByTestId('models-provider-card-custom-prod')).toHaveClass('app-pane-surface');
+    expect(screen.getByTestId('models-provider-card-accounts-custom-prod')).toHaveClass('app-field-surface');
 
     fireEvent.click(screen.getByTestId('models-provider-card-select-custom-prod'));
 

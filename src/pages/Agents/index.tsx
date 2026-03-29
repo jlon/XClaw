@@ -73,7 +73,7 @@ interface AgentMarketCatalogResponse {
 }
 
 const fieldInputClasses =
-  'appearance-none h-[30px] rounded-[6px] text-[13px] bg-[hsl(var(--surface-base))] border border-[hsl(var(--border-subtle))] text-foreground placeholder:text-foreground/40 shadow-none transition-[border-color,box-shadow,background-color] duration-200 focus:outline-none focus-visible:outline-none focus-visible:border-[hsl(var(--border-strong))] focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-2 focus-visible:ring-[rgba(var(--glow-brand),0.25)] focus-visible:ring-offset-0 cursor-text';
+  'app-field-surface appearance-none h-[30px] rounded-[6px] text-[13px] bg-[hsl(var(--surface-base))] border border-[hsl(var(--border-subtle))] text-foreground placeholder:text-foreground/40 shadow-none transition-[border-color,box-shadow,background-color] duration-200 focus:outline-none focus-visible:outline-none focus-visible:border-[hsl(var(--border-strong))] focus-visible:bg-[hsl(var(--surface-elevated)/1)] focus-visible:ring-2 focus-visible:ring-[rgba(var(--glow-brand),0.25)] focus-visible:ring-offset-0 cursor-text';
 const modalSurfaceClasses =
   'app-modal-surface w-full rounded-xl';
 const badgeClasses =

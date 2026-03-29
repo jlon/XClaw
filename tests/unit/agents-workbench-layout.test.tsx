@@ -316,10 +316,13 @@ describe('agents workbench layout', () => {
     expect(screen.getByTestId('agents-browser-rail')).toBeInTheDocument();
     expect(screen.getByTestId('agents-card-list')).toBeInTheDocument();
     expect(screen.getByTestId('agents-detail-workbench')).toBeInTheDocument();
+    expect(screen.getByTestId('agents-browser-rail')).toHaveClass('app-pane-surface');
+    expect(screen.getByTestId('agents-detail-workbench')).toHaveClass('app-pane-surface');
     expect(within(screen.getByTestId('agents-mode-switch')).getByRole('button', { name: '本地' })).toBeInTheDocument();
     expect(within(screen.getByTestId('agents-browser-rail')).getByRole('textbox', { name: '搜索智能体、模型、工作区' })).toBeInTheDocument();
     expect(screen.getAllByText('pangtong').length).toBeGreaterThan(0);
     expect(within(screen.getByTestId('agents-detail-workbench')).getByRole('heading', { name: 'pangtong' })).toBeInTheDocument();
+    expect(within(screen.getByTestId('agents-card-list')).getAllByRole('button')[0]).toHaveClass('app-pane-surface');
     expect(screen.getByTestId('agents-workbench').className).toContain('min-[980px]:grid-cols-[minmax(340px,0.84fr)_minmax(500px,1.16fr)]');
     expect(screen.getByTestId('agents-workbench').className).toContain('min-[1580px]:grid-cols-[minmax(360px,0.92fr)_minmax(540px,1.08fr)]');
     expect(screen.getByTestId('agents-card-list').className).toContain('min-[1600px]:grid-cols-2');
@@ -550,6 +553,7 @@ describe('agents workbench layout', () => {
     await waitFor(() => {
       expect(hostApiFetchMock).toHaveBeenCalledWith('/api/agents/pangtong/files?root=workspace');
     });
+    expect(screen.getByText('当前还没有可编辑的文件。').closest('div')).toHaveClass('app-empty-surface');
 
     fireEvent.click(screen.getByRole('button', { name: /wudaozi/ }));
 

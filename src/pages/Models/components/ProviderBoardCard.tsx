@@ -19,7 +19,7 @@ interface ProviderBoardCardProps {
   onOpenInspector: (accountId: string) => void;
 }
 
-const cardClass = 'workbench-motion-card rounded-xl border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.985)] px-3.5 py-2.5 text-left hover:border-[hsl(var(--border-strong)/0.28)] hover:bg-[hsl(var(--surface-elevated)/1)] hover:shadow-sm';
+const cardClass = 'app-pane-surface workbench-motion-card rounded-xl border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.985)] px-3.5 py-2.5 text-left hover:border-[hsl(var(--border-strong)/0.28)] hover:bg-[hsl(var(--surface-elevated)/1)] hover:shadow-sm';
 const selectedCardClass = 'border-[hsl(var(--border-strong)/0.42)] bg-[hsl(var(--surface-elevated)/1)] shadow-sm';
 
 export const ProviderBoardCard = ({
@@ -79,7 +79,7 @@ export const ProviderBoardCard = ({
       <div className="relative z-10 space-y-1.5 pointer-events-none">
         <div className="flex items-start justify-between gap-2.5">
           <div className="flex min-w-0 items-start gap-2.5">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[11px] border border-[hsl(var(--border-subtle)/0.76)] bg-[hsl(var(--surface-base)/0.92)]">
+            <div className="app-field-surface flex h-8 w-8 shrink-0 items-center justify-center rounded-[11px] border border-[hsl(var(--border-subtle)/0.76)] bg-[hsl(var(--surface-base)/0.92)]">
               {providerIconUrl ? (
                 <img
                   src={providerIconUrl}
@@ -112,7 +112,7 @@ export const ProviderBoardCard = ({
             {primaryAccountId ? (
               <button
                 type="button"
-                className="desktop-focus-ring inline-flex h-6 w-6 items-center justify-center rounded-[8px] border border-[hsl(var(--border-subtle)/0.72)] bg-[hsl(var(--surface-base)/0.82)] text-muted-foreground transition-colors hover:bg-[hsl(var(--surface-hover)/0.82)] hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0"
+                className="desktop-focus-ring app-field-surface inline-flex h-6 w-6 items-center justify-center rounded-[8px] border border-[hsl(var(--border-subtle)/0.72)] bg-[hsl(var(--surface-base)/0.82)] text-muted-foreground transition-colors hover:bg-[hsl(var(--surface-hover)/0.82)] hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0"
                 aria-label={openInspectorLabel}
                 data-testid={`models-provider-card-details-${summary.runtimeProviderKey}`}
                 onClick={() => onOpenInspector(primaryAccountId)}
@@ -120,7 +120,10 @@ export const ProviderBoardCard = ({
                 <PanelRightOpen className="h-3.5 w-3.5" />
               </button>
             ) : null}
-            <span className="app-field-surface shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium text-foreground/76">
+            <span
+              data-testid={`models-provider-card-accounts-${summary.runtimeProviderKey}`}
+              className="app-field-surface shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium text-foreground/76"
+            >
               {summary.accountCount} {accountsLabel}
             </span>
           </div>

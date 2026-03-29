@@ -37,8 +37,8 @@ interface ChannelAccountListProps {
 
 const paneSurfaceClass =
   'app-pane-surface min-w-0 rounded-[14px] border border-[hsl(var(--border-subtle)/0.82)] bg-[hsl(var(--surface-elevated)/0.98)] shadow-none';
-const selectedItemClass = 'border-[hsl(var(--border-strong)/0.18)] bg-[hsl(var(--foreground)/0.04)] text-foreground shadow-sm';
-const idleItemClass = 'border-[hsl(var(--border-subtle)/0.68)] bg-[hsl(var(--surface-elevated)/0.72)] hover:border-[hsl(var(--border-strong)/0.16)] hover:bg-[hsl(var(--foreground)/0.024)]';
+const selectedItemClass = 'app-field-surface border-[hsl(var(--border-strong)/0.18)] bg-[hsl(var(--foreground)/0.04)] text-foreground shadow-sm';
+const idleItemClass = 'app-field-surface border-[hsl(var(--border-subtle)/0.68)] bg-[hsl(var(--surface-elevated)/0.72)] hover:border-[hsl(var(--border-strong)/0.16)] hover:bg-[hsl(var(--foreground)/0.024)]';
 
 export function ChannelAccountList({
   channelType,
@@ -127,7 +127,7 @@ export function ChannelAccountList({
                       {account.isDefault && (
                         <Badge
                           variant="secondary"
-                          className="h-5 rounded-[9px] border border-border/55 bg-[hsl(var(--foreground)/0.04)] px-1.5 text-[10px] font-medium text-foreground/72 shadow-none hover:bg-[hsl(var(--foreground)/0.04)]"
+                          className="app-field-surface h-5 rounded-[9px] border border-border/55 bg-[hsl(var(--foreground)/0.04)] px-1.5 text-[10px] font-medium text-foreground/72 shadow-none hover:bg-[hsl(var(--foreground)/0.04)]"
                         >
                           {t('account.default')}
                         </Badge>
@@ -155,7 +155,7 @@ export function ChannelAccountList({
                   </div>
 
                   <div className="flex shrink-0 flex-wrap items-center justify-end gap-1 text-right opacity-82 transition-opacity group-hover:opacity-100">
-                    <span className="inline-flex h-6.5 items-center gap-1.5 rounded-full border border-[hsl(var(--border-subtle)/0.54)] bg-[hsl(var(--surface-elevated)/0.96)] px-2 text-[10px] font-medium text-foreground/66">
+                    <span className="app-field-surface inline-flex h-6.5 items-center gap-1.5 rounded-full border border-[hsl(var(--border-subtle)/0.54)] bg-[hsl(var(--surface-elevated)/0.96)] px-2 text-[10px] font-medium text-foreground/66">
                       <span
                         data-testid={`channel-account-indicator-${account.accountId}`}
                         className={cn('h-2.5 w-2.5 rounded-[999px]', getStatusTone(account.status))}

@@ -8,8 +8,11 @@ import { invokeIpc } from '@/lib/api-client';
 import { useSettingsStore } from '@/stores/settings';
 import { useUpdateStore } from '@/stores/update';
 
-const panelClass = 'rounded-[16px] border border-border/60 bg-[hsl(var(--surface-panel)/0.78)] p-4 shadow-[0_12px_28px_rgba(15,23,42,0.04)]';
-const rowClass = 'flex flex-col gap-3 rounded-[14px] border border-border/50 bg-[hsl(var(--surface-base)/0.9)] px-4 py-3 md:flex-row md:items-center md:justify-between';
+const panelClass = 'settings-updates-panel-surface app-pane-surface rounded-[16px] p-4';
+const rowClass = 'settings-updates-row-surface app-field-surface flex flex-col gap-3 rounded-[14px] px-4 py-3 md:flex-row md:items-center md:justify-between';
+const badgeClass = 'settings-updates-badge-surface app-field-surface inline-flex items-center rounded-full px-3 py-1 text-[12px] text-foreground/72';
+const detailClass = 'settings-updates-detail-surface app-field-surface mt-4 rounded-[14px] px-4 py-3';
+const notesClass = 'settings-updates-notes-surface app-shell-surface mt-3 rounded-[12px] px-3 py-2';
 
 const statusToneClass: Record<string, string> = {
   idle: 'border-border/60 bg-[hsl(var(--surface-base)/0.92)] text-foreground/76',
@@ -80,7 +83,7 @@ export function UpdateSettings() {
                 {t(`updates.status.${status}`)}
               </span>
               {updateInfo?.version ? (
-                <span className="inline-flex items-center rounded-full border border-border/60 bg-[hsl(var(--surface-base)/0.92)] px-3 py-1 text-[12px] text-foreground/72">
+                <span className={badgeClass}>
                   {t('updates.releaseVersion', { version: updateInfo.version })}
                 </span>
               ) : null}
@@ -147,7 +150,7 @@ export function UpdateSettings() {
           </div>
         </div>
 
-        <div className="mt-4 rounded-[14px] border border-border/50 bg-[hsl(var(--surface-base)/0.92)] px-4 py-3">
+        <div className={detailClass}>
           <p className="text-sm text-foreground/82">
             {statusDetail}
           </p>
@@ -160,7 +163,7 @@ export function UpdateSettings() {
             </div>
           ) : null}
           {updateInfo?.releaseNotes ? (
-            <div className="mt-3 rounded-[12px] border border-border/50 bg-[hsl(var(--surface-panel)/0.74)] px-3 py-2">
+            <div className={notesClass}>
               <p className="text-[12px] uppercase tracking-[0.12em] text-muted-foreground/72">{t('updates.releaseNotes')}</p>
               <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-foreground/78">{updateInfo.releaseNotes}</p>
             </div>
