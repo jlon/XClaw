@@ -192,9 +192,10 @@ function MacChatTitleBar({ chatSidebarVisible }: { chatSidebarVisible: boolean }
           >
             <div aria-hidden="true" className="shrink-0" style={macTrafficLightClearanceStyle} />
             <div
-              data-chat-sidebar-header-slot="true"
               className="pointer-events-auto no-drag flex h-full min-w-0 flex-1 items-center justify-end px-3"
-            />
+            >
+              <ChatSessionHeaderControls compact surface="titlebar" />
+            </div>
           </div>
         ) : (
           <>

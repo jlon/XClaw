@@ -278,6 +278,10 @@
     radial-gradient(circle at top, hsl(var(--background) / 0.07) 0%, transparent 56%);
 }
 
+.desktop-app-shell--wallpaper[data-shell-route='chat'] .desktop-app-global-wallpaper-scrim {
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.04) 0%, rgb(255 255 255 / 0.04) 100%);
+}
+
 .desktop-app-shell-material-layer {
   z-index: 0;
   background:
@@ -315,6 +319,12 @@
 
 .desktop-app-shell--wallpaper {
   background: hsl(var(--chrome) / 0.32);
+}
+
+.desktop-app-shell--wallpaper[data-shell-route='chat'] {
+  --app-chat-wallpaper-sidebar-surface: linear-gradient(180deg, rgb(244 244 245 / 0.44) 0%, rgb(244 244 245 / 0.44) 100%);
+  --app-chat-wallpaper-main-surface: linear-gradient(180deg, rgb(255 255 255 / 0.32) 0%, rgb(255 255 255 / 0.32) 100%);
+  --app-chat-wallpaper-sidebar-divider: rgb(15 23 42 / 0.08);
 }
 
 .desktop-app-shell .app-page-stage {
@@ -568,6 +578,14 @@
   -webkit-backdrop-filter: saturate(118%) blur(10px);
 }
 
+.desktop-app-shell--wallpaper[data-shell-route='chat'] .desktop-app-shell-material-layer {
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.06) 0%, transparent 100%);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
 .desktop-app-shell[data-shell-route='chat'] .desktop-app-chat-nav-shell,
 .desktop-app-shell[data-shell-route='chat'] .desktop-app-titlebar-sidebar-slot--chat {
   background:
@@ -587,18 +605,15 @@
 
 .desktop-app-shell--wallpaper[data-shell-route='chat'] .desktop-app-chat-nav-shell,
 .desktop-app-shell--wallpaper[data-shell-route='chat'] .desktop-app-titlebar-sidebar-slot--chat {
-  background:
-    linear-gradient(180deg, rgb(244 244 245 / 0.68) 0%, rgb(240 241 243 / 0.56) 100%),
-    linear-gradient(180deg, rgb(255 255 255 / 0.12) 0%, transparent 100%);
-  box-shadow: inset -1px 0 0 rgb(255 255 255 / 0.16);
+  background: var(--app-chat-wallpaper-sidebar-surface);
+  border-right-color: var(--app-chat-wallpaper-sidebar-divider);
+  box-shadow: none;
 }
 
 .desktop-app-shell--wallpaper[data-shell-route='chat'] .desktop-app-titlebar-main-surface,
 .desktop-app-shell--wallpaper[data-shell-route='chat'] .desktop-app-workspace {
-  background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.62) 0%, rgb(250 250 251 / 0.48) 100%),
-    linear-gradient(0deg, rgb(243 244 246 / 0.02) 0%, rgb(243 244 246 / 0.02) 100%);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.22);
+  background: var(--app-chat-wallpaper-main-surface);
+  box-shadow: none;
 }
 
 .dark .desktop-app-shell {
@@ -607,6 +622,16 @@
 
 .dark .desktop-app-shell--wallpaper {
   background: hsl(var(--chrome-strong) / 0.34);
+}
+
+.dark .desktop-app-shell--wallpaper[data-shell-route='chat'] {
+  --app-chat-wallpaper-sidebar-surface: linear-gradient(180deg, rgb(21 23 28 / 0.44) 0%, rgb(21 23 28 / 0.44) 100%);
+  --app-chat-wallpaper-main-surface: linear-gradient(180deg, rgb(255 255 255 / 0.12) 0%, rgb(255 255 255 / 0.12) 100%);
+  --app-chat-wallpaper-sidebar-divider: rgb(255 255 255 / 0.06);
+}
+
+.dark .desktop-app-shell--wallpaper[data-shell-route='chat'] .desktop-app-global-wallpaper-scrim {
+  background: linear-gradient(180deg, rgb(0 0 0 / 0.12) 0%, rgb(0 0 0 / 0.12) 100%);
 }
 
 .dark .desktop-app-shell-body {
@@ -731,19 +756,10 @@
 
 .dark .desktop-app-shell--wallpaper[data-shell-route='chat'] .desktop-app-shell-material-layer {
   background:
-    linear-gradient(
-      90deg,
-      rgb(21 23 28 / 0.54) 0,
-      rgb(18 20 25 / 0.46) var(--desktop-sidebar-width),
-      rgb(255 255 255 / 0.16) var(--desktop-sidebar-width),
-      rgb(255 255 255 / 0.1) 100%
-    ),
-    linear-gradient(180deg, rgb(255 255 255 / 0.04) 0%, transparent 100%);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.04),
-    inset 0 -1px 0 rgb(0 0 0 / 0.12);
-  backdrop-filter: saturate(118%) blur(10px);
-  -webkit-backdrop-filter: saturate(118%) blur(10px);
+    linear-gradient(180deg, rgb(255 255 255 / 0.02) 0%, transparent 100%);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .dark .desktop-app-shell[data-shell-route='chat'] .desktop-app-chat-nav-shell,
@@ -765,14 +781,14 @@
 
 .dark .desktop-app-shell--wallpaper[data-shell-route='chat'] .desktop-app-chat-nav-shell,
 .dark .desktop-app-shell--wallpaper[data-shell-route='chat'] .desktop-app-titlebar-sidebar-slot--chat {
-  background: transparent;
-  border-right-color: rgb(255 255 255 / 0.06);
+  background: var(--app-chat-wallpaper-sidebar-surface);
+  border-right-color: var(--app-chat-wallpaper-sidebar-divider);
   box-shadow: none;
 }
 
 .dark .desktop-app-shell--wallpaper[data-shell-route='chat'] .desktop-app-titlebar-main-surface,
 .dark .desktop-app-shell--wallpaper[data-shell-route='chat'] .desktop-app-workspace {
-  background: transparent;
+  background: var(--app-chat-wallpaper-main-surface);
   box-shadow: none;
 }
 
@@ -1002,9 +1018,7 @@
 }
 
 .desktop-app-shell--wallpaper[data-shell-route='chat'] .app-chat-main-stage::before {
-  background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.36) 0%, rgb(251 251 252 / 0.24) 100%),
-    linear-gradient(0deg, rgb(243 244 246 / 0.02) 0%, rgb(243 244 246 / 0.02) 100%);
+  background: transparent;
 }
 
 .dark .desktop-app-shell[data-shell-route='chat'] .app-chat-main-stage::before {
@@ -1014,9 +1028,7 @@
 }
 
 .dark .desktop-app-shell--wallpaper[data-shell-route='chat'] .app-chat-main-stage::before {
-  background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.06) 0%, rgb(255 255 255 / 0.03) 100%),
-    linear-gradient(0deg, rgb(255 255 255 / 0.015) 0%, rgb(255 255 255 / 0.015) 100%);
+  background: transparent;
 }
 
 .desktop-app-shell .app-chat-workspace-shell,
@@ -1048,6 +1060,10 @@
 .desktop-app-shell-nav[data-chat-nav-visible='true'] ~ .desktop-app-workspace .app-chat-content-inset,
 .app-chat-empty-state-frame--with-nav {
   padding-inline-start: calc(var(--desktop-sidebar-width) + var(--desktop-chat-content-gap));
+}
+
+.desktop-app-shell-nav[data-chat-nav-visible='true'] ~ .desktop-app-workspace .app-chat-composer-shell.app-chat-content-inset {
+  padding-inline-start: calc(var(--desktop-sidebar-width) + var(--app-chat-composer-inline-padding));
 }
 
 .app-chat-welcome-stage {
@@ -2647,8 +2663,16 @@
 }
 
 .app-chat-composer-shell {
+  --app-chat-composer-inline-padding: 0.75rem;
   width: 100%;
   min-width: 0;
+  padding-inline: var(--app-chat-composer-inline-padding);
+}
+
+@media (min-width: 768px) {
+  .app-chat-composer-shell {
+    --app-chat-composer-inline-padding: 1rem;
+  }
 }
 
 .app-chat-composer-surface,
@@ -2686,11 +2710,11 @@
 .desktop-app-shell--wallpaper[data-shell-route='chat'] .app-chat-composer-surface,
 .desktop-app-shell--wallpaper[data-shell-route='chat'] .app-chat-composer-dock {
   background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.82) 0%, rgb(250 250 251 / 0.72) 100%);
-  border-color: rgb(17 24 39 / 0.05);
+    linear-gradient(180deg, rgb(255 255 255 / 0.5) 0%, rgb(250 250 251 / 0.38) 100%);
+  border-color: rgb(17 24 39 / 0.04);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.24),
-    0 8px 24px rgb(15 23 42 / 0.04);
+    inset 0 1px 0 rgb(255 255 255 / 0.18),
+    0 8px 24px rgb(15 23 42 / 0.03);
 }
 
 .dark .desktop-app-shell .app-chat-composer-surface,
@@ -3332,6 +3356,23 @@
 .desktop-app-shell[data-shell-route='chat'] .app-chat-session-row--active {
   border-color: transparent;
   background: rgb(17 24 39 / 0.06);
+}
+
+.desktop-app-shell--wallpaper[data-shell-route='chat'] .app-chat-session-control--search {
+  background: transparent;
+  border-color: rgb(15 23 42 / 0.08);
+  box-shadow: none;
+}
+
+.desktop-app-shell--wallpaper[data-shell-route='chat'] .app-chat-session-control--search:hover {
+  background: rgb(255 255 255 / 0.08);
+  border-color: rgb(15 23 42 / 0.1);
+}
+
+.desktop-app-shell--wallpaper[data-shell-route='chat'] .app-chat-session-control--search:focus-within {
+  background: rgb(255 255 255 / 0.12);
+  border-color: rgb(15 23 42 / 0.14);
+  box-shadow: none;
 }
 
 .dark .desktop-app-shell .app-chat-session-control--search {
@@ -5675,4 +5716,95 @@ html[data-platform="darwin"] .mac-workspace-main {
 html[data-platform="win32"] .mac-workspace-main,
 html[data-platform="linux"] .mac-workspace-main {
   border-left: 1px solid hsl(var(--chrome-divider));
+}
+
+.desktop-app-shell[data-shell-route='chat'] {
+  --app-chat-sidebar-plane: rgb(244 244 245 / 0.9);
+  --app-chat-main-plane: rgb(255 255 255 / 0.92);
+  --app-chat-plane-divider: rgb(15 23 42 / 0.08);
+  --app-chat-search-border: rgb(15 23 42 / 0.1);
+  --app-chat-search-hover: rgb(255 255 255 / 0.08);
+  --app-chat-search-focus: rgb(255 255 255 / 0.14);
+  --app-chat-shell-highlight: rgb(255 255 255 / 0.12);
+}
+
+.dark .desktop-app-shell[data-shell-route='chat'] {
+  --app-chat-sidebar-plane: rgb(24 26 31 / 0.82);
+  --app-chat-main-plane: rgb(255 255 255 / 0.14);
+  --app-chat-plane-divider: rgb(255 255 255 / 0.06);
+  --app-chat-search-border: rgb(255 255 255 / 0.1);
+  --app-chat-search-hover: rgb(255 255 255 / 0.06);
+  --app-chat-search-focus: rgb(255 255 255 / 0.1);
+  --app-chat-shell-highlight: rgb(255 255 255 / 0.03);
+}
+
+.desktop-app-shell:not(.desktop-app-shell--wallpaper)[data-shell-route='chat'] {
+  --app-chat-sidebar-plane:
+    linear-gradient(180deg, rgb(244 244 245 / 0.9) 0%, rgb(240 241 243 / 0.82) 100%);
+  --app-chat-main-plane:
+    linear-gradient(180deg, rgb(255 255 255 / 0.92) 0%, rgb(250 250 251 / 0.84) 100%);
+}
+
+.dark .desktop-app-shell:not(.desktop-app-shell--wallpaper)[data-shell-route='chat'] {
+  --app-chat-sidebar-plane:
+    linear-gradient(180deg, rgb(30 32 38 / 0.86) 0%, rgb(24 26 32 / 0.8) 100%);
+  --app-chat-main-plane:
+    linear-gradient(180deg, rgb(42 45 53 / 0.9) 0%, rgb(35 38 45 / 0.82) 100%);
+}
+
+.desktop-app-shell--wallpaper[data-shell-route='chat'] .desktop-app-global-wallpaper-scrim {
+  background: none !important;
+}
+
+html[data-platform='darwin'] .desktop-app-shell[data-shell-route='chat'].mac-vibrancy-shell {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.desktop-app-shell[data-shell-route='chat'] .desktop-app-shell-material-layer {
+  background:
+    linear-gradient(
+      90deg,
+      var(--app-chat-sidebar-plane) 0,
+      var(--app-chat-sidebar-plane) var(--desktop-sidebar-width),
+      var(--app-chat-main-plane) var(--desktop-sidebar-width),
+      var(--app-chat-main-plane) 100%
+    ),
+    linear-gradient(180deg, var(--app-chat-shell-highlight) 0%, transparent 100%) !important;
+  box-shadow: none !important;
+  backdrop-filter: saturate(118%) blur(26px) !important;
+  -webkit-backdrop-filter: saturate(118%) blur(26px) !important;
+}
+
+.desktop-app-shell[data-shell-route='chat'] .desktop-app-chat-nav-shell,
+.desktop-app-shell[data-shell-route='chat'] .desktop-app-titlebar-sidebar-slot--chat,
+.desktop-app-shell[data-shell-route='chat'] .desktop-app-titlebar-main-surface,
+.desktop-app-shell[data-shell-route='chat'] .desktop-app-workspace,
+.desktop-app-shell[data-shell-route='chat'] .app-chat-main-stage::before,
+.desktop-app-shell[data-shell-route='chat'] .desktop-app-titlebar--chat,
+.desktop-app-shell[data-shell-route='chat'] .desktop-app-titlebar--chat > .flex {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.desktop-app-shell[data-shell-route='chat'] .desktop-app-titlebar-sidebar-slot--chat,
+.desktop-app-shell[data-shell-route='chat'] .desktop-app-chat-nav-shell {
+  border-right-color: var(--app-chat-plane-divider) !important;
+}
+
+.desktop-app-shell[data-shell-route='chat'] .app-chat-session-control--search {
+  background: transparent !important;
+  border-color: var(--app-chat-search-border) !important;
+  box-shadow: none !important;
+}
+
+.desktop-app-shell[data-shell-route='chat'] .app-chat-session-control--search:hover {
+  background: var(--app-chat-search-hover) !important;
+}
+
+.desktop-app-shell[data-shell-route='chat'] .app-chat-session-control--search:focus-within {
+  background: var(--app-chat-search-focus) !important;
+  border-color: var(--app-chat-search-border) !important;
+  box-shadow: none !important;
 }
