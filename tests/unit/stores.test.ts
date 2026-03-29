@@ -37,9 +37,26 @@ describe('Settings Store', () => {
   });
   
   it('should update theme', () => {
+    const invoke = vi.mocked(window.electron.ipcRenderer.invoke);
+    invoke.mockResolvedValueOnce({
+      ok: true,
+      data: {
+        status: 200,
+        ok: true,
+        json: { success: true },
+      },
+    });
     const { setTheme } = useSettingsStore.getState();
     setTheme('dark');
     expect(useSettingsStore.getState().theme).toBe('dark');
+    expect(invoke).toHaveBeenCalledWith(
+      'hostapi:fetch',
+      expect.objectContaining({
+        path: '/api/settings/theme',
+        method: 'PUT',
+        body: JSON.stringify({ value: 'dark' }),
+      }),
+    );
   });
   
   it('should toggle sidebar collapsed state', () => {
@@ -243,6 +260,53 @@ describe('Settings Store', () => {
         body: JSON.stringify({ value: true }),
       }),
     );
+  });
+
+  it('should derive a wallpaper asset key from legacy settings payloads', async () => {
+    const invoke = vi.mocked(window.electron.ipcRenderer.invoke);
+    invoke.mockResolvedValueOnce({
+      ok: true,
+      data: {
+        status: 200,
+        ok: true,
+        json: {
+          globalWallpaperEnabled: true,
+          globalWallpaperOpacity: 0.42,
+          globalWallpaperAssetPath: '/tmp/xclaw/wallpaper/managed.png',
+        },
+      },
+    });
+
+    useSettingsStore.setState({
+      globalWallpaperEnabled: false,
+      globalWallpaperOpacity: 0.36,
+      globalWallpaperAssetKey: '',
+      initialized: false,
+    });
+
+    await useSettingsStore.getState().init();
+
+    const state = useSettingsStore.getState();
+    expect(state.globalWallpaperAssetKey).toBe('managed.png');
+    expect(state.globalWallpaperEnabled).toBe(true);
+    expect(state.globalWallpaperOpacity).toBe(0.42);
+  });
+
+  it('should accept legacy wallpaper sync payloads that still include asset paths', () => {
+    useSettingsStore.setState({
+      globalWallpaperEnabled: false,
+      globalWallpaperOpacity: 0.36,
+      globalWallpaperAssetKey: '',
+    });
+
+    useSettingsStore.getState().syncGlobalWallpaperState({
+      globalWallpaperEnabled: true,
+      globalWallpaperAssetPath: '/tmp/xclaw/wallpaper/fresh.png',
+    } as never);
+
+    const state = useSettingsStore.getState();
+    expect(state.globalWallpaperAssetKey).toBe('fresh.png');
+    expect(state.globalWallpaperEnabled).toBe(true);
   });
 });
 

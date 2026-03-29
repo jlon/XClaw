@@ -1,0 +1,15 @@
+{
+  "key": "lodge-default",
+  "name": "Lodge Default",
+  "summary": "Warm default cabin palette for the studio shell.",
+  "surface": {
+    "tone": "warm",
+    "material": "wood",
+    "style": "lodge"
+  },
+  "assets": {
+    "office_bg_small.webp": "skins/lodge-default/assets/office_bg_small.webp",
+    "desk-v3.webp": "skins/lodge-default/assets/desk-v3.webp",
+    "sofa-idle-v3.png": "skins/lodge-default/assets/sofa-idle-v3.png"
+  }
+}

@@ -22,6 +22,8 @@
         "description": "Python 環境を再構築し、スタジオ依存関係を再インストールしています。しばらくお待ちください。"
     },
     "actions": {
-        "retry": "ランタイムを再試行"
+        "retry": "ランタイムを再試行",
+        "shuffleSkin": "スキン切替",
+        "switchingSkin": "切替中…"
     }
 }

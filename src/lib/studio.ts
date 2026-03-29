@@ -1,11 +1,29 @@
 import { createHostEventSource, hostApiFetch } from './host-api';
-import type { StudioRuntimeEventPayload, StudioRuntimeSnapshot } from '@/types/studio';
+import type {
+  StudioRuntimeEventPayload,
+  StudioRuntimeSnapshot,
+  StudioSkinApplyResult,
+  StudioSkinDescriptor,
+} from '@/types/studio';
 
 const LAST_CHAT_ROUTE_KEY = 'XClaw:lastChatRoute';
 const STUDIO_RUNTIME_CHANGED_EVENT = 'studioRuntimeChanged';
 
 let studioRuntimeEventSource: EventSource | null = null;
 let memoryLastChatRoute: string | null = null;
+
+export interface StudioSkinRegistryEntry extends StudioSkinDescriptor {
+  name: string;
+  manifestPath: string;
+}
+
+export interface StudioSkinRegistryResponse {
+  defaultFallbackSkinKey: string;
+  currentAppliedSkinKey?: string | null;
+  skins: StudioSkinRegistryEntry[];
+}
+
+export interface StudioSkinApplyResponse extends StudioSkinApplyResult, StudioSkinRegistryResponse {}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === 'object' && !Array.isArray(value);
@@ -132,6 +150,79 @@ function normalizeRuntimeResponse(value: unknown): StudioRuntimeSnapshot {
   return {};
 }
 
+function normalizeStudioSkinRegistryResponse(value: unknown): StudioSkinRegistryResponse {
+  if (!isRecord(value)) {
+    return {
+      defaultFallbackSkinKey: 'lodge-default',
+      skins: [],
+    };
+  }
+
+  const skins = Array.isArray(value.skins)
+    ? value.skins
+        .filter((entry): entry is StudioSkinRegistryEntry => isRecord(entry) && typeof entry.key === 'string')
+        .map((entry) => ({
+          key: entry.key.trim(),
+          name: typeof entry.name === 'string' && entry.name.trim() ? entry.name.trim() : entry.key.trim(),
+          manifestPath: typeof entry.manifestPath === 'string' && entry.manifestPath.trim()
+            ? entry.manifestPath.trim()
+            : `${entry.key.trim()}/manifest.json`,
+          enabled: entry.enabled === true,
+          selectable: entry.selectable === true,
+          isDefaultFallback: entry.isDefaultFallback === true,
+        }))
+    : [];
+
+  return {
+    defaultFallbackSkinKey:
+      typeof value.defaultFallbackSkinKey === 'string' && value.defaultFallbackSkinKey.trim()
+        ? value.defaultFallbackSkinKey.trim()
+        : skins.find((skin) => skin.isDefaultFallback)?.key || 'lodge-default',
+    currentAppliedSkinKey:
+      typeof value.currentAppliedSkinKey === 'string' && value.currentAppliedSkinKey.trim()
+        ? value.currentAppliedSkinKey.trim()
+        : null,
+    skins,
+  };
+}
+
+function normalizeStudioSkinApplyResponse(value: unknown): StudioSkinApplyResponse {
+  if (!isRecord(value)) {
+    return {
+      ok: false,
+      appliedSkinKey: null,
+      fallbackApplied: false,
+      reason: 'invalid_response',
+      defaultFallbackSkinKey: 'lodge-default',
+      skins: [],
+    };
+  }
+
+  const registry = normalizeStudioSkinRegistryResponse(value);
+  return {
+    ok: value.ok === true,
+    appliedSkinKey:
+      typeof value.appliedSkinKey === 'string' && value.appliedSkinKey.trim()
+        ? value.appliedSkinKey.trim()
+        : null,
+    currentAppliedSkinKey:
+      typeof value.currentAppliedSkinKey === 'string' && value.currentAppliedSkinKey.trim()
+        ? value.currentAppliedSkinKey.trim()
+        : null,
+    fallbackApplied: value.fallbackApplied === true,
+    reason:
+      typeof value.reason === 'string'
+        ? value.reason.trim() || null
+        : value.reason == null
+          ? null
+          : String(value.reason),
+    refreshedAssets: Array.isArray(value.refreshedAssets)
+      ? value.refreshedAssets.filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
+      : [],
+    ...registry,
+  };
+}
+
 function getStudioRuntimeEventSource(): EventSource {
   if (!studioRuntimeEventSource) {
     studioRuntimeEventSource = createHostEventSource();
@@ -161,6 +252,39 @@ export async function retryStudioRuntime(
     }),
   });
   return normalizeRuntimeResponse(response);
+}
+
+export async function fetchStudioSkinRegistry(): Promise<StudioSkinRegistryResponse> {
+  const response = await hostApiFetch<unknown>('/api/studio/skins/registry');
+  return normalizeStudioSkinRegistryResponse(response);
+}
+
+export async function fetchStudioSkins(): Promise<StudioSkinRegistryResponse> {
+  const response = await hostApiFetch<unknown>('/api/studio/skins');
+  return normalizeStudioSkinRegistryResponse(response);
+}
+
+export async function applyStudioSkin(payload: { skinKey: string }): Promise<StudioSkinApplyResponse> {
+  const response = await hostApiFetch<unknown>('/api/studio/skins/apply', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+  return normalizeStudioSkinApplyResponse(response);
+}
+
+export function appendStudioSkinQuery(resolvedUrl: string, skinKey?: string | null): string {
+  const normalizedSkinKey = typeof skinKey === 'string' ? skinKey.trim() : '';
+  if (!normalizedSkinKey) {
+    return resolvedUrl;
+  }
+
+  try {
+    const url = new URL(resolvedUrl);
+    url.searchParams.set('skinKey', normalizedSkinKey);
+    return url.toString();
+  } catch {
+    return resolvedUrl;
+  }
 }
 
 export function subscribeStudioRuntimeChanged(

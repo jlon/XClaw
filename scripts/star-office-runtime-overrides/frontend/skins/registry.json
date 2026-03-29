@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "defaultFallbackSkinKey": "lodge-default",
+  "skins": [
+    {
+      "key": "lodge-default",
+      "name": "Lodge Default",
+      "enabled": true,
+      "selectable": true,
+      "isDefaultFallback": true,
+      "manifestPath": "lodge-default/manifest.json"
+    },
+    {
+      "key": "ember-cabin",
+      "name": "Ember Cabin",
+      "enabled": true,
+      "selectable": true,
+      "isDefaultFallback": false,
+      "manifestPath": "ember-cabin/manifest.json"
+    },
+    {
+      "key": "frost-ops",
+      "name": "Frost Ops",
+      "enabled": true,
+      "selectable": true,
+      "isDefaultFallback": false,
+      "manifestPath": "frost-ops/manifest.json"
+    }
+  ]
+}

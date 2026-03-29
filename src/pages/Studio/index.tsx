@@ -1,12 +1,24 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertCircle, Loader2, RotateCcw } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AlertCircle, Loader2, RotateCcw, Shuffle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
+  appendStudioSkinQuery,
+  applyStudioSkin,
+  fetchStudioSkinRegistry,
+  fetchStudioSkins,
   fetchStudioRuntime,
   startStudioRuntime,
   retryStudioRuntime,
   subscribeStudioRuntimeChanged,
+  type StudioSkinRegistryResponse,
 } from '@/lib/studio';
+import {
+  confirmStudioSkinApplied,
+  createStudioSkinSession,
+  recordStudioSkinOnLeave,
+  selectEntryStudioSkin,
+  selectManualStudioSkin,
+} from '@/lib/studio-skins';
 import { useChatStore } from '@/stores/chat';
 import type { StudioRuntimeSnapshot } from '@/types/studio';
 
@@ -29,6 +41,10 @@ type StudioWebViewElement = HTMLElement & {
     horizontal?: boolean;
     vertical?: boolean;
   }) => void;
+};
+
+type StudioBrowserFrameWindow = Window & {
+  __applyStudioSkinRuntimeResult?: (result: unknown) => Promise<boolean> | boolean;
 };
 
 const STUDIO_FRAME_PROXY_PREFIX = '/api/studio/frame';
@@ -60,14 +76,36 @@ export function Studio({ active = true }: { active?: boolean }) {
   const { t } = useTranslation('studio');
   const currentAgentId = useChatStore((s) => s.currentAgentId);
   const [runtime, setRuntime] = useState<StudioRuntimeSnapshot | null>(null);
+  const [skinRegistry, setSkinRegistry] = useState<StudioSkinRegistryResponse>(() => ({
+    defaultFallbackSkinKey: 'lodge-default',
+    currentAppliedSkinKey: 'lodge-default',
+    skins: [
+      {
+        key: 'lodge-default',
+        name: 'Lodge Default',
+        manifestPath: 'lodge-default/manifest.json',
+        enabled: true,
+        selectable: true,
+        isDefaultFallback: true,
+      },
+    ],
+  }));
+  const [skinRegistryReady, setSkinRegistryReady] = useState(false);
+  const skinSessionRef = useRef(createStudioSkinSession(skinRegistry.skins));
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const skinSyncKeyRef = useRef<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [retrying, setRetrying] = useState(false);
+  const [switchingSkin, setSwitchingSkin] = useState(false);
+  const [syncingSkin, setSyncingSkin] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const runtimeShellRef = useRef<HTMLDivElement | null>(null);
   const webviewRef = useRef<StudioWebViewElement | null>(null);
   const webviewDomReadyRef = useRef(false);
   const focusedAgentIdRef = useRef('');
+  const [studioSkinKey, setStudioSkinKey] = useState<string | null>(null);
   const [surfaceReady, setSurfaceReady] = useState(active);
+  const [surfaceNonce, setSurfaceNonce] = useState(0);
 
   const loadRuntime = useCallback(async () => {
     setLoading(true);
@@ -102,6 +140,56 @@ export function Studio({ active = true }: { active?: boolean }) {
     setLoading(false);
   }), []);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    void fetchStudioSkinRegistry()
+      .then((registry) => {
+        if (cancelled) {
+          return;
+        }
+        setSkinRegistry(registry);
+        skinSessionRef.current = createStudioSkinSession(registry.skins);
+        setSkinRegistryReady(true);
+      })
+      .catch(() => {
+        if (cancelled) {
+          return;
+        }
+        skinSessionRef.current = createStudioSkinSession(skinRegistry.skins);
+        setSkinRegistryReady(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const session = skinSessionRef.current;
+    if (!session || !skinRegistryReady) {
+      return;
+    }
+
+    if (!active) {
+      if (session.currentSkinKey) {
+        recordStudioSkinOnLeave(session);
+        session.currentSkinKey = null;
+      }
+      skinSyncKeyRef.current = null;
+      setStudioSkinKey(null);
+      return;
+    }
+
+    if (!studioSkinKey) {
+      const nextSkinKey = selectEntryStudioSkin(session);
+      if (nextSkinKey) {
+        setStudioSkinKey(nextSkinKey);
+      }
+      skinSyncKeyRef.current = null;
+    }
+  }, [active, skinRegistryReady, studioSkinKey, skinRegistry.defaultFallbackSkinKey]);
+
   const resolvedUrl = typeof runtime?.resolvedUrl === 'string' ? runtime.resolvedUrl.trim() : '';
   const focusedAgentId = typeof currentAgentId === 'string' ? currentAgentId.trim() : '';
   focusedAgentIdRef.current = focusedAgentId;
@@ -113,16 +201,113 @@ export function Studio({ active = true }: { active?: boolean }) {
     typeof runtime?.error === 'string' ? runtime.error.trim() : '',
     typeof runtime?.message === 'string' ? runtime.message.trim() : '',
   ].find((value) => value.length > 0) ?? '';
+  const resolvedStudioRuntimeUrl = appendStudioSkinQuery(resolvedUrl, studioSkinKey);
   const runtimeInstanceKey = runtime?.runtimeInstanceId != null
-    ? String(runtime.runtimeInstanceId)
-    : resolvedUrl || 'studio-runtime';
+    ? `${String(runtime.runtimeInstanceId)}:${studioSkinKey ?? 'fallback'}:${surfaceNonce}`
+    : `${resolvedStudioRuntimeUrl || 'studio-runtime'}:${surfaceNonce}`;
   const hasElectronRenderer = Boolean(window.electron?.ipcRenderer);
-  const browserFrameUrl = resolveBrowserStudioFrameUrl(resolvedUrl, focusedAgentId);
-  const canRenderRuntimeSurface = runtimeStatus === 'ready' && resolvedUrl.length > 0;
+  const browserFrameUrl = resolveBrowserStudioFrameUrl(resolvedStudioRuntimeUrl, focusedAgentId);
+  const selectableSkinCount = useMemo(
+    () => skinRegistry.skins.filter((skin) => skin.enabled && skin.selectable).length,
+    [skinRegistry.skins],
+  );
+  const activeSkinName =
+    skinRegistry.skins.find((skin) => skin.key === studioSkinKey)?.name
+      ?? skinRegistry.skins.find((skin) => skin.key === skinRegistry.currentAppliedSkinKey)?.name
+      ?? null;
+  const canRenderRuntimeSurface = skinRegistryReady && runtimeStatus === 'ready' && resolvedUrl.length > 0 && Boolean(studioSkinKey);
   const canRenderWebview = active && surfaceReady && canRenderRuntimeSurface && hasElectronRenderer;
   const canRenderBrowserFrame = active && surfaceReady && canRenderRuntimeSurface && !hasElectronRenderer;
   const showSurfacePrimingMask = active && !surfaceReady && canRenderRuntimeSurface;
   const showInitializingMask = retrying || runtimeStatus === 'starting' || runtimeStatus === 'restarting';
+
+  const dispatchStudioSkinRuntimeResult = useCallback(async (result: unknown): Promise<boolean> => {
+    const runtimePayload = JSON.stringify(result);
+
+    if (hasElectronRenderer && webviewRef.current && webviewDomReadyRef.current) {
+      try {
+        const response = await webviewRef.current.executeJavaScript(
+          `window.__applyStudioSkinRuntimeResult ? window.__applyStudioSkinRuntimeResult(${runtimePayload}) : false;`,
+          false,
+        );
+        return response === true;
+      } catch {
+        return false;
+      }
+    }
+
+    const frameWindow = iframeRef.current?.contentWindow as StudioBrowserFrameWindow | null;
+    if (frameWindow && typeof frameWindow.__applyStudioSkinRuntimeResult === 'function') {
+      try {
+        const response = await frameWindow.__applyStudioSkinRuntimeResult(result);
+        return response === true;
+      } catch {
+        return false;
+      }
+    }
+
+    if (frameWindow) {
+      frameWindow.postMessage({ type: 'xclaw:studio-skin-apply-result', result }, window.location.origin);
+      return true;
+    }
+
+    return false;
+  }, [hasElectronRenderer]);
+
+  const syncRuntimeSkinSelection = useCallback(async () => {
+    const requestedSkinKey = typeof studioSkinKey === 'string' ? studioSkinKey.trim() : '';
+    if (!requestedSkinKey || skinSyncKeyRef.current === requestedSkinKey) {
+      return;
+    }
+
+    setSyncingSkin(true);
+    try {
+      const snapshot = await fetchStudioSkins();
+      const session = skinSessionRef.current;
+      if (!session) {
+        return;
+      }
+      const currentAppliedSkinKey =
+        typeof snapshot.currentAppliedSkinKey === 'string' && snapshot.currentAppliedSkinKey.trim()
+          ? snapshot.currentAppliedSkinKey.trim()
+          : '';
+      const fallbackOrRequestedSkinKey = currentAppliedSkinKey || snapshot.defaultFallbackSkinKey || requestedSkinKey;
+      const runtimeNeedsApply = currentAppliedSkinKey !== requestedSkinKey;
+      const result = runtimeNeedsApply
+        ? await applyStudioSkin({ skinKey: requestedSkinKey })
+        : {
+            ok: true,
+            appliedSkinKey: fallbackOrRequestedSkinKey,
+            currentAppliedSkinKey: fallbackOrRequestedSkinKey,
+            fallbackApplied: false,
+            refreshedAssets: [],
+            reason: null,
+            defaultFallbackSkinKey: snapshot.defaultFallbackSkinKey,
+            skins: snapshot.skins,
+          };
+      if (runtimeNeedsApply) {
+        const runtimeUpdated = await dispatchStudioSkinRuntimeResult(result);
+        if (!runtimeUpdated) {
+          setSurfaceNonce((value) => value + 1);
+        }
+      }
+      confirmStudioSkinApplied(session, result);
+      const normalizedSkinKey = session.currentSkinKey || result.currentAppliedSkinKey || snapshot.currentAppliedSkinKey || snapshot.defaultFallbackSkinKey || requestedSkinKey;
+      setStudioSkinKey(normalizedSkinKey);
+      setSkinRegistry((previous) => ({
+        ...previous,
+        currentAppliedSkinKey:
+          result.currentAppliedSkinKey ?? result.appliedSkinKey ?? snapshot.currentAppliedSkinKey ?? normalizedSkinKey,
+        defaultFallbackSkinKey: result.defaultFallbackSkinKey || snapshot.defaultFallbackSkinKey || previous.defaultFallbackSkinKey,
+        skins: result.skins.length > 0 ? result.skins : snapshot.skins.length > 0 ? snapshot.skins : previous.skins,
+      }));
+      skinSyncKeyRef.current = normalizedSkinKey;
+    } catch {
+      return;
+    } finally {
+      setSyncingSkin(false);
+    }
+  }, [dispatchStudioSkinRuntimeResult, studioSkinKey]);
 
   useEffect(() => {
     if (!active) {
@@ -223,9 +408,11 @@ export function Studio({ active = true }: { active?: boolean }) {
     const syncWithDelay = () => {
       syncEmbeddedBounds();
       syncFocusedAgentMarker();
+      void syncRuntimeSkinSelection();
       window.setTimeout(() => {
         syncEmbeddedBounds();
         syncFocusedAgentMarker();
+        void syncRuntimeSkinSelection();
       }, 250);
     };
 
@@ -251,7 +438,7 @@ export function Studio({ active = true }: { active?: boolean }) {
       webview.removeEventListener('did-stop-loading', handleDomReady);
       observer?.disconnect();
     };
-  }, [canRenderWebview, runtimeInstanceKey, syncEmbeddedBounds, syncFocusedAgentMarker]);
+  }, [canRenderWebview, runtimeInstanceKey, syncEmbeddedBounds, syncFocusedAgentMarker, syncRuntimeSkinSelection]);
 
   useEffect(() => {
     if (!canRenderWebview) {
@@ -260,6 +447,42 @@ export function Studio({ active = true }: { active?: boolean }) {
     syncFocusedAgentMarker();
   }, [canRenderWebview, runtimeInstanceKey, focusedAgentId, syncFocusedAgentMarker]);
 
+  const handleManualSkinSwitch = useCallback(async () => {
+    const session = skinSessionRef.current;
+    if (!session || switchingSkin) {
+      return;
+    }
+
+    const nextSkinKey = selectManualStudioSkin(session, Math.random, studioSkinKey);
+    if (!nextSkinKey) {
+      return;
+    }
+
+    setSwitchingSkin(true);
+    setError(null);
+    try {
+      const result = await applyStudioSkin({ skinKey: nextSkinKey });
+      const runtimeUpdated = await dispatchStudioSkinRuntimeResult(result);
+      if (!runtimeUpdated) {
+        setSurfaceNonce((value) => value + 1);
+      }
+      confirmStudioSkinApplied(session, result);
+      setStudioSkinKey(session.currentSkinKey);
+      setSkinRegistry((previous) => ({
+        ...previous,
+        currentAppliedSkinKey:
+          result.currentAppliedSkinKey ?? result.appliedSkinKey ?? previous.currentAppliedSkinKey ?? previous.defaultFallbackSkinKey,
+        defaultFallbackSkinKey: result.defaultFallbackSkinKey || previous.defaultFallbackSkinKey,
+        skins: result.skins.length > 0 ? result.skins : previous.skins,
+      }));
+      skinSyncKeyRef.current = session.currentSkinKey;
+    } catch (caughtError) {
+      setError(caughtError instanceof Error ? caughtError.message : String(caughtError));
+    } finally {
+      setSwitchingSkin(false);
+    }
+  }, [dispatchStudioSkinRuntimeResult, switchingSkin]);
+
   return (
     <div className="app-chat-shell relative flex h-full min-h-0 flex-1 flex-col bg-background transition-colors duration-500">
       <div className="flex min-h-0 flex-1 flex-col p-3 md:p-4 lg:p-5">
@@ -267,6 +490,27 @@ export function Studio({ active = true }: { active?: boolean }) {
           ref={runtimeShellRef}
           className="studio-runtime-shell relative flex min-h-0 flex-1 overflow-hidden rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated))] shadow-sm"
         >
+          {active && selectableSkinCount > 1 ? (
+            <div className="absolute right-3 top-3 z-20 flex items-center gap-2">
+              {activeSkinName ? (
+                <div className="hidden rounded-full border border-border/70 bg-[hsl(var(--surface-elevated)/0.92)] px-3 py-1 text-[12px] font-medium text-foreground/64 shadow-sm md:block">
+                  {activeSkinName}
+                </div>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => {
+                  void handleManualSkinSwitch();
+                }}
+                disabled={switchingSkin || syncingSkin || showInitializingMask || showSurfacePrimingMask}
+                className="inline-flex h-9 items-center gap-2 rounded-full border border-border/70 bg-[hsl(var(--surface-elevated)/0.96)] px-3 text-[12px] font-medium text-foreground shadow-sm transition-colors hover:bg-[hsl(var(--surface-hover)/0.55)] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {switchingSkin ? <Loader2 className="h-4 w-4 animate-spin" /> : <Shuffle className="h-4 w-4" />}
+                <span>{switchingSkin || syncingSkin ? t('actions.switchingSkin') : t('actions.shuffleSkin')}</span>
+              </button>
+            </div>
+          ) : null}
+
           {showInitializingMask || showSurfacePrimingMask ? (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-[hsl(var(--background)/0.9)] px-6">
               <div className="w-full max-w-[360px] rounded-xl border border-border/70 bg-[hsl(var(--surface-elevated))] p-5 text-center shadow-lg">
@@ -289,7 +533,7 @@ export function Studio({ active = true }: { active?: boolean }) {
                 webviewRef.current = node as StudioWebViewElement | null;
               }}
               key={runtimeInstanceKey}
-              src={resolvedUrl}
+              src={resolvedStudioRuntimeUrl}
               partition="xclaw-studio"
               webpreferences="contextIsolation=yes,sandbox=yes"
               className="h-full w-full"
@@ -301,10 +545,14 @@ export function Studio({ active = true }: { active?: boolean }) {
             />
           ) : canRenderBrowserFrame ? (
             <iframe
+              ref={iframeRef}
               key={`${runtimeInstanceKey}:${browserFrameUrl}`}
               title={t('runtime.frameTitle', 'studio.runtimeFrame')}
               src={browserFrameUrl}
               className="h-full w-full border-0"
+              onLoad={() => {
+                void syncRuntimeSkinSelection();
+              }}
               data-testid="studio-runtime-frame"
             />
           ) : active ? (

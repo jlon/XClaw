@@ -22,6 +22,8 @@
         "description": "正在重新准备 Python 环境并安装工作室依赖，请稍候。"
     },
     "actions": {
-        "retry": "重试运行时"
+        "retry": "重试运行时",
+        "shuffleSkin": "换皮",
+        "switchingSkin": "切换中…"
     }
 }

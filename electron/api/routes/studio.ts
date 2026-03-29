@@ -1,9 +1,11 @@
 import type { IncomingMessage, ServerResponse } from 'http';
 import type { HostApiContext } from '../context';
 import { parseJsonBody, sendJson, sendNoContent, sendText } from '../route-utils';
+import { readStudioSkinRegistry } from '../../studio/skin-registry';
 
 const STUDIO_FRAME_ROUTE_PREFIX = '/api/studio/frame';
 const STUDIO_FRAME_DEFAULT_PATH = '/electron-standalone';
+const STUDIO_SKINS_RUNTIME_PREFIX = '/studio/skins';
 
 const copyRequestHeaders = (headers: IncomingMessage['headers']): Headers => {
   const forwardedHeaders = new Headers();
@@ -82,6 +84,44 @@ const buildStudioFrameTargetUrl = (port: number, url: URL): string => {
   return `http://127.0.0.1:${port}${normalizedPath}${url.search}`;
 };
 
+const buildStudioRuntimeApiTargetUrl = (port: number, path: string, search = ''): string => {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `http://127.0.0.1:${port}${normalizedPath}${search}`;
+};
+
+const proxyStudioRuntimeApiRoute = async (
+  req: IncomingMessage,
+  res: ServerResponse,
+  url: URL,
+  ctx: HostApiContext,
+  runtimePath: string,
+): Promise<boolean> => {
+  const port = resolveStudioRuntimePort(ctx);
+  if (!port) {
+    sendJson(res, 503, { ok: false, error: 'Studio runtime is not ready' });
+    return true;
+  }
+
+  const proxyResponse = await fetch(buildStudioRuntimeApiTargetUrl(port, runtimePath, url.search), {
+    method: req.method,
+    headers: copyRequestHeaders(req.headers),
+    body: await readRequestBody(req),
+    redirect: 'manual',
+  });
+
+  res.statusCode = proxyResponse.status;
+  proxyResponse.headers.forEach((value, key) => {
+    if (key.toLowerCase() === 'content-length') {
+      return;
+    }
+    res.setHeader(key, value);
+  });
+
+  const payload = Buffer.from(await proxyResponse.arrayBuffer());
+  res.end(payload);
+  return true;
+};
+
 export async function handleStudioRoutes(
   req: IncomingMessage,
   res: ServerResponse,
@@ -104,6 +144,19 @@ export async function handleStudioRoutes(
       repairEnvironment: body.repairEnvironment === true,
     }));
     return true;
+  }
+
+  if (url.pathname === '/api/studio/skins/registry' && req.method === 'GET') {
+    sendJson(res, 200, readStudioSkinRegistry());
+    return true;
+  }
+
+  if (url.pathname === '/api/studio/skins' && req.method === 'GET') {
+    return await proxyStudioRuntimeApiRoute(req, res, url, ctx, STUDIO_SKINS_RUNTIME_PREFIX);
+  }
+
+  if (url.pathname === '/api/studio/skins/apply' && req.method === 'POST') {
+    return await proxyStudioRuntimeApiRoute(req, res, url, ctx, `${STUDIO_SKINS_RUNTIME_PREFIX}/apply`);
   }
 
   if (req.method === 'OPTIONS' && url.pathname.startsWith('/api/studio/')) {

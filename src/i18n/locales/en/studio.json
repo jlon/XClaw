@@ -22,6 +22,8 @@
         "description": "Rebuilding the Python environment and reinstalling studio dependencies. Please wait."
     },
     "actions": {
-        "retry": "Retry runtime"
+        "retry": "Retry runtime",
+        "shuffleSkin": "Shuffle skin",
+        "switchingSkin": "Switching…"
     }
 }

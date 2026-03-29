@@ -1,0 +1,15 @@
+{
+  "key": "frost-ops",
+  "name": "Frost Ops",
+  "summary": "A colder operational skin with blue-gray accents and sharper geometry.",
+  "surface": {
+    "tone": "frost",
+    "material": "steel",
+    "style": "ops"
+  },
+  "assets": {
+    "office_bg_small.webp": "skins/frost-ops/assets/office_bg_small.webp",
+    "desk-v3.webp": "skins/frost-ops/assets/desk-v3.webp",
+    "sofa-idle-v3.png": "skins/frost-ops/assets/sofa-idle-v3.png"
+  }
+}

@@ -876,7 +876,7 @@ export const ChatInput = memo(function ChatInput({
 
         {/* Input Row */}
         <div className={cn(
-          'app-chat-composer-dock relative rounded-[14px] border border-[hsl(var(--border-subtle)/0.68)] bg-[hsl(var(--surface-elevated)/0.985)] px-4 py-2.5 shadow-none',
+          'app-chat-composer-dock relative rounded-[14px] px-4 py-2.5 shadow-none',
           dragOver ? 'border-primary/30 ring-2 ring-primary/12' : '',
         )}>
           <div className="app-chat-composer-editor">

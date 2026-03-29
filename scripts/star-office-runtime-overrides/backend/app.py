@@ -13,6 +13,7 @@ import subprocess
 import tempfile
 import threading
 from pathlib import Path
+from identity_utils import parse_identity_name
 from security_utils import is_production_mode, is_strong_secret, is_strong_drawer_pass
 from memo_utils import get_yesterday_date_str, sanitize_content, extract_memo_from_file
 from store_utils import (
@@ -27,6 +28,7 @@ from store_utils import (
     load_join_keys as _store_load_join_keys,
     save_join_keys as _store_save_join_keys,
 )
+from skin_registry import build_apply_result, build_skin_snapshot
 
 try:
     from PIL import Image
@@ -245,10 +247,8 @@ def get_office_name_from_identity():
     try:
         with open(IDENTITY_FILE, "r", encoding="utf-8") as f:
             content = f.read()
-        m = re.search(r"-\s*\*\*(?:Name|名字)\s*[:：]\*\*\s*(.+)", content)
-        if m:
-            name = m.group(1).strip().replace("\r", "").split("\n")[0].strip()
-            return f"{name}的工作室" if name else None
+        name = parse_identity_name(content)
+        return f"{name}的工作室" if name else None
     except Exception:
         pass
     return None
@@ -310,6 +310,9 @@ def electron_standalone_page():
     """Serve Electron-only standalone frontend page."""
     _sync_runtime_mode_from_request()
     ensure_electron_standalone_snapshot()
+    requested_skin_key = (request.args.get("skinKey") or "").strip()
+    if requested_skin_key:
+        build_apply_result({"skinKey": requested_skin_key})
     target = FRONTEND_ELECTRON_STANDALONE_FILE
     if not os.path.exists(target):
         target = FRONTEND_INDEX_FILE
@@ -342,6 +345,19 @@ def invite_page():
     resp = make_response(html)
     resp.headers["Content-Type"] = "text/html; charset=utf-8"
     return resp
+
+
+@app.route("/studio/skins", methods=["GET"])
+def studio_skins():
+    _sync_runtime_mode_from_request()
+    return jsonify(build_skin_snapshot())
+
+
+@app.route("/studio/skins/apply", methods=["POST"])
+def studio_apply_skin():
+    _sync_runtime_mode_from_request()
+    payload = request.get_json(silent=True) or {}
+    return jsonify(build_apply_result(payload))
 
 
 DEFAULT_AGENTS = [

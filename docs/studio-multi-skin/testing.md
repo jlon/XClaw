@@ -1,20 +1,28 @@
 # 工作室多皮肤切换测试方案
 
-## 设计阶段
+## 已完成验证
 
-- 核对随机策略是否与产品预期一致
-- 核对“手动换皮仅对本次进入生效”的行为是否明确
-- 核对非目标范围是否被严格排除
+- `pnpm exec vitest run tests/unit/studio-skins.test.ts tests/unit/studio-routes.test.ts tests/unit/studio-page.test.tsx`
+- `pnpm run typecheck`
+- `pnpm dev`
+- `curl http://127.0.0.1:3210/api/studio/skins/registry`
+- `curl -X POST http://127.0.0.1:3210/api/studio/skins/apply -d '{"skinKey":"frost-ops"}'`
+- `curl -X POST http://127.0.0.1:3210/api/studio/skins/apply -d '{"skinKey":"lodge-default"}'`
 
-## 实现后需要覆盖
+## 当前覆盖点
 
-- 首次进入工作室时自动随机皮肤
-- 连续两次进入时默认避开上一套皮肤
-- 手动点击“换皮”后当前实例锁定到新皮肤
-- 离开工作室再进入时重新随机
-- `enabled = false` 的皮肤不会进入随机池或手动换皮候选池
-- 皮肤资源缺失时回退默认皮肤
-- 皮肤切换时工作室不白屏、不半套错位
-- 手动换皮过程中不允许通过重启 runtime 完成刷新
-- XClaw 只有在 runtime 明确确认成功后才更新当前皮肤状态
-- 工作室右上角入口在不同窗口尺寸下可正常使用
+- 首次进入工作室前由 renderer 侧选择本次实例皮肤
+- 自动随机时默认避开上一轮离开工作室时的皮肤
+- 手动换皮只从当前皮肤之外的可用池里选择
+- host 侧在 runtime 未启动时也能返回皮肤注册表
+- runtime apply 接口会返回统一结果对象与刷新资产列表
+- `electron-standalone?skinKey=...` 能在首次加载前触发目标皮肤应用
+- 工作室页面会把 `skinKey` 编码进 runtime URL
+- 当前实例内显示“换皮”按钮，且点击后会调用 runtime apply 链
+- runtime apply 失败时会尝试回退默认皮肤
+
+## 尚未自动化覆盖
+
+- 真实 Electron webview 内的肉眼视觉差异与切换体感
+- 资源刷新失败后前端强制 fallback 的截图级验证
+- 如果未来把精灵表也纳入皮肤包，需要补专门的刷新验证

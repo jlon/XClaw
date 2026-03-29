@@ -40,6 +40,8 @@ export interface StudioSkinApplyResult {
   appliedSkinKey: string | null;
   fallbackApplied: boolean;
   reason?: string | null;
+  currentAppliedSkinKey?: string | null;
+  refreshedAssets?: string[];
 }
 
 declare global {

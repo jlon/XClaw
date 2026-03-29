@@ -77,8 +77,10 @@ export function selectEntryStudioSkin(
 export function selectManualStudioSkin(
   session: StudioSkinSession,
   randomSource: RandomSource = Math.random,
+  displayedSkinKey: string | null = null,
 ): string | null {
-  const candidateSkins = getSelectableSkins(session).filter((skin) => skin.key !== session.currentSkinKey);
+  const excludedSkinKeys = new Set([session.currentSkinKey, normalizeSkinKey(displayedSkinKey)]);
+  const candidateSkins = getSelectableSkins(session).filter((skin) => !excludedSkinKeys.has(skin.key));
 
   if (candidateSkins.length === 0) {
     return null;

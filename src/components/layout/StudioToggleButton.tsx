@@ -34,10 +34,12 @@ export function StudioToggleButton({
         <Button
           variant="ghost"
           className={cn(
-            'app-chat-toolbar-button app-chat-toolbar-button--studio rounded-[10px] text-[12px] font-medium',
+            'app-chat-toolbar-button app-chat-toolbar-button--studio app-titlebar-utility-surface no-drag relative z-10 rounded-[10px] text-[12px] font-medium',
             compact || iconOnly ? 'h-7 w-7 px-0' : 'h-8 min-w-[96px] px-2.5',
             onStudioRoute && 'app-chat-toolbar-button--studio-current',
           )}
+          type="button"
+          onMouseDown={(event) => event.stopPropagation()}
           onClick={handleToggle}
           aria-label={buttonLabel}
         >

@@ -358,6 +358,12 @@ describe('chat render stability', () => {
     expect(emptyScrollShell).toHaveClass('subtle-scrollbar');
   });
 
+  it('marks the chat surface as a wallpaper-aware page stage', () => {
+    const { container } = renderChat();
+
+    expect(container.querySelector('.app-chat-shell')).toHaveClass('app-page-stage');
+  });
+
   it('renders a desktop exec approval overlay for pending approvals in the current session', () => {
     gatewayState.execApprovalQueue = [
       {

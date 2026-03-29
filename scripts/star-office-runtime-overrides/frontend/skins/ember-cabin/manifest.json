@@ -1,0 +1,15 @@
+{
+  "key": "ember-cabin",
+  "name": "Ember Cabin",
+  "summary": "A warmer firelit skin with ember accents and heavier contrast.",
+  "surface": {
+    "tone": "ember",
+    "material": "charred-wood",
+    "style": "cabin"
+  },
+  "assets": {
+    "office_bg_small.webp": "skins/ember-cabin/assets/office_bg_small.webp",
+    "desk-v3.webp": "skins/ember-cabin/assets/desk-v3.webp",
+    "sofa-idle-v3.png": "skins/ember-cabin/assets/sofa-idle-v3.png"
+  }
+}

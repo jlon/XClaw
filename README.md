@@ -113,6 +113,8 @@ Connect providers such as OpenAI and Anthropic while keeping credentials in the 
 ### 🌙 Theme That Adapts
 Choose light mode, dark mode, or system sync. XClaw follows the preference automatically.
 
+You can also import a whole-window wallpaper from **Settings → General**, keep it managed inside XClaw's local app data, and tune the shell opacity without breaking the shared sidebar and title bar materials.
+
 ### 🚀 Launch on Login
 In **Settings → General**, enable **Launch at system startup** if you want XClaw to open automatically after sign-in.
 

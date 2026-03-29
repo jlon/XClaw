@@ -4343,7 +4343,7 @@
             if (!scene || !path) return false;
 
             const sprite = mapAssetPathToSprite(path);
-            if (!sprite || !sprite.texture) return false;
+            if (!sprite || !sprite.texture) return true;
 
             const oldKey = sprite.texture.key;
             const ext = path.split('.').pop();
@@ -4391,6 +4391,41 @@
                 }
             });
         }
+
+        async function applyStudioSkinRuntimeResult(result, allowFallback = true) {
+            const refreshedAssets = Array.isArray(result?.refreshedAssets)
+                ? [...new Set(result.refreshedAssets.filter(path => typeof path === 'string' && path.trim()))]
+                : [];
+
+            for (const path of refreshedAssets) {
+                const refreshed = await refreshSceneObjectByAssetPath(path);
+                if (!refreshed) {
+                    if (!allowFallback) return false;
+                    const fallbackSkinKey = typeof result?.defaultFallbackSkinKey === 'string' ? result.defaultFallbackSkinKey.trim() : '';
+                    if (!fallbackSkinKey) return false;
+                    try {
+                        const fallbackResponse = await fetch('/studio/skins/apply', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ skinKey: fallbackSkinKey })
+                        });
+                        const fallbackResult = await fallbackResponse.json();
+                        return await applyStudioSkinRuntimeResult(fallbackResult, false);
+                    } catch (_) {
+                        return false;
+                    }
+                }
+            }
+
+            return result?.ok === true || result?.fallbackApplied === true;
+        }
+
+        window.__applyStudioSkinRuntimeResult = applyStudioSkinRuntimeResult;
+        window.addEventListener('message', event => {
+            const payload = event?.data;
+            if (!payload || payload.type !== 'xclaw:studio-skin-apply-result') return;
+            void applyStudioSkinRuntimeResult(payload.result);
+        });
 
         async function commitAssetUpdate() {
             const path = (selectedAssetInfo && selectedAssetInfo.path) ? selectedAssetInfo.path : '';

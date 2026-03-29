@@ -68,6 +68,15 @@ describe('studio skin session state machine', () => {
     expect(picked).not.toBe('ember-cabin');
   });
 
+  it('excludes the currently displayed skin even before session confirmation catches up', () => {
+    const session = createSession();
+
+    const picked = selectManualStudioSkin(session, () => 0, 'ember-cabin');
+
+    expect(picked).toBe('frost-ops');
+    expect(picked).not.toBe('ember-cabin');
+  });
+
   it('returns null for manual switching when only one available skin remains', () => {
     const session = createStudioSkinSession([
       { key: 'lodge-default', enabled: true, selectable: false, isDefaultFallback: true },
